@@ -1,0 +1,69 @@
+# Built application files
+*.aar
+*.ap_
+*.aab
+*.apk
+
+# Exception: keep the downloadable APK in release/
+!release/*.apk
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+/.idea/
+*.iml
+*.iws
+.navigation/
+captures/
+
+# Keystore files (NEVER commit signing keys)
+*.jks
+*.keystore
+signing.properties
+
+# External native build
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Log files
+*.log
+
+# Room schema exports (optional to track, but can be large)
+# app/schemas/
+
+# Secrets / credentials
+*.env
+.env.*
+secrets/
+credentials/
+google-services.json
+
+# Claude Code local settings
+.claude/
+
+# Windows reserved names (can appear as phantom files)
+nul

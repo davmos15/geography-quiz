@@ -1,6 +1,8 @@
 package com.geoquiz.app.ui.quiz
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,9 +10,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -25,8 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
@@ -35,13 +53,18 @@ import com.geoquiz.app.ui.theme.CorrectGreen
 
 @Composable
 fun QuizScreen(
-    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String) -> Unit,
+    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String) -> Unit,
     onNavigateHome: () -> Unit,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     var showGiveUpDialog by remember { mutableStateOf(false) }
+
+    // Auto-pause and save when app goes to background
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        viewModel.onBackgrounded()
+    }
 
     when (val state = uiState) {
         is QuizUiState.Loading -> {
@@ -72,82 +95,164 @@ fun QuizScreen(
                         result.totalCountries,
                         result.timeElapsedSeconds,
                         result.perfectBonus,
-                        result.category.displayName
+                        result.category.displayName,
+                        viewModel.category.typeKey,
+                        viewModel.category.valueKey
                     )
                 }
             }
 
             Scaffold { padding ->
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
-                        .padding(16.dp)
                 ) {
-                    // Category name
-                    Text(
-                        text = quizState.quiz.category.displayName,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Header row with progress and optional timer
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
                     ) {
+                        // Category name
                         Text(
-                            text = "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size}",
-                            style = MaterialTheme.typography.titleMedium
+                            text = quizState.quiz.category.displayName,
+                            style = MaterialTheme.typography.headlineMedium
                         )
-                        if (showTimer) {
-                            Spacer(modifier = Modifier.width(12.dp))
-                            TimerDisplay(
-                                elapsedSeconds = quizState.timeElapsedSeconds,
-                                timerSeconds = null
+
+                        // Pattern explainer banner
+                        val patternDescription = quizState.quiz.category.description
+                        if (patternDescription != null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Info,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = patternDescription,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Header row with progress, optional timer, and pause button
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size}",
+                                style = MaterialTheme.typography.titleMedium
                             )
+                            if (showTimer) {
+                                Spacer(modifier = Modifier.width(12.dp))
+                                TimerDisplay(
+                                    elapsedSeconds = quizState.timeElapsedSeconds,
+                                    timerSeconds = null
+                                )
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            IconButton(onClick = { viewModel.togglePause() }) {
+                                Icon(
+                                    imageVector = if (quizState.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                    contentDescription = if (quizState.isPaused) "Resume" else "Pause"
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LinearProgressIndicator(
+                            progress = { quizState.progress },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = CorrectGreen,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Answer input
+                        AnswerInput(
+                            value = quizState.currentInput,
+                            onValueChange = viewModel::onInputChange,
+                            onSubmit = viewModel::onSubmitAnswer,
+                            lastResult = quizState.lastAnswerResult,
+                            enabled = !quizState.isComplete && !quizState.isPaused
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Give up button
+                        OutlinedButton(
+                            onClick = { showGiveUpDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !quizState.isPaused
+                        ) {
+                            Text("Give Up")
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Country list
+                        CountryList(
+                            countries = quizState.quiz.countries,
+                            answeredCodes = quizState.answeredCountries,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // Pause overlay
+                    if (quizState.isPaused) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .zIndex(1f)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    Icons.Default.PauseCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "Paused",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size} countries named",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Button(onClick = { viewModel.togglePause() }) {
+                                    Text("Resume")
+                                }
+                            }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    LinearProgressIndicator(
-                        progress = { quizState.progress },
-                        modifier = Modifier.fillMaxWidth(),
-                        color = CorrectGreen,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Answer input
-                    AnswerInput(
-                        value = quizState.currentInput,
-                        onValueChange = viewModel::onInputChange,
-                        onSubmit = viewModel::onSubmitAnswer,
-                        lastResult = quizState.lastAnswerResult,
-                        enabled = !quizState.isComplete
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Give up button
-                    OutlinedButton(
-                        onClick = { showGiveUpDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Give Up")
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Country list
-                    CountryList(
-                        countries = quizState.quiz.countries,
-                        answeredCodes = quizState.answeredCountries,
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
 

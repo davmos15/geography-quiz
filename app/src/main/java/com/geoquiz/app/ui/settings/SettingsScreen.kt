@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -32,6 +34,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
+    val playerName by viewModel.playerName.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -74,6 +77,26 @@ fun SettingsScreen(
                     onCheckedChange = { viewModel.onToggleTimer(it) }
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Player Name",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Used when sharing results and challenging friends",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = playerName,
+                onValueChange = { viewModel.onPlayerNameChange(it) },
+                placeholder = { Text("Enter your name") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

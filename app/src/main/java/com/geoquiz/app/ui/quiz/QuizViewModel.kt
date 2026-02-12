@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Quiz
@@ -33,14 +34,15 @@ class QuizViewModel @Inject constructor(
     private val validateAnswer: ValidateAnswerUseCase,
     private val calculateScore: CalculateScoreUseCase,
     private val settingsRepository: SettingsRepository,
-    private val achievementRepository: AchievementRepository
+    private val achievementRepository: AchievementRepository,
+    private val savedQuizRepository: SavedQuizRepository
 ) : ViewModel() {
 
     private val categoryType: String = savedStateHandle["categoryType"] ?: "all"
     private val categoryValueRaw: String = savedStateHandle["categoryValue"] ?: "_"
     private val categoryValue: String = URLDecoder.decode(categoryValueRaw, "UTF-8")
 
-    private val category: QuizCategory = QuizCategory.fromRoute(categoryType, categoryValue)
+    val category: QuizCategory = QuizCategory.fromRoute(categoryType, categoryValue)
 
     private val _uiState = MutableStateFlow<QuizUiState>(QuizUiState.Loading)
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
@@ -69,8 +71,29 @@ class QuizViewModel @Inject constructor(
                 countries = countries,
                 timerSeconds = null
             )
-            val state = QuizState(quiz = quiz)
-            _uiState.value = QuizUiState.Active(state)
+
+            // Check for saved quiz state to restore
+            val savedQuiz = savedQuizRepository.getSavedQuiz()
+            if (savedQuiz != null &&
+                savedQuiz.categoryType == categoryType &&
+                savedQuiz.categoryValue == categoryValue
+            ) {
+                val savedCodes = savedQuizRepository.parseAnsweredCodes(savedQuiz.answeredCountryCodes)
+                // Filter to only codes that are still valid in this quiz
+                val validCodes = savedCodes.filter { code ->
+                    countries.any { it.code == code }
+                }.toSet()
+                val state = QuizState(
+                    quiz = quiz,
+                    answeredCountries = validCodes,
+                    timeElapsedSeconds = savedQuiz.timeElapsedSeconds
+                )
+                _uiState.value = QuizUiState.Active(state)
+                savedQuizRepository.clearSavedQuiz()
+            } else {
+                val state = QuizState(quiz = quiz)
+                _uiState.value = QuizUiState.Active(state)
+            }
             startTimer()
         }
     }
@@ -81,7 +104,7 @@ class QuizViewModel @Inject constructor(
             while (true) {
                 delay(1000L)
                 val current = _uiState.value
-                if (current is QuizUiState.Active && !current.state.isComplete) {
+                if (current is QuizUiState.Active && !current.state.isComplete && !current.state.isPaused) {
                     _uiState.update { uiState ->
                         if (uiState is QuizUiState.Active) {
                             QuizUiState.Active(
@@ -91,9 +114,44 @@ class QuizViewModel @Inject constructor(
                             )
                         } else uiState
                     }
-                } else {
+                } else if (current is QuizUiState.Active && current.state.isComplete) {
                     break
                 }
+            }
+        }
+    }
+
+    fun togglePause() {
+        _uiState.update { uiState ->
+            if (uiState is QuizUiState.Active && !uiState.state.isComplete) {
+                QuizUiState.Active(uiState.state.copy(isPaused = !uiState.state.isPaused))
+            } else uiState
+        }
+    }
+
+    fun onBackgrounded() {
+        val current = _uiState.value
+        if (current is QuizUiState.Active && !current.state.isComplete) {
+            // Pause the quiz
+            _uiState.update { uiState ->
+                if (uiState is QuizUiState.Active && !uiState.state.isComplete) {
+                    QuizUiState.Active(uiState.state.copy(isPaused = true))
+                } else uiState
+            }
+            saveQuizState()
+        }
+    }
+
+    private fun saveQuizState() {
+        val current = _uiState.value
+        if (current is QuizUiState.Active && !current.state.isComplete && current.state.answeredCountries.isNotEmpty()) {
+            viewModelScope.launch {
+                savedQuizRepository.saveQuizState(
+                    categoryType = categoryType,
+                    categoryValue = categoryValue,
+                    answeredCodes = current.state.answeredCountries,
+                    timeElapsed = current.state.timeElapsedSeconds
+                )
             }
         }
     }
@@ -109,7 +167,7 @@ class QuizViewModel @Inject constructor(
     fun onSubmitAnswer() {
         val current = _uiState.value
         if (current !is QuizUiState.Active) return
-        if (current.state.isComplete) return
+        if (current.state.isComplete || current.state.isPaused) return
 
         val input = current.state.currentInput.trim()
         if (input.isBlank()) return
@@ -146,6 +204,10 @@ class QuizViewModel @Inject constructor(
                 QuizUiState.Active(uiState.state.copy(isComplete = true))
             } else uiState
         }
+        // Clear any saved state since quiz is done
+        viewModelScope.launch {
+            savedQuizRepository.clearSavedQuiz()
+        }
     }
 
     fun getResult(): com.geoquiz.app.domain.model.QuizResult? {
@@ -174,11 +236,25 @@ class QuizViewModel @Inject constructor(
             }
         }
 
+        // Clear saved state on completion
+        viewModelScope.launch {
+            savedQuizRepository.clearSavedQuiz()
+        }
+
         return result
     }
 
     fun clearNewAchievements() {
         _newAchievements.value = emptyList()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        val current = _uiState.value
+        if (current is QuizUiState.Active && !current.state.isComplete && current.state.answeredCountries.isNotEmpty()) {
+            // Can't use viewModelScope here since it's cancelled, but the coroutine
+            // launched from saveQuizState would have already saved if onBackgrounded was called
+        }
     }
 }
 

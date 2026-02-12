@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,10 +31,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.domain.model.ChallengeDeepLink
+import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.ui.share.ShareUtils
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +49,7 @@ fun CategoryListScreen(
     viewModel: CategoryListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -85,7 +93,24 @@ fun CategoryListScreen(
                 items(state.quizOptions) { option ->
                     QuizOptionCard(
                         option = option,
-                        onClick = { onStartQuiz(option.categoryType, option.categoryValue) }
+                        onClick = { onStartQuiz(option.categoryType, option.categoryValue) },
+                        onChallenge = {
+                            val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
+                            val deepLink = ChallengeDeepLink(
+                                challengeId = UUID.randomUUID().toString(),
+                                categoryType = option.categoryType,
+                                categoryValue = option.categoryValue,
+                                challengerName = "Friend",
+                                challengerScore = null,
+                                challengerTotal = null,
+                                challengerTime = null
+                            )
+                            ShareUtils.shareChallenge(
+                                context = context,
+                                categoryName = category.displayName,
+                                deepLink = deepLink.toUri()
+                            )
+                        }
                     )
                 }
             }
@@ -96,7 +121,8 @@ fun CategoryListScreen(
 @Composable
 private fun QuizOptionCard(
     option: QuizOptionInfo,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onChallenge: () -> Unit
 ) {
     Card(
         onClick = onClick,
@@ -110,20 +136,41 @@ private fun QuizOptionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = option.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                if (option.description != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = option.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Text(
-                text = option.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = "${option.countryCount} countries",
+                text = "${option.countryCount}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
+            IconButton(
+                onClick = onChallenge,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Default.Share,
+                    contentDescription = "Challenge a friend",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }

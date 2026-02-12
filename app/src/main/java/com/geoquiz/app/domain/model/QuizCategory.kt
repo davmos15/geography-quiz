@@ -34,6 +34,17 @@ sealed class QuizCategory {
             is IslandCountries -> "Island Nations"
         }
 
+    val description: String?
+        get() = when (this) {
+            is DoubleLetter -> "Countries with consecutive identical letters (e.g., Morocco, Greece)"
+            is ConsonantCluster -> "Countries with 3+ consonants in a row (e.g., Kyrgyzstan)"
+            is RepeatedLetter3 -> "Countries where one letter appears at least 3 times (e.g., Madagascar)"
+            is StartsEndsSame -> "Countries that begin and end with the same letter (e.g., Austria)"
+            is PalindromeName -> "Countries containing a palindrome of 3+ letters (e.g., Iran \u2192 'ira')"
+            is AllVowelsPresent -> "Countries whose name contains all 5 vowels: A, E, I, O, U (e.g., Mozambique)"
+            else -> null
+        }
+
     val typeKey: String
         get() = when (this) {
             is AllCountries -> "all"

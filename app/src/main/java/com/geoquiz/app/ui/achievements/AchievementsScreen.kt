@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.graphics.Color
 import com.geoquiz.app.domain.model.AchievementTier
 import com.geoquiz.app.ui.theme.*
 
@@ -120,7 +121,7 @@ private fun AchievementCard(info: AchievementDisplayInfo) {
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     color = if (info.unlocked) {
-                        MaterialTheme.colorScheme.onSurface
+                        Color(0xFF1C1C1C)
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     }
@@ -130,7 +131,7 @@ private fun AchievementCard(info: AchievementDisplayInfo) {
                     text = info.achievement.description,
                     style = MaterialTheme.typography.bodySmall,
                     color = if (info.unlocked) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        Color(0xFF616161)
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     }

@@ -26,7 +26,8 @@ data class QuizOptionInfo(
     val name: String,
     val countryCount: Int,
     val categoryType: String,
-    val categoryValue: String
+    val categoryValue: String,
+    val description: String? = null
 )
 
 @HiltViewModel
@@ -154,12 +155,14 @@ class CategoryListViewModel @Inject constructor(
                 QuizOptionInfo(
                     "Double Letter",
                     countries.count { doubleLetterRegex.containsMatchIn(it.name) },
-                    "doubleletter", "_"
+                    "doubleletter", "_",
+                    description = QuizCategory.DoubleLetter.description
                 ),
                 QuizOptionInfo(
                     "Consonant Cluster (3+)",
                     countries.count { consonantClusterRegex.containsMatchIn(it.name) },
-                    "consonantcluster", "_"
+                    "consonantcluster", "_",
+                    description = QuizCategory.ConsonantCluster.description
                 ),
                 QuizOptionInfo(
                     "Same Letter 3+ Times",
@@ -167,17 +170,20 @@ class CategoryListViewModel @Inject constructor(
                         country.name.lowercase().groupBy { it }
                             .any { (ch, occ) -> ch.isLetter() && occ.size >= 3 }
                     },
-                    "repeatedletter3", "_"
+                    "repeatedletter3", "_",
+                    description = QuizCategory.RepeatedLetter3.description
                 ),
                 QuizOptionInfo(
                     "Starts & Ends Same",
                     countries.count { it.name.first().uppercaseChar() == it.name.last().uppercaseChar() },
-                    "startsendssame", "_"
+                    "startsendssame", "_",
+                    description = QuizCategory.StartsEndsSame.description
                 ),
                 QuizOptionInfo(
                     "Palindrome Substring",
                     countries.count { hasPalindromeSubstring(it.name, 3) },
-                    "palindrome", "_"
+                    "palindrome", "_",
+                    description = QuizCategory.PalindromeName.description
                 ),
                 QuizOptionInfo(
                     "Contains All 5 Vowels",
@@ -185,7 +191,8 @@ class CategoryListViewModel @Inject constructor(
                         val lower = country.name.lowercase()
                         vowels.all { it in lower }
                     },
-                    "allvowels", "_"
+                    "allvowels", "_",
+                    description = QuizCategory.AllVowelsPresent.description
                 )
             ).filter { it.countryCount > 0 }
         }

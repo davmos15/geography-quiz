@@ -1,7 +1,6 @@
 package com.geoquiz.app.ui.navigation
 
 import java.net.URLEncoder
-import java.net.URLDecoder
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -22,7 +21,7 @@ sealed class Screen(val route: String) {
     }
 
     data object Results : Screen(
-        "results/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}"
+        "results/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}/{categoryType}/{categoryValue}"
     ) {
         fun createRoute(
             score: Double,
@@ -30,12 +29,17 @@ sealed class Screen(val route: String) {
             total: Int,
             time: Int,
             perfectBonus: Boolean,
-            categoryName: String
+            categoryName: String,
+            categoryType: String,
+            categoryValue: String
         ): String {
-            val encoded = URLEncoder.encode(categoryName, "UTF-8")
-            return "results/$score/$correct/$total/$time/$perfectBonus/$encoded"
+            val encodedName = URLEncoder.encode(categoryName, "UTF-8")
+            val encodedValue = URLEncoder.encode(categoryValue, "UTF-8")
+            return "results/$score/$correct/$total/$time/$perfectBonus/$encodedName/$categoryType/$encodedValue"
         }
     }
 
     data object AnswerReview : Screen("answer_review")
+
+    data object Challenges : Screen("challenges")
 }

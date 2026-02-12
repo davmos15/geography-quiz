@@ -18,9 +18,18 @@ class SettingsViewModel @Inject constructor(
     val showTimer: StateFlow<Boolean> = settingsRepository.showTimer
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val playerName: StateFlow<String> = settingsRepository.playerName
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     fun onToggleTimer(show: Boolean) {
         viewModelScope.launch {
             settingsRepository.setShowTimer(show)
+        }
+    }
+
+    fun onPlayerNameChange(name: String) {
+        viewModelScope.launch {
+            settingsRepository.setPlayerName(name)
         }
     }
 }

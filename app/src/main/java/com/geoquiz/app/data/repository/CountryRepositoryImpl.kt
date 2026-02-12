@@ -59,6 +59,7 @@ class CountryRepositoryImpl @Inject constructor(
             .bufferedReader().use { it.readText() }
 
         val parsed = json.decodeFromString<List<CountryJson>>(rawJson)
+            .filter { it.unMember }
 
         val entities = mutableListOf<CountryEntity>()
         val aliases = mutableListOf<AliasEntity>()
@@ -132,9 +133,6 @@ class CountryRepositoryImpl @Inject constructor(
             "CZE" to listOf("Czech Republic", "Czechia"),
             "TLS" to listOf("East Timor"),
             "MMR" to listOf("Burma"),
-            "PSE" to listOf("Palestine"),
-            "TWN" to listOf("Taiwan"),
-            "VAT" to listOf("Vatican", "Vatican City", "Holy See"),
             "RUS" to listOf("Russia"),
             "BRN" to listOf("Brunei"),
             "LAO" to listOf("Laos"),
@@ -163,7 +161,8 @@ private data class CountryJson(
     val name: NameJson,
     val region: String,
     val subregion: String? = null,
-    val altSpellings: List<String> = emptyList()
+    val altSpellings: List<String> = emptyList(),
+    val unMember: Boolean = false
 )
 
 @Serializable

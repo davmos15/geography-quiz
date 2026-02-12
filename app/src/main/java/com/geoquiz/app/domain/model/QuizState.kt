@@ -6,6 +6,7 @@ data class QuizState(
     val currentInput: String = "",
     val timeElapsedSeconds: Int = 0,
     val isComplete: Boolean = false,
+    val isPaused: Boolean = false,
     val lastAnswerResult: AnswerResult = AnswerResult.None
 ) {
     val progress: Float

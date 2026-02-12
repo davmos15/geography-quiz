@@ -1,14 +1,17 @@
 package com.geoquiz.app.ui.navigation
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.ui.achievements.AchievementsScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
+import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
 import com.geoquiz.app.ui.home.HomeScreen
 import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
@@ -17,8 +20,26 @@ import com.geoquiz.app.ui.settings.SettingsScreen
 import java.net.URLDecoder
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(intent: Intent? = null) {
     val navController = rememberNavController()
+
+    // Handle deep links for challenges
+    LaunchedEffect(intent?.data) {
+        val uri = intent?.data ?: return@LaunchedEffect
+        if (uri.scheme == "geoquiz" && uri.host == "challenge") {
+            val categoryType = uri.getQueryParameter("ct") ?: return@LaunchedEffect
+            val categoryValue = uri.getQueryParameter("cv") ?: return@LaunchedEffect
+            val challengeId = uri.getQueryParameter("id")
+            val route = if (challengeId != null) {
+                Screen.Quiz.createRoute(categoryType, categoryValue) + "?challengeId=$challengeId"
+            } else {
+                Screen.Quiz.createRoute(categoryType, categoryValue)
+            }
+            navController.navigate(route) {
+                popUpTo(Screen.Home.route)
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -34,6 +55,9 @@ fun AppNavigation() {
                 },
                 onNavigateToAchievements = {
                     navController.navigate(Screen.Achievements.route)
+                },
+                onNavigateToChallenges = {
+                    navController.navigate(Screen.Challenges.route)
                 },
                 onStartQuiz = { categoryType, categoryValue ->
                     navController.navigate(
@@ -79,9 +103,9 @@ fun AppNavigation() {
             )
         ) {
             QuizScreen(
-                onQuizComplete = { score, correct, total, time, perfectBonus, categoryName ->
+                onQuizComplete = { score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue ->
                     navController.navigate(
-                        Screen.Results.createRoute(score, correct, total, time, perfectBonus, categoryName)
+                        Screen.Results.createRoute(score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue)
                     ) {
                         popUpTo(Screen.Quiz.route) { inclusive = true }
                     }
@@ -100,7 +124,9 @@ fun AppNavigation() {
                 navArgument("total") { type = NavType.IntType },
                 navArgument("time") { type = NavType.IntType },
                 navArgument("perfectBonus") { type = NavType.BoolType },
-                navArgument("categoryName") { type = NavType.StringType }
+                navArgument("categoryName") { type = NavType.StringType },
+                navArgument("categoryType") { type = NavType.StringType },
+                navArgument("categoryValue") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val score = backStackEntry.arguments?.getFloat("score")?.toDouble() ?: 0.0
@@ -110,6 +136,9 @@ fun AppNavigation() {
             val perfectBonus = backStackEntry.arguments?.getBoolean("perfectBonus") ?: false
             val rawName = backStackEntry.arguments?.getString("categoryName") ?: ""
             val categoryName = URLDecoder.decode(rawName, "UTF-8")
+            val categoryType = backStackEntry.arguments?.getString("categoryType") ?: ""
+            val rawValue = backStackEntry.arguments?.getString("categoryValue") ?: ""
+            val categoryValue = URLDecoder.decode(rawValue, "UTF-8")
 
             ResultsScreen(
                 score = score,
@@ -118,6 +147,8 @@ fun AppNavigation() {
                 timeElapsedSeconds = time,
                 perfectBonus = perfectBonus,
                 categoryName = categoryName,
+                categoryType = categoryType,
+                categoryValue = categoryValue,
                 onPlayAgain = {
                     navController.popBackStack(Screen.Home.route, inclusive = false)
                 },
@@ -132,6 +163,12 @@ fun AppNavigation() {
 
         composable(Screen.AnswerReview.route) {
             AnswerReviewScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Challenges.route) {
+            ChallengeLeaderboardScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

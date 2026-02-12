@@ -45,6 +45,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Share
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.ui.theme.*
 
@@ -54,6 +58,7 @@ fun HomeScreen(
     onNavigateToCategory: (groupId: String) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAchievements: () -> Unit,
+    onNavigateToChallenges: () -> Unit,
     onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -79,6 +84,12 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToChallenges) {
+                        Icon(
+                            Icons.Default.Leaderboard,
+                            contentDescription = "Challenges"
+                        )
+                    }
                     IconButton(onClick = onNavigateToAchievements) {
                         Icon(
                             Icons.Default.EmojiEvents,
@@ -128,6 +139,56 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Resume saved quiz card
+                val savedQuiz = state.savedQuiz
+                if (savedQuiz != null) {
+                    item(span = { GridItemSpan(2) }) {
+                        Card(
+                            onClick = { onStartQuiz(savedQuiz.categoryType, savedQuiz.categoryValue) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Resume Quiz",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                    Text(
+                                        text = "${savedQuiz.categoryDisplayName} - ${savedQuiz.answeredCount} answered",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                                    )
+                                }
+                                IconButton(onClick = { viewModel.dismissSavedQuiz() }) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Dismiss",
+                                        tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Featured "All Countries" card spanning full width
                 item(span = { GridItemSpan(2) }) {
                     ElevatedCard(

@@ -2,8 +2,11 @@ package com.geoquiz.app.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geoquiz.app.data.local.db.SavedQuizEntity
+import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
+import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +19,8 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = true,
     val totalCount: Int = 0,
-    val categoryGroups: List<CategoryGroupInfo> = emptyList()
+    val categoryGroups: List<CategoryGroupInfo> = emptyList(),
+    val savedQuiz: SavedQuizInfo? = null
 )
 
 data class CategoryGroupInfo(
@@ -24,9 +28,18 @@ data class CategoryGroupInfo(
     val quizCount: Int
 )
 
+data class SavedQuizInfo(
+    val categoryType: String,
+    val categoryValue: String,
+    val categoryDisplayName: String,
+    val answeredCount: Int,
+    val timeElapsed: Int
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: CountryRepository
+    private val repository: CountryRepository,
+    private val savedQuizRepository: SavedQuizRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -44,6 +57,33 @@ class HomeViewModel @Inject constructor(
                 totalCount = allCountries.size,
                 categoryGroups = groups
             )
+        }
+
+        // Watch for saved quiz changes
+        viewModelScope.launch {
+            savedQuizRepository.savedQuiz.collect { entity ->
+                _uiState.value = _uiState.value.copy(
+                    savedQuiz = entity?.toSavedQuizInfo()
+                )
+            }
+        }
+    }
+
+    private fun SavedQuizEntity.toSavedQuizInfo(): SavedQuizInfo {
+        val category = QuizCategory.fromRoute(categoryType, categoryValue)
+        val answeredCount = savedQuizRepository.parseAnsweredCodes(answeredCountryCodes).size
+        return SavedQuizInfo(
+            categoryType = categoryType,
+            categoryValue = categoryValue,
+            categoryDisplayName = category.displayName,
+            answeredCount = answeredCount,
+            timeElapsed = timeElapsedSeconds
+        )
+    }
+
+    fun dismissSavedQuiz() {
+        viewModelScope.launch {
+            savedQuizRepository.clearSavedQuiz()
         }
     }
 

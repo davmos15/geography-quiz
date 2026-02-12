@@ -103,7 +103,59 @@ class AchievementRepository @Inject constructor(
                 prefs[COMPLETED_START_LETTERS_KEY] = letters.joinToString(",")
             }
 
+            // Track completed name length quizzes
+            if (category is QuizCategory.ByNameLengthRange) {
+                val lengths = (prefs[COMPLETED_LENGTH_QUIZZES_KEY] ?: "").let {
+                    if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()
+                }
+                lengths.add("${category.min}-${category.max}")
+                prefs[COMPLETED_LENGTH_QUIZZES_KEY] = lengths.joinToString(",")
+            }
+
+            // Track completed pattern quizzes
+            val patternTypeKey = when (category) {
+                is QuizCategory.DoubleLetter -> "doubleletter"
+                is QuizCategory.ConsonantCluster -> "consonantcluster"
+                is QuizCategory.RepeatedLetter3 -> "repeatedletter3"
+                is QuizCategory.StartsEndsSame -> "startsendssame"
+                is QuizCategory.PalindromeName -> "palindrome"
+                is QuizCategory.AllVowelsPresent -> "allvowels"
+                else -> null
+            }
+            if (patternTypeKey != null) {
+                val patterns = (prefs[COMPLETED_PATTERN_QUIZZES_KEY] ?: "").let {
+                    if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()
+                }
+                patterns.add(patternTypeKey)
+                prefs[COMPLETED_PATTERN_QUIZZES_KEY] = patterns.joinToString(",")
+            }
+
+            // Track completed subregions
+            if (category is QuizCategory.BySubregion) {
+                val subregions = (prefs[COMPLETED_SUBREGIONS_KEY] ?: "").let {
+                    if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()
+                }
+                subregions.add(category.subregion)
+                prefs[COMPLETED_SUBREGIONS_KEY] = subregions.joinToString(",")
+            }
+
+            // Track region scores (best percentage per region)
             val percentage = if (totalCountries > 0) correctAnswers.toDouble() / totalCountries else 0.0
+
+            if (category is QuizCategory.ByRegion) {
+                val regionScores = (prefs[REGION_SCORES_KEY] ?: "").let {
+                    if (it.isBlank()) mutableMapOf()
+                    else it.split(";").associate { entry ->
+                        val parts = entry.split(":")
+                        parts[0] to parts.getOrElse(1) { "0.0" }.toDouble()
+                    }.toMutableMap()
+                }
+                val current = regionScores[category.region] ?: 0.0
+                if (percentage > current) {
+                    regionScores[category.region] = percentage
+                }
+                prefs[REGION_SCORES_KEY] = regionScores.entries.joinToString(";") { "${it.key}:${it.value}" }
+            }
 
             // Check achievements
             fun unlock(a: Achievement) {
@@ -113,6 +165,7 @@ class AchievementRepository @Inject constructor(
                 }
             }
 
+            // --- Original achievements ---
             unlock(Achievement.FIRST_STEPS)
 
             if (category is QuizCategory.AllCountries) {
@@ -137,6 +190,60 @@ class AchievementRepository @Inject constructor(
 
             if (groups.size >= 5) unlock(Achievement.EXPLORER)
 
+            // --- New achievements ---
+
+            // Quick Study: under 5 minutes
+            if (timeElapsedSeconds < 300 && totalCountries > 0) unlock(Achievement.QUICK_STUDY)
+
+            // Island Hopper: complete island quiz
+            if (category is QuizCategory.IslandCountries) unlock(Achievement.ISLAND_HOPPER)
+
+            // Pattern Finder: any pattern quiz
+            if (patternTypeKey != null) unlock(Achievement.PATTERN_FINDER)
+
+            // World Scholar: 75%+ in All Countries
+            if (category is QuizCategory.AllCountries && percentage >= 0.75) unlock(Achievement.WORLD_SCHOLAR)
+
+            // Length Master: 5 different name length quizzes
+            val lengthQuizzes = (prefs[COMPLETED_LENGTH_QUIZZES_KEY] ?: "").let {
+                if (it.isBlank()) emptySet() else it.split(",").toSet()
+            }
+            if (lengthQuizzes.size >= 5) unlock(Achievement.LENGTH_MASTER)
+
+            // Vowel Hunter: AllVowelsPresent quiz
+            if (category is QuizCategory.AllVowelsPresent) unlock(Achievement.VOWEL_HUNTER)
+
+            // Continental: all 5 regions with 80%+
+            val regionScores = (prefs[REGION_SCORES_KEY] ?: "").let {
+                if (it.isBlank()) emptyMap()
+                else it.split(";").associate { entry ->
+                    val parts = entry.split(":")
+                    parts[0] to parts.getOrElse(1) { "0.0" }.toDouble()
+                }
+            }
+            if (regionScores.count { it.value >= 0.8 } >= 5) unlock(Achievement.CONTINENTAL)
+
+            // Letter Collector: 15 starting letters
+            if (letters.size >= 15) unlock(Achievement.LETTER_COLLECTOR)
+
+            // Ultimate Geographer: 100% All Countries
+            if (category is QuizCategory.AllCountries && percentage >= 1.0) unlock(Achievement.ULTIMATE_GEOGRAPHER)
+
+            // Speed Master: All Countries under 15 minutes
+            if (category is QuizCategory.AllCountries && timeElapsedSeconds < 900 && totalCountries > 0) unlock(Achievement.SPEED_MASTER)
+
+            // Pattern Master: all 6 pattern types completed
+            val patternQuizzes = (prefs[COMPLETED_PATTERN_QUIZZES_KEY] ?: "").let {
+                if (it.isBlank()) emptySet() else it.split(",").toSet()
+            }
+            if (patternQuizzes.size >= 6) unlock(Achievement.PATTERN_MASTER)
+
+            // Subregion Explorer: 10 different subregions
+            val subregions = (prefs[COMPLETED_SUBREGIONS_KEY] ?: "").let {
+                if (it.isBlank()) emptySet() else it.split(",").toSet()
+            }
+            if (subregions.size >= 10) unlock(Achievement.SUBREGION_EXPLORER)
+
             prefs[UNLOCKED_KEY] = currentUnlocked.joinToString(",")
         }
 
@@ -149,5 +256,9 @@ class AchievementRepository @Inject constructor(
         private val COMPLETED_REGIONS_KEY = stringPreferencesKey("completed_regions")
         private val COMPLETED_START_LETTERS_KEY = stringPreferencesKey("completed_start_letters")
         private val CATEGORY_GROUPS_KEY = stringPreferencesKey("category_groups_played")
+        private val COMPLETED_LENGTH_QUIZZES_KEY = stringPreferencesKey("completed_length_quizzes")
+        private val COMPLETED_PATTERN_QUIZZES_KEY = stringPreferencesKey("completed_pattern_quizzes")
+        private val COMPLETED_SUBREGIONS_KEY = stringPreferencesKey("completed_subregions")
+        private val REGION_SCORES_KEY = stringPreferencesKey("region_scores")
     }
 }

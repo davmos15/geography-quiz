@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Globe circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,24
+            C37.43,24 24,37.43 24,54
+            C24,70.57 37.43,84 54,84
+            C70.57,84 84,70.57 84,54
+            C84,37.43 70.57,24 54,24Z" />
+
+    <!-- Globe outline -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,24
+            C37.43,24 24,37.43 24,54
+            C24,70.57 37.43,84 54,84
+            C70.57,84 84,70.57 84,54
+            C84,37.43 70.57,24 54,24Z" />
+
+    <!-- Vertical meridian (center) -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="1.8"
+        android:fillColor="#00000000"
+        android:pathData="M54,24 C54,24 54,84 54,84" />
+
+    <!-- Left meridian curve -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,24 C42,30 36,42 36,54 C36,66 42,78 54,84" />
+
+    <!-- Right meridian curve -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,24 C66,30 72,42 72,54 C72,66 66,78 54,84" />
+
+    <!-- Horizontal equator -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="1.8"
+        android:fillColor="#00000000"
+        android:pathData="M24,54 L84,54" />
+
+    <!-- Upper latitude line -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M28,40 C34,38 44,36.5 54,36.5 C64,36.5 74,38 80,40" />
+
+    <!-- Lower latitude line -->
+    <path
+        android:strokeColor="#00796B"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M28,68 C34,70 44,71.5 54,71.5 C64,71.5 74,70 80,68" />
+
+    <!-- Question mark on globe -->
+    <path
+        android:fillColor="#FF8F00"
+        android:pathData="M51,45 C51,42 53,40 56,40 C59,40 61,42 61,44.5
+            C61,47 59,48 57,49 L57,52 L53,52 L53,48
+            C53,47 55,46 56,45 C57,44 57,43.5 56,43
+            C55,43 54,43.5 54,45 Z" />
+    <path
+        android:fillColor="#FF8F00"
+        android:pathData="M53.5,55 L57.5,55 L57.5,59 L53.5,59 Z" />
+</vector>

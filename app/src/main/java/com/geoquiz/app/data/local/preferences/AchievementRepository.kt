@@ -77,6 +77,9 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.RepeatedLetter4,
                 is QuizCategory.StartsEndsSame,
                 is QuizCategory.AllVowelsPresent -> "patterns"
+                is QuizCategory.ByWordCount,
+                is QuizCategory.EndingWithSuffix,
+                is QuizCategory.ContainingWord -> "wordpatterns"
                 is QuizCategory.IslandCountries -> "island"
             }
             val groups = (prefs[CATEGORY_GROUPS_KEY] ?: "").let {

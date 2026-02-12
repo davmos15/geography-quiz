@@ -41,6 +41,19 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 it.name.length in category.min..category.max
             }
 
+            is QuizCategory.ByWordCount -> allCountries.filter {
+                if (category.count < 0) wordCount(it.name) >= -category.count
+                else wordCount(it.name) == category.count
+            }
+
+            is QuizCategory.EndingWithSuffix -> allCountries.filter {
+                it.name.endsWith(category.suffix, ignoreCase = true)
+            }
+
+            is QuizCategory.ContainingWord -> allCountries.filter {
+                it.name.contains(category.word, ignoreCase = true)
+            }
+
             is QuizCategory.DoubleLetter -> allCountries.filter { country ->
                 DOUBLE_LETTER_REGEX.containsMatchIn(country.name)
             }
@@ -76,6 +89,8 @@ class GetCountriesForQuizUseCase @Inject constructor(
         private val DOUBLE_LETTER_REGEX = Regex("(.)\\1", RegexOption.IGNORE_CASE)
         private val CONSONANT_CLUSTER_REGEX = Regex("[bcdfghjklmnpqrstvwxyz]{3,}", RegexOption.IGNORE_CASE)
         private val VOWELS = setOf('a', 'e', 'i', 'o', 'u')
+
+        private fun wordCount(name: String): Int = name.split(" ").size
 
         private fun hasRepeatedLetter(name: String, minCount: Int): Boolean {
             val lower = name.lowercase()

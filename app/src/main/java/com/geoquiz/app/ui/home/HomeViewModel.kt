@@ -115,6 +115,9 @@ class HomeViewModel @Inject constructor(
         // Letter patterns: count how many quiz options we'll have (6 pattern types)
         val patternCount = 6
 
+        // Word patterns: 7 quiz options
+        val wordPatternCount = 7
+
         return listOf(
             CategoryGroupInfo(CategoryGroup.ALL_COUNTRIES, 1),
             CategoryGroupInfo(CategoryGroup.REGIONS, regions),
@@ -124,6 +127,7 @@ class HomeViewModel @Inject constructor(
             CategoryGroupInfo(CategoryGroup.CONTAINING_LETTER, asciiContainLetters),
             CategoryGroupInfo(CategoryGroup.NAME_LENGTH, nameLengthCount),
             CategoryGroupInfo(CategoryGroup.LETTER_PATTERNS, patternCount),
+            CategoryGroupInfo(CategoryGroup.WORD_PATTERNS, wordPatternCount),
             CategoryGroupInfo(CategoryGroup.ISLAND_COUNTRIES, if (islandCount > 0) 1 else 0)
         ).filter { it.quizCount > 0 }
     }

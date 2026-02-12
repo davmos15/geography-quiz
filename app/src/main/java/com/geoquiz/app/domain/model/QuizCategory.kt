@@ -8,6 +8,9 @@ sealed class QuizCategory {
     data class ByRegion(val region: String) : QuizCategory()
     data class BySubregion(val subregion: String) : QuizCategory()
     data class ByNameLengthRange(val min: Int, val max: Int, val label: String) : QuizCategory()
+    data class ByWordCount(val count: Int, val label: String) : QuizCategory()
+    data class EndingWithSuffix(val suffix: String) : QuizCategory()
+    data class ContainingWord(val word: String) : QuizCategory()
     data object DoubleLetter : QuizCategory()
     data object ConsonantCluster : QuizCategory()
     data object RepeatedLetter3 : QuizCategory()
@@ -25,6 +28,9 @@ sealed class QuizCategory {
             is ByRegion -> region
             is BySubregion -> subregion
             is ByNameLengthRange -> label
+            is ByWordCount -> label
+            is EndingWithSuffix -> "Ends with \"$suffix\""
+            is ContainingWord -> "Contains \"$word\""
             is DoubleLetter -> "Double Letter"
             is ConsonantCluster -> "Consonant Cluster"
             is RepeatedLetter3 -> "Same Letter 3 Times"
@@ -54,6 +60,9 @@ sealed class QuizCategory {
             is ByRegion -> "region"
             is BySubregion -> "subregion"
             is ByNameLengthRange -> "lengthrange"
+            is ByWordCount -> "wordcount"
+            is EndingWithSuffix -> "endsuffix"
+            is ContainingWord -> "containword"
             is DoubleLetter -> "doubleletter"
             is ConsonantCluster -> "consonantcluster"
             is RepeatedLetter3 -> "repeatedletter3"
@@ -72,6 +81,9 @@ sealed class QuizCategory {
             is ByRegion -> region
             is BySubregion -> subregion
             is ByNameLengthRange -> "$min-$max"
+            is ByWordCount -> count.toString()
+            is EndingWithSuffix -> suffix
+            is ContainingWord -> word
             is DoubleLetter -> "_"
             is ConsonantCluster -> "_"
             is RepeatedLetter3 -> "_"
@@ -93,6 +105,9 @@ sealed class QuizCategory {
                 val parts = value.split("-")
                 ByNameLengthRange(parts[0].toInt(), parts[1].toInt(), "")
             }
+            "wordcount" -> ByWordCount(value.toInt(), "")
+            "endsuffix" -> EndingWithSuffix(value)
+            "containword" -> ContainingWord(value)
             "doubleletter" -> DoubleLetter
             "consonantcluster" -> ConsonantCluster
             "repeatedletter3" -> RepeatedLetter3

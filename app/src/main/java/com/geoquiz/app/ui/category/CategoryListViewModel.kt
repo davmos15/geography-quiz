@@ -201,6 +201,26 @@ class CategoryListViewModel @Inject constructor(
             ).filter { it.countryCount > 0 }
         }
 
+        CategoryGroup.WORD_PATTERNS -> {
+            val oneWord = countries.count { it.name.split(" ").size == 1 }
+            val multiWord = countries.count { it.name.split(" ").size >= 2 }
+            val twoWord = countries.count { it.name.split(" ").size == 2 }
+            val endsStan = countries.count { it.name.endsWith("stan", ignoreCase = true) }
+            val endsLand = countries.count { it.name.endsWith("land", ignoreCase = true) }
+            val containsUnited = countries.count { it.name.contains("United", ignoreCase = true) }
+            val containsGuinea = countries.count { it.name.contains("Guinea", ignoreCase = true) }
+
+            listOf(
+                QuizOptionInfo("One-Word Names", oneWord, "wordcount", "1"),
+                QuizOptionInfo("Multi-Word Names", multiWord, "wordcount", "-2"),
+                QuizOptionInfo("Two-Word Names", twoWord, "wordcount", "2"),
+                QuizOptionInfo("Ends with \"stan\"", endsStan, "endsuffix", "stan"),
+                QuizOptionInfo("Ends with \"land\"", endsLand, "endsuffix", "land"),
+                QuizOptionInfo("Contains \"United\"", containsUnited, "containword", "United"),
+                QuizOptionInfo("Contains \"Guinea\"", containsGuinea, "containword", "Guinea")
+            ).filter { it.countryCount > 0 }
+        }
+
         CategoryGroup.ISLAND_COUNTRIES -> {
             val count = countries.count { it.name.contains("island", ignoreCase = true) }
             listOf(

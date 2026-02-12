@@ -88,6 +88,14 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Clear country data so it re-seeds without short code aliases
+            db.execSQL("DELETE FROM aliases")
+            db.execSQL("DELETE FROM countries")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -96,7 +104,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "geoquiz.db"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3, MIGRATION_3_4, MIGRATION_1_4, MIGRATION_2_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3, MIGRATION_3_4, MIGRATION_1_4, MIGRATION_2_4, MIGRATION_4_5)
             .build()
     }
 

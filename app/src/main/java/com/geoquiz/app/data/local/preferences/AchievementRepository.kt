@@ -74,8 +74,8 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.DoubleLetter,
                 is QuizCategory.ConsonantCluster,
                 is QuizCategory.RepeatedLetter3,
+                is QuizCategory.RepeatedLetter4,
                 is QuizCategory.StartsEndsSame,
-                is QuizCategory.PalindromeName,
                 is QuizCategory.AllVowelsPresent -> "patterns"
                 is QuizCategory.IslandCountries -> "island"
             }
@@ -117,8 +117,8 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.DoubleLetter -> "doubleletter"
                 is QuizCategory.ConsonantCluster -> "consonantcluster"
                 is QuizCategory.RepeatedLetter3 -> "repeatedletter3"
+                is QuizCategory.RepeatedLetter4 -> "repeatedletter4"
                 is QuizCategory.StartsEndsSame -> "startsendssame"
-                is QuizCategory.PalindromeName -> "palindrome"
                 is QuizCategory.AllVowelsPresent -> "allvowels"
                 else -> null
             }

@@ -50,15 +50,15 @@ class GetCountriesForQuizUseCase @Inject constructor(
             }
 
             is QuizCategory.RepeatedLetter3 -> allCountries.filter { country ->
-                hasRepeatedLetter(country.name, 3)
+                hasRepeatedLetter(country.name, 3) && !hasRepeatedLetter(country.name, 4)
+            }
+
+            is QuizCategory.RepeatedLetter4 -> allCountries.filter { country ->
+                hasRepeatedLetter(country.name, 4)
             }
 
             is QuizCategory.StartsEndsSame -> allCountries.filter { country ->
                 country.name.first().uppercaseChar() == country.name.last().uppercaseChar()
-            }
-
-            is QuizCategory.PalindromeName -> allCountries.filter { country ->
-                hasPalindromeSubstring(country.name, 3)
             }
 
             is QuizCategory.AllVowelsPresent -> allCountries.filter { country ->
@@ -83,15 +83,5 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 .any { (ch, occurrences) -> ch.isLetter() && occurrences.size >= minCount }
         }
 
-        private fun hasPalindromeSubstring(name: String, minLength: Int): Boolean {
-            val lower = name.lowercase().filter { it.isLetter() }
-            for (i in lower.indices) {
-                for (len in minLength..(lower.length - i)) {
-                    val sub = lower.substring(i, i + len)
-                    if (sub == sub.reversed()) return true
-                }
-            }
-            return false
-        }
     }
 }

@@ -93,8 +93,13 @@ class CountryRepositoryImpl @Inject constructor(
                 aliasSet.addAll(abbreviations)
             }
 
+            // Allowed short abbreviations from the ABBREVIATIONS map
+            val allowedShort = abbreviations?.toSet() ?: emptySet()
+
             for (alias in aliasSet) {
                 if (alias.isBlank()) continue
+                // Skip short uppercase codes (e.g., "JP", "AU", "NZ") unless explicitly allowed
+                if (alias.length <= 3 && alias.all { it.isUpperCase() } && alias !in allowedShort) continue
                 aliases.add(
                     AliasEntity(
                         countryCca3 = cca3,

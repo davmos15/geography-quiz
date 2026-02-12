@@ -165,25 +165,29 @@ class CategoryListViewModel @Inject constructor(
                     description = QuizCategory.ConsonantCluster.description
                 ),
                 QuizOptionInfo(
-                    "Same Letter 3+ Times",
+                    "Same Letter 3 Times",
                     countries.count { country ->
-                        country.name.lowercase().groupBy { it }
-                            .any { (ch, occ) -> ch.isLetter() && occ.size >= 3 }
+                        val counts = country.name.lowercase().groupBy { it }
+                        counts.any { (ch, occ) -> ch.isLetter() && occ.size >= 3 } &&
+                                counts.none { (ch, occ) -> ch.isLetter() && occ.size >= 4 }
                     },
                     "repeatedletter3", "_",
                     description = QuizCategory.RepeatedLetter3.description
+                ),
+                QuizOptionInfo(
+                    "Same Letter 4+ Times",
+                    countries.count { country ->
+                        country.name.lowercase().groupBy { it }
+                            .any { (ch, occ) -> ch.isLetter() && occ.size >= 4 }
+                    },
+                    "repeatedletter4", "_",
+                    description = QuizCategory.RepeatedLetter4.description
                 ),
                 QuizOptionInfo(
                     "Starts & Ends Same",
                     countries.count { it.name.first().uppercaseChar() == it.name.last().uppercaseChar() },
                     "startsendssame", "_",
                     description = QuizCategory.StartsEndsSame.description
-                ),
-                QuizOptionInfo(
-                    "Palindrome Substring",
-                    countries.count { hasPalindromeSubstring(it.name, 3) },
-                    "palindrome", "_",
-                    description = QuizCategory.PalindromeName.description
                 ),
                 QuizOptionInfo(
                     "Contains All 5 Vowels",
@@ -210,15 +214,5 @@ class CategoryListViewModel @Inject constructor(
             "Australia and New Zealand" to "Australasia"
         )
 
-        private fun hasPalindromeSubstring(name: String, minLength: Int): Boolean {
-            val lower = name.lowercase().filter { it.isLetter() }
-            for (i in lower.indices) {
-                for (len in minLength..(lower.length - i)) {
-                    val sub = lower.substring(i, i + len)
-                    if (sub == sub.reversed()) return true
-                }
-            }
-            return false
-        }
     }
 }

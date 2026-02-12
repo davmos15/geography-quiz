@@ -21,6 +21,9 @@ class SettingsViewModel @Inject constructor(
     val showFlags: StateFlow<Boolean> = settingsRepository.showFlags
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val showCountryHint: StateFlow<Boolean> = settingsRepository.showCountryHint
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val playerName: StateFlow<String> = settingsRepository.playerName
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
@@ -33,6 +36,12 @@ class SettingsViewModel @Inject constructor(
     fun onToggleShowFlags(show: Boolean) {
         viewModelScope.launch {
             settingsRepository.setShowFlags(show)
+        }
+    }
+
+    fun onToggleShowCountryHint(show: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setShowCountryHint(show)
         }
     }
 

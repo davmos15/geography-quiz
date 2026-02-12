@@ -48,25 +48,24 @@ class CapitalsHomeViewModel @Inject constructor(
         val regions = countries.map { it.region }.filter { it.isNotBlank() }.distinct().size
         val subregions = countries.map { it.subregion }.filter { it.isNotBlank() }.distinct().size
 
+        // Letter-based categories use the capital name, not the country name
         val asciiStartLetters = countries
-            .map { it.name.first().uppercaseChar() }
+            .map { it.capital.first().uppercaseChar() }
             .filter { it in 'A'..'Z' }
             .distinct().size
 
         val asciiEndLetters = countries
-            .map { it.name.last().uppercaseChar() }
+            .map { it.capital.last().uppercaseChar() }
             .filter { it in 'A'..'Z' }
             .distinct().size
 
         val asciiContainLetters = ('A'..'Z').count { letter ->
-            countries.any { it.name.contains(letter, ignoreCase = true) }
+            countries.any { it.capital.contains(letter, ignoreCase = true) }
         }
 
         val nameLengthCount = countries
-            .map { it.name.length }
+            .map { it.capital.length }
             .distinct().size
-
-        val islandCount = countries.count { it.name.contains("island", ignoreCase = true) }
 
         val patternCount = 6
         val wordPatternCount = 7
@@ -81,7 +80,6 @@ class CapitalsHomeViewModel @Inject constructor(
             CategoryGroupInfo(CategoryGroup.NAME_LENGTH, nameLengthCount),
             CategoryGroupInfo(CategoryGroup.LETTER_PATTERNS, patternCount),
             CategoryGroupInfo(CategoryGroup.WORD_PATTERNS, wordPatternCount),
-            CategoryGroupInfo(CategoryGroup.ISLAND_COUNTRIES, if (islandCount > 0) 1 else 0)
         ).filter { it.quizCount > 0 }
     }
 }

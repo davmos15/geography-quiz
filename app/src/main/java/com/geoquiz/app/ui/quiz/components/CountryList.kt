@@ -24,9 +24,14 @@ fun CountryList(
     answeredCodes: Set<String>,
     quizMode: QuizMode = QuizMode.COUNTRIES,
     showFlags: Boolean = false,
+    showCountryHint: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val sorted = countries.sortedBy { it.name }
+    val sorted = if (quizMode == QuizMode.CAPITALS) {
+        countries.sortedBy { it.capital }
+    } else {
+        countries.sortedBy { it.name }
+    }
 
     LazyColumn(modifier = modifier) {
         items(sorted, key = { it.code }) { country ->
@@ -74,23 +79,35 @@ fun CountryList(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                         }
-                        Text(
-                            text = country.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = if (isAnswered) country.capital else "???",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                            color = if (isAnswered) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                            }
-                        )
+                        if (showCountryHint) {
+                            Text(
+                                text = country.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = if (isAnswered) country.capital else "???",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                color = if (isAnswered) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                }
+                            )
+                        } else {
+                            Text(
+                                text = if (isAnswered) country.capital else "???",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                color = if (isAnswered) {
+                                    MaterialTheme.colorScheme.onSurface
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                }
+                            )
+                        }
                     }
                 }
 

@@ -47,7 +47,11 @@ fun AnswerReviewScreen(
     val answeredCodes = QuizResultHolder.answeredCodes
     val categoryName = QuizResultHolder.categoryName
     val quizMode = QuizResultHolder.quizMode
-    val sorted = countries.sortedBy { it.name }
+    val sorted = if (quizMode == QuizMode.CAPITALS) {
+        countries.sortedBy { it.capital }
+    } else {
+        countries.sortedBy { it.name }
+    }
 
     val context = LocalContext.current
     val showFlagsFlow = remember {
@@ -114,15 +118,15 @@ fun AnswerReviewScreen(
                         QuizMode.CAPITALS -> {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = country.name,
+                                    text = country.capital,
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = if (isAnswered) CorrectGreen else IncorrectRed
                                 )
                                 Text(
-                                    text = country.capital,
+                                    text = country.name,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = if (isAnswered) CorrectGreen else IncorrectRed
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }

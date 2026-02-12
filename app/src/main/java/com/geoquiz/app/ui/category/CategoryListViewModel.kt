@@ -40,6 +40,7 @@ class CategoryListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val groupId: String = savedStateHandle["groupId"] ?: ""
+    private val quizMode: String = savedStateHandle["quizMode"] ?: "countries"
 
     private val _uiState = MutableStateFlow(CategoryListUiState())
     val uiState: StateFlow<CategoryListUiState> = _uiState.asStateFlow()
@@ -47,7 +48,11 @@ class CategoryListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.ensureSeeded()
-            val allCountries = repository.getAllCountries().first()
+            val allCountries = if (quizMode == "capitals") {
+                repository.getAllCountries().first().filter { it.capital.isNotBlank() }
+            } else {
+                repository.getAllCountries().first()
+            }
 
             // Try regular CategoryGroup first, then FlagCategoryGroup
             val group = CategoryGroup.fromId(groupId)
@@ -75,12 +80,18 @@ class CategoryListViewModel @Inject constructor(
         }
     }
 
+    /** Returns the relevant name for the current quiz mode — capital name for capitals, country name otherwise. */
+    private fun Country.quizName(): String = if (quizMode == "capitals") capital else name
+
     private fun buildQuizOptions(
         group: CategoryGroup,
         countries: List<Country>
     ): List<QuizOptionInfo> = when (group) {
         CategoryGroup.ALL_COUNTRIES -> listOf(
-            QuizOptionInfo("All Countries", countries.size, "all", "_")
+            QuizOptionInfo(
+                if (quizMode == "capitals") "All Capitals" else "All Countries",
+                countries.size, "all", "_"
+            )
         )
 
         CategoryGroup.REGIONS -> countries
@@ -105,13 +116,13 @@ class CategoryListViewModel @Inject constructor(
             }
 
         CategoryGroup.STARTING_LETTER -> countries
-            .map { it.name.first().uppercaseChar() }
+            .map { it.quizName().first().uppercaseChar() }
             .filter { it in 'A'..'Z' }
             .distinct()
             .sorted()
             .map { letter ->
                 val count = countries.count {
-                    it.name.first().uppercaseChar() == letter
+                    it.quizName().first().uppercaseChar() == letter
                 }
                 QuizOptionInfo(
                     letter.toString(), count, "startletter", letter.toString()
@@ -119,13 +130,13 @@ class CategoryListViewModel @Inject constructor(
             }
 
         CategoryGroup.ENDING_LETTER -> countries
-            .map { it.name.last().uppercaseChar() }
+            .map { it.quizName().last().uppercaseChar() }
             .filter { it in 'A'..'Z' }
             .distinct()
             .sorted()
             .map { letter ->
                 val count = countries.count {
-                    it.name.last().uppercaseChar() == letter
+                    it.quizName().last().uppercaseChar() == letter
                 }
                 QuizOptionInfo(
                     letter.toString(), count, "endletter", letter.toString()
@@ -135,7 +146,7 @@ class CategoryListViewModel @Inject constructor(
         CategoryGroup.CONTAINING_LETTER -> ('A'..'Z')
             .map { letter ->
                 val count = countries.count {
-                    it.name.contains(letter, ignoreCase = true)
+                    it.quizName().contains(letter, ignoreCase = true)
                 }
                 QuizOptionInfo(
                     letter.toString(), count, "containletter", letter.toString()
@@ -144,9 +155,8 @@ class CategoryListViewModel @Inject constructor(
             .filter { it.countryCount > 0 }
 
         CategoryGroup.NAME_LENGTH -> {
-            // Build exact-length options for each distinct name length
             val lengthCounts = countries
-                .groupBy { it.name.length }
+                .groupBy { it.quizName().length }
                 .mapValues { it.value.size }
                 .toSortedMap()
 
@@ -168,20 +178,20 @@ class CategoryListViewModel @Inject constructor(
             listOf(
                 QuizOptionInfo(
                     "Double Letter",
-                    countries.count { doubleLetterRegex.containsMatchIn(it.name) },
+                    countries.count { doubleLetterRegex.containsMatchIn(it.quizName()) },
                     "doubleletter", "_",
                     description = QuizCategory.DoubleLetter.description
                 ),
                 QuizOptionInfo(
                     "Consonant Cluster (3+)",
-                    countries.count { consonantClusterRegex.containsMatchIn(it.name) },
+                    countries.count { consonantClusterRegex.containsMatchIn(it.quizName()) },
                     "consonantcluster", "_",
                     description = QuizCategory.ConsonantCluster.description
                 ),
                 QuizOptionInfo(
                     "Same Letter 3 Times",
                     countries.count { country ->
-                        val counts = country.name.lowercase().groupBy { it }
+                        val counts = country.quizName().lowercase().groupBy { it }
                         counts.any { (ch, occ) -> ch.isLetter() && occ.size >= 3 } &&
                                 counts.none { (ch, occ) -> ch.isLetter() && occ.size >= 4 }
                     },
@@ -191,7 +201,7 @@ class CategoryListViewModel @Inject constructor(
                 QuizOptionInfo(
                     "Same Letter 4+ Times",
                     countries.count { country ->
-                        country.name.lowercase().groupBy { it }
+                        country.quizName().lowercase().groupBy { it }
                             .any { (ch, occ) -> ch.isLetter() && occ.size >= 4 }
                     },
                     "repeatedletter4", "_",
@@ -199,14 +209,14 @@ class CategoryListViewModel @Inject constructor(
                 ),
                 QuizOptionInfo(
                     "Starts & Ends Same",
-                    countries.count { it.name.first().uppercaseChar() == it.name.last().uppercaseChar() },
+                    countries.count { it.quizName().first().uppercaseChar() == it.quizName().last().uppercaseChar() },
                     "startsendssame", "_",
                     description = QuizCategory.StartsEndsSame.description
                 ),
                 QuizOptionInfo(
                     "Contains All 5 Vowels",
                     countries.count { country ->
-                        val lower = country.name.lowercase()
+                        val lower = country.quizName().lowercase()
                         vowels.all { it in lower }
                     },
                     "allvowels", "_",
@@ -216,13 +226,14 @@ class CategoryListViewModel @Inject constructor(
         }
 
         CategoryGroup.WORD_PATTERNS -> {
-            val oneWord = countries.count { it.name.split(" ").size == 1 }
-            val multiWord = countries.count { it.name.split(" ").size >= 2 }
-            val twoWord = countries.count { it.name.split(" ").size == 2 }
-            val endsStan = countries.count { it.name.endsWith("stan", ignoreCase = true) }
-            val endsLand = countries.count { it.name.endsWith("land", ignoreCase = true) }
-            val containsUnited = countries.count { it.name.contains("United", ignoreCase = true) }
-            val containsGuinea = countries.count { it.name.contains("Guinea", ignoreCase = true) }
+            val name = { c: Country -> c.quizName() }
+            val oneWord = countries.count { name(it).split(" ").size == 1 }
+            val multiWord = countries.count { name(it).split(" ").size >= 2 }
+            val twoWord = countries.count { name(it).split(" ").size == 2 }
+            val endsStan = countries.count { name(it).endsWith("stan", ignoreCase = true) }
+            val endsLand = countries.count { name(it).endsWith("land", ignoreCase = true) }
+            val containsUnited = countries.count { name(it).contains("United", ignoreCase = true) }
+            val containsGuinea = countries.count { name(it).contains("Guinea", ignoreCase = true) }
 
             listOf(
                 QuizOptionInfo("One-Word Names", oneWord, "wordcount", "1"),
@@ -236,7 +247,7 @@ class CategoryListViewModel @Inject constructor(
         }
 
         CategoryGroup.ISLAND_COUNTRIES -> {
-            val count = countries.count { it.name.contains("island", ignoreCase = true) }
+            val count = countries.count { it.quizName().contains("island", ignoreCase = true) }
             listOf(
                 QuizOptionInfo("Island Nations", count, "island", "_")
             ).filter { it.countryCount > 0 }

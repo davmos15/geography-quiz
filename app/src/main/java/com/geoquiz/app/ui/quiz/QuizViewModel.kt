@@ -13,6 +13,7 @@ import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
+import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
@@ -34,6 +35,7 @@ import javax.inject.Inject
 class QuizViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCountriesForQuiz: GetCountriesForQuizUseCase,
+    private val getCountriesForCapitalQuiz: GetCountriesForCapitalQuizUseCase,
     private val getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase,
     private val validateAnswer: ValidateAnswerUseCase,
     private val validateCapitalAnswer: ValidateCapitalAnswerUseCase,
@@ -61,6 +63,9 @@ class QuizViewModel @Inject constructor(
     private val _showFlags = MutableStateFlow(false)
     val showFlags: StateFlow<Boolean> = _showFlags.asStateFlow()
 
+    private val _showCountryHint = MutableStateFlow(false)
+    val showCountryHint: StateFlow<Boolean> = _showCountryHint.asStateFlow()
+
     private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
     val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
@@ -72,6 +77,7 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             _showTimer.value = settingsRepository.showTimer.first()
             _showFlags.value = settingsRepository.showFlags.first()
+            _showCountryHint.value = settingsRepository.showCountryHint.first()
         }
     }
 
@@ -82,6 +88,7 @@ class QuizViewModel @Inject constructor(
                     category is QuizCategory.FlagColorCount
             val countries = when {
                 isFlagSpecificCategory -> getCountriesForFlagQuiz(category)
+                quizMode == QuizMode.CAPITALS -> getCountriesForCapitalQuiz(category)
                 else -> getCountriesForQuiz(category)
             }
             val quiz = Quiz(

@@ -35,6 +35,7 @@ fun SettingsScreen(
 ) {
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
+    val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
     val playerName by viewModel.playerName.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -100,6 +101,30 @@ fun SettingsScreen(
                 Switch(
                     checked = showFlags,
                     onCheckedChange = { viewModel.onToggleShowFlags(it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Country Hint in Capitals",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Show the country name as a clue in capitals quizzes",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(
+                    checked = showCountryHint,
+                    onCheckedChange = { viewModel.onToggleShowCountryHint(it) }
                 )
             }
 

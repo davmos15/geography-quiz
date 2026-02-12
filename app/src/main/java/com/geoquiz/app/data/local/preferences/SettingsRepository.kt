@@ -29,6 +29,10 @@ class SettingsRepository @Inject constructor(
         prefs[SHOW_FLAGS_KEY] ?: false
     }
 
+    val showCountryHint: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[SHOW_COUNTRY_HINT_KEY] ?: false
+    }
+
     val playerName: Flow<String> = dataStore.data.map { prefs ->
         prefs[PLAYER_NAME_KEY] ?: ""
     }
@@ -45,6 +49,12 @@ class SettingsRepository @Inject constructor(
         }
     }
 
+    suspend fun setShowCountryHint(show: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[SHOW_COUNTRY_HINT_KEY] = show
+        }
+    }
+
     suspend fun setPlayerName(name: String) {
         dataStore.edit { prefs ->
             prefs[PLAYER_NAME_KEY] = name
@@ -54,6 +64,7 @@ class SettingsRepository @Inject constructor(
     companion object {
         private val SHOW_TIMER_KEY = booleanPreferencesKey("show_timer")
         private val SHOW_FLAGS_KEY = booleanPreferencesKey("show_flags")
+        private val SHOW_COUNTRY_HINT_KEY = booleanPreferencesKey("show_country_hint")
         private val PLAYER_NAME_KEY = stringPreferencesKey("player_name")
     }
 }

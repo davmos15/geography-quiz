@@ -71,8 +71,12 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.EndingWithLetter -> "endletter"
                 is QuizCategory.ContainingLetter -> "containletter"
                 is QuizCategory.ByNameLengthRange -> "length"
-                is QuizCategory.OneWord, is QuizCategory.MultiWord -> "wordcount"
-                is QuizCategory.DoubleLetter -> "patterns"
+                is QuizCategory.DoubleLetter,
+                is QuizCategory.ConsonantCluster,
+                is QuizCategory.RepeatedLetter3,
+                is QuizCategory.StartsEndsSame,
+                is QuizCategory.PalindromeName,
+                is QuizCategory.AllVowelsPresent -> "patterns"
                 is QuizCategory.IslandCountries -> "island"
             }
             val groups = (prefs[CATEGORY_GROUPS_KEY] ?: "").let {

@@ -85,7 +85,8 @@ class CategoryListViewModel @Inject constructor(
             .sorted()
             .map { subregion ->
                 val count = countries.count { it.subregion == subregion }
-                QuizOptionInfo(subregion, count, "subregion", subregion)
+                val displayName = SUBREGION_DISPLAY_NAMES[subregion] ?: subregion
+                QuizOptionInfo(displayName, count, "subregion", subregion)
             }
 
         CategoryGroup.STARTING_LETTER -> countries
@@ -127,31 +128,65 @@ class CategoryListViewModel @Inject constructor(
             }
             .filter { it.countryCount > 0 }
 
-        CategoryGroup.NAME_LENGTH -> listOf(
-            QuizOptionInfo("Short (3-5 letters)", countries.count { it.name.length in 3..5 }, "lengthrange", "3-5"),
-            QuizOptionInfo("Medium (6-8 letters)", countries.count { it.name.length in 6..8 }, "lengthrange", "6-8"),
-            QuizOptionInfo("Long (9-12 letters)", countries.count { it.name.length in 9..12 }, "lengthrange", "9-12"),
-            QuizOptionInfo("Very Long (13+)", countries.count { it.name.length >= 13 }, "lengthrange", "13-99")
-        ).filter { it.countryCount > 0 }
+        CategoryGroup.NAME_LENGTH -> {
+            // Build exact-length options for each distinct name length
+            val lengthCounts = countries
+                .groupBy { it.name.length }
+                .mapValues { it.value.size }
+                .toSortedMap()
 
-        CategoryGroup.WORD_COUNT -> listOf(
-            QuizOptionInfo(
-                "One Word",
-                countries.count { !it.name.contains(' ') && !it.name.contains('-') },
-                "oneword", "_"
-            ),
-            QuizOptionInfo(
-                "Multi-Word",
-                countries.count { it.name.contains(' ') || it.name.contains('-') },
-                "multiword", "_"
-            )
-        ).filter { it.countryCount > 0 }
+            lengthCounts.map { (length, count) ->
+                QuizOptionInfo(
+                    "$length letters",
+                    count,
+                    "lengthrange",
+                    "$length-$length"
+                )
+            }
+        }
 
         CategoryGroup.LETTER_PATTERNS -> {
             val doubleLetterRegex = Regex("(.)\\1", RegexOption.IGNORE_CASE)
-            val count = countries.count { doubleLetterRegex.containsMatchIn(it.name) }
+            val consonantClusterRegex = Regex("[bcdfghjklmnpqrstvwxyz]{3,}", RegexOption.IGNORE_CASE)
+            val vowels = setOf('a', 'e', 'i', 'o', 'u')
+
             listOf(
-                QuizOptionInfo("Double Letter", count, "doubleletter", "_")
+                QuizOptionInfo(
+                    "Double Letter",
+                    countries.count { doubleLetterRegex.containsMatchIn(it.name) },
+                    "doubleletter", "_"
+                ),
+                QuizOptionInfo(
+                    "Consonant Cluster (3+)",
+                    countries.count { consonantClusterRegex.containsMatchIn(it.name) },
+                    "consonantcluster", "_"
+                ),
+                QuizOptionInfo(
+                    "Same Letter 3+ Times",
+                    countries.count { country ->
+                        country.name.lowercase().groupBy { it }
+                            .any { (ch, occ) -> ch.isLetter() && occ.size >= 3 }
+                    },
+                    "repeatedletter3", "_"
+                ),
+                QuizOptionInfo(
+                    "Starts & Ends Same",
+                    countries.count { it.name.first().uppercaseChar() == it.name.last().uppercaseChar() },
+                    "startsendssame", "_"
+                ),
+                QuizOptionInfo(
+                    "Palindrome Substring",
+                    countries.count { hasPalindromeSubstring(it.name, 3) },
+                    "palindrome", "_"
+                ),
+                QuizOptionInfo(
+                    "Contains All 5 Vowels",
+                    countries.count { country ->
+                        val lower = country.name.lowercase()
+                        vowels.all { it in lower }
+                    },
+                    "allvowels", "_"
+                )
             ).filter { it.countryCount > 0 }
         }
 
@@ -160,6 +195,23 @@ class CategoryListViewModel @Inject constructor(
             listOf(
                 QuizOptionInfo("Island Nations", count, "island", "_")
             ).filter { it.countryCount > 0 }
+        }
+    }
+
+    companion object {
+        private val SUBREGION_DISPLAY_NAMES = mapOf(
+            "Australia and New Zealand" to "Australasia"
+        )
+
+        private fun hasPalindromeSubstring(name: String, minLength: Int): Boolean {
+            val lower = name.lowercase().filter { it.isLetter() }
+            for (i in lower.indices) {
+                for (len in minLength..(lower.length - i)) {
+                    val sub = lower.substring(i, i + len)
+                    if (sub == sub.reversed()) return true
+                }
+            }
+            return false
         }
     }
 }

@@ -9,8 +9,11 @@ sealed class QuizCategory {
     data class BySubregion(val subregion: String) : QuizCategory()
     data class ByNameLengthRange(val min: Int, val max: Int, val label: String) : QuizCategory()
     data object DoubleLetter : QuizCategory()
-    data object OneWord : QuizCategory()
-    data object MultiWord : QuizCategory()
+    data object ConsonantCluster : QuizCategory()
+    data object RepeatedLetter3 : QuizCategory()
+    data object StartsEndsSame : QuizCategory()
+    data object PalindromeName : QuizCategory()
+    data object AllVowelsPresent : QuizCategory()
     data object IslandCountries : QuizCategory()
 
     val displayName: String
@@ -23,8 +26,11 @@ sealed class QuizCategory {
             is BySubregion -> subregion
             is ByNameLengthRange -> label
             is DoubleLetter -> "Double Letter"
-            is OneWord -> "One Word"
-            is MultiWord -> "Multi-Word"
+            is ConsonantCluster -> "Consonant Cluster"
+            is RepeatedLetter3 -> "Repeated Letter (3+)"
+            is StartsEndsSame -> "Starts & Ends Same"
+            is PalindromeName -> "Palindrome"
+            is AllVowelsPresent -> "All 5 Vowels"
             is IslandCountries -> "Island Nations"
         }
 
@@ -38,8 +44,11 @@ sealed class QuizCategory {
             is BySubregion -> "subregion"
             is ByNameLengthRange -> "lengthrange"
             is DoubleLetter -> "doubleletter"
-            is OneWord -> "oneword"
-            is MultiWord -> "multiword"
+            is ConsonantCluster -> "consonantcluster"
+            is RepeatedLetter3 -> "repeatedletter3"
+            is StartsEndsSame -> "startsendssame"
+            is PalindromeName -> "palindrome"
+            is AllVowelsPresent -> "allvowels"
             is IslandCountries -> "island"
         }
 
@@ -53,8 +62,11 @@ sealed class QuizCategory {
             is BySubregion -> subregion
             is ByNameLengthRange -> "$min-$max"
             is DoubleLetter -> "_"
-            is OneWord -> "_"
-            is MultiWord -> "_"
+            is ConsonantCluster -> "_"
+            is RepeatedLetter3 -> "_"
+            is StartsEndsSame -> "_"
+            is PalindromeName -> "_"
+            is AllVowelsPresent -> "_"
             is IslandCountries -> "_"
         }
 
@@ -71,8 +83,11 @@ sealed class QuizCategory {
                 ByNameLengthRange(parts[0].toInt(), parts[1].toInt(), "")
             }
             "doubleletter" -> DoubleLetter
-            "oneword" -> OneWord
-            "multiword" -> MultiWord
+            "consonantcluster" -> ConsonantCluster
+            "repeatedletter3" -> RepeatedLetter3
+            "startsendssame" -> StartsEndsSame
+            "palindrome" -> PalindromeName
+            "allvowels" -> AllVowelsPresent
             "island" -> IslandCountries
             else -> AllCountries
         }

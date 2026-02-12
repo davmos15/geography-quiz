@@ -65,11 +65,15 @@ class HomeViewModel @Inject constructor(
             countries.any { it.name.contains(letter, ignoreCase = true) }
         }
 
-        val doubleLetterCount = countries.count { country ->
-            Regex("(.)\\1", RegexOption.IGNORE_CASE).containsMatchIn(country.name)
-        }
+        // Count distinct name lengths that have countries
+        val nameLengthCount = countries
+            .map { it.name.length }
+            .distinct().size
 
         val islandCount = countries.count { it.name.contains("island", ignoreCase = true) }
+
+        // Letter patterns: count how many quiz options we'll have (6 pattern types)
+        val patternCount = 6
 
         return listOf(
             CategoryGroupInfo(CategoryGroup.ALL_COUNTRIES, 1),
@@ -78,9 +82,8 @@ class HomeViewModel @Inject constructor(
             CategoryGroupInfo(CategoryGroup.STARTING_LETTER, asciiStartLetters),
             CategoryGroupInfo(CategoryGroup.ENDING_LETTER, asciiEndLetters),
             CategoryGroupInfo(CategoryGroup.CONTAINING_LETTER, asciiContainLetters),
-            CategoryGroupInfo(CategoryGroup.NAME_LENGTH, 4),
-            CategoryGroupInfo(CategoryGroup.WORD_COUNT, 2),
-            CategoryGroupInfo(CategoryGroup.LETTER_PATTERNS, if (doubleLetterCount > 0) 1 else 0),
+            CategoryGroupInfo(CategoryGroup.NAME_LENGTH, nameLengthCount),
+            CategoryGroupInfo(CategoryGroup.LETTER_PATTERNS, patternCount),
             CategoryGroupInfo(CategoryGroup.ISLAND_COUNTRIES, if (islandCount > 0) 1 else 0)
         ).filter { it.quizCount > 0 }
     }

@@ -45,12 +45,25 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 DOUBLE_LETTER_REGEX.containsMatchIn(country.name)
             }
 
-            is QuizCategory.OneWord -> allCountries.filter { country ->
-                !country.name.contains(' ') && !country.name.contains('-')
+            is QuizCategory.ConsonantCluster -> allCountries.filter { country ->
+                CONSONANT_CLUSTER_REGEX.containsMatchIn(country.name)
             }
 
-            is QuizCategory.MultiWord -> allCountries.filter { country ->
-                country.name.contains(' ') || country.name.contains('-')
+            is QuizCategory.RepeatedLetter3 -> allCountries.filter { country ->
+                hasRepeatedLetter(country.name, 3)
+            }
+
+            is QuizCategory.StartsEndsSame -> allCountries.filter { country ->
+                country.name.first().uppercaseChar() == country.name.last().uppercaseChar()
+            }
+
+            is QuizCategory.PalindromeName -> allCountries.filter { country ->
+                hasPalindromeSubstring(country.name, 3)
+            }
+
+            is QuizCategory.AllVowelsPresent -> allCountries.filter { country ->
+                val lower = country.name.lowercase()
+                VOWELS.all { it in lower }
             }
 
             is QuizCategory.IslandCountries -> allCountries.filter { country ->
@@ -61,5 +74,24 @@ class GetCountriesForQuizUseCase @Inject constructor(
 
     companion object {
         private val DOUBLE_LETTER_REGEX = Regex("(.)\\1", RegexOption.IGNORE_CASE)
+        private val CONSONANT_CLUSTER_REGEX = Regex("[bcdfghjklmnpqrstvwxyz]{3,}", RegexOption.IGNORE_CASE)
+        private val VOWELS = setOf('a', 'e', 'i', 'o', 'u')
+
+        private fun hasRepeatedLetter(name: String, minCount: Int): Boolean {
+            val lower = name.lowercase()
+            return lower.groupBy { it }
+                .any { (ch, occurrences) -> ch.isLetter() && occurrences.size >= minCount }
+        }
+
+        private fun hasPalindromeSubstring(name: String, minLength: Int): Boolean {
+            val lower = name.lowercase().filter { it.isLetter() }
+            for (i in lower.indices) {
+                for (len in minLength..(lower.length - i)) {
+                    val sub = lower.substring(i, i + len)
+                    if (sub == sub.reversed()) return true
+                }
+            }
+            return false
+        }
     }
 }

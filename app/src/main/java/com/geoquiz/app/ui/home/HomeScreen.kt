@@ -243,8 +243,7 @@ private fun getCategoryColors(index: Int): Pair<Color, Color> = when (index) {
     4 -> Pair(CategoryCyanTint, CategoryCyan)       // Ending Letter
     5 -> Pair(CategoryGreenTint, CategoryGreen)     // Containing Letter
     6 -> Pair(CategoryAmberTint, CategoryAmber)     // Name Length
-    7 -> Pair(CategoryOrangeTint, CategoryOrange)   // Word Count
-    8 -> Pair(CategoryPinkTint, CategoryPink)       // Letter Patterns
-    9 -> Pair(CategoryPurpleTint, CategoryPurple)   // Islands
+    7 -> Pair(CategoryPinkTint, CategoryPink)       // Letter Patterns
+    8 -> Pair(CategoryPurpleTint, CategoryPurple)   // Islands
     else -> Pair(CategoryBrownTint, CategoryBrown)
 }

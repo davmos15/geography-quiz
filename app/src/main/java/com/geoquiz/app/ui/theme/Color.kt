@@ -49,6 +49,11 @@ val GoldTint = Color(0xFFFFF8E1)
 val SilverTint = Color(0xFFF5F5F5)
 val BronzeTint = Color(0xFFFFF3E0)
 
+// Tab accent colors
+val CountriesAccent = Color(0xFF00796B)    // Teal
+val CapitalsAccent = Color(0xFFE64A19)     // Deep Orange
+val FlagsAccent = Color(0xFF283593)        // Indigo
+
 // Feedback
 val CorrectGreen = Color(0xFF2E7D32)
 val IncorrectRed = Color(0xFFC62828)

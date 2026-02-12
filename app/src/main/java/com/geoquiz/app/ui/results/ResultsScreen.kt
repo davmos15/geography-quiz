@@ -46,6 +46,7 @@ fun ResultsScreen(
     categoryName: String,
     categoryType: String,
     categoryValue: String,
+    quizMode: String = "countries",
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
     onViewAnswers: () -> Unit
@@ -125,7 +126,12 @@ fun ResultsScreen(
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
-                    ResultRow("Countries", "$correctAnswers / $totalCountries")
+                    val resultLabel = when (quizMode) {
+                        "capitals" -> "Capitals"
+                        "flags" -> "Flags"
+                        else -> "Countries"
+                    }
+                    ResultRow(resultLabel, "$correctAnswers / $totalCountries")
                     Spacer(modifier = Modifier.height(8.dp))
                     ResultRow("Percentage", String.format("%.1f%%", percentage))
                     Spacer(modifier = Modifier.height(8.dp))
@@ -160,7 +166,8 @@ fun ResultsScreen(
                             challengerName = "Friend",
                             challengerScore = correctAnswers,
                             challengerTotal = totalCountries,
-                            challengerTime = timeElapsedSeconds
+                            challengerTime = timeElapsedSeconds,
+                            quizMode = quizMode
                         )
                         ShareUtils.shareResults(
                             context = context,
@@ -185,7 +192,8 @@ fun ResultsScreen(
                             challengerName = "Friend",
                             challengerScore = null,
                             challengerTotal = null,
-                            challengerTime = null
+                            challengerTime = null,
+                            quizMode = quizMode
                         )
                         ShareUtils.shareChallenge(
                             context = context,

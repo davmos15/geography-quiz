@@ -5,8 +5,10 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.geoquiz.app.data.local.db.AppDatabase
+import com.geoquiz.app.data.local.db.CapitalAliasDao
 import com.geoquiz.app.data.local.db.ChallengeDao
 import com.geoquiz.app.data.local.db.CountryDao
+import com.geoquiz.app.data.local.db.FlagColorDao
 import com.geoquiz.app.data.local.db.SavedQuizDao
 import dagger.Module
 import dagger.Provides
@@ -59,13 +61,11 @@ object DatabaseModule {
 
     private val MIGRATION_3_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // Clear country data so it re-seeds with only UN member states
             db.execSQL("DELETE FROM aliases")
             db.execSQL("DELETE FROM countries")
         }
     }
 
-    // Direct migration for fresh installs from v1 to v3
     private val MIGRATION_1_3 = object : Migration(1, 3) {
         override fun migrate(db: SupportSQLiteDatabase) {
             MIGRATION_1_2.migrate(db)
@@ -90,9 +90,45 @@ object DatabaseModule {
 
     private val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // Clear country data so it re-seeds without short code aliases
             db.execSQL("DELETE FROM aliases")
             db.execSQL("DELETE FROM countries")
+        }
+    }
+
+    private fun createV6Tables(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE countries ADD COLUMN capital TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE countries ADD COLUMN flag TEXT NOT NULL DEFAULT ''")
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS capital_aliases (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                countryCca3 TEXT NOT NULL,
+                alias TEXT NOT NULL,
+                normalizedAlias TEXT NOT NULL,
+                FOREIGN KEY(countryCca3) REFERENCES countries(cca3) ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_capital_aliases_normalizedAlias ON capital_aliases(normalizedAlias)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_capital_aliases_countryCca3 ON capital_aliases(countryCca3)")
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS flag_colors (
+                countryCca3 TEXT NOT NULL,
+                color TEXT NOT NULL,
+                PRIMARY KEY(countryCca3, color),
+                FOREIGN KEY(countryCca3) REFERENCES countries(cca3) ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_flag_colors_color ON flag_colors(color)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_flag_colors_countryCca3 ON flag_colors(countryCca3)")
+        // Add quizMode to saved_quizzes
+        db.execSQL("ALTER TABLE saved_quizzes ADD COLUMN quizMode TEXT NOT NULL DEFAULT 'countries'")
+        // Clear data to force re-seed with capitals and flag colors
+        db.execSQL("DELETE FROM aliases")
+        db.execSQL("DELETE FROM countries")
+    }
+
+    private val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            createV6Tables(db)
         }
     }
 
@@ -104,7 +140,11 @@ object DatabaseModule {
             AppDatabase::class.java,
             "geoquiz.db"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3, MIGRATION_3_4, MIGRATION_1_4, MIGRATION_2_4, MIGRATION_4_5)
+            .addMigrations(
+                MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3,
+                MIGRATION_3_4, MIGRATION_1_4, MIGRATION_2_4,
+                MIGRATION_4_5, MIGRATION_5_6
+            )
             .build()
     }
 
@@ -121,5 +161,15 @@ object DatabaseModule {
     @Provides
     fun provideChallengeDao(database: AppDatabase): ChallengeDao {
         return database.challengeDao()
+    }
+
+    @Provides
+    fun provideCapitalAliasDao(database: AppDatabase): CapitalAliasDao {
+        return database.capitalAliasDao()
+    }
+
+    @Provides
+    fun provideFlagColorDao(database: AppDatabase): FlagColorDao {
+        return database.flagColorDao()
     }
 }

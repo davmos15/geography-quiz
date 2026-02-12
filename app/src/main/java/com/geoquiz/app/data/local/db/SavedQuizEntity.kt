@@ -10,5 +10,6 @@ data class SavedQuizEntity(
     val categoryValue: String,
     val answeredCountryCodes: String,
     val timeElapsedSeconds: Int,
-    val savedAtMillis: Long
+    val savedAtMillis: Long,
+    val quizMode: String = "countries"
 )

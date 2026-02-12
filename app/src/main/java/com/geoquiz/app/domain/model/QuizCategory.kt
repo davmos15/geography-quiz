@@ -19,6 +19,11 @@ sealed class QuizCategory {
     data object AllVowelsPresent : QuizCategory()
     data object IslandCountries : QuizCategory()
 
+    // Flag-specific categories
+    data class FlagSingleColor(val color: String) : QuizCategory()
+    data class FlagColorCombo(val colors: List<String>) : QuizCategory()
+    data class FlagColorCount(val count: Int) : QuizCategory()
+
     val displayName: String
         get() = when (this) {
             is AllCountries -> "All Countries"
@@ -38,6 +43,9 @@ sealed class QuizCategory {
             is StartsEndsSame -> "Starts & Ends Same"
             is AllVowelsPresent -> "All 5 Vowels"
             is IslandCountries -> "Island Nations"
+            is FlagSingleColor -> color.replaceFirstChar { it.uppercase() }
+            is FlagColorCombo -> colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
+            is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
         }
 
     val description: String?
@@ -70,6 +78,9 @@ sealed class QuizCategory {
             is StartsEndsSame -> "startsendssame"
             is AllVowelsPresent -> "allvowels"
             is IslandCountries -> "island"
+            is FlagSingleColor -> "flagcolor"
+            is FlagColorCombo -> "flagcombo"
+            is FlagColorCount -> "flagcount"
         }
 
     val valueKey: String
@@ -91,6 +102,9 @@ sealed class QuizCategory {
             is StartsEndsSame -> "_"
             is AllVowelsPresent -> "_"
             is IslandCountries -> "_"
+            is FlagSingleColor -> color
+            is FlagColorCombo -> colors.sorted().joinToString("+")
+            is FlagColorCount -> count.toString()
         }
 
     companion object {
@@ -115,6 +129,9 @@ sealed class QuizCategory {
             "startsendssame" -> StartsEndsSame
             "allvowels" -> AllVowelsPresent
             "island" -> IslandCountries
+            "flagcolor" -> FlagSingleColor(value)
+            "flagcombo" -> FlagColorCombo(value.split("+").sorted())
+            "flagcount" -> FlagColorCount(value.toInt())
             else -> AllCountries
         }
     }

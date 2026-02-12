@@ -46,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
@@ -214,6 +215,7 @@ fun QuizScreen(
                         CountryList(
                             countries = quizState.quiz.countries,
                             answeredCodes = quizState.answeredCountries,
+                            quizMode = viewModel.quizMode,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -241,8 +243,13 @@ fun QuizScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
+                                val itemLabel = when (viewModel.quizMode) {
+                                    QuizMode.CAPITALS -> "capitals named"
+                                    QuizMode.FLAGS -> "flags identified"
+                                    QuizMode.COUNTRIES -> "countries named"
+                                }
                                 Text(
-                                    "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size} countries named",
+                                    "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size} $itemLabel",
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -261,9 +268,14 @@ fun QuizScreen(
                     onDismissRequest = { showGiveUpDialog = false },
                     title = { Text("Give Up?") },
                     text = {
+                        val giveUpLabel = when (viewModel.quizMode) {
+                            QuizMode.CAPITALS -> "capitals"
+                            QuizMode.FLAGS -> "flags"
+                            QuizMode.COUNTRIES -> "countries"
+                        }
                         Text(
                             "You've named ${quizState.answeredCountries.size} of " +
-                                    "${quizState.quiz.countries.size} countries. Are you sure?"
+                                    "${quizState.quiz.countries.size} $giveUpLabel. Are you sure?"
                         )
                     },
                     confirmButton = {

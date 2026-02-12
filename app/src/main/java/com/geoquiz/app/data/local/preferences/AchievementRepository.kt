@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.domain.model.QuizMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -52,7 +53,8 @@ class AchievementRepository @Inject constructor(
         category: QuizCategory,
         correctAnswers: Int,
         totalCountries: Int,
-        timeElapsedSeconds: Int
+        timeElapsedSeconds: Int,
+        quizMode: QuizMode = QuizMode.COUNTRIES
     ): List<Achievement> {
         val newlyUnlocked = mutableListOf<Achievement>()
         val currentUnlocked = unlockedAchievements.first().toMutableSet()
@@ -81,6 +83,9 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.EndingWithSuffix,
                 is QuizCategory.ContainingWord -> "wordpatterns"
                 is QuizCategory.IslandCountries -> "island"
+                is QuizCategory.FlagSingleColor -> "flagcolor"
+                is QuizCategory.FlagColorCombo -> "flagcombo"
+                is QuizCategory.FlagColorCount -> "flagcount"
             }
             val groups = (prefs[CATEGORY_GROUPS_KEY] ?: "").let {
                 if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()
@@ -131,6 +136,31 @@ class AchievementRepository @Inject constructor(
                 }
                 patterns.add(patternTypeKey)
                 prefs[COMPLETED_PATTERN_QUIZZES_KEY] = patterns.joinToString(",")
+            }
+
+            // Track capital quizzes
+            if (quizMode == QuizMode.CAPITALS) {
+                val capitalCount = (prefs[CAPITAL_QUIZZES_COMPLETED_KEY] ?: 0) + 1
+                prefs[CAPITAL_QUIZZES_COMPLETED_KEY] = capitalCount
+            }
+
+            // Track flag quizzes
+            if (quizMode == QuizMode.FLAGS) {
+                val flagCount = (prefs[FLAG_QUIZZES_COMPLETED_KEY] ?: 0) + 1
+                prefs[FLAG_QUIZZES_COMPLETED_KEY] = flagCount
+
+                // Track completed flag colors
+                val flagColorKey = when (category) {
+                    is QuizCategory.FlagSingleColor -> category.color
+                    else -> null
+                }
+                if (flagColorKey != null) {
+                    val flagColors = (prefs[COMPLETED_FLAG_COLORS_KEY] ?: "").let {
+                        if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()
+                    }
+                    flagColors.add(flagColorKey)
+                    prefs[COMPLETED_FLAG_COLORS_KEY] = flagColors.joinToString(",")
+                }
             }
 
             // Track completed subregions
@@ -247,6 +277,43 @@ class AchievementRepository @Inject constructor(
             }
             if (subregions.size >= 10) unlock(Achievement.SUBREGION_EXPLORER)
 
+            // --- Capital achievements ---
+            if (quizMode == QuizMode.CAPITALS) {
+                unlock(Achievement.CAPITAL_BEGINNER)
+
+                if (percentage >= 0.8) unlock(Achievement.CAPITAL_EXPERT)
+
+                if (category is QuizCategory.AllCountries) {
+                    unlock(Achievement.WORLD_CAPITALS)
+                    if (percentage >= 1.0) unlock(Achievement.CAPITAL_MASTER)
+                }
+
+                if (timeElapsedSeconds < 120 && totalCountries > 0) unlock(Achievement.CAPITAL_SPEED_RUN)
+
+                val capitalCount = prefs[CAPITAL_QUIZZES_COMPLETED_KEY] ?: 0
+                if (capitalCount >= 10) unlock(Achievement.CAPITAL_SCHOLAR)
+            }
+
+            // --- Flag achievements ---
+            if (quizMode == QuizMode.FLAGS) {
+                unlock(Achievement.FLAG_SPOTTER)
+
+                if (percentage >= 1.0 && totalCountries > 0) unlock(Achievement.FLAG_PERFECTIONIST)
+
+                if (category is QuizCategory.AllCountries && percentage >= 0.8) {
+                    unlock(Achievement.FLAG_MASTER)
+                }
+
+                val flagCount = prefs[FLAG_QUIZZES_COMPLETED_KEY] ?: 0
+                if (flagCount >= 10) unlock(Achievement.VEXILLOLOGIST)
+
+                val flagColors = (prefs[COMPLETED_FLAG_COLORS_KEY] ?: "").let {
+                    if (it.isBlank()) emptySet() else it.split(",").toSet()
+                }
+                if (flagColors.size >= 5) unlock(Achievement.COLOR_EXPERT)
+                if (flagColors.size >= 6) unlock(Achievement.RAINBOW)
+            }
+
             prefs[UNLOCKED_KEY] = currentUnlocked.joinToString(",")
         }
 
@@ -263,5 +330,8 @@ class AchievementRepository @Inject constructor(
         private val COMPLETED_PATTERN_QUIZZES_KEY = stringPreferencesKey("completed_pattern_quizzes")
         private val COMPLETED_SUBREGIONS_KEY = stringPreferencesKey("completed_subregions")
         private val REGION_SCORES_KEY = stringPreferencesKey("region_scores")
+        private val CAPITAL_QUIZZES_COMPLETED_KEY = intPreferencesKey("capital_quizzes_completed")
+        private val FLAG_QUIZZES_COMPLETED_KEY = intPreferencesKey("flag_quizzes_completed")
+        private val COMPLETED_FLAG_COLORS_KEY = stringPreferencesKey("completed_flag_colors")
     }
 }

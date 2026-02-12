@@ -44,6 +44,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryListScreen(
+    quizMode: String = "countries",
     onNavigateBack: () -> Unit,
     onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
     viewModel: CategoryListViewModel = hiltViewModel()

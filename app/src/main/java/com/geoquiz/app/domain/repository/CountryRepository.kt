@@ -7,5 +7,6 @@ interface CountryRepository {
     fun getAllCountries(): Flow<List<Country>>
     suspend fun getCountryCount(): Int
     suspend fun findCountryByAnswer(input: String): Country?
+    suspend fun findCountryByCapitalAnswer(input: String): Country?
     suspend fun ensureSeeded()
 }

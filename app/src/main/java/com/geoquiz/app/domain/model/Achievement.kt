@@ -33,7 +33,23 @@ enum class Achievement(
     ULTIMATE_GEOGRAPHER("ultimate_geographer", "Ultimate Geographer", "Name every country in the world", AchievementTier.GOLD),
     SPEED_MASTER("speed_master", "Speed Master", "Complete All Countries in under 15 minutes", AchievementTier.GOLD),
     PATTERN_MASTER("pattern_master", "Pattern Master", "Complete all Letter Pattern quizzes", AchievementTier.GOLD),
-    SUBREGION_EXPLORER("subregion_explorer", "Subregion Explorer", "Complete 10 different subregion quizzes", AchievementTier.GOLD)
+    SUBREGION_EXPLORER("subregion_explorer", "Subregion Explorer", "Complete 10 different subregion quizzes", AchievementTier.GOLD),
+
+    // Capital achievements
+    CAPITAL_BEGINNER("capital_beginner", "Capital Beginner", "Complete any capital quiz", AchievementTier.BRONZE),
+    CAPITAL_EXPERT("capital_expert", "Capital Expert", "Get 80%+ on any capital quiz", AchievementTier.SILVER),
+    WORLD_CAPITALS("world_capitals", "World Capitals", "Complete the All Capitals quiz", AchievementTier.GOLD),
+    CAPITAL_SPEED_RUN("capital_speed_run", "Capital Speed Run", "Complete a capital quiz in under 2 minutes", AchievementTier.SILVER),
+    CAPITAL_SCHOLAR("capital_scholar", "Capital Scholar", "Complete 10 capital quizzes", AchievementTier.SILVER),
+    CAPITAL_MASTER("capital_master", "Capital Master", "Get 100% on the All Capitals quiz", AchievementTier.GOLD),
+
+    // Flag achievements
+    FLAG_SPOTTER("flag_spotter", "Flag Spotter", "Complete any flag quiz", AchievementTier.BRONZE),
+    COLOR_EXPERT("color_expert", "Color Expert", "Complete 5 different flag color quizzes", AchievementTier.SILVER),
+    RAINBOW("rainbow", "Rainbow", "Complete flag quizzes for 6 different colors", AchievementTier.GOLD),
+    FLAG_PERFECTIONIST("flag_perfectionist", "Flag Perfectionist", "Get 100% on any flag quiz", AchievementTier.SILVER),
+    VEXILLOLOGIST("vexillologist", "Vexillologist", "Complete 10 flag quizzes", AchievementTier.GOLD),
+    FLAG_MASTER("flag_master", "Flag Master", "Complete the Flags of the World quiz with 80%+", AchievementTier.GOLD)
 }
 
 enum class AchievementTier { BRONZE, SILVER, GOLD }

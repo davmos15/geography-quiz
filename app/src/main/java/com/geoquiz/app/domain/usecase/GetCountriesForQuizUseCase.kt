@@ -82,6 +82,13 @@ class GetCountriesForQuizUseCase @Inject constructor(
             is QuizCategory.IslandCountries -> allCountries.filter { country ->
                 country.name.contains("island", ignoreCase = true)
             }
+
+            is QuizCategory.FlagSingleColor,
+            is QuizCategory.FlagColorCombo,
+            is QuizCategory.FlagColorCount -> {
+                // Flag categories are handled by GetCountriesForFlagQuizUseCase
+                emptyList()
+            }
         }
     }
 

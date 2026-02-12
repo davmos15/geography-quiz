@@ -1,4 +1,4 @@
-package com.geoquiz.app.ui.home
+package com.geoquiz.app.ui.flags
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,28 +41,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
-import com.geoquiz.app.domain.model.CategoryGroup
-import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    quizMode: QuizMode = QuizMode.COUNTRIES,
+fun FlagsHomeScreen(
     onNavigateToCategory: (groupId: String) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAchievements: () -> Unit,
-    onNavigateToChallenges: () -> Unit,
     onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: FlagsHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -72,26 +63,20 @@ fun HomeScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.Default.Public,
+                            Icons.Default.Flag,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = FlagsAccent,
                             modifier = Modifier.size(28.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Geography Quiz",
+                            "Flags Quiz",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToChallenges) {
-                        Icon(
-                            Icons.Default.Leaderboard,
-                            contentDescription = "Challenges"
-                        )
-                    }
                     IconButton(onClick = onNavigateToAchievements) {
                         Icon(
                             Icons.Default.EmojiEvents,
@@ -123,15 +108,13 @@ fun HomeScreen(
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Loading countries...",
+                        text = "Loading flags...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         } else {
-            val nonAllGroups = state.categoryGroups.filter { it.group != CategoryGroup.ALL_COUNTRIES }
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -141,57 +124,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Resume saved quiz card
-                val savedQuiz = state.savedQuiz
-                if (savedQuiz != null) {
-                    item(span = { GridItemSpan(2) }) {
-                        Card(
-                            onClick = { onStartQuiz(savedQuiz.categoryType, savedQuiz.categoryValue) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.PlayArrow,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Resume Quiz",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                    Text(
-                                        text = "${savedQuiz.categoryDisplayName} - ${savedQuiz.answeredCount} answered",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                                    )
-                                }
-                                IconButton(onClick = { viewModel.dismissSavedQuiz() }) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Dismiss",
-                                        tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Featured "All Countries" card spanning full width
+                // Featured header card
                 item(span = { GridItemSpan(2) }) {
                     ElevatedCard(
                         onClick = { onStartQuiz("all", "_") },
@@ -205,8 +138,8 @@ fun HomeScreen(
                                 .background(
                                     Brush.horizontalGradient(
                                         colors = listOf(
-                                            MaterialTheme.colorScheme.primary,
-                                            MaterialTheme.colorScheme.tertiary
+                                            FlagsAccent,
+                                            Color(0xFF5C6BC0)
                                         )
                                     )
                                 )
@@ -215,21 +148,21 @@ fun HomeScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
-                                    Icons.Default.Public,
+                                    Icons.Default.Flag,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(40.dp)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "All Countries",
+                                    text = "Flags of the World",
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "${state.totalCount} countries",
+                                    text = "${state.totalCount} flags",
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = Color.White.copy(alpha = 0.85f)
                                 )
@@ -238,7 +171,6 @@ fun HomeScreen(
                     }
                 }
 
-                // Section header
                 item(span = { GridItemSpan(2) }) {
                     Text(
                         text = "Categories",
@@ -248,13 +180,10 @@ fun HomeScreen(
                     )
                 }
 
-                // Category grid tiles
-                items(nonAllGroups) { info ->
-                    CategoryTile(
+                items(state.categoryGroups) { info ->
+                    FlagsCategoryTile(
                         info = info,
-                        onClick = {
-                            onNavigateToCategory(info.group.id)
-                        }
+                        onClick = { onNavigateToCategory(info.group.id) }
                     )
                 }
             }
@@ -263,11 +192,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun CategoryTile(
-    info: CategoryGroupInfo,
+private fun FlagsCategoryTile(
+    info: FlagCategoryGroupInfo,
     onClick: () -> Unit
 ) {
-    val colors = getCategoryColors(info.group.colorIndex)
+    val colors = getFlagsCategoryColors(info.group.colorIndex)
 
     Card(
         onClick = onClick,
@@ -298,15 +227,10 @@ private fun CategoryTile(
     }
 }
 
-private fun getCategoryColors(index: Int): Pair<Color, Color> = when (index) {
-    0 -> Pair(CategoryBlueTint, CategoryBlue)       // All Countries (unused here)
-    1 -> Pair(CategoryBlueTint, CategoryBlue)       // Regions
-    2 -> Pair(CategoryIndigoTint, CategoryIndigo)   // Subregions
-    3 -> Pair(CategoryTealTint, CategoryTeal)       // Starting Letter
-    4 -> Pair(CategoryCyanTint, CategoryCyan)       // Ending Letter
-    5 -> Pair(CategoryGreenTint, CategoryGreen)     // Containing Letter
-    6 -> Pair(CategoryAmberTint, CategoryAmber)     // Name Length
-    7 -> Pair(CategoryPinkTint, CategoryPink)       // Letter Patterns
-    8 -> Pair(CategoryPurpleTint, CategoryPurple)   // Islands
-    else -> Pair(CategoryBrownTint, CategoryBrown)
+private fun getFlagsCategoryColors(index: Int): Pair<Color, Color> = when (index) {
+    0 -> Pair(CategoryIndigoTint, CategoryIndigo)
+    1 -> Pair(CategoryPurpleTint, CategoryPurple)
+    2 -> Pair(CategoryPinkTint, CategoryPink)
+    3 -> Pair(CategoryCyanTint, CategoryCyan)
+    else -> Pair(CategoryBlueTint, CategoryBlue)
 }

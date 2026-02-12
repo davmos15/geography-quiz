@@ -18,7 +18,8 @@ class SavedQuizRepository @Inject constructor(
         categoryType: String,
         categoryValue: String,
         answeredCodes: Set<String>,
-        timeElapsed: Int
+        timeElapsed: Int,
+        quizMode: String = "countries"
     ) {
         val json = Json.encodeToString(answeredCodes.toList())
         savedQuizDao.saveQuiz(
@@ -27,7 +28,8 @@ class SavedQuizRepository @Inject constructor(
                 categoryValue = categoryValue,
                 answeredCountryCodes = json,
                 timeElapsedSeconds = timeElapsed,
-                savedAtMillis = System.currentTimeMillis()
+                savedAtMillis = System.currentTimeMillis(),
+                quizMode = quizMode
             )
         )
     }

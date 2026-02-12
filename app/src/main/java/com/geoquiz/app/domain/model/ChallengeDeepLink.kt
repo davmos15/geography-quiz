@@ -9,7 +9,8 @@ data class ChallengeDeepLink(
     val challengerName: String,
     val challengerScore: Int?,
     val challengerTotal: Int?,
-    val challengerTime: Int?
+    val challengerTime: Int?,
+    val quizMode: String = "countries"
 ) {
     fun toUri(): Uri {
         return Uri.Builder()
@@ -19,6 +20,7 @@ data class ChallengeDeepLink(
             .appendQueryParameter("ct", categoryType)
             .appendQueryParameter("cv", categoryValue)
             .appendQueryParameter("name", challengerName)
+            .appendQueryParameter("mode", quizMode)
             .apply {
                 challengerScore?.let { appendQueryParameter("score", it.toString()) }
                 challengerTotal?.let { appendQueryParameter("total", it.toString()) }
@@ -42,7 +44,8 @@ data class ChallengeDeepLink(
                 challengerName = name,
                 challengerScore = uri.getQueryParameter("score")?.toIntOrNull(),
                 challengerTotal = uri.getQueryParameter("total")?.toIntOrNull(),
-                challengerTime = uri.getQueryParameter("time")?.toIntOrNull()
+                challengerTime = uri.getQueryParameter("time")?.toIntOrNull(),
+                quizMode = uri.getQueryParameter("mode") ?: "countries"
             )
         }
     }

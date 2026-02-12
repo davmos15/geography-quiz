@@ -1,6 +1,7 @@
 package com.geoquiz.app.ui.results
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
 
@@ -38,6 +40,7 @@ fun AnswerReviewScreen(
     val countries = QuizResultHolder.countries
     val answeredCodes = QuizResultHolder.answeredCodes
     val categoryName = QuizResultHolder.categoryName
+    val quizMode = QuizResultHolder.quizMode
     val sorted = countries.sortedBy { it.name }
 
     val answeredCount = sorted.count { it.code in answeredCodes }
@@ -84,16 +87,55 @@ fun AnswerReviewScreen(
                         tint = if (isAnswered) CorrectGreen else IncorrectRed
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = country.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                        color = if (isAnswered) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            IncorrectRed
+
+                    when (quizMode) {
+                        QuizMode.CAPITALS -> {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = country.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = country.capital,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isAnswered) CorrectGreen else IncorrectRed
+                                )
+                            }
                         }
-                    )
+
+                        QuizMode.FLAGS -> {
+                            Text(
+                                text = country.flag,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = country.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                color = if (isAnswered) {
+                                    MaterialTheme.colorScheme.onSurface
+                                } else {
+                                    IncorrectRed
+                                }
+                            )
+                        }
+
+                        QuizMode.COUNTRIES -> {
+                            Text(
+                                text = country.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                color = if (isAnswered) {
+                                    MaterialTheme.colorScheme.onSurface
+                                } else {
+                                    IncorrectRed
+                                }
+                            )
+                        }
+                    }
                 }
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)

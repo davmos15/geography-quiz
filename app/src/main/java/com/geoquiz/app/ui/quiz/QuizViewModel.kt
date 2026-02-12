@@ -10,10 +10,13 @@ import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
+import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
+import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
 import com.geoquiz.app.ui.results.QuizResultHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -31,12 +34,17 @@ import javax.inject.Inject
 class QuizViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCountriesForQuiz: GetCountriesForQuizUseCase,
+    private val getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase,
     private val validateAnswer: ValidateAnswerUseCase,
+    private val validateCapitalAnswer: ValidateCapitalAnswerUseCase,
     private val calculateScore: CalculateScoreUseCase,
     private val settingsRepository: SettingsRepository,
     private val achievementRepository: AchievementRepository,
     private val savedQuizRepository: SavedQuizRepository
 ) : ViewModel() {
+
+    private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
+    val quizMode: QuizMode = QuizMode.fromId(quizModeId)
 
     private val categoryType: String = savedStateHandle["categoryType"] ?: "all"
     private val categoryValueRaw: String = savedStateHandle["categoryValue"] ?: "_"
@@ -65,7 +73,13 @@ class QuizViewModel @Inject constructor(
 
     private fun loadQuiz() {
         viewModelScope.launch {
-            val countries = getCountriesForQuiz(category)
+            val isFlagSpecificCategory = category is QuizCategory.FlagSingleColor ||
+                    category is QuizCategory.FlagColorCombo ||
+                    category is QuizCategory.FlagColorCount
+            val countries = when {
+                isFlagSpecificCategory -> getCountriesForFlagQuiz(category)
+                else -> getCountriesForQuiz(category)
+            }
             val quiz = Quiz(
                 category = category,
                 countries = countries,
@@ -76,10 +90,10 @@ class QuizViewModel @Inject constructor(
             val savedQuiz = savedQuizRepository.getSavedQuiz()
             if (savedQuiz != null &&
                 savedQuiz.categoryType == categoryType &&
-                savedQuiz.categoryValue == categoryValue
+                savedQuiz.categoryValue == categoryValue &&
+                savedQuiz.quizMode == quizModeId
             ) {
                 val savedCodes = savedQuizRepository.parseAnsweredCodes(savedQuiz.answeredCountryCodes)
-                // Filter to only codes that are still valid in this quiz
                 val validCodes = savedCodes.filter { code ->
                     countries.any { it.code == code }
                 }.toSet()
@@ -132,7 +146,6 @@ class QuizViewModel @Inject constructor(
     fun onBackgrounded() {
         val current = _uiState.value
         if (current is QuizUiState.Active && !current.state.isComplete) {
-            // Pause the quiz
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active && !uiState.state.isComplete) {
                     QuizUiState.Active(uiState.state.copy(isPaused = true))
@@ -150,7 +163,8 @@ class QuizViewModel @Inject constructor(
                     categoryType = categoryType,
                     categoryValue = categoryValue,
                     answeredCodes = current.state.answeredCountries,
-                    timeElapsed = current.state.timeElapsedSeconds
+                    timeElapsed = current.state.timeElapsedSeconds,
+                    quizMode = quizModeId
                 )
             }
         }
@@ -173,7 +187,10 @@ class QuizViewModel @Inject constructor(
         if (input.isBlank()) return
 
         viewModelScope.launch {
-            val result = validateAnswer(input, current.state)
+            val result = when (quizMode) {
+                QuizMode.CAPITALS -> validateCapitalAnswer(input, current.state)
+                else -> validateAnswer(input, current.state)
+            }
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active) {
                     val state = uiState.state
@@ -204,7 +221,6 @@ class QuizViewModel @Inject constructor(
                 QuizUiState.Active(uiState.state.copy(isComplete = true))
             } else uiState
         }
-        // Clear any saved state since quiz is done
         viewModelScope.launch {
             savedQuizRepository.clearSavedQuiz()
         }
@@ -215,12 +231,11 @@ class QuizViewModel @Inject constructor(
         if (current !is QuizUiState.Active) return null
         val result = calculateScore(current.state)
 
-        // Store in QuizResultHolder for AnswerReview screen
         QuizResultHolder.countries = current.state.quiz.countries
         QuizResultHolder.answeredCodes = current.state.answeredCountries
         QuizResultHolder.categoryName = category.displayName
+        QuizResultHolder.quizMode = quizMode
 
-        // Check achievements once
         if (!achievementsChecked) {
             achievementsChecked = true
             viewModelScope.launch {
@@ -228,7 +243,8 @@ class QuizViewModel @Inject constructor(
                     category = category,
                     correctAnswers = result.correctAnswers,
                     totalCountries = result.totalCountries,
-                    timeElapsedSeconds = result.timeElapsedSeconds
+                    timeElapsedSeconds = result.timeElapsedSeconds,
+                    quizMode = quizMode
                 )
                 if (newlyUnlocked.isNotEmpty()) {
                     _newAchievements.value = newlyUnlocked
@@ -236,7 +252,6 @@ class QuizViewModel @Inject constructor(
             }
         }
 
-        // Clear saved state on completion
         viewModelScope.launch {
             savedQuizRepository.clearSavedQuiz()
         }
@@ -246,15 +261,6 @@ class QuizViewModel @Inject constructor(
 
     fun clearNewAchievements() {
         _newAchievements.value = emptyList()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        val current = _uiState.value
-        if (current is QuizUiState.Active && !current.state.isComplete && current.state.answeredCountries.isNotEmpty()) {
-            // Can't use viewModelScope here since it's cancelled, but the coroutine
-            // launched from saveQuizState would have already saved if onBackgrounded was called
-        }
     }
 }
 

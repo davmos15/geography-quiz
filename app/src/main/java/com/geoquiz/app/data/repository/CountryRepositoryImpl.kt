@@ -2,8 +2,12 @@ package com.geoquiz.app.data.repository
 
 import android.content.Context
 import com.geoquiz.app.data.local.db.AliasEntity
+import com.geoquiz.app.data.local.db.CapitalAliasDao
+import com.geoquiz.app.data.local.db.CapitalAliasEntity
 import com.geoquiz.app.data.local.db.CountryDao
 import com.geoquiz.app.data.local.db.CountryEntity
+import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.FlagColorEntity
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
@@ -21,6 +25,8 @@ import javax.inject.Singleton
 class CountryRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val countryDao: CountryDao,
+    private val capitalAliasDao: CapitalAliasDao,
+    private val flagColorDao: FlagColorDao,
     private val normalizeInput: NormalizeInputUseCase
 ) : CountryRepository {
 
@@ -46,6 +52,13 @@ class CountryRepositoryImpl @Inject constructor(
         return countryDao.findCountryByNormalizedAlias(normalized)?.toDomain()
     }
 
+    override suspend fun findCountryByCapitalAnswer(input: String): Country? {
+        ensureSeeded()
+        val normalized = normalizeInput(input)
+        if (normalized.isBlank()) return null
+        return capitalAliasDao.findCountryByNormalizedCapitalAlias(normalized)?.toDomain()
+    }
+
     override suspend fun ensureSeeded() {
         if (countryDao.getCountryCount() > 0) return
         seedMutex.withLock {
@@ -61,8 +74,15 @@ class CountryRepositoryImpl @Inject constructor(
         val parsed = json.decodeFromString<List<CountryJson>>(rawJson)
             .filter { it.unMember }
 
+        // Load flag colors
+        val flagColorsRaw = context.assets.open("flag_colors.json")
+            .bufferedReader().use { it.readText() }
+        val flagColorsMap = json.decodeFromString<Map<String, List<String>>>(flagColorsRaw)
+
         val entities = mutableListOf<CountryEntity>()
         val aliases = mutableListOf<AliasEntity>()
+        val capitalAliases = mutableListOf<CapitalAliasEntity>()
+        val flagColorEntities = mutableListOf<FlagColorEntity>()
 
         for (c in parsed) {
             val commonName = c.name.common
@@ -70,6 +90,8 @@ class CountryRepositoryImpl @Inject constructor(
             val region = c.region
             val subregion = c.subregion ?: ""
             val cca3 = c.cca3
+            val capital = c.capital.firstOrNull() ?: ""
+            val flag = c.flag ?: ""
 
             entities.add(
                 CountryEntity(
@@ -78,27 +100,27 @@ class CountryRepositoryImpl @Inject constructor(
                     officialName = officialName,
                     region = region,
                     subregion = subregion,
-                    nameLength = commonName.length
+                    nameLength = commonName.length,
+                    capital = capital,
+                    flag = flag
                 )
             )
 
+            // Country name aliases
             val aliasSet = mutableSetOf<String>()
             aliasSet.add(commonName)
             aliasSet.add(officialName)
             c.altSpellings.forEach { aliasSet.add(it) }
 
-            // Hardcoded abbreviations
             val abbreviations = ABBREVIATIONS[cca3]
             if (abbreviations != null) {
                 aliasSet.addAll(abbreviations)
             }
 
-            // Allowed short abbreviations from the ABBREVIATIONS map
             val allowedShort = abbreviations?.toSet() ?: emptySet()
 
             for (alias in aliasSet) {
                 if (alias.isBlank()) continue
-                // Skip short uppercase codes (e.g., "JP", "AU", "NZ") unless explicitly allowed
                 if (alias.length <= 3 && alias.all { it.isUpperCase() } && alias !in allowedShort) continue
                 aliases.add(
                     AliasEntity(
@@ -108,10 +130,41 @@ class CountryRepositoryImpl @Inject constructor(
                     )
                 )
             }
+
+            // Capital aliases
+            val capitalSet = mutableSetOf<String>()
+            c.capital.forEach { capitalSet.add(it) }
+            // Add custom capital aliases
+            CAPITAL_ALIASES[cca3]?.forEach { capitalSet.add(it) }
+
+            for (cap in capitalSet) {
+                if (cap.isBlank()) continue
+                capitalAliases.add(
+                    CapitalAliasEntity(
+                        countryCca3 = cca3,
+                        alias = cap,
+                        normalizedAlias = normalizeInput(cap)
+                    )
+                )
+            }
+
+            // Flag colors - use cca2 to look up in flag_colors.json, but store with cca3
+            val cca2 = c.cca2
+            val colors = flagColorsMap[cca3] ?: flagColorsMap[cca2] ?: emptyList()
+            for (color in colors) {
+                flagColorEntities.add(
+                    FlagColorEntity(
+                        countryCca3 = cca3,
+                        color = color
+                    )
+                )
+            }
         }
 
         countryDao.insertCountries(entities)
         countryDao.insertAliases(aliases)
+        capitalAliasDao.insertAliases(capitalAliases)
+        flagColorDao.insertFlagColors(flagColorEntities)
     }
 
     private fun CountryEntity.toDomain() = Country(
@@ -120,7 +173,9 @@ class CountryRepositoryImpl @Inject constructor(
         officialName = officialName,
         region = region,
         subregion = subregion,
-        nameLength = nameLength
+        nameLength = nameLength,
+        capital = capital,
+        flag = flag
     )
 
     companion object {
@@ -157,17 +212,41 @@ class CountryRepositoryImpl @Inject constructor(
             "MHL" to listOf("Marshall Islands"),
             "CPV" to listOf("Cape Verde"),
         )
+
+        private val CAPITAL_ALIASES = mapOf(
+            "TUR" to listOf("Ankara"),
+            "CZE" to listOf("Prague"),
+            "MMR" to listOf("Naypyidaw", "Nay Pyi Taw"),
+            "LKA" to listOf("Colombo", "Sri Jayawardenepura Kotte", "Kotte"),
+            "MYS" to listOf("Kuala Lumpur", "KL"),
+            "ZAF" to listOf("Pretoria", "Cape Town", "Bloemfontein"),
+            "BRN" to listOf("Bandar Seri Begawan"),
+            "SWZ" to listOf("Mbabane", "Lobamba"),
+            "CPV" to listOf("Praia"),
+            "CIV" to listOf("Yamoussoukro"),
+            "COD" to listOf("Kinshasa"),
+            "COG" to listOf("Brazzaville"),
+            "KOR" to listOf("Seoul"),
+            "PRK" to listOf("Pyongyang"),
+            "TLS" to listOf("Dili"),
+            "FSM" to listOf("Palikir"),
+            "MHL" to listOf("Majuro"),
+            "SLB" to listOf("Honiara"),
+        )
     }
 }
 
 @Serializable
 private data class CountryJson(
+    val cca2: String = "",
     val cca3: String,
     val name: NameJson,
     val region: String,
     val subregion: String? = null,
     val altSpellings: List<String> = emptyList(),
-    val unMember: Boolean = false
+    val unMember: Boolean = false,
+    val capital: List<String> = emptyList(),
+    val flag: String? = null
 )
 
 @Serializable

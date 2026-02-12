@@ -15,13 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,7 +26,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.geoquiz.app.data.local.preferences.settingsDataStore
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.achievements.AchievementsScreen
 import com.geoquiz.app.ui.capitals.CapitalsHomeScreen
@@ -41,7 +37,6 @@ import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
-import kotlinx.coroutines.flow.map
 import java.net.URLDecoder
 
 private data class BottomNavItem(
@@ -50,39 +45,22 @@ private data class BottomNavItem(
     val route: String
 )
 
+private val bottomNavItems = listOf(
+    BottomNavItem("Countries", Icons.Default.Public, Screen.CountriesHome.route),
+    BottomNavItem("Capitals", Icons.Default.AccountBalance, Screen.CapitalsHome.route),
+    BottomNavItem("Flags", Icons.Default.Flag, Screen.FlagsHome.route)
+)
+
+private val homeRoutes = setOf(
+    Screen.CountriesHome.route,
+    Screen.CapitalsHome.route,
+    Screen.FlagsHome.route
+)
+
 @Composable
 fun AppNavigation(intent: Intent? = null) {
     val navController = rememberNavController()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-
-    val context = LocalContext.current
-    val showFlagsFlow = remember { context.settingsDataStore.data.map { it[androidx.datastore.preferences.core.booleanPreferencesKey("show_flags")] ?: false } }
-    val showFlags by showFlagsFlow.collectAsStateWithLifecycle(initialValue = false)
-
-    val bottomNavItems = remember(showFlags) {
-        buildList {
-            add(BottomNavItem("Countries", Icons.Default.Public, Screen.CountriesHome.route))
-            add(BottomNavItem("Capitals", Icons.Default.AccountBalance, Screen.CapitalsHome.route))
-            if (showFlags) {
-                add(BottomNavItem("Flags", Icons.Default.Flag, Screen.FlagsHome.route))
-            }
-        }
-    }
-
-    val homeRoutes = remember(showFlags) {
-        buildSet {
-            add(Screen.CountriesHome.route)
-            add(Screen.CapitalsHome.route)
-            if (showFlags) add(Screen.FlagsHome.route)
-        }
-    }
-
-    // Clamp selectedTab if flags tab was hidden while selected
-    LaunchedEffect(bottomNavItems.size) {
-        if (selectedTab >= bottomNavItems.size) {
-            selectedTab = 0
-        }
-    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

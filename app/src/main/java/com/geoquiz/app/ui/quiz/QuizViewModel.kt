@@ -58,6 +58,9 @@ class QuizViewModel @Inject constructor(
     private val _showTimer = MutableStateFlow(true)
     val showTimer: StateFlow<Boolean> = _showTimer.asStateFlow()
 
+    private val _showFlags = MutableStateFlow(false)
+    val showFlags: StateFlow<Boolean> = _showFlags.asStateFlow()
+
     private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
     val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
@@ -68,6 +71,7 @@ class QuizViewModel @Inject constructor(
         loadQuiz()
         viewModelScope.launch {
             _showTimer.value = settingsRepository.showTimer.first()
+            _showFlags.value = settingsRepository.showFlags.first()
         }
     }
 

@@ -1,6 +1,5 @@
 package com.geoquiz.app.ui.results
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,13 +23,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.data.local.preferences.settingsDataStore
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
+import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +48,14 @@ fun AnswerReviewScreen(
     val categoryName = QuizResultHolder.categoryName
     val quizMode = QuizResultHolder.quizMode
     val sorted = countries.sortedBy { it.name }
+
+    val context = LocalContext.current
+    val showFlagsFlow = remember {
+        context.settingsDataStore.data.map {
+            it[booleanPreferencesKey("show_flags")] ?: false
+        }
+    }
+    val showFlags by showFlagsFlow.collectAsStateWithLifecycle(initialValue = false)
 
     val answeredCount = sorted.count { it.code in answeredCodes }
 
@@ -88,6 +102,15 @@ fun AnswerReviewScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
 
+                    // Show flag emoji for FLAGS mode (always) or other modes when setting is on
+                    if (quizMode == QuizMode.FLAGS || showFlags) {
+                        Text(
+                            text = country.flag,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
+
                     when (quizMode) {
                         QuizMode.CAPITALS -> {
                             Column(modifier = Modifier.weight(1f)) {
@@ -105,25 +128,7 @@ fun AnswerReviewScreen(
                             }
                         }
 
-                        QuizMode.FLAGS -> {
-                            Text(
-                                text = country.flag,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = country.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                                color = if (isAnswered) {
-                                    MaterialTheme.colorScheme.onSurface
-                                } else {
-                                    IncorrectRed
-                                }
-                            )
-                        }
-
-                        QuizMode.COUNTRIES -> {
+                        QuizMode.FLAGS, QuizMode.COUNTRIES -> {
                             Text(
                                 text = country.name,
                                 style = MaterialTheme.typography.bodyLarge,

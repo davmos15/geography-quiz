@@ -60,6 +60,7 @@ fun QuizScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
+    val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     var showGiveUpDialog by remember { mutableStateOf(false) }
 
     // Auto-pause and save when app goes to background
@@ -216,6 +217,7 @@ fun QuizScreen(
                             countries = quizState.quiz.countries,
                             answeredCodes = quizState.answeredCountries,
                             quizMode = viewModel.quizMode,
+                            showFlags = showFlags,
                             modifier = Modifier.weight(1f)
                         )
                     }

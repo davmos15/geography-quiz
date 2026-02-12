@@ -11,6 +11,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,7 @@ fun CountryList(
     countries: List<Country>,
     answeredCodes: Set<String>,
     quizMode: QuizMode = QuizMode.COUNTRIES,
+    showFlags: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val sorted = countries.sortedBy { it.name }
@@ -32,27 +34,46 @@ fun CountryList(
 
             when (quizMode) {
                 QuizMode.COUNTRIES -> {
-                    Text(
-                        text = if (isAnswered) country.name else "???",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                        color = if (isAnswered) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        },
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp, horizontal = 4.dp)
-                    )
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (showFlags) {
+                            Text(
+                                text = country.flag,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
+                        Text(
+                            text = if (isAnswered) country.name else "???",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                            color = if (isAnswered) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            }
+                        )
+                    }
                 }
 
                 QuizMode.CAPITALS -> {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp, horizontal = 4.dp)
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if (showFlags) {
+                            Text(
+                                text = country.flag,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
                         Text(
                             text = country.name,
                             style = MaterialTheme.typography.bodyLarge,
@@ -77,7 +98,8 @@ fun CountryList(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp, horizontal = 4.dp)
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = country.flag,

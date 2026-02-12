@@ -102,8 +102,7 @@ fun AnswerReviewScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Show flag emoji for FLAGS mode (always) or other modes when setting is on
-                    if (quizMode == QuizMode.FLAGS || showFlags) {
+                    if (showFlags) {
                         Text(
                             text = country.flag,
                             style = MaterialTheme.typography.titleLarge

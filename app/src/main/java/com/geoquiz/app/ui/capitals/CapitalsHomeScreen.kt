@@ -232,9 +232,14 @@ private fun CapitalsCategoryTile(
 }
 
 private fun getCapitalsCategoryColors(index: Int): Pair<Color, Color> = when (index) {
-    0 -> Pair(CategoryOrangeTint, CategoryOrange)
-    1 -> Pair(CategoryOrangeTint, CategoryOrange)
-    2 -> Pair(CategoryAmberTint, CategoryAmber)
-    3 -> Pair(CategoryBrownTint, CategoryBrown)
-    else -> Pair(CategoryPinkTint, CategoryPink)
+    0 -> Pair(CategoryOrangeTint, CategoryOrange)     // Regions
+    1 -> Pair(CategoryAmberTint, CategoryAmber)        // Subregions
+    2 -> Pair(CategoryBrownTint, CategoryBrown)        // Starting Letter
+    3 -> Pair(CategoryPinkTint, CategoryPink)          // Ending Letter
+    4 -> Pair(CategoryPurpleTint, CategoryPurple)      // Containing Letter
+    5 -> Pair(CategoryTealTint, CategoryTeal)          // Name Length
+    6 -> Pair(CategoryIndigoTint, CategoryIndigo)      // Letter Patterns
+    7 -> Pair(CategoryCyanTint, CategoryCyan)          // Word Patterns
+    8 -> Pair(CategoryGreenTint, CategoryGreen)        // Islands
+    else -> Pair(CategoryBlueTint, CategoryBlue)
 }

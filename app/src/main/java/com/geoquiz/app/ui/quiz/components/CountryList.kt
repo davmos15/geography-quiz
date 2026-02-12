@@ -101,11 +101,13 @@ fun CountryList(
                             .padding(vertical = 6.dp, horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = country.flag,
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        if (showFlags) {
+                            Text(
+                                text = country.flag,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
                         Text(
                             text = if (isAnswered) country.name else "???",
                             style = MaterialTheme.typography.bodyLarge,
@@ -114,8 +116,7 @@ fun CountryList(
                                 MaterialTheme.colorScheme.onSurface
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                            },
-                            modifier = Modifier.weight(1f)
+                            }
                         )
                     }
                 }

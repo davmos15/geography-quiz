@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,6 +50,7 @@ fun FlagsHomeScreen(
     onNavigateToCategory: (groupId: String) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAchievements: () -> Unit,
+    onNavigateToChallenges: () -> Unit,
     onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
     viewModel: FlagsHomeViewModel = hiltViewModel()
 ) {
@@ -74,6 +76,12 @@ fun FlagsHomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToChallenges) {
+                        Icon(
+                            Icons.Default.Leaderboard,
+                            contentDescription = "Challenges"
+                        )
+                    }
                     IconButton(onClick = onNavigateToAchievements) {
                         Icon(
                             Icons.Default.EmojiEvents,

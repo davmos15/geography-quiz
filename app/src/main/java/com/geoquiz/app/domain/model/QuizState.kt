@@ -7,7 +7,8 @@ data class QuizState(
     val timeElapsedSeconds: Int = 0,
     val isComplete: Boolean = false,
     val isPaused: Boolean = false,
-    val lastAnswerResult: AnswerResult = AnswerResult.None
+    val lastAnswerResult: AnswerResult = AnswerResult.None,
+    val incorrectGuesses: Int = 0
 ) {
     val progress: Float
         get() = if (quiz.countries.isEmpty()) 0f

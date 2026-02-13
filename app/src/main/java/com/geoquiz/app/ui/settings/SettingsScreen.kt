@@ -36,6 +36,7 @@ fun SettingsScreen(
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
+    val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
     val playerName by viewModel.playerName.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -125,6 +126,30 @@ fun SettingsScreen(
                 Switch(
                     checked = showCountryHint,
                     onCheckedChange = { viewModel.onToggleShowCountryHint(it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Hard Mode",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Only 3 incorrect guesses allowed per quiz",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(
+                    checked = hardMode,
+                    onCheckedChange = { viewModel.onToggleHardMode(it) }
                 )
             }
 

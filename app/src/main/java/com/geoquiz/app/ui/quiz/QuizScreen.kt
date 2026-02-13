@@ -51,10 +51,11 @@ import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.theme.CorrectGreen
+import com.geoquiz.app.ui.theme.IncorrectRed
 
 @Composable
 fun QuizScreen(
-    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String) -> Unit,
+    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String, incorrectGuesses: Int) -> Unit,
     onNavigateHome: () -> Unit,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
@@ -62,6 +63,7 @@ fun QuizScreen(
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
+    val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
     var showGiveUpDialog by remember { mutableStateOf(false) }
 
     // Auto-pause and save when app goes to background
@@ -100,7 +102,8 @@ fun QuizScreen(
                         result.perfectBonus,
                         result.category.displayName,
                         viewModel.category.typeKey,
-                        viewModel.category.valueKey
+                        viewModel.category.valueKey,
+                        result.incorrectGuesses
                     )
                 }
             }
@@ -155,7 +158,7 @@ fun QuizScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Header row with progress, optional timer, and pause button
+                        // Header row with progress, optional timer, incorrect count, and pause button
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -169,6 +172,22 @@ fun QuizScreen(
                                 TimerDisplay(
                                     elapsedSeconds = quizState.timeElapsedSeconds,
                                     timerSeconds = null
+                                )
+                            }
+                            if (hardMode) {
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "${quizState.incorrectGuesses} / 3",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = if (quizState.incorrectGuesses >= 2) IncorrectRed
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else if (quizState.incorrectGuesses > 0) {
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "${quizState.incorrectGuesses}x",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = IncorrectRed
                                 )
                             }
                             Spacer(modifier = Modifier.weight(1f))

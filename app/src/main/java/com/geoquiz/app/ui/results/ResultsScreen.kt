@@ -47,6 +47,7 @@ fun ResultsScreen(
     categoryType: String,
     categoryValue: String,
     quizMode: String = "countries",
+    incorrectGuesses: Int = 0,
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
     onViewAnswers: () -> Unit
@@ -136,6 +137,8 @@ fun ResultsScreen(
                     ResultRow("Percentage", String.format("%.1f%%", percentage))
                     Spacer(modifier = Modifier.height(8.dp))
                     ResultRow("Time", timeFormatted)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ResultRow("Incorrect Guesses", incorrectGuesses.toString())
                     if (perfectBonus) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(

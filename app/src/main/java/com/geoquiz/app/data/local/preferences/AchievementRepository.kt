@@ -54,7 +54,9 @@ class AchievementRepository @Inject constructor(
         correctAnswers: Int,
         totalCountries: Int,
         timeElapsedSeconds: Int,
-        quizMode: QuizMode = QuizMode.COUNTRIES
+        quizMode: QuizMode = QuizMode.COUNTRIES,
+        incorrectGuesses: Int = 0,
+        hardMode: Boolean = false
     ): List<Achievement> {
         val newlyUnlocked = mutableListOf<Achievement>()
         val currentUnlocked = unlockedAchievements.first().toMutableSet()
@@ -314,6 +316,20 @@ class AchievementRepository @Inject constructor(
                 if (flagColors.size >= 6) unlock(Achievement.RAINBOW)
             }
 
+            // --- Incorrect guesses & hard mode achievements ---
+            if (incorrectGuesses == 0 && totalCountries > 0) {
+                unlock(Achievement.FLAWLESS)
+
+                val flawlessCount = (prefs[FLAWLESS_QUIZZES_KEY] ?: 0) + 1
+                prefs[FLAWLESS_QUIZZES_KEY] = flawlessCount
+                if (flawlessCount >= 5) unlock(Achievement.SHARP_MIND)
+            }
+
+            if (hardMode && totalCountries > 0) {
+                unlock(Achievement.SURVIVOR)
+                if (percentage >= 1.0) unlock(Achievement.NERVES_OF_STEEL)
+            }
+
             prefs[UNLOCKED_KEY] = currentUnlocked.joinToString(",")
         }
 
@@ -333,5 +349,6 @@ class AchievementRepository @Inject constructor(
         private val CAPITAL_QUIZZES_COMPLETED_KEY = intPreferencesKey("capital_quizzes_completed")
         private val FLAG_QUIZZES_COMPLETED_KEY = intPreferencesKey("flag_quizzes_completed")
         private val COMPLETED_FLAG_COLORS_KEY = stringPreferencesKey("completed_flag_colors")
+        private val FLAWLESS_QUIZZES_KEY = intPreferencesKey("flawless_quizzes")
     }
 }

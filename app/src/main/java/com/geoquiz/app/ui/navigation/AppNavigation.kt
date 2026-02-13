@@ -37,7 +37,7 @@ import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
-import java.net.URLDecoder
+import android.net.Uri
 
 private data class BottomNavItem(
     val label: String,
@@ -150,6 +150,9 @@ fun AppNavigation(intent: Intent? = null) {
                     onNavigateToAchievements = {
                         navController.navigate(Screen.Achievements.route)
                     },
+                    onNavigateToChallenges = {
+                        navController.navigate(Screen.Challenges.route)
+                    },
                     onStartQuiz = { categoryType, categoryValue ->
                         navController.navigate(
                             Screen.Quiz.createRoute("capitals", categoryType, categoryValue)
@@ -168,6 +171,9 @@ fun AppNavigation(intent: Intent? = null) {
                     },
                     onNavigateToAchievements = {
                         navController.navigate(Screen.Achievements.route)
+                    },
+                    onNavigateToChallenges = {
+                        navController.navigate(Screen.Challenges.route)
                     },
                     onStartQuiz = { categoryType, categoryValue ->
                         navController.navigate(
@@ -218,9 +224,9 @@ fun AppNavigation(intent: Intent? = null) {
             ) {
                 val quizMode = it.arguments?.getString("quizMode") ?: "countries"
                 QuizScreen(
-                    onQuizComplete = { score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue ->
+                    onQuizComplete = { score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses ->
                         navController.navigate(
-                            Screen.Results.createRoute(quizMode, score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue)
+                            Screen.Results.createRoute(quizMode, score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses)
                         ) {
                             popUpTo(Screen.Quiz.route) { inclusive = true }
                         }
@@ -247,7 +253,8 @@ fun AppNavigation(intent: Intent? = null) {
                     navArgument("perfectBonus") { type = NavType.BoolType },
                     navArgument("categoryName") { type = NavType.StringType },
                     navArgument("categoryType") { type = NavType.StringType },
-                    navArgument("categoryValue") { type = NavType.StringType }
+                    navArgument("categoryValue") { type = NavType.StringType },
+                    navArgument("incorrectGuesses") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
                 val quizMode = backStackEntry.arguments?.getString("quizMode") ?: "countries"
@@ -257,10 +264,11 @@ fun AppNavigation(intent: Intent? = null) {
                 val time = backStackEntry.arguments?.getInt("time") ?: 0
                 val perfectBonus = backStackEntry.arguments?.getBoolean("perfectBonus") ?: false
                 val rawName = backStackEntry.arguments?.getString("categoryName") ?: ""
-                val categoryName = URLDecoder.decode(rawName, "UTF-8")
+                val categoryName = Uri.decode(rawName)
                 val categoryType = backStackEntry.arguments?.getString("categoryType") ?: ""
                 val rawValue = backStackEntry.arguments?.getString("categoryValue") ?: ""
-                val categoryValue = URLDecoder.decode(rawValue, "UTF-8")
+                val categoryValue = Uri.decode(rawValue)
+                val incorrectGuesses = backStackEntry.arguments?.getInt("incorrectGuesses") ?: 0
 
                 ResultsScreen(
                     score = score,
@@ -272,6 +280,7 @@ fun AppNavigation(intent: Intent? = null) {
                     categoryType = categoryType,
                     categoryValue = categoryValue,
                     quizMode = quizMode,
+                    incorrectGuesses = incorrectGuesses,
                     onPlayAgain = {
                         val homeRoute = when (quizMode) {
                             "capitals" -> Screen.CapitalsHome.route

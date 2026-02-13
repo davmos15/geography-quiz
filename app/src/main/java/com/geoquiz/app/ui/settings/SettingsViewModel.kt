@@ -24,6 +24,9 @@ class SettingsViewModel @Inject constructor(
     val showCountryHint: StateFlow<Boolean> = settingsRepository.showCountryHint
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val hardMode: StateFlow<Boolean> = settingsRepository.hardMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val playerName: StateFlow<String> = settingsRepository.playerName
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
@@ -42,6 +45,12 @@ class SettingsViewModel @Inject constructor(
     fun onToggleShowCountryHint(show: Boolean) {
         viewModelScope.launch {
             settingsRepository.setShowCountryHint(show)
+        }
+    }
+
+    fun onToggleHardMode(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setHardMode(enabled)
         }
     }
 

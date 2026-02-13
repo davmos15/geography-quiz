@@ -1,6 +1,6 @@
 package com.geoquiz.app.ui.navigation
 
-import java.net.URLEncoder
+import android.net.Uri
 
 sealed class Screen(val route: String) {
     data object CountriesHome : Screen("countries_home")
@@ -17,13 +17,13 @@ sealed class Screen(val route: String) {
 
     data object Quiz : Screen("quiz/{quizMode}/{categoryType}/{categoryValue}") {
         fun createRoute(quizMode: String, categoryType: String, categoryValue: String): String {
-            val encoded = URLEncoder.encode(categoryValue, "UTF-8")
+            val encoded = Uri.encode(categoryValue)
             return "quiz/$quizMode/$categoryType/$encoded"
         }
     }
 
     data object Results : Screen(
-        "results/{quizMode}/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}/{categoryType}/{categoryValue}"
+        "results/{quizMode}/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}/{categoryType}/{categoryValue}/{incorrectGuesses}"
     ) {
         fun createRoute(
             quizMode: String,
@@ -34,11 +34,12 @@ sealed class Screen(val route: String) {
             perfectBonus: Boolean,
             categoryName: String,
             categoryType: String,
-            categoryValue: String
+            categoryValue: String,
+            incorrectGuesses: Int
         ): String {
-            val encodedName = URLEncoder.encode(categoryName, "UTF-8")
-            val encodedValue = URLEncoder.encode(categoryValue, "UTF-8")
-            return "results/$quizMode/$score/$correct/$total/$time/$perfectBonus/$encodedName/$categoryType/$encodedValue"
+            val encodedName = Uri.encode(categoryName)
+            val encodedValue = Uri.encode(categoryValue)
+            return "results/$quizMode/$score/$correct/$total/$time/$perfectBonus/$encodedName/$categoryType/$encodedValue/$incorrectGuesses"
         }
     }
 

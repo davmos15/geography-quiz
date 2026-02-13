@@ -6,5 +6,6 @@ data class QuizResult(
     val correctAnswers: Int,
     val timeElapsedSeconds: Int,
     val score: Double,
-    val perfectBonus: Boolean
+    val perfectBonus: Boolean,
+    val incorrectGuesses: Int
 )

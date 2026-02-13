@@ -49,7 +49,13 @@ enum class Achievement(
     RAINBOW("rainbow", "Rainbow", "Complete flag quizzes for 6 different colors", AchievementTier.GOLD),
     FLAG_PERFECTIONIST("flag_perfectionist", "Flag Perfectionist", "Get 100% on any flag quiz", AchievementTier.SILVER),
     VEXILLOLOGIST("vexillologist", "Vexillologist", "Complete 10 flag quizzes", AchievementTier.GOLD),
-    FLAG_MASTER("flag_master", "Flag Master", "Complete the Flags of the World quiz with 80%+", AchievementTier.GOLD)
+    FLAG_MASTER("flag_master", "Flag Master", "Complete the Flags of the World quiz with 80%+", AchievementTier.GOLD),
+
+    // Incorrect guesses & hard mode achievements
+    FLAWLESS("flawless", "Flawless", "Complete a quiz with 0 incorrect guesses", AchievementTier.BRONZE),
+    SHARP_MIND("sharp_mind", "Sharp Mind", "Complete 5 quizzes with 0 incorrect guesses", AchievementTier.SILVER),
+    SURVIVOR("survivor", "Survivor", "Complete a quiz in hard mode", AchievementTier.BRONZE),
+    NERVES_OF_STEEL("nerves_of_steel", "Nerves of Steel", "Get 100% in hard mode", AchievementTier.GOLD)
 }
 
 enum class AchievementTier { BRONZE, SILVER, GOLD }

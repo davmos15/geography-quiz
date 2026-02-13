@@ -21,7 +21,8 @@ class CalculateScoreUseCase @Inject constructor() {
             correctAnswers = correct,
             timeElapsedSeconds = state.timeElapsedSeconds,
             score = finalScore,
-            perfectBonus = isPerfect
+            perfectBonus = isPerfect,
+            incorrectGuesses = state.incorrectGuesses
         )
     }
 }

@@ -287,7 +287,7 @@ class CategoryListViewModel @Inject constructor(
                             val sorted = listOf(c1, c2).sorted()
                             combos.add(
                                 QuizOptionInfo(
-                                    sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
+                                    "Only " + sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
                                     intersection.size,
                                     "flagcombo",
                                     sorted.joinToString("+")
@@ -315,7 +315,7 @@ class CategoryListViewModel @Inject constructor(
                                 val sorted = listOf(c1, c2, c3).sorted()
                                 combos.add(
                                     QuizOptionInfo(
-                                        sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
+                                        "Only " + sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
                                         intersection.size,
                                         "flagcombo",
                                         sorted.joinToString("+")

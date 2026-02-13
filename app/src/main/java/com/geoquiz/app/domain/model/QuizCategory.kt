@@ -44,7 +44,7 @@ sealed class QuizCategory {
             is AllVowelsPresent -> "All 5 Vowels"
             is IslandCountries -> "Island Nations"
             is FlagSingleColor -> color.replaceFirstChar { it.uppercase() }
-            is FlagColorCombo -> colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
+            is FlagColorCombo -> "Only " + colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
             is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
         }
 

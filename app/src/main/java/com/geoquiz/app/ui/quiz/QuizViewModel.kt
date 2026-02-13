@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.net.URLDecoder
+import android.net.Uri
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,7 +50,7 @@ class QuizViewModel @Inject constructor(
 
     private val categoryType: String = savedStateHandle["categoryType"] ?: "all"
     private val categoryValueRaw: String = savedStateHandle["categoryValue"] ?: "_"
-    private val categoryValue: String = URLDecoder.decode(categoryValueRaw, "UTF-8")
+    private val categoryValue: String = Uri.decode(categoryValueRaw)
 
     val category: QuizCategory = QuizCategory.fromRoute(categoryType, categoryValue)
 
@@ -66,6 +66,9 @@ class QuizViewModel @Inject constructor(
     private val _showCountryHint = MutableStateFlow(false)
     val showCountryHint: StateFlow<Boolean> = _showCountryHint.asStateFlow()
 
+    private val _hardMode = MutableStateFlow(false)
+    val hardMode: StateFlow<Boolean> = _hardMode.asStateFlow()
+
     private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
     val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
@@ -78,6 +81,7 @@ class QuizViewModel @Inject constructor(
             _showTimer.value = settingsRepository.showTimer.first()
             _showFlags.value = settingsRepository.showFlags.first()
             _showCountryHint.value = settingsRepository.showCountryHint.first()
+            _hardMode.value = settingsRepository.hardMode.first()
         }
     }
 
@@ -211,13 +215,21 @@ class QuizViewModel @Inject constructor(
                     } else {
                         state.answeredCountries
                     }
-                    val isComplete = newAnswered.size == state.quiz.countries.size
+                    val newIncorrect = if (result is AnswerResult.Incorrect) {
+                        state.incorrectGuesses + 1
+                    } else {
+                        state.incorrectGuesses
+                    }
+                    val allAnswered = newAnswered.size == state.quiz.countries.size
+                    val hardModeStrikeOut = _hardMode.value && newIncorrect >= 3
+                    val isComplete = allAnswered || hardModeStrikeOut
                     QuizUiState.Active(
                         state.copy(
                             answeredCountries = newAnswered,
                             currentInput = if (result is AnswerResult.Correct) "" else state.currentInput,
                             lastAnswerResult = result,
-                            isComplete = isComplete
+                            isComplete = isComplete,
+                            incorrectGuesses = newIncorrect
                         )
                     )
                 } else uiState
@@ -255,7 +267,9 @@ class QuizViewModel @Inject constructor(
                     correctAnswers = result.correctAnswers,
                     totalCountries = result.totalCountries,
                     timeElapsedSeconds = result.timeElapsedSeconds,
-                    quizMode = quizMode
+                    quizMode = quizMode,
+                    incorrectGuesses = result.incorrectGuesses,
+                    hardMode = _hardMode.value
                 )
                 if (newlyUnlocked.isNotEmpty()) {
                     _newAchievements.value = newlyUnlocked

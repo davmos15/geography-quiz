@@ -280,15 +280,19 @@ class CategoryListViewModel @Inject constructor(
                     for (j in i + 1 until allColors.size) {
                         val c1 = allColors[i]
                         val c2 = allColors[j]
+                        val targetColors = setOf(c1, c2)
                         val codes1 = flagColorDao.getCountryCodesForColor(c1).toSet()
                         val codes2 = flagColorDao.getCountryCodesForColor(c2).toSet()
-                        val intersection = codes1.intersect(codes2).filter { it in countryByCode }
-                        if (intersection.size >= 2) {
+                        val candidates = codes1.intersect(codes2).filter { it in countryByCode }
+                        val exactMatches = candidates.filter { code ->
+                            flagColorDao.getColorsForCountry(code).toSet() == targetColors
+                        }
+                        if (exactMatches.size >= 2) {
                             val sorted = listOf(c1, c2).sorted()
                             combos.add(
                                 QuizOptionInfo(
                                     "Only " + sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
-                                    intersection.size,
+                                    exactMatches.size,
                                     "flagcombo",
                                     sorted.joinToString("+")
                                 )
@@ -307,16 +311,20 @@ class CategoryListViewModel @Inject constructor(
                             val c1 = allColors[i]
                             val c2 = allColors[j]
                             val c3 = allColors[k]
+                            val targetColors = setOf(c1, c2, c3)
                             val codes1 = flagColorDao.getCountryCodesForColor(c1).toSet()
                             val codes2 = flagColorDao.getCountryCodesForColor(c2).toSet()
                             val codes3 = flagColorDao.getCountryCodesForColor(c3).toSet()
-                            val intersection = codes1.intersect(codes2).intersect(codes3).filter { it in countryByCode }
-                            if (intersection.size >= 2) {
+                            val candidates = codes1.intersect(codes2).intersect(codes3).filter { it in countryByCode }
+                            val exactMatches = candidates.filter { code ->
+                                flagColorDao.getColorsForCountry(code).toSet() == targetColors
+                            }
+                            if (exactMatches.size >= 2) {
                                 val sorted = listOf(c1, c2, c3).sorted()
                                 combos.add(
                                     QuizOptionInfo(
                                         "Only " + sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
-                                        intersection.size,
+                                        exactMatches.size,
                                         "flagcombo",
                                         sorted.joinToString("+")
                                     )

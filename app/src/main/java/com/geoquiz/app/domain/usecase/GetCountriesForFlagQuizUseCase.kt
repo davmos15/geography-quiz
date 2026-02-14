@@ -24,12 +24,12 @@ class GetCountriesForFlagQuizUseCase @Inject constructor(
             }
 
             is QuizCategory.FlagColorCombo -> {
-                // Countries that have ALL the specified colors
-                val codeSets = category.colors.map { color ->
-                    flagColorDao.getCountryCodesForColor(color).toSet()
+                // Countries that have EXACTLY the specified colors and no others
+                val targetColors = category.colors.toSet()
+                allCountries.filter { country ->
+                    val countryColors = flagColorDao.getColorsForCountry(country.code).toSet()
+                    countryColors == targetColors
                 }
-                val intersection = codeSets.reduceOrNull { acc, set -> acc.intersect(set) } ?: emptySet()
-                allCountries.filter { it.code in intersection }
             }
 
             is QuizCategory.FlagColorCount -> {

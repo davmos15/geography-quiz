@@ -7,16 +7,36 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+import java.io.FileInputStream
+import java.util.Properties
+
+val signingPropsFile = rootProject.file("signing.properties")
+val signingProps = Properties()
+if (signingPropsFile.exists()) {
+    signingProps.load(FileInputStream(signingPropsFile))
+}
+
 android {
     namespace = "com.geoquiz.app"
     compileSdk = 35
+
+    if (signingPropsFile.exists()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(signingProps["storeFile"] as String)
+                storePassword = signingProps["storePassword"] as String
+                keyAlias = signingProps["keyAlias"] as String
+                keyPassword = signingProps["keyPassword"] as String
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.geoquiz.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "2.2"
+        versionCode = 8
+        versionName = "2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -33,6 +53,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (signingPropsFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

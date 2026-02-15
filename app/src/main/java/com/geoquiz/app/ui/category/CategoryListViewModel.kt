@@ -8,6 +8,7 @@ import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,8 +45,11 @@ class CategoryListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CountryRepository,
     private val flagColorDao: FlagColorDao,
-    private val quizHistoryRepository: QuizHistoryRepository
+    private val quizHistoryRepository: QuizHistoryRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
+
+    val playerName = settingsRepository.playerName.map { it.ifBlank { "A friend" } }
 
     private val groupId: String = savedStateHandle["groupId"] ?: ""
     private val quizMode: String = savedStateHandle["quizMode"] ?: "countries"
@@ -287,16 +292,26 @@ class CategoryListViewModel @Inject constructor(
         group: FlagCategoryGroup,
         countries: List<Country>
     ): List<QuizOptionInfo> {
-        val allColors = flagColorDao.getAllColors()
-        val countryByCode = countries.associateBy { it.code }
+        // Batch-fetch all flag color mappings once to avoid N+1 queries
+        val allMappings = flagColorDao.getAllMappings()
+        val validCodes = countries.map { it.code }.toSet()
+        val colorsByCountry = allMappings
+            .filter { it.countryCca3 in validCodes }
+            .groupBy({ it.countryCca3 }, { it.color })
+            .mapValues { it.value.toSet() }
+        val allColors = allMappings.map { it.color }.distinct().sorted()
+        val countriesByColor = allMappings
+            .filter { it.countryCca3 in validCodes }
+            .groupBy({ it.color }, { it.countryCca3 })
+            .mapValues { it.value.toSet() }
 
         return when (group) {
             FlagCategoryGroup.FLAG_SINGLE_COLOR -> {
                 allColors.map { color ->
-                    val codes = flagColorDao.getCountryCodesForColor(color).filter { it in countryByCode }
+                    val count = countriesByColor[color]?.size ?: 0
                     QuizOptionInfo(
                         color.replaceFirstChar { it.uppercase() },
-                        codes.size,
+                        count,
                         "flagcolor",
                         color
                     )
@@ -310,18 +325,18 @@ class CategoryListViewModel @Inject constructor(
                         val c1 = allColors[i]
                         val c2 = allColors[j]
                         val targetColors = setOf(c1, c2)
-                        val codes1 = flagColorDao.getCountryCodesForColor(c1).toSet()
-                        val codes2 = flagColorDao.getCountryCodesForColor(c2).toSet()
-                        val candidates = codes1.intersect(codes2).filter { it in countryByCode }
-                        val exactMatches = candidates.filter { code ->
-                            flagColorDao.getColorsForCountry(code).toSet() == targetColors
+                        val codes1 = countriesByColor[c1] ?: emptySet()
+                        val codes2 = countriesByColor[c2] ?: emptySet()
+                        val candidates = codes1.intersect(codes2)
+                        val exactMatches = candidates.count { code ->
+                            colorsByCountry[code] == targetColors
                         }
-                        if (exactMatches.size >= 2) {
+                        if (exactMatches >= 2) {
                             val sorted = listOf(c1, c2).sorted()
                             combos.add(
                                 QuizOptionInfo(
                                     "Only " + sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
-                                    exactMatches.size,
+                                    exactMatches,
                                     "flagcombo",
                                     sorted.joinToString("+")
                                 )
@@ -341,19 +356,19 @@ class CategoryListViewModel @Inject constructor(
                             val c2 = allColors[j]
                             val c3 = allColors[k]
                             val targetColors = setOf(c1, c2, c3)
-                            val codes1 = flagColorDao.getCountryCodesForColor(c1).toSet()
-                            val codes2 = flagColorDao.getCountryCodesForColor(c2).toSet()
-                            val codes3 = flagColorDao.getCountryCodesForColor(c3).toSet()
-                            val candidates = codes1.intersect(codes2).intersect(codes3).filter { it in countryByCode }
-                            val exactMatches = candidates.filter { code ->
-                                flagColorDao.getColorsForCountry(code).toSet() == targetColors
+                            val codes1 = countriesByColor[c1] ?: emptySet()
+                            val codes2 = countriesByColor[c2] ?: emptySet()
+                            val codes3 = countriesByColor[c3] ?: emptySet()
+                            val candidates = codes1.intersect(codes2).intersect(codes3)
+                            val exactMatches = candidates.count { code ->
+                                colorsByCountry[code] == targetColors
                             }
-                            if (exactMatches.size >= 2) {
+                            if (exactMatches >= 2) {
                                 val sorted = listOf(c1, c2, c3).sorted()
                                 combos.add(
                                     QuizOptionInfo(
                                         "Only " + sorted.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } },
-                                        exactMatches.size,
+                                        exactMatches,
                                         "flagcombo",
                                         sorted.joinToString("+")
                                     )
@@ -367,11 +382,9 @@ class CategoryListViewModel @Inject constructor(
 
             FlagCategoryGroup.FLAG_COLOR_COUNT -> {
                 val countMap = mutableMapOf<Int, Int>()
-                for (country in countries) {
-                    val colorCount = flagColorDao.getColorCountForCountry(country.code)
-                    if (colorCount > 0) {
-                        countMap[colorCount] = (countMap[colorCount] ?: 0) + 1
-                    }
+                for ((_, colors) in colorsByCountry) {
+                    val colorCount = colors.size
+                    countMap[colorCount] = (countMap[colorCount] ?: 0) + 1
                 }
                 countMap.entries.sortedBy { it.key }.map { (count, numCountries) ->
                     QuizOptionInfo(

@@ -108,31 +108,39 @@ sealed class QuizCategory {
         }
 
     companion object {
-        fun fromRoute(type: String, value: String): QuizCategory = when (type) {
-            "all" -> AllCountries
-            "startletter" -> StartingWithLetter(value.first())
-            "endletter" -> EndingWithLetter(value.first())
-            "containletter" -> ContainingLetter(value.first())
-            "region" -> ByRegion(value)
-            "subregion" -> BySubregion(value)
-            "lengthrange" -> {
-                val parts = value.split("-")
-                ByNameLengthRange(parts[0].toInt(), parts[1].toInt(), "")
+        fun fromRoute(type: String, value: String): QuizCategory = try {
+            when (type) {
+                "all" -> AllCountries
+                "startletter" -> if (value.isNotEmpty()) StartingWithLetter(value.first()) else AllCountries
+                "endletter" -> if (value.isNotEmpty()) EndingWithLetter(value.first()) else AllCountries
+                "containletter" -> if (value.isNotEmpty()) ContainingLetter(value.first()) else AllCountries
+                "region" -> ByRegion(value)
+                "subregion" -> BySubregion(value)
+                "lengthrange" -> {
+                    val parts = value.split("-")
+                    if (parts.size == 2) {
+                        val min = parts[0].toIntOrNull()
+                        val max = parts[1].toIntOrNull()
+                        if (min != null && max != null) ByNameLengthRange(min, max, "") else AllCountries
+                    } else AllCountries
+                }
+                "wordcount" -> value.toIntOrNull()?.let { ByWordCount(it, "") } ?: AllCountries
+                "endsuffix" -> EndingWithSuffix(value)
+                "containword" -> ContainingWord(value)
+                "doubleletter" -> DoubleLetter
+                "consonantcluster" -> ConsonantCluster
+                "repeatedletter3" -> RepeatedLetter3
+                "repeatedletter4" -> RepeatedLetter4
+                "startsendssame" -> StartsEndsSame
+                "allvowels" -> AllVowelsPresent
+                "island" -> IslandCountries
+                "flagcolor" -> FlagSingleColor(value)
+                "flagcombo" -> FlagColorCombo(value.split("+").sorted())
+                "flagcount" -> value.toIntOrNull()?.let { FlagColorCount(it) } ?: AllCountries
+                else -> AllCountries
             }
-            "wordcount" -> ByWordCount(value.toInt(), "")
-            "endsuffix" -> EndingWithSuffix(value)
-            "containword" -> ContainingWord(value)
-            "doubleletter" -> DoubleLetter
-            "consonantcluster" -> ConsonantCluster
-            "repeatedletter3" -> RepeatedLetter3
-            "repeatedletter4" -> RepeatedLetter4
-            "startsendssame" -> StartsEndsSame
-            "allvowels" -> AllVowelsPresent
-            "island" -> IslandCountries
-            "flagcolor" -> FlagSingleColor(value)
-            "flagcombo" -> FlagColorCombo(value.split("+").sorted())
-            "flagcount" -> FlagColorCount(value.toInt())
-            else -> AllCountries
+        } catch (_: Exception) {
+            AllCountries
         }
     }
 }

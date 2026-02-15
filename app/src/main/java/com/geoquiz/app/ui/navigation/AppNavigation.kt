@@ -1,6 +1,6 @@
 package com.geoquiz.app.ui.navigation
 
-import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
@@ -38,7 +38,7 @@ import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
 import com.geoquiz.app.ui.stats.StatsScreen
-import android.net.Uri
+import com.geoquiz.app.domain.model.ChallengeDeepLink
 
 private data class BottomNavItem(
     val label: String,
@@ -59,7 +59,7 @@ private val homeRoutes = setOf(
 )
 
 @Composable
-fun AppNavigation(intent: Intent? = null) {
+fun AppNavigation(deepLinkUri: Uri? = null) {
     val navController = rememberNavController()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -67,21 +67,20 @@ fun AppNavigation(intent: Intent? = null) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Handle deep links for challenges
-    LaunchedEffect(intent?.data) {
-        val uri = intent?.data ?: return@LaunchedEffect
-        if (uri.scheme == "geoquiz" && uri.host == "challenge") {
-            val categoryType = uri.getQueryParameter("ct") ?: return@LaunchedEffect
-            val categoryValue = uri.getQueryParameter("cv") ?: return@LaunchedEffect
-            val quizMode = uri.getQueryParameter("mode") ?: "countries"
-            val challengeId = uri.getQueryParameter("id")
-            val route = if (challengeId != null) {
-                Screen.Quiz.createRoute(quizMode, categoryType, categoryValue) + "?challengeId=$challengeId"
-            } else {
-                Screen.Quiz.createRoute(quizMode, categoryType, categoryValue)
-            }
+    LaunchedEffect(deepLinkUri) {
+        val uri = deepLinkUri ?: return@LaunchedEffect
+        val deepLink = ChallengeDeepLink.fromUri(uri) ?: return@LaunchedEffect
+        try {
+            val route = Screen.Quiz.createRoute(
+                deepLink.quizMode,
+                deepLink.categoryType,
+                deepLink.categoryValue
+            )
             navController.navigate(route) {
                 popUpTo(Screen.CountriesHome.route)
             }
+        } catch (_: Exception) {
+            // Malformed deep link — silently ignore
         }
     }
 

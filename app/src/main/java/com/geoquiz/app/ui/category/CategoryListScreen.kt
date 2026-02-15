@@ -55,6 +55,7 @@ fun CategoryListScreen(
     viewModel: CategoryListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")
     val context = LocalContext.current
 
     Scaffold(
@@ -125,7 +126,7 @@ fun CategoryListScreen(
                                 challengeId = UUID.randomUUID().toString(),
                                 categoryType = option.categoryType,
                                 categoryValue = option.categoryValue,
-                                challengerName = "Friend",
+                                challengerName = playerName,
                                 challengerScore = null,
                                 challengerTotal = null,
                                 challengerTime = null

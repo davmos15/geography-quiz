@@ -15,28 +15,23 @@ class GetCountriesForFlagQuizUseCase @Inject constructor(
     suspend operator fun invoke(category: QuizCategory): List<Country> {
         repository.ensureSeeded()
         val allCountries = repository.getAllCountries().first()
-        val countryByCode = allCountries.associateBy { it.code }
+
+        // Batch-fetch all flag color mappings once to avoid N+1 queries
+        val allMappings = flagColorDao.getAllMappings()
+        val colorsByCountry = allMappings.groupBy({ it.countryCca3 }, { it.color }).mapValues { it.value.toSet() }
 
         return when (category) {
             is QuizCategory.FlagSingleColor -> {
-                val codes = flagColorDao.getCountryCodesForColor(category.color).toSet()
-                allCountries.filter { it.code in codes }
+                allCountries.filter { category.color in (colorsByCountry[it.code] ?: emptySet()) }
             }
 
             is QuizCategory.FlagColorCombo -> {
-                // Countries that have EXACTLY the specified colors and no others
                 val targetColors = category.colors.toSet()
-                allCountries.filter { country ->
-                    val countryColors = flagColorDao.getColorsForCountry(country.code).toSet()
-                    countryColors == targetColors
-                }
+                allCountries.filter { colorsByCountry[it.code] == targetColors }
             }
 
             is QuizCategory.FlagColorCount -> {
-                allCountries.filter { country ->
-                    val count = flagColorDao.getColorCountForCountry(country.code)
-                    count == category.count
-                }
+                allCountries.filter { (colorsByCountry[it.code]?.size ?: 0) == category.count }
             }
 
             else -> emptyList()

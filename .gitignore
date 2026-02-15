@@ -4,8 +4,8 @@
 *.aab
 *.apk
 
-# Exception: keep the downloadable APK in release/
-!release/*.apk
+# Release binaries (don't track in git — distribute via Play Store / GitHub Releases)
+release/
 
 # Files for the ART/Dalvik VM
 *.dex

@@ -25,12 +25,15 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
@@ -50,9 +53,11 @@ fun ResultsScreen(
     incorrectGuesses: Int = 0,
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
-    onViewAnswers: () -> Unit
+    onViewAnswers: () -> Unit,
+    viewModel: ResultsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")
 
     val percentage = if (totalCountries > 0) {
         (correctAnswers.toDouble() / totalCountries * 100)
@@ -166,7 +171,7 @@ fun ResultsScreen(
                             challengeId = UUID.randomUUID().toString(),
                             categoryType = categoryType,
                             categoryValue = categoryValue,
-                            challengerName = "Friend",
+                            challengerName = playerName,
                             challengerScore = correctAnswers,
                             challengerTotal = totalCountries,
                             challengerTime = timeElapsedSeconds,
@@ -192,7 +197,7 @@ fun ResultsScreen(
                             challengeId = UUID.randomUUID().toString(),
                             categoryType = categoryType,
                             categoryValue = categoryValue,
-                            challengerName = "Friend",
+                            challengerName = playerName,
                             challengerScore = null,
                             challengerTotal = null,
                             challengerTime = null,

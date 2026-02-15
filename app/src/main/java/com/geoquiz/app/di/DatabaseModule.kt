@@ -9,6 +9,7 @@ import com.geoquiz.app.data.local.db.CapitalAliasDao
 import com.geoquiz.app.data.local.db.ChallengeDao
 import com.geoquiz.app.data.local.db.CountryDao
 import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.QuizHistoryDao
 import com.geoquiz.app.data.local.db.SavedQuizDao
 import dagger.Module
 import dagger.Provides
@@ -132,6 +133,28 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS quiz_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    quizMode TEXT NOT NULL,
+                    categoryType TEXT NOT NULL,
+                    categoryValue TEXT NOT NULL,
+                    correctAnswers INTEGER NOT NULL,
+                    totalQuestions INTEGER NOT NULL,
+                    incorrectGuesses INTEGER NOT NULL,
+                    score REAL NOT NULL,
+                    timeElapsedSeconds INTEGER NOT NULL,
+                    perfectBonus INTEGER NOT NULL,
+                    completedAtMillis INTEGER NOT NULL
+                )
+            """.trimIndent())
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_quiz_history_quizMode_categoryType_categoryValue ON quiz_history(quizMode, categoryType, categoryValue)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_quiz_history_completedAtMillis ON quiz_history(completedAtMillis)")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -143,7 +166,7 @@ object DatabaseModule {
             .addMigrations(
                 MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3,
                 MIGRATION_3_4, MIGRATION_1_4, MIGRATION_2_4,
-                MIGRATION_4_5, MIGRATION_5_6
+                MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7
             )
             .build()
     }
@@ -171,5 +194,10 @@ object DatabaseModule {
     @Provides
     fun provideFlagColorDao(database: AppDatabase): FlagColorDao {
         return database.flagColorDao()
+    }
+
+    @Provides
+    fun provideQuizHistoryDao(database: AppDatabase): QuizHistoryDao {
+        return database.quizHistoryDao()
     }
 }

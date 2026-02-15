@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
@@ -42,7 +43,8 @@ class QuizViewModel @Inject constructor(
     private val calculateScore: CalculateScoreUseCase,
     private val settingsRepository: SettingsRepository,
     private val achievementRepository: AchievementRepository,
-    private val savedQuizRepository: SavedQuizRepository
+    private val savedQuizRepository: SavedQuizRepository,
+    private val quizHistoryRepository: QuizHistoryRepository
 ) : ViewModel() {
 
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
@@ -274,6 +276,17 @@ class QuizViewModel @Inject constructor(
                 if (newlyUnlocked.isNotEmpty()) {
                     _newAchievements.value = newlyUnlocked
                 }
+                quizHistoryRepository.recordQuizResult(
+                    quizMode = quizModeId,
+                    categoryType = categoryType,
+                    categoryValue = categoryValue,
+                    correctAnswers = result.correctAnswers,
+                    totalQuestions = result.totalCountries,
+                    incorrectGuesses = result.incorrectGuesses,
+                    score = result.score,
+                    timeElapsedSeconds = result.timeElapsedSeconds,
+                    perfectBonus = result.perfectBonus
+                )
             }
         }
 

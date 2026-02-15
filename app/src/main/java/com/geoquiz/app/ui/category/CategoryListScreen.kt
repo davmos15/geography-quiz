@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.ui.share.ShareUtils
+import com.geoquiz.app.ui.theme.CorrectGreen
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +64,20 @@ fun CategoryListScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleHideCompleted() }) {
+                        Icon(
+                            imageVector = if (state.hideCompleted)
+                                Icons.Default.VisibilityOff
+                            else
+                                Icons.Default.Visibility,
+                            contentDescription = if (state.hideCompleted)
+                                "Show all quizzes"
+                            else
+                                "Hide completed quizzes"
+                        )
                     }
                 }
             )
@@ -91,7 +110,12 @@ fun CategoryListScreen(
                         )
                     }
                 }
-                items(state.quizOptions) { option ->
+                val displayedOptions = if (state.hideCompleted) {
+                    state.quizOptions.filter { !it.isCompleted }
+                } else {
+                    state.quizOptions
+                }
+                items(displayedOptions) { option ->
                     QuizOptionCard(
                         option = option,
                         onClick = { onStartQuiz(option.categoryType, option.categoryValue) },
@@ -137,9 +161,20 @@ private fun QuizOptionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (option.isCompleted) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = "Completed",
+                    tint = CorrectGreen,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 4.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = option.name,
@@ -152,6 +187,14 @@ private fun QuizOptionCard(
                         text = option.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (option.bestCorrect != null && option.bestTotal != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Best: ${option.bestCorrect}/${option.bestTotal} (${String.format("%.0f", option.bestScore)}pts)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

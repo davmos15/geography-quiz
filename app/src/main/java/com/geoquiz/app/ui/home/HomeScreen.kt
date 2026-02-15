@@ -19,7 +19,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -45,7 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
@@ -59,8 +58,7 @@ fun HomeScreen(
     quizMode: QuizMode = QuizMode.COUNTRIES,
     onNavigateToCategory: (groupId: String) -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToAchievements: () -> Unit,
-    onNavigateToChallenges: () -> Unit,
+    onNavigateToStats: () -> Unit,
     onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -86,17 +84,10 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToChallenges) {
+                    IconButton(onClick = onNavigateToStats) {
                         Icon(
-                            Icons.Default.Leaderboard,
-                            contentDescription = "Challenges"
-                        )
-                    }
-                    IconButton(onClick = onNavigateToAchievements) {
-                        Icon(
-                            Icons.Default.EmojiEvents,
-                            contentDescription = "Achievements",
-                            tint = GoldColor
+                            Icons.Default.BarChart,
+                            contentDescription = "Stats"
                         )
                     }
                     IconButton(onClick = onNavigateToSettings) {

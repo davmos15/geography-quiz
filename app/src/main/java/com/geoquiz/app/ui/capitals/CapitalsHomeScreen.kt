@@ -20,8 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,8 +53,7 @@ import com.geoquiz.app.ui.theme.*
 fun CapitalsHomeScreen(
     onNavigateToCategory: (groupId: String) -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToAchievements: () -> Unit,
-    onNavigateToChallenges: () -> Unit,
+    onNavigateToStats: () -> Unit,
     onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
     viewModel: CapitalsHomeViewModel = hiltViewModel()
 ) {
@@ -81,17 +79,10 @@ fun CapitalsHomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToChallenges) {
+                    IconButton(onClick = onNavigateToStats) {
                         Icon(
-                            Icons.Default.Leaderboard,
-                            contentDescription = "Challenges"
-                        )
-                    }
-                    IconButton(onClick = onNavigateToAchievements) {
-                        Icon(
-                            Icons.Default.EmojiEvents,
-                            contentDescription = "Achievements",
-                            tint = GoldColor
+                            Icons.Default.BarChart,
+                            contentDescription = "Stats"
                         )
                     }
                     IconButton(onClick = onNavigateToSettings) {

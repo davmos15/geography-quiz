@@ -8,6 +8,7 @@ import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ data class CategoryListUiState(
     val isLoading: Boolean = true,
     val groupName: String = "",
     val groupDescription: String = "",
-    val quizOptions: List<QuizOptionInfo> = emptyList()
+    val quizOptions: List<QuizOptionInfo> = emptyList(),
+    val hideCompleted: Boolean = false
 )
 
 data class QuizOptionInfo(
@@ -29,14 +31,19 @@ data class QuizOptionInfo(
     val countryCount: Int,
     val categoryType: String,
     val categoryValue: String,
-    val description: String? = null
+    val description: String? = null,
+    val isCompleted: Boolean = false,
+    val bestScore: Double? = null,
+    val bestCorrect: Int? = null,
+    val bestTotal: Int? = null
 )
 
 @HiltViewModel
 class CategoryListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CountryRepository,
-    private val flagColorDao: FlagColorDao
+    private val flagColorDao: FlagColorDao,
+    private val quizHistoryRepository: QuizHistoryRepository
 ) : ViewModel() {
 
     private val groupId: String = savedStateHandle["groupId"] ?: ""
@@ -58,26 +65,48 @@ class CategoryListViewModel @Inject constructor(
             val group = CategoryGroup.fromId(groupId)
             val flagGroup = FlagCategoryGroup.fromId(groupId)
 
-            if (group != null) {
-                val options = buildQuizOptions(group, allCountries)
-                _uiState.value = CategoryListUiState(
-                    isLoading = false,
-                    groupName = group.displayName,
-                    groupDescription = group.description,
-                    quizOptions = options
-                )
+            val options = if (group != null) {
+                buildQuizOptions(group, allCountries)
             } else if (flagGroup != null) {
-                val options = buildFlagQuizOptions(flagGroup, allCountries)
-                _uiState.value = CategoryListUiState(
-                    isLoading = false,
-                    groupName = flagGroup.displayName,
-                    groupDescription = flagGroup.description,
-                    quizOptions = options
-                )
+                buildFlagQuizOptions(flagGroup, allCountries)
             } else {
-                _uiState.value = CategoryListUiState(isLoading = false, groupName = "Unknown")
+                emptyList()
             }
+
+            val groupName = group?.displayName ?: flagGroup?.displayName ?: "Unknown"
+            val groupDescription = group?.description ?: flagGroup?.description ?: ""
+
+            // Enrich with best scores from history
+            val bestScores = quizHistoryRepository.getAllBestScoresForMode(quizMode)
+            val scoreMap = bestScores.associateBy { "${it.categoryType}|${it.categoryValue}" }
+            val enrichedOptions = options.map { option ->
+                val key = "${option.categoryType}|${option.categoryValue}"
+                val best = scoreMap[key]
+                if (best != null) {
+                    option.copy(
+                        isCompleted = true,
+                        bestScore = best.score,
+                        bestCorrect = best.correctAnswers,
+                        bestTotal = best.totalQuestions
+                    )
+                } else {
+                    option
+                }
+            }
+
+            _uiState.value = CategoryListUiState(
+                isLoading = false,
+                groupName = groupName,
+                groupDescription = groupDescription,
+                quizOptions = enrichedOptions
+            )
         }
+    }
+
+    fun toggleHideCompleted() {
+        _uiState.value = _uiState.value.copy(
+            hideCompleted = !_uiState.value.hideCompleted
+        )
     }
 
     /** Returns the relevant name for the current quiz mode — capital name for capitals, country name otherwise. */

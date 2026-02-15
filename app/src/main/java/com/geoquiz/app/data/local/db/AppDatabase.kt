@@ -10,9 +10,10 @@ import androidx.room.RoomDatabase
         SavedQuizEntity::class,
         ChallengeEntity::class,
         CapitalAliasEntity::class,
-        FlagColorEntity::class
+        FlagColorEntity::class,
+        QuizHistoryEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,4 +22,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun challengeDao(): ChallengeDao
     abstract fun capitalAliasDao(): CapitalAliasDao
     abstract fun flagColorDao(): FlagColorDao
+    abstract fun quizHistoryDao(): QuizHistoryDao
 }

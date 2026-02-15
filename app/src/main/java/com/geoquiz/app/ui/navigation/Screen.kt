@@ -11,6 +11,8 @@ sealed class Screen(val route: String) {
 
     data object Achievements : Screen("achievements")
 
+    data object Stats : Screen("stats")
+
     data object CategoryList : Screen("category/{quizMode}/{groupId}") {
         fun createRoute(quizMode: String, groupId: String): String = "category/$quizMode/$groupId"
     }

@@ -37,6 +37,7 @@ import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
+import com.geoquiz.app.ui.stats.StatsScreen
 import android.net.Uri
 
 private data class BottomNavItem(
@@ -125,11 +126,8 @@ fun AppNavigation(intent: Intent? = null) {
                     onNavigateToSettings = {
                         navController.navigate(Screen.Settings.route)
                     },
-                    onNavigateToAchievements = {
-                        navController.navigate(Screen.Achievements.route)
-                    },
-                    onNavigateToChallenges = {
-                        navController.navigate(Screen.Challenges.route)
+                    onNavigateToStats = {
+                        navController.navigate(Screen.Stats.route)
                     },
                     onStartQuiz = { categoryType, categoryValue ->
                         navController.navigate(
@@ -147,11 +145,8 @@ fun AppNavigation(intent: Intent? = null) {
                     onNavigateToSettings = {
                         navController.navigate(Screen.Settings.route)
                     },
-                    onNavigateToAchievements = {
-                        navController.navigate(Screen.Achievements.route)
-                    },
-                    onNavigateToChallenges = {
-                        navController.navigate(Screen.Challenges.route)
+                    onNavigateToStats = {
+                        navController.navigate(Screen.Stats.route)
                     },
                     onStartQuiz = { categoryType, categoryValue ->
                         navController.navigate(
@@ -169,11 +164,8 @@ fun AppNavigation(intent: Intent? = null) {
                     onNavigateToSettings = {
                         navController.navigate(Screen.Settings.route)
                     },
-                    onNavigateToAchievements = {
-                        navController.navigate(Screen.Achievements.route)
-                    },
-                    onNavigateToChallenges = {
-                        navController.navigate(Screen.Challenges.route)
+                    onNavigateToStats = {
+                        navController.navigate(Screen.Stats.route)
                     },
                     onStartQuiz = { categoryType, categoryValue ->
                         navController.navigate(
@@ -192,6 +184,18 @@ fun AppNavigation(intent: Intent? = null) {
             composable(Screen.Achievements.route) {
                 AchievementsScreen(
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Stats.route) {
+                StatsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAchievements = {
+                        navController.navigate(Screen.Achievements.route)
+                    },
+                    onNavigateToChallenges = {
+                        navController.navigate(Screen.Challenges.route)
+                    }
                 )
             }
 

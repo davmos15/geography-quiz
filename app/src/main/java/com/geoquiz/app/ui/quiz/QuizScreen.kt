@@ -216,7 +216,8 @@ fun QuizScreen(
                             onValueChange = viewModel::onInputChange,
                             onSubmit = viewModel::onSubmitAnswer,
                             lastResult = quizState.lastAnswerResult,
-                            enabled = !quizState.isComplete && !quizState.isPaused
+                            enabled = !quizState.isComplete && !quizState.isPaused,
+                            quizMode = viewModel.quizMode
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))

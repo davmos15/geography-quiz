@@ -18,6 +18,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.geoquiz.app.domain.model.AnswerResult
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.theme.AlreadyAnsweredAmber
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
@@ -29,6 +30,7 @@ fun AnswerInput(
     onSubmit: () -> Unit,
     lastResult: AnswerResult,
     enabled: Boolean,
+    quizMode: QuizMode = QuizMode.COUNTRIES,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -45,7 +47,15 @@ fun AnswerInput(
                 .fillMaxWidth()
                 .focusRequester(focusRequester),
             enabled = enabled,
-            label = { Text("Enter a country name") },
+            label = {
+                Text(
+                    when (quizMode) {
+                        QuizMode.CAPITALS -> "Enter a capital city"
+                        QuizMode.FLAGS -> "Enter a country name"
+                        QuizMode.COUNTRIES -> "Enter a country name"
+                    }
+                )
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onSubmit() }),

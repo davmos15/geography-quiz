@@ -9,6 +9,7 @@ import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +47,7 @@ class CategoryListViewModel @Inject constructor(
     private val repository: CountryRepository,
     private val flagColorDao: FlagColorDao,
     private val quizHistoryRepository: QuizHistoryRepository,
+    private val challengeRepository: ChallengeRepository,
     settingsRepository: SettingsRepository
 ) : ViewModel() {
 
@@ -104,6 +106,23 @@ class CategoryListViewModel @Inject constructor(
                 groupName = groupName,
                 groupDescription = groupDescription,
                 quizOptions = enrichedOptions
+            )
+        }
+    }
+
+    fun saveOutgoingChallenge(categoryType: String, categoryValue: String) {
+        viewModelScope.launch {
+            val name = playerName.first()
+            val displayName = QuizCategory.fromRoute(categoryType, categoryValue).displayName
+            challengeRepository.createOutgoingChallenge(
+                categoryType = categoryType,
+                categoryValue = categoryValue,
+                categoryDisplayName = displayName,
+                quizMode = quizMode,
+                challengerName = name,
+                score = null,
+                total = null,
+                time = null
             )
         }
     }

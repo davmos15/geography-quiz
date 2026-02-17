@@ -17,15 +17,16 @@ sealed class Screen(val route: String) {
         fun createRoute(quizMode: String, groupId: String): String = "category/$quizMode/$groupId"
     }
 
-    data object Quiz : Screen("quiz/{quizMode}/{categoryType}/{categoryValue}") {
-        fun createRoute(quizMode: String, categoryType: String, categoryValue: String): String {
+    data object Quiz : Screen("quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId={challengeId}") {
+        fun createRoute(quizMode: String, categoryType: String, categoryValue: String, challengeId: String? = null): String {
             val encoded = Uri.encode(categoryValue)
-            return "quiz/$quizMode/$categoryType/$encoded"
+            val base = "quiz/$quizMode/$categoryType/$encoded"
+            return if (challengeId != null) "$base?challengeId=$challengeId" else base
         }
     }
 
     data object Results : Screen(
-        "results/{quizMode}/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}/{categoryType}/{categoryValue}/{incorrectGuesses}"
+        "results/{quizMode}/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}/{categoryType}/{categoryValue}/{incorrectGuesses}/{challengeId}"
     ) {
         fun createRoute(
             quizMode: String,
@@ -37,15 +38,20 @@ sealed class Screen(val route: String) {
             categoryName: String,
             categoryType: String,
             categoryValue: String,
-            incorrectGuesses: Int
+            incorrectGuesses: Int,
+            challengeId: String? = null
         ): String {
             val encodedName = Uri.encode(categoryName)
             val encodedValue = Uri.encode(categoryValue)
-            return "results/$quizMode/$score/$correct/$total/$time/$perfectBonus/$encodedName/$categoryType/$encodedValue/$incorrectGuesses"
+            return "results/$quizMode/$score/$correct/$total/$time/$perfectBonus/$encodedName/$categoryType/$encodedValue/$incorrectGuesses/${challengeId ?: "_"}"
         }
     }
 
     data object AnswerReview : Screen("answer_review")
+
+    data object ChallengeAccept : Screen("challenge_accept/{challengeId}") {
+        fun createRoute(challengeId: String): String = "challenge_accept/$challengeId"
+    }
 
     data object Challenges : Screen("challenges")
 }

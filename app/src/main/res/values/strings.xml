@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Geography Quiz</string>
+    <string translatable="false" name="play_games_app_id">629035481115</string>
+
+    <!-- AdMob -->
+    <string translatable="false" name="admob_app_id">ca-app-pub-2224190606606657~6807352706</string>
+    <string translatable="false" name="admob_banner_id">ca-app-pub-2224190606606657/6070762209</string>
+    <string translatable="false" name="admob_interstitial_id">ca-app-pub-2224190606606657/4757680535</string>
 </resources>

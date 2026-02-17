@@ -129,12 +129,14 @@ fun CategoryListScreen(
                                 challengerName = playerName,
                                 challengerScore = null,
                                 challengerTotal = null,
-                                challengerTime = null
+                                challengerTime = null,
+                                quizMode = quizMode
                             )
+                            viewModel.saveOutgoingChallenge(option.categoryType, option.categoryValue)
                             ShareUtils.shareChallenge(
                                 context = context,
                                 categoryName = category.displayName,
-                                deepLink = deepLink.toUri()
+                                deepLink = deepLink.toShareUrl()
                             )
                         }
                     )

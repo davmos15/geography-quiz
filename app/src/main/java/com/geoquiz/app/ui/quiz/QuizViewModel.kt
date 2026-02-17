@@ -7,6 +7,8 @@ import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
+import com.geoquiz.app.data.service.AdManager
+import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Quiz
@@ -44,11 +46,15 @@ class QuizViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val achievementRepository: AchievementRepository,
     private val savedQuizRepository: SavedQuizRepository,
-    private val quizHistoryRepository: QuizHistoryRepository
+    private val quizHistoryRepository: QuizHistoryRepository,
+    private val playGamesService: PlayGamesAchievementService,
+    val adManager: AdManager
 ) : ViewModel() {
 
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
     val quizMode: QuizMode = QuizMode.fromId(quizModeId)
+
+    val challengeId: String? = savedStateHandle.get<String>("challengeId")?.takeIf { it.isNotBlank() }
 
     private val categoryType: String = savedStateHandle["categoryType"] ?: "all"
     private val categoryValueRaw: String = savedStateHandle["categoryValue"] ?: "_"
@@ -79,6 +85,7 @@ class QuizViewModel @Inject constructor(
 
     init {
         loadQuiz()
+        adManager.preloadInterstitial()
         viewModelScope.launch {
             _showTimer.value = settingsRepository.showTimer.first()
             _showFlags.value = settingsRepository.showFlags.first()
@@ -275,6 +282,7 @@ class QuizViewModel @Inject constructor(
                 )
                 if (newlyUnlocked.isNotEmpty()) {
                     _newAchievements.value = newlyUnlocked
+                    newlyUnlocked.forEach { playGamesService.unlockAchievement(it) }
                 }
                 quizHistoryRepository.recordQuizResult(
                     quizMode = quizModeId,

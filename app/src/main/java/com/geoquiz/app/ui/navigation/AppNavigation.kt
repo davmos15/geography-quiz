@@ -1,6 +1,5 @@
 package com.geoquiz.app.ui.navigation
 
-import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
@@ -26,10 +25,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.achievements.AchievementsScreen
 import com.geoquiz.app.ui.capitals.CapitalsHomeScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
+import com.geoquiz.app.ui.challenges.ChallengeAcceptScreen
 import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
 import com.geoquiz.app.ui.flags.FlagsHomeScreen
 import com.geoquiz.app.ui.home.HomeScreen
@@ -38,7 +39,6 @@ import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
 import com.geoquiz.app.ui.stats.StatsScreen
-import com.geoquiz.app.domain.model.ChallengeDeepLink
 
 private data class BottomNavItem(
     val label: String,
@@ -59,7 +59,7 @@ private val homeRoutes = setOf(
 )
 
 @Composable
-fun AppNavigation(deepLinkUri: Uri? = null) {
+fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
     val navController = rememberNavController()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -67,15 +67,10 @@ fun AppNavigation(deepLinkUri: Uri? = null) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Handle deep links for challenges
-    LaunchedEffect(deepLinkUri) {
-        val uri = deepLinkUri ?: return@LaunchedEffect
-        val deepLink = ChallengeDeepLink.fromUri(uri) ?: return@LaunchedEffect
+    LaunchedEffect(challengeDeepLink) {
+        val deepLink = challengeDeepLink ?: return@LaunchedEffect
         try {
-            val route = Screen.Quiz.createRoute(
-                deepLink.quizMode,
-                deepLink.categoryType,
-                deepLink.categoryValue
-            )
+            val route = Screen.ChallengeAccept.createRoute(deepLink.challengeId)
             navController.navigate(route) {
                 popUpTo(Screen.CountriesHome.route)
             }
@@ -222,14 +217,19 @@ fun AppNavigation(deepLinkUri: Uri? = null) {
                 arguments = listOf(
                     navArgument("quizMode") { type = NavType.StringType },
                     navArgument("categoryType") { type = NavType.StringType },
-                    navArgument("categoryValue") { type = NavType.StringType }
+                    navArgument("categoryValue") { type = NavType.StringType },
+                    navArgument("challengeId") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                        nullable = true
+                    }
                 )
             ) {
                 val quizMode = it.arguments?.getString("quizMode") ?: "countries"
                 QuizScreen(
-                    onQuizComplete = { score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses ->
+                    onQuizComplete = { score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses, challengeId ->
                         navController.navigate(
-                            Screen.Results.createRoute(quizMode, score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses)
+                            Screen.Results.createRoute(quizMode, score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses, challengeId)
                         ) {
                             popUpTo(Screen.Quiz.route) { inclusive = true }
                         }
@@ -257,7 +257,8 @@ fun AppNavigation(deepLinkUri: Uri? = null) {
                     navArgument("categoryName") { type = NavType.StringType },
                     navArgument("categoryType") { type = NavType.StringType },
                     navArgument("categoryValue") { type = NavType.StringType },
-                    navArgument("incorrectGuesses") { type = NavType.IntType }
+                    navArgument("incorrectGuesses") { type = NavType.IntType },
+                    navArgument("challengeId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
                 val quizMode = backStackEntry.arguments?.getString("quizMode") ?: "countries"
@@ -267,10 +268,10 @@ fun AppNavigation(deepLinkUri: Uri? = null) {
                 val time = backStackEntry.arguments?.getInt("time") ?: 0
                 val perfectBonus = backStackEntry.arguments?.getBoolean("perfectBonus") ?: false
                 val rawName = backStackEntry.arguments?.getString("categoryName") ?: ""
-                val categoryName = Uri.decode(rawName)
+                val categoryName = android.net.Uri.decode(rawName)
                 val categoryType = backStackEntry.arguments?.getString("categoryType") ?: ""
                 val rawValue = backStackEntry.arguments?.getString("categoryValue") ?: ""
-                val categoryValue = Uri.decode(rawValue)
+                val categoryValue = android.net.Uri.decode(rawValue)
                 val incorrectGuesses = backStackEntry.arguments?.getInt("incorrectGuesses") ?: 0
 
                 ResultsScreen(
@@ -309,6 +310,26 @@ fun AppNavigation(deepLinkUri: Uri? = null) {
             composable(Screen.AnswerReview.route) {
                 AnswerReviewScreen(
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.ChallengeAccept.route,
+                arguments = listOf(
+                    navArgument("challengeId") { type = NavType.StringType }
+                )
+            ) {
+                ChallengeAcceptScreen(
+                    onAccept = { quizMode, categoryType, categoryValue, challengeId ->
+                        navController.navigate(
+                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue, challengeId)
+                        ) {
+                            popUpTo(Screen.ChallengeAccept.route) { inclusive = true }
+                        }
+                    },
+                    onDecline = {
+                        navController.popBackStack(Screen.CountriesHome.route, inclusive = false)
+                    }
                 )
             }
 

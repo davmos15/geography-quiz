@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase
         FlagColorEntity::class,
         QuizHistoryEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

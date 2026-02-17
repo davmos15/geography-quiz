@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.ads.BannerAd
 import com.geoquiz.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -229,13 +230,18 @@ fun HomeScreen(
                     }
                 }
 
+                // Banner ad
+                item(span = { GridItemSpan(2) }) {
+                    BannerAd(modifier = Modifier.padding(vertical = 8.dp))
+                }
+
                 // Section header
                 item(span = { GridItemSpan(2) }) {
                     Text(
                         text = "Categories",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
 

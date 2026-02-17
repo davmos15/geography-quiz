@@ -35,8 +35,8 @@ android {
         applicationId = "com.geoquiz.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "2.4.2"
+        versionCode = 12
+        versionName = "2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -120,6 +120,12 @@ dependencies {
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Google Mobile Ads
+    implementation(libs.play.services.ads)
+
+    // Play Games Services
+    implementation(libs.play.services.games.v2)
 
     // Testing
     testImplementation(libs.junit)

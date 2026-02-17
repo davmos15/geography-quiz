@@ -9,6 +9,7 @@ data class ChallengeEntity(
     val categoryType: String,
     val categoryValue: String,
     val categoryDisplayName: String,
+    val quizMode: String,
     val challengerName: String,
     val challengerScore: Int?,
     val challengerTotal: Int?,

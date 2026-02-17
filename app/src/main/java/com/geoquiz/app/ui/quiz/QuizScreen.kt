@@ -31,6 +31,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -55,10 +57,11 @@ import com.geoquiz.app.ui.theme.IncorrectRed
 
 @Composable
 fun QuizScreen(
-    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String, incorrectGuesses: Int) -> Unit,
+    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String, incorrectGuesses: Int, challengeId: String?) -> Unit,
     onNavigateHome: () -> Unit,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
@@ -94,17 +97,26 @@ fun QuizScreen(
             LaunchedEffect(quizState.isComplete) {
                 if (quizState.isComplete) {
                     val result = viewModel.getResult() ?: return@LaunchedEffect
-                    onQuizComplete(
-                        result.score,
-                        result.correctAnswers,
-                        result.totalCountries,
-                        result.timeElapsedSeconds,
-                        result.perfectBonus,
-                        result.category.displayName,
-                        viewModel.category.typeKey,
-                        viewModel.category.valueKey,
-                        result.incorrectGuesses
-                    )
+                    val navigate = {
+                        onQuizComplete(
+                            result.score,
+                            result.correctAnswers,
+                            result.totalCountries,
+                            result.timeElapsedSeconds,
+                            result.perfectBonus,
+                            result.category.displayName,
+                            viewModel.category.typeKey,
+                            viewModel.category.valueKey,
+                            result.incorrectGuesses,
+                            viewModel.challengeId
+                        )
+                    }
+                    val activity = context as? Activity
+                    if (activity != null) {
+                        viewModel.adManager.showInterstitial(activity) { navigate() }
+                    } else {
+                        navigate()
+                    }
                 }
             }
 

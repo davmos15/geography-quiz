@@ -177,13 +177,14 @@ fun ResultsScreen(
                             challengerTime = timeElapsedSeconds,
                             quizMode = quizMode
                         )
+                        viewModel.saveOutgoingChallenge(categoryType, categoryValue, quizMode, correctAnswers, totalCountries, timeElapsedSeconds)
                         ShareUtils.shareResults(
                             context = context,
                             categoryName = categoryName,
                             score = correctAnswers,
                             total = totalCountries,
                             time = timeElapsedSeconds,
-                            deepLink = deepLink.toUri()
+                            deepLink = deepLink.toShareUrl()
                         )
                     },
                     modifier = Modifier.weight(1f)
@@ -203,10 +204,11 @@ fun ResultsScreen(
                             challengerTime = null,
                             quizMode = quizMode
                         )
+                        viewModel.saveOutgoingChallenge(categoryType, categoryValue, quizMode, null, null, null)
                         ShareUtils.shareChallenge(
                             context = context,
                             categoryName = categoryName,
-                            deepLink = deepLink.toUri()
+                            deepLink = deepLink.toShareUrl()
                         )
                     },
                     modifier = Modifier.weight(1f)

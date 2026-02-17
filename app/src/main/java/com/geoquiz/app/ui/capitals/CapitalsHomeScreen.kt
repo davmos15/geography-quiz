@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.CategoryGroup
+import com.geoquiz.app.ui.ads.BannerAd
 import com.geoquiz.app.ui.home.CategoryGroupInfo
 import com.geoquiz.app.ui.theme.*
 
@@ -174,12 +175,17 @@ fun CapitalsHomeScreen(
                     }
                 }
 
+                // Banner ad
+                item(span = { GridItemSpan(2) }) {
+                    BannerAd(modifier = Modifier.padding(vertical = 8.dp))
+                }
+
                 item(span = { GridItemSpan(2) }) {
                     Text(
                         text = "Categories",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
 

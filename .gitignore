@@ -67,3 +67,6 @@ google-services.json
 
 # Windows reserved names (can appear as phantom files)
 nul
+
+# Local Netlify folder
+.netlify

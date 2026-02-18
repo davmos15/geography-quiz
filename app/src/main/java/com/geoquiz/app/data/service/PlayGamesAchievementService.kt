@@ -24,6 +24,9 @@ class PlayGamesAchievementService @Inject constructor(
     private val _isSignedIn = MutableStateFlow(false)
     val isSignedIn: StateFlow<Boolean> = _isSignedIn.asStateFlow()
 
+    private val _playerName = MutableStateFlow("A friend")
+    val playerName: StateFlow<String> = _playerName.asStateFlow()
+
     private var currentActivity: Activity? = null
 
     fun setActivity(activity: Activity) {
@@ -43,10 +46,31 @@ class PlayGamesAchievementService @Inject constructor(
                     (task.result?.isAuthenticated == true)
                 _isSignedIn.value = isAuthenticated
                 Log.d(TAG, "Play Games authenticated: $isAuthenticated")
+                if (isAuthenticated) {
+                    fetchPlayerName(activity)
+                }
             }
         } catch (e: Exception) {
             Log.w(TAG, "Play Games not available", e)
             _isSignedIn.value = false
+        }
+    }
+
+    private fun fetchPlayerName(activity: Activity) {
+        try {
+            PlayGames.getPlayersClient(activity).currentPlayer
+                .addOnSuccessListener { player ->
+                    val name = player.displayName
+                    if (!name.isNullOrBlank()) {
+                        _playerName.value = name
+                        Log.d(TAG, "Player name: $name")
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Failed to get player name", e)
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch player name", e)
         }
     }
 

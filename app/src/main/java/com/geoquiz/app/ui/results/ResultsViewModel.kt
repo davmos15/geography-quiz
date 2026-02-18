@@ -3,22 +3,21 @@ package com.geoquiz.app.ui.results
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
+import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.QuizCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ResultsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val settingsRepository: SettingsRepository,
+    private val playGamesService: PlayGamesAchievementService,
     private val challengeRepository: ChallengeRepository
 ) : ViewModel() {
-    val playerName = settingsRepository.playerName.map { it.ifBlank { "A friend" } }
+    val playerName = playGamesService.playerName
 
     private val challengeId: String? = savedStateHandle.get<String>("challengeId")?.takeIf { it != "_" && it.isNotBlank() }
     private val correct: Int = savedStateHandle["correct"] ?: 0
@@ -43,7 +42,7 @@ class ResultsViewModel @Inject constructor(
         time: Int?
     ) {
         viewModelScope.launch {
-            val name = settingsRepository.playerName.first().ifBlank { "A friend" }
+            val name = playGamesService.playerName.value
             val displayName = QuizCategory.fromRoute(categoryType, categoryValue).displayName
             challengeRepository.createOutgoingChallenge(
                 categoryType = categoryType,

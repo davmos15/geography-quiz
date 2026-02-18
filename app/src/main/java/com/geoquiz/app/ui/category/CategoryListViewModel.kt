@@ -8,16 +8,15 @@ import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
 import com.geoquiz.app.domain.model.QuizCategory
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
+import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -48,10 +47,10 @@ class CategoryListViewModel @Inject constructor(
     private val flagColorDao: FlagColorDao,
     private val quizHistoryRepository: QuizHistoryRepository,
     private val challengeRepository: ChallengeRepository,
-    settingsRepository: SettingsRepository
+    private val playGamesService: PlayGamesAchievementService
 ) : ViewModel() {
 
-    val playerName = settingsRepository.playerName.map { it.ifBlank { "A friend" } }
+    val playerName = playGamesService.playerName
 
     private val groupId: String = savedStateHandle["groupId"] ?: ""
     private val quizMode: String = savedStateHandle["quizMode"] ?: "countries"
@@ -112,7 +111,7 @@ class CategoryListViewModel @Inject constructor(
 
     fun saveOutgoingChallenge(categoryType: String, categoryValue: String) {
         viewModelScope.launch {
-            val name = playerName.first()
+            val name = playGamesService.playerName.value
             val displayName = QuizCategory.fromRoute(categoryType, categoryValue).displayName
             challengeRepository.createOutgoingChallenge(
                 categoryType = categoryType,

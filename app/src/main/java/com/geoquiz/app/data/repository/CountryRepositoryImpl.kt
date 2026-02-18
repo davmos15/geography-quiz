@@ -71,8 +71,9 @@ class CountryRepositoryImpl @Inject constructor(
         val rawJson = context.assets.open("countries.json")
             .bufferedReader().use { it.readText() }
 
+        val extraCountries = setOf("VAT", "PSE", "TWN", "UNK")
         val parsed = json.decodeFromString<List<CountryJson>>(rawJson)
-            .filter { it.unMember }
+            .filter { it.unMember || it.cca3 in extraCountries }
 
         // Load flag colors
         val flagColorsRaw = context.assets.open("flag_colors.json")
@@ -211,6 +212,10 @@ class CountryRepositoryImpl @Inject constructor(
             "SLB" to listOf("Solomon Islands"),
             "MHL" to listOf("Marshall Islands"),
             "CPV" to listOf("Cape Verde"),
+            "VAT" to listOf("Vatican", "Holy See"),
+            "PSE" to listOf("Palestine"),
+            "TWN" to listOf("Taiwan"),
+            "UNK" to listOf("Kosovo"),
         )
 
         private val CAPITAL_ALIASES = mapOf(

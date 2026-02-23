@@ -8,7 +8,8 @@ data class QuizState(
     val isComplete: Boolean = false,
     val isPaused: Boolean = false,
     val lastAnswerResult: AnswerResult = AnswerResult.None,
-    val incorrectGuesses: Int = 0
+    val incorrectGuesses: Int = 0,
+    val incorrectGuessStrings: List<String> = emptyList()
 ) {
     val progress: Float
         get() = if (quiz.countries.isEmpty()) 0f

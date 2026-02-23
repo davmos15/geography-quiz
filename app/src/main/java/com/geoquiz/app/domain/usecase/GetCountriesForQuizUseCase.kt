@@ -83,6 +83,19 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 country.name.contains("island", ignoreCase = true)
             }
 
+            is QuizCategory.UniqueLetters -> allCountries.filter { country ->
+                val letters = country.name.lowercase().filter { it in 'a'..'z' }
+                letters.length == letters.toSet().size
+            }
+
+            is QuizCategory.CardinalDirection -> allCountries.filter { country ->
+                CARDINAL_REGEX.containsMatchIn(country.name)
+            }
+
+            is QuizCategory.CapitalMatchesCountry -> allCountries.filter { country ->
+                capitalMatchesCountryName(country)
+            }
+
             is QuizCategory.FlagSingleColor,
             is QuizCategory.FlagColorCombo,
             is QuizCategory.FlagColorCount -> {
@@ -95,6 +108,7 @@ class GetCountriesForQuizUseCase @Inject constructor(
     companion object {
         private val DOUBLE_LETTER_REGEX = Regex("(.)\\1", RegexOption.IGNORE_CASE)
         private val CONSONANT_CLUSTER_REGEX = Regex("[bcdfghjklmnpqrstvwxyz]{3,}", RegexOption.IGNORE_CASE)
+        private val CARDINAL_REGEX = Regex("\\b(North|South|East|West)\\b", RegexOption.IGNORE_CASE)
         private val VOWELS = setOf('a', 'e', 'i', 'o', 'u')
 
         private fun wordCount(name: String): Int = name.split(" ").size
@@ -105,5 +119,13 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 .any { (ch, occurrences) -> ch.isLetter() && occurrences.size >= minCount }
         }
 
+        fun capitalMatchesCountryName(country: Country): Boolean {
+            val name = country.name
+            val capital = country.capital
+            if (capital.isBlank()) return false
+            return capital.equals(name, ignoreCase = true) ||
+                    capital.equals("$name City", ignoreCase = true) ||
+                    capital.equals("City of $name", ignoreCase = true)
+        }
     }
 }

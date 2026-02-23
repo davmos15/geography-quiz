@@ -77,6 +77,9 @@ class QuizViewModel @Inject constructor(
     private val _hardMode = MutableStateFlow(false)
     val hardMode: StateFlow<Boolean> = _hardMode.asStateFlow()
 
+    private val _timerSeconds = MutableStateFlow(0)
+    val timerSeconds: StateFlow<Int> = _timerSeconds.asStateFlow()
+
     private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
     val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
@@ -123,9 +126,9 @@ class QuizViewModel @Inject constructor(
                 }.toSet()
                 val state = QuizState(
                     quiz = quiz,
-                    answeredCountries = validCodes,
-                    timeElapsedSeconds = savedQuiz.timeElapsedSeconds
+                    answeredCountries = validCodes
                 )
+                _timerSeconds.value = savedQuiz.timeElapsedSeconds
                 _uiState.value = QuizUiState.Active(state)
                 savedQuizRepository.clearSavedQuiz()
             } else {
@@ -143,15 +146,7 @@ class QuizViewModel @Inject constructor(
                 delay(1000L)
                 val current = _uiState.value
                 if (current is QuizUiState.Active && !current.state.isComplete && !current.state.isPaused) {
-                    _uiState.update { uiState ->
-                        if (uiState is QuizUiState.Active) {
-                            QuizUiState.Active(
-                                uiState.state.copy(
-                                    timeElapsedSeconds = uiState.state.timeElapsedSeconds + 1
-                                )
-                            )
-                        } else uiState
-                    }
+                    _timerSeconds.value += 1
                 } else if (current is QuizUiState.Active && current.state.isComplete) {
                     break
                 }
@@ -187,7 +182,7 @@ class QuizViewModel @Inject constructor(
                     categoryType = categoryType,
                     categoryValue = categoryValue,
                     answeredCodes = current.state.answeredCountries,
-                    timeElapsed = current.state.timeElapsedSeconds,
+                    timeElapsed = _timerSeconds.value,
                     quizMode = quizModeId
                 )
             }
@@ -229,6 +224,11 @@ class QuizViewModel @Inject constructor(
                     } else {
                         state.incorrectGuesses
                     }
+                    val newIncorrectStrings = if (result is AnswerResult.Incorrect) {
+                        state.incorrectGuessStrings + input
+                    } else {
+                        state.incorrectGuessStrings
+                    }
                     val allAnswered = newAnswered.size == state.quiz.countries.size
                     val hardModeStrikeOut = _hardMode.value && newIncorrect >= 3
                     val isComplete = allAnswered || hardModeStrikeOut
@@ -238,7 +238,8 @@ class QuizViewModel @Inject constructor(
                             currentInput = if (result is AnswerResult.Correct) "" else state.currentInput,
                             lastAnswerResult = result,
                             isComplete = isComplete,
-                            incorrectGuesses = newIncorrect
+                            incorrectGuesses = newIncorrect,
+                            incorrectGuessStrings = newIncorrectStrings
                         )
                     )
                 } else uiState
@@ -261,12 +262,21 @@ class QuizViewModel @Inject constructor(
     fun getResult(): com.geoquiz.app.domain.model.QuizResult? {
         val current = _uiState.value
         if (current !is QuizUiState.Active) return null
-        val result = calculateScore(current.state)
+        val result = calculateScore(current.state.copy(timeElapsedSeconds = _timerSeconds.value))
 
         QuizResultHolder.countries = current.state.quiz.countries
         QuizResultHolder.answeredCodes = current.state.answeredCountries
         QuizResultHolder.categoryName = category.displayName
         QuizResultHolder.quizMode = quizMode
+        QuizResultHolder.incorrectGuessStrings = current.state.incorrectGuessStrings
+        QuizResultHolder.category = category
+
+        // Populate allCountries for incorrect guess lookup (non-blocking)
+        if (QuizResultHolder.allCountries.isEmpty()) {
+            viewModelScope.launch {
+                QuizResultHolder.allCountries = getCountriesForQuiz(QuizCategory.AllCountries)
+            }
+        }
 
         if (!achievementsChecked) {
             achievementsChecked = true
@@ -307,6 +317,30 @@ class QuizViewModel @Inject constructor(
 
     fun clearNewAchievements() {
         _newAchievements.value = emptyList()
+    }
+
+    fun toggleShowTimer() {
+        val newValue = !_showTimer.value
+        _showTimer.value = newValue
+        viewModelScope.launch { settingsRepository.setShowTimer(newValue) }
+    }
+
+    fun toggleShowFlags() {
+        val newValue = !_showFlags.value
+        _showFlags.value = newValue
+        viewModelScope.launch { settingsRepository.setShowFlags(newValue) }
+    }
+
+    fun toggleShowCountryHint() {
+        val newValue = !_showCountryHint.value
+        _showCountryHint.value = newValue
+        viewModelScope.launch { settingsRepository.setShowCountryHint(newValue) }
+    }
+
+    fun toggleHardMode() {
+        val newValue = !_hardMode.value
+        _hardMode.value = newValue
+        viewModelScope.launch { settingsRepository.setHardMode(newValue) }
     }
 }
 

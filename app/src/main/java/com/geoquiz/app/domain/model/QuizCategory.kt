@@ -18,6 +18,9 @@ sealed class QuizCategory {
     data object StartsEndsSame : QuizCategory()
     data object AllVowelsPresent : QuizCategory()
     data object IslandCountries : QuizCategory()
+    data object UniqueLetters : QuizCategory()
+    data object CardinalDirection : QuizCategory()
+    data object CapitalMatchesCountry : QuizCategory()
 
     // Flag-specific categories
     data class FlagSingleColor(val color: String) : QuizCategory()
@@ -43,6 +46,9 @@ sealed class QuizCategory {
             is StartsEndsSame -> "Starts & Ends Same"
             is AllVowelsPresent -> "All 5 Vowels"
             is IslandCountries -> "Island Nations"
+            is UniqueLetters -> "All Unique Letters"
+            is CardinalDirection -> "Cardinal Direction"
+            is CapitalMatchesCountry -> "Same as Country"
             is FlagSingleColor -> color.replaceFirstChar { it.uppercase() }
             is FlagColorCombo -> "Only " + colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
             is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
@@ -56,6 +62,12 @@ sealed class QuizCategory {
             is RepeatedLetter4 -> "Countries where one letter appears 4 or more times"
             is StartsEndsSame -> "Countries that begin and end with the same letter"
             is AllVowelsPresent -> "Countries whose name contains all 5 vowels: A, E, I, O, U"
+            is UniqueLetters -> "Countries where no letter in the name repeats"
+            is CardinalDirection -> "Countries with North, South, East or West in the name"
+            is CapitalMatchesCountry -> "Capitals that share their country's name"
+            is IslandCountries -> "Countries with 'Island' in the name"
+            is EndingWithSuffix -> "Countries ending with \"${suffix}\""
+            is ContainingWord -> "Countries containing \"${word}\""
             else -> null
         }
 
@@ -78,6 +90,9 @@ sealed class QuizCategory {
             is StartsEndsSame -> "startsendssame"
             is AllVowelsPresent -> "allvowels"
             is IslandCountries -> "island"
+            is UniqueLetters -> "uniqueletters"
+            is CardinalDirection -> "cardinal"
+            is CapitalMatchesCountry -> "capitalmatches"
             is FlagSingleColor -> "flagcolor"
             is FlagColorCombo -> "flagcombo"
             is FlagColorCount -> "flagcount"
@@ -102,6 +117,9 @@ sealed class QuizCategory {
             is StartsEndsSame -> "_"
             is AllVowelsPresent -> "_"
             is IslandCountries -> "_"
+            is UniqueLetters -> "_"
+            is CardinalDirection -> "_"
+            is CapitalMatchesCountry -> "_"
             is FlagSingleColor -> color
             is FlagColorCombo -> colors.sorted().joinToString("+")
             is FlagColorCount -> count.toString()
@@ -134,6 +152,9 @@ sealed class QuizCategory {
                 "startsendssame" -> StartsEndsSame
                 "allvowels" -> AllVowelsPresent
                 "island" -> IslandCountries
+                "uniqueletters" -> UniqueLetters
+                "cardinal" -> CardinalDirection
+                "capitalmatches" -> CapitalMatchesCountry
                 "flagcolor" -> FlagSingleColor(value)
                 "flagcombo" -> FlagColorCombo(value.split("+").sorted())
                 "flagcount" -> value.toIntOrNull()?.let { FlagColorCount(it) } ?: AllCountries

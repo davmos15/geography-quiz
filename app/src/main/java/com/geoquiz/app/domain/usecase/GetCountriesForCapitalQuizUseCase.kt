@@ -85,6 +85,19 @@ class GetCountriesForCapitalQuizUseCase @Inject constructor(
                 it.capital.contains("island", ignoreCase = true)
             }
 
+            is QuizCategory.UniqueLetters -> allCountries.filter { country ->
+                val letters = country.capital.lowercase().filter { it in 'a'..'z' }
+                letters.length == letters.toSet().size
+            }
+
+            is QuizCategory.CardinalDirection -> allCountries.filter { country ->
+                CARDINAL_REGEX.containsMatchIn(country.capital)
+            }
+
+            is QuizCategory.CapitalMatchesCountry -> allCountries.filter { country ->
+                GetCountriesForQuizUseCase.capitalMatchesCountryName(country)
+            }
+
             else -> emptyList()
         }
     }
@@ -92,6 +105,7 @@ class GetCountriesForCapitalQuizUseCase @Inject constructor(
     companion object {
         private val DOUBLE_LETTER_REGEX = Regex("(.)\\1", RegexOption.IGNORE_CASE)
         private val CONSONANT_CLUSTER_REGEX = Regex("[bcdfghjklmnpqrstvwxyz]{3,}", RegexOption.IGNORE_CASE)
+        private val CARDINAL_REGEX = Regex("\\b(North|South|East|West)\\b", RegexOption.IGNORE_CASE)
         private val VOWELS = setOf('a', 'e', 'i', 'o', 'u')
 
         private fun hasRepeatedLetter(name: String, minCount: Int): Boolean {

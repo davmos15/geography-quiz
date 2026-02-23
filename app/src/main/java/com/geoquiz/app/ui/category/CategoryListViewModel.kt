@@ -8,6 +8,8 @@ import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
@@ -53,7 +55,8 @@ class CategoryListViewModel @Inject constructor(
     val playerName = playGamesService.playerName
 
     private val groupId: String = savedStateHandle["groupId"] ?: ""
-    private val quizMode: String = savedStateHandle["quizMode"] ?: "countries"
+    private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
+    private val quizMode: QuizMode = QuizMode.fromId(quizModeId)
 
     private val _uiState = MutableStateFlow(CategoryListUiState())
     val uiState: StateFlow<CategoryListUiState> = _uiState.asStateFlow()
@@ -61,7 +64,7 @@ class CategoryListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.ensureSeeded()
-            val allCountries = if (quizMode == "capitals") {
+            val allCountries = if (quizMode == QuizMode.CAPITALS) {
                 repository.getAllCountries().first().filter { it.capital.isNotBlank() }
             } else {
                 repository.getAllCountries().first()
@@ -83,7 +86,7 @@ class CategoryListViewModel @Inject constructor(
             val groupDescription = group?.description ?: flagGroup?.description ?: ""
 
             // Enrich with best scores from history
-            val bestScores = quizHistoryRepository.getAllBestScoresForMode(quizMode)
+            val bestScores = quizHistoryRepository.getAllBestScoresForMode(quizModeId)
             val scoreMap = bestScores.associateBy { "${it.categoryType}|${it.categoryValue}" }
             val enrichedOptions = options.map { option ->
                 val key = "${option.categoryType}|${option.categoryValue}"
@@ -117,7 +120,7 @@ class CategoryListViewModel @Inject constructor(
                 categoryType = categoryType,
                 categoryValue = categoryValue,
                 categoryDisplayName = displayName,
-                quizMode = quizMode,
+                quizMode = quizModeId,
                 challengerName = name,
                 score = null,
                 total = null,
@@ -133,18 +136,34 @@ class CategoryListViewModel @Inject constructor(
     }
 
     /** Returns the relevant name for the current quiz mode — capital name for capitals, country name otherwise. */
-    private fun Country.quizName(): String = if (quizMode == "capitals") capital else name
+    private fun Country.quizName(): String = if (quizMode == QuizMode.CAPITALS) capital else name
 
     private fun buildQuizOptions(
         group: CategoryGroup,
         countries: List<Country>
     ): List<QuizOptionInfo> = when (group) {
-        CategoryGroup.ALL_COUNTRIES -> listOf(
-            QuizOptionInfo(
-                if (quizMode == "capitals") "All Capitals" else "All Countries",
-                countries.size, "all", "_"
+        CategoryGroup.ALL_COUNTRIES -> {
+            val options = mutableListOf(
+                QuizOptionInfo(
+                    if (quizMode == QuizMode.CAPITALS) "All Capitals" else "All Countries",
+                    countries.size, "all", "_"
+                )
             )
-        )
+            if (quizMode == QuizMode.CAPITALS) {
+                val matchCount = countries.count {
+                    GetCountriesForQuizUseCase.capitalMatchesCountryName(it)
+                }
+                if (matchCount > 0) {
+                    options.add(
+                        QuizOptionInfo(
+                            "Same as Country", matchCount, "capitalmatches", "_",
+                            description = QuizCategory.CapitalMatchesCountry.description
+                        )
+                    )
+                }
+            }
+            options
+        }
 
         CategoryGroup.REGIONS -> countries
             .map { it.region }
@@ -273,12 +292,22 @@ class CategoryListViewModel @Inject constructor(
                     },
                     "allvowels", "_",
                     description = QuizCategory.AllVowelsPresent.description
+                ),
+                QuizOptionInfo(
+                    "All Unique Letters",
+                    countries.count { country ->
+                        val letters = country.quizName().lowercase().filter { it in 'a'..'z' }
+                        letters.length == letters.toSet().size
+                    },
+                    "uniqueletters", "_",
+                    description = QuizCategory.UniqueLetters.description
                 )
             ).filter { it.countryCount > 0 }
         }
 
         CategoryGroup.WORD_PATTERNS -> {
             val name = { c: Country -> c.quizName() }
+            val cardinalRegex = Regex("\\b(North|South|East|West)\\b", RegexOption.IGNORE_CASE)
             val oneWord = countries.count { name(it).split(" ").size == 1 }
             val multiWord = countries.count { name(it).split(" ").size >= 2 }
             val twoWord = countries.count { name(it).split(" ").size == 2 }
@@ -286,22 +315,32 @@ class CategoryListViewModel @Inject constructor(
             val endsLand = countries.count { name(it).endsWith("land", ignoreCase = true) }
             val containsUnited = countries.count { name(it).contains("United", ignoreCase = true) }
             val containsGuinea = countries.count { name(it).contains("Guinea", ignoreCase = true) }
+            val cardinalCount = countries.count { cardinalRegex.containsMatchIn(name(it)) }
 
             listOf(
                 QuizOptionInfo("One-Word Names", oneWord, "wordcount", "1"),
                 QuizOptionInfo("Multi-Word Names", multiWord, "wordcount", "-2"),
                 QuizOptionInfo("Two-Word Names", twoWord, "wordcount", "2"),
-                QuizOptionInfo("Ends with \"stan\"", endsStan, "endsuffix", "stan"),
-                QuizOptionInfo("Ends with \"land\"", endsLand, "endsuffix", "land"),
-                QuizOptionInfo("Contains \"United\"", containsUnited, "containword", "United"),
-                QuizOptionInfo("Contains \"Guinea\"", containsGuinea, "containword", "Guinea")
+                QuizOptionInfo("Ends with \"stan\"", endsStan, "endsuffix", "stan",
+                    description = QuizCategory.EndingWithSuffix("stan").description),
+                QuizOptionInfo("Ends with \"land\"", endsLand, "endsuffix", "land",
+                    description = QuizCategory.EndingWithSuffix("land").description),
+                QuizOptionInfo("Contains \"United\"", containsUnited, "containword", "United",
+                    description = QuizCategory.ContainingWord("United").description),
+                QuizOptionInfo("Contains \"Guinea\"", containsGuinea, "containword", "Guinea",
+                    description = QuizCategory.ContainingWord("Guinea").description),
+                QuizOptionInfo(
+                    "Cardinal Direction", cardinalCount, "cardinal", "_",
+                    description = QuizCategory.CardinalDirection.description
+                )
             ).filter { it.countryCount > 0 }
         }
 
         CategoryGroup.ISLAND_COUNTRIES -> {
             val count = countries.count { it.quizName().contains("island", ignoreCase = true) }
             listOf(
-                QuizOptionInfo("Island Nations", count, "island", "_")
+                QuizOptionInfo("Island Nations", count, "island", "_",
+                    description = QuizCategory.IslandCountries.description)
             ).filter { it.countryCount > 0 }
         }
     }

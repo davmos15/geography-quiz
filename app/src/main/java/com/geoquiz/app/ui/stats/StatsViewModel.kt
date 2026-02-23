@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class StatsUiState(
@@ -31,7 +32,7 @@ data class StatsUiState(
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
-    quizHistoryRepository: QuizHistoryRepository,
+    private val quizHistoryRepository: QuizHistoryRepository,
     achievementRepository: AchievementRepository
 ) : ViewModel() {
 
@@ -81,6 +82,12 @@ class StatsViewModel @Inject constructor(
             flagsQuizCount = modeCounts.third
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatsUiState())
+
+    fun resetStatistics() {
+        viewModelScope.launch {
+            quizHistoryRepository.clearAllHistory()
+        }
+    }
 }
 
 private data class StatsPartial1(

@@ -14,7 +14,7 @@ interface ChallengeDao {
     @Query("SELECT * FROM challenges WHERE id = :id")
     suspend fun getChallengeById(id: String): ChallengeEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertChallenge(challenge: ChallengeEntity)
 
     @Query("UPDATE challenges SET myScore = :score, myTotal = :total, myTime = :time, status = 'completed' WHERE id = :id")

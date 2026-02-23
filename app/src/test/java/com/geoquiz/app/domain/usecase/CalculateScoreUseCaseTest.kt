@@ -15,11 +15,11 @@ class CalculateScoreUseCaseTest {
     private lateinit var calculateScore: CalculateScoreUseCase
 
     private val countries = listOf(
-        Country("FRA", "France", "French Republic", "Europe", "Western Europe", 6),
-        Country("DEU", "Germany", "Federal Republic of Germany", "Europe", "Western Europe", 7),
-        Country("JPN", "Japan", "Japan", "Asia", "Eastern Asia", 5),
-        Country("BRA", "Brazil", "Federative Republic of Brazil", "Americas", "South America", 6),
-        Country("AUS", "Australia", "Commonwealth of Australia", "Oceania", "Australia and New Zealand", 9)
+        Country("FRA", "France", "French Republic", "Europe", "Western Europe", 6, "Paris", "\uD83C\uDDEB\uD83C\uDDF7"),
+        Country("DEU", "Germany", "Federal Republic of Germany", "Europe", "Western Europe", 7, "Berlin", "\uD83C\uDDE9\uD83C\uDDEA"),
+        Country("JPN", "Japan", "Japan", "Asia", "Eastern Asia", 5, "Tokyo", "\uD83C\uDDEF\uD83C\uDDF5"),
+        Country("BRA", "Brazil", "Federative Republic of Brazil", "Americas", "South America", 6, "Bras\u00edlia", "\uD83C\uDDE7\uD83C\uDDF7"),
+        Country("AUS", "Australia", "Commonwealth of Australia", "Oceania", "Australia and New Zealand", 9, "Canberra", "\uD83C\uDDE6\uD83C\uDDFA")
     )
 
     private val quiz = Quiz(

@@ -85,6 +85,9 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.EndingWithSuffix,
                 is QuizCategory.ContainingWord -> "wordpatterns"
                 is QuizCategory.IslandCountries -> "island"
+                is QuizCategory.UniqueLetters -> "patterns"
+                is QuizCategory.CardinalDirection -> "wordpatterns"
+                is QuizCategory.CapitalMatchesCountry -> "capitalmatches"
                 is QuizCategory.FlagSingleColor -> "flagcolor"
                 is QuizCategory.FlagColorCombo -> "flagcombo"
                 is QuizCategory.FlagColorCount -> "flagcount"

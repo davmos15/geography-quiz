@@ -56,4 +56,6 @@ class QuizHistoryRepository @Inject constructor(
 
     suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore> =
         quizHistoryDao.getAllBestScoresForMode(quizMode)
+
+    suspend fun clearAllHistory() = quizHistoryDao.deleteAllHistory()
 }

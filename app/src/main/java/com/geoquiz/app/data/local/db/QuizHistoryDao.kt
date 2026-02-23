@@ -48,12 +48,18 @@ interface QuizHistoryDao {
     // Batch best scores for a quiz mode
 
     @Query("""
-        SELECT categoryType, categoryValue, MAX(score) as score,
-               MAX(correctAnswers) as correctAnswers,
-               MAX(totalQuestions) as totalQuestions
-        FROM quiz_history
-        WHERE quizMode = :quizMode
-        GROUP BY categoryType, categoryValue
+        SELECT qh.categoryType, qh.categoryValue, qh.score, qh.correctAnswers, qh.totalQuestions
+        FROM quiz_history qh
+        INNER JOIN (
+            SELECT categoryType, categoryValue, MAX(score) AS maxScore
+            FROM quiz_history
+            WHERE quizMode = :quizMode
+            GROUP BY categoryType, categoryValue
+        ) best ON qh.categoryType = best.categoryType
+            AND qh.categoryValue = best.categoryValue
+            AND qh.score = best.maxScore
+        WHERE qh.quizMode = :quizMode
+        GROUP BY qh.categoryType, qh.categoryValue
     """)
     suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore>
 
@@ -61,4 +67,9 @@ interface QuizHistoryDao {
 
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
     fun getRecentQuizzes(limit: Int = 10): Flow<List<QuizHistoryEntity>>
+
+    // Reset
+
+    @Query("DELETE FROM quiz_history")
+    suspend fun deleteAllHistory()
 }

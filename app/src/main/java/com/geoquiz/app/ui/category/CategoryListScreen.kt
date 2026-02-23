@@ -68,17 +68,27 @@ fun CategoryListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.toggleHideCompleted() }) {
-                        Icon(
-                            imageVector = if (state.hideCompleted)
-                                Icons.Default.VisibilityOff
-                            else
-                                Icons.Default.Visibility,
-                            contentDescription = if (state.hideCompleted)
-                                "Show all quizzes"
-                            else
-                                "Hide completed quizzes"
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 4.dp)
+                    ) {
+                        Text(
+                            text = if (state.hideCompleted) "Show all" else "Hide done",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        IconButton(onClick = { viewModel.toggleHideCompleted() }) {
+                            Icon(
+                                imageVector = if (state.hideCompleted)
+                                    Icons.Default.VisibilityOff
+                                else
+                                    Icons.Default.Visibility,
+                                contentDescription = if (state.hideCompleted)
+                                    "Show all quizzes"
+                                else
+                                    "Hide completed quizzes"
+                            )
+                        }
                     }
                 }
             )

@@ -12,10 +12,12 @@ import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -67,7 +69,7 @@ class CountryRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun seedFromAsset() {
+    private suspend fun seedFromAsset() = withContext(Dispatchers.IO) {
         val rawJson = context.assets.open("countries.json")
             .bufferedReader().use { it.readText() }
 
@@ -182,7 +184,7 @@ class CountryRepositoryImpl @Inject constructor(
     companion object {
         private val ABBREVIATIONS = mapOf(
             "GBR" to listOf("UK", "Britain", "Great Britain"),
-            "USA" to listOf("US", "America", "United States"),
+            "USA" to listOf("US", "USA", "America", "United States"),
             "ARE" to listOf("UAE"),
             "COD" to listOf("DRC", "DR Congo", "Congo Kinshasa"),
             "COG" to listOf("Congo Brazzaville", "Republic of the Congo", "Republic of Congo"),

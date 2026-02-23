@@ -8,27 +8,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import android.app.Activity
@@ -55,6 +60,7 @@ import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizScreen(
     onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String, incorrectGuesses: Int, challengeId: String?) -> Unit,
@@ -63,11 +69,13 @@ fun QuizScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val timerSeconds by viewModel.timerSeconds.collectAsStateWithLifecycle()
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
     val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
     var showGiveUpDialog by remember { mutableStateOf(false) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
 
     // Auto-pause and save when app goes to background
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
@@ -125,6 +133,7 @@ fun QuizScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
+                        .imePadding()
                 ) {
                     Column(
                         modifier = Modifier
@@ -182,7 +191,7 @@ fun QuizScreen(
                             if (showTimer) {
                                 Spacer(modifier = Modifier.width(12.dp))
                                 TimerDisplay(
-                                    elapsedSeconds = quizState.timeElapsedSeconds,
+                                    elapsedSeconds = timerSeconds,
                                     timerSeconds = null
                                 )
                             }
@@ -203,6 +212,12 @@ fun QuizScreen(
                                 )
                             }
                             Spacer(modifier = Modifier.weight(1f))
+                            IconButton(onClick = { showSettingsSheet = true }) {
+                                Icon(
+                                    Icons.Default.Settings,
+                                    contentDescription = "Settings"
+                                )
+                            }
                             IconButton(onClick = { viewModel.togglePause() }) {
                                 Icon(
                                     imageVector = if (quizState.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
@@ -234,13 +249,30 @@ fun QuizScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Give up button
-                        OutlinedButton(
-                            onClick = { showGiveUpDialog = true },
+                        // Give up + Submit row
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = !quizState.isPaused
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Give Up")
+                            IconButton(
+                                onClick = { showGiveUpDialog = true },
+                                enabled = !quizState.isPaused
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Give Up",
+                                    tint = if (!quizState.isPaused) IncorrectRed
+                                        else IncorrectRed.copy(alpha = 0.38f)
+                                )
+                            }
+                            Button(
+                                onClick = viewModel::onSubmitAnswer,
+                                modifier = Modifier.weight(1f),
+                                enabled = !quizState.isComplete && !quizState.isPaused
+                            ) {
+                                Text("Submit")
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -299,6 +331,39 @@ fun QuizScreen(
                 }
             }
 
+            if (showSettingsSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showSettingsSheet = false }
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                    ) {
+                        Text(
+                            "Settings",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        SettingsToggleRow("Show Timer", "Display count-up timer during quizzes", showTimer) {
+                            viewModel.toggleShowTimer()
+                        }
+                        SettingsToggleRow("Show Flags", "Show flag emojis next to countries", showFlags) {
+                            viewModel.toggleShowFlags()
+                        }
+                        if (viewModel.quizMode == QuizMode.CAPITALS) {
+                            SettingsToggleRow("Country Hint", "Show the country name as a clue", showCountryHint) {
+                                viewModel.toggleShowCountryHint()
+                            }
+                        }
+                        SettingsToggleRow("Hard Mode", "Only 3 incorrect guesses allowed", hardMode) {
+                            viewModel.toggleHardMode()
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                }
+            }
+
             if (showGiveUpDialog) {
                 AlertDialog(
                     onDismissRequest = { showGiveUpDialog = false },
@@ -330,5 +395,30 @@ fun QuizScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SettingsToggleRow(
+    label: String,
+    description: String,
+    checked: Boolean,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(checked = checked, onCheckedChange = { onToggle() })
     }
 }

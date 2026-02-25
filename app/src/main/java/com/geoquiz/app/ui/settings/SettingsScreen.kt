@@ -1,26 +1,32 @@
 package com.geoquiz.app.ui.settings
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,6 +41,9 @@ fun SettingsScreen(
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
     val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
+    val adsRemoved by viewModel.adsRemoved.collectAsStateWithLifecycle()
+    val removeAdsPrice by viewModel.removeAdsPrice.collectAsStateWithLifecycle()
+    val activity = LocalContext.current as? Activity
 
     Scaffold(
         topBar = {
@@ -150,6 +159,31 @@ fun SettingsScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (adsRemoved) {
+                Text(
+                    text = "Ads removed",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Button(
+                    onClick = { activity?.let { viewModel.purchaseRemoveAds(it) } },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Remove Ads${removeAdsPrice?.let { " - $it" } ?: ""}")
+                }
+            }
+
+            TextButton(
+                onClick = { viewModel.restorePurchases() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Restore Purchases")
+            }
         }
     }
 }

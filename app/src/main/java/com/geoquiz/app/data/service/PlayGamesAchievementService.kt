@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.games.PlayGames
 import com.geoquiz.app.data.PlayGamesAchievementIds
+import com.geoquiz.app.data.PlayGamesLeaderboardIds
 import com.geoquiz.app.domain.model.Achievement
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,6 +122,52 @@ class PlayGamesAchievementService @Inject constructor(
                 }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to show achievements UI", e)
+        }
+    }
+
+    // --- Leaderboards ---
+
+    fun submitScore(leaderboardId: String, score: Long) {
+        val activity = currentActivity ?: return
+        if (!_isSignedIn.value) return
+        if (leaderboardId.startsWith("PLACEHOLDER")) return
+
+        try {
+            PlayGames.getLeaderboardsClient(activity).submitScore(leaderboardId, score)
+            Log.d(TAG, "Submitted score $score to leaderboard $leaderboardId")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to submit score to $leaderboardId", e)
+        }
+    }
+
+    fun showLeaderboardUI(leaderboardId: String) {
+        val activity = currentActivity ?: return
+        if (!_isSignedIn.value) return
+        if (leaderboardId.startsWith("PLACEHOLDER")) return
+
+        try {
+            PlayGames.getLeaderboardsClient(activity)
+                .getLeaderboardIntent(leaderboardId)
+                .addOnSuccessListener { intent ->
+                    activity.startActivityForResult(intent, 9004)
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to show leaderboard UI", e)
+        }
+    }
+
+    fun showAllLeaderboardsUI() {
+        val activity = currentActivity ?: return
+        if (!_isSignedIn.value) return
+
+        try {
+            PlayGames.getLeaderboardsClient(activity)
+                .allLeaderboardsIntent
+                .addOnSuccessListener { intent ->
+                    activity.startActivityForResult(intent, 9004)
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to show leaderboards UI", e)
         }
     }
 }

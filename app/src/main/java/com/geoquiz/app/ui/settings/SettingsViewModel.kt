@@ -1,8 +1,10 @@
 package com.geoquiz.app.ui.settings
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.data.service.BillingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val billingRepository: BillingRepository
 ) : ViewModel() {
 
     val showTimer: StateFlow<Boolean> = settingsRepository.showTimer
@@ -26,6 +29,9 @@ class SettingsViewModel @Inject constructor(
 
     val hardMode: StateFlow<Boolean> = settingsRepository.hardMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val adsRemoved: StateFlow<Boolean> = billingRepository.adsRemoved
+    val removeAdsPrice: StateFlow<String?> = billingRepository.price
 
     fun onToggleTimer(show: Boolean) {
         viewModelScope.launch {
@@ -51,4 +57,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun purchaseRemoveAds(activity: Activity) {
+        billingRepository.launchPurchaseFlow(activity)
+    }
+
+    fun restorePurchases() {
+        viewModelScope.launch {
+            billingRepository.restorePurchases()
+        }
+    }
 }

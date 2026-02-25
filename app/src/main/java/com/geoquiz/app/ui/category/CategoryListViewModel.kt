@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.FlagElementDao
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
@@ -47,6 +48,7 @@ class CategoryListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CountryRepository,
     private val flagColorDao: FlagColorDao,
+    private val flagElementDao: FlagElementDao,
     private val quizHistoryRepository: QuizHistoryRepository,
     private val challengeRepository: ChallengeRepository,
     private val playGamesService: PlayGamesAchievementService
@@ -301,6 +303,21 @@ class CategoryListViewModel @Inject constructor(
                     },
                     "uniqueletters", "_",
                     description = QuizCategory.UniqueLetters.description
+                ),
+                QuizOptionInfo(
+                    "Ending in a Vowel",
+                    countries.count { it.quizName().last().lowercaseChar() in vowels },
+                    "endvowel", "_",
+                    description = QuizCategory.EndingInVowel.description
+                ),
+                QuizOptionInfo(
+                    "Single Vowel Type",
+                    countries.count { country ->
+                        val dv = country.quizName().lowercase().filter { it in vowels }.toSet()
+                        dv.size == 1
+                    },
+                    "singlevowel", "_",
+                    description = QuizCategory.SingleVowelType.description
                 )
             ).filter { it.countryCount > 0 }
         }
@@ -451,6 +468,22 @@ class CategoryListViewModel @Inject constructor(
                         count.toString()
                     )
                 }.filter { it.countryCount > 0 }
+            }
+
+            FlagCategoryGroup.FLAG_ELEMENTS -> {
+                val allElements = flagElementDao.getAllMappings()
+                val validElements = allElements.filter { it.countryCca3 in validCodes }
+                validElements.groupBy { it.element }
+                    .map { (element, mappings) ->
+                        QuizOptionInfo(
+                            QuizCategory.ELEMENT_DISPLAY_NAMES[element] ?: element.replaceFirstChar { it.uppercase() },
+                            mappings.size,
+                            "flagelement",
+                            element
+                        )
+                    }
+                    .filter { it.countryCount > 0 }
+                    .sortedByDescending { it.countryCount }
             }
         }
     }

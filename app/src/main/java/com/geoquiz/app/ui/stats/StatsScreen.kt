@@ -92,6 +92,14 @@ fun StatsScreen(
                     Text("Challenges")
                 }
             }
+            OutlinedButton(
+                onClick = { viewModel.showLeaderboards() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Leaderboard, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Leaderboards")
+            }
 
             StatsCard(title = "Overview") {
                 StatRow("Quizzes Completed", state.totalQuizzesCompleted.toString())

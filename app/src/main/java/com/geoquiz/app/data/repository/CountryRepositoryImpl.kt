@@ -8,6 +8,8 @@ import com.geoquiz.app.data.local.db.CountryDao
 import com.geoquiz.app.data.local.db.CountryEntity
 import com.geoquiz.app.data.local.db.FlagColorDao
 import com.geoquiz.app.data.local.db.FlagColorEntity
+import com.geoquiz.app.data.local.db.FlagElementDao
+import com.geoquiz.app.data.local.db.FlagElementEntity
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
@@ -29,6 +31,7 @@ class CountryRepositoryImpl @Inject constructor(
     private val countryDao: CountryDao,
     private val capitalAliasDao: CapitalAliasDao,
     private val flagColorDao: FlagColorDao,
+    private val flagElementDao: FlagElementDao,
     private val normalizeInput: NormalizeInputUseCase
 ) : CountryRepository {
 
@@ -82,10 +85,16 @@ class CountryRepositoryImpl @Inject constructor(
             .bufferedReader().use { it.readText() }
         val flagColorsMap = json.decodeFromString<Map<String, List<String>>>(flagColorsRaw)
 
+        // Load flag elements
+        val flagElementsRaw = context.assets.open("flag_elements.json")
+            .bufferedReader().use { it.readText() }
+        val flagElementsMap = json.decodeFromString<Map<String, List<String>>>(flagElementsRaw)
+
         val entities = mutableListOf<CountryEntity>()
         val aliases = mutableListOf<AliasEntity>()
         val capitalAliases = mutableListOf<CapitalAliasEntity>()
         val flagColorEntities = mutableListOf<FlagColorEntity>()
+        val flagElementEntities = mutableListOf<FlagElementEntity>()
 
         for (c in parsed) {
             val commonName = c.name.common
@@ -162,12 +171,24 @@ class CountryRepositoryImpl @Inject constructor(
                     )
                 )
             }
+
+            // Flag elements
+            val elements = flagElementsMap[cca3] ?: flagElementsMap[cca2] ?: emptyList()
+            for (element in elements) {
+                flagElementEntities.add(
+                    FlagElementEntity(
+                        countryCca3 = cca3,
+                        element = element
+                    )
+                )
+            }
         }
 
         countryDao.insertCountries(entities)
         countryDao.insertAliases(aliases)
         capitalAliasDao.insertAliases(capitalAliases)
         flagColorDao.insertFlagColors(flagColorEntities)
+        flagElementDao.insertFlagElements(flagElementEntities)
     }
 
     private fun CountryEntity.toDomain() = Country(

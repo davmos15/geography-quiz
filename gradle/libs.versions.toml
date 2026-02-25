@@ -11,6 +11,7 @@ datastore = "1.1.1"
 coroutines = "1.10.1"
 playServicesAds = "23.6.0"
 playServicesGamesV2 = "21.0.0"
+playBilling = "7.1.1"
 kotlinxSerialization = "1.7.3"
 junit = "4.13.2"
 mockk = "1.13.14"
@@ -63,6 +64,9 @@ play-services-ads = { group = "com.google.android.gms", name = "play-services-ad
 
 # Play Games Services
 play-services-games-v2 = { group = "com.google.android.gms", name = "play-services-games-v2", version.ref = "playServicesGamesV2" }
+
+# Play Billing
+play-billing = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "playBilling" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

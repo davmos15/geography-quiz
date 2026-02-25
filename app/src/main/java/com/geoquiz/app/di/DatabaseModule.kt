@@ -9,6 +9,7 @@ import com.geoquiz.app.data.local.db.CapitalAliasDao
 import com.geoquiz.app.data.local.db.ChallengeDao
 import com.geoquiz.app.data.local.db.CountryDao
 import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.FlagElementDao
 import com.geoquiz.app.data.local.db.QuizHistoryDao
 import com.geoquiz.app.data.local.db.SavedQuizDao
 import dagger.Module
@@ -149,6 +150,26 @@ object DatabaseModule {
         }
     }
 
+    private val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS flag_elements (
+                    countryCca3 TEXT NOT NULL,
+                    element TEXT NOT NULL,
+                    PRIMARY KEY(countryCca3, element),
+                    FOREIGN KEY(countryCca3) REFERENCES countries(cca3) ON DELETE CASCADE
+                )
+            """.trimIndent())
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_flag_elements_element ON flag_elements(element)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_flag_elements_countryCca3 ON flag_elements(countryCca3)")
+            // Force re-seed to populate flag elements
+            db.execSQL("DELETE FROM flag_colors")
+            db.execSQL("DELETE FROM capital_aliases")
+            db.execSQL("DELETE FROM aliases")
+            db.execSQL("DELETE FROM countries")
+        }
+    }
+
     private val MIGRATION_6_7 = object : Migration(6, 7) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("""
@@ -182,7 +203,8 @@ object DatabaseModule {
             .addMigrations(
                 MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3,
                 MIGRATION_3_4, MIGRATION_1_4, MIGRATION_2_4,
-                MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9
+                MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
+                MIGRATION_9_10
             )
             .build()
     }
@@ -210,6 +232,11 @@ object DatabaseModule {
     @Provides
     fun provideFlagColorDao(database: AppDatabase): FlagColorDao {
         return database.flagColorDao()
+    }
+
+    @Provides
+    fun provideFlagElementDao(database: AppDatabase): FlagElementDao {
+        return database.flagElementDao()
     }
 
     @Provides

@@ -3,7 +3,7 @@
 An Android geography quiz app that challenges players to name countries, capitals and flags across dozens of quiz categories. Built with Kotlin and Jetpack Compose.
 
 **Platform:** Android (Kotlin + Jetpack Compose)
-**Current Version:** 2.6.0
+**Current Version:** 2.7.0
 
 ---
 
@@ -28,11 +28,12 @@ An Android geography quiz app that challenges players to name countries, capital
 | Ending Letter | A-Z |
 | Containing Letter | A-Z |
 | Name Length | Grouped by character count (4-5, 6-7, etc.) |
-| Letter Patterns | Double Letter, Consonant Cluster, Repeated Letter (x3/x4), Starts & Ends Same, All Vowels Present, All Unique Letters |
+| Letter Patterns | Double Letter, Consonant Cluster, Repeated Letter (x3/x4), Starts & Ends Same, All Vowels Present, All Unique Letters, Ending in a Vowel, Single Vowel Type |
 | Word Patterns | By Word Count, Ending with Suffix (-land, -stan, etc.), Containing Word, Cardinal Direction |
 | Island Countries | Countries with "Island" in the name |
 | Capital Matches Country | Capitals that share their country's name (capitals mode) |
 | Flag Colours | Single colour, colour combo, colour count (flags mode) |
+| Flag Shapes & Objects | Plants & Trees, Animals, Sun, Moon, Stars & Constellations, Union Jack, Coat of Arms, Text & Script (flags mode) |
 
 ### Gameplay
 - **Free-text input** with alias matching (accepts common names, abbreviations, spelling variants)
@@ -68,7 +69,7 @@ An Android geography quiz app that challenges players to name countries, capital
 
 ### Challenges
 - Challenge friends via shareable deep links
-- Compare scores, times and accuracy
+- Compare scores, times and accuracy on a result card
 - Track incoming/outgoing challenges
 
 ### Ads
@@ -86,7 +87,7 @@ An Android geography quiz app that challenges players to name countries, capital
 | UI | Jetpack Compose + Material 3 |
 | Architecture | MVVM + Clean Architecture |
 | DI | Hilt |
-| Local DB | Room (v9, prepopulated from bundled JSON) |
+| Local DB | Room (v10, prepopulated from bundled JSON) |
 | Preferences | DataStore |
 | Async | Kotlin Coroutines + Flow |
 | Navigation | Jetpack Navigation (Compose) |

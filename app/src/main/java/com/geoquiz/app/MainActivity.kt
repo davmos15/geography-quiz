@@ -8,8 +8,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
+import com.geoquiz.app.data.PlayGamesLeaderboardIds
 import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
+import com.geoquiz.app.data.repository.QuizHistoryRepository
+import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizCategory
@@ -28,11 +31,14 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var playGamesService: PlayGamesAchievementService
     @Inject lateinit var achievementRepository: AchievementRepository
     @Inject lateinit var challengeRepository: ChallengeRepository
+    @Inject lateinit var quizHistoryRepository: QuizHistoryRepository
+    @Inject lateinit var billingRepository: BillingRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         playGamesService.setActivity(this)
+        billingRepository.connect()
         handleDeepLink(intent?.data)
         setContent {
             GeographyQuizTheme {
@@ -40,12 +46,24 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Sync locally unlocked achievements to Play Games on startup
+        // Sync locally unlocked achievements and leaderboard scores on startup
         lifecycleScope.launch {
             playGamesService.isSignedIn.filter { it }.first()
             val unlocked = achievementRepository.unlockedAchievements.first()
             if (unlocked.isNotEmpty()) {
                 playGamesService.syncAllUnlocked(unlocked)
+            }
+            // Sync leaderboard scores
+            val overall = quizHistoryRepository.getTotalCorrectAnswersSync()
+            if (overall > 0) {
+                playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overall)
+                for (mode in listOf("countries", "capitals", "flags")) {
+                    val modeTotal = quizHistoryRepository.getTotalCorrectAnswersForModeSync(mode)
+                    if (modeTotal > 0) {
+                        val id = PlayGamesLeaderboardIds.forMode(mode) ?: continue
+                        playGamesService.submitScore(id, modeTotal)
+                    }
+                }
             }
         }
     }

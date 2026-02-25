@@ -21,11 +21,14 @@ sealed class QuizCategory {
     data object UniqueLetters : QuizCategory()
     data object CardinalDirection : QuizCategory()
     data object CapitalMatchesCountry : QuizCategory()
+    data object EndingInVowel : QuizCategory()
+    data object SingleVowelType : QuizCategory()
 
     // Flag-specific categories
     data class FlagSingleColor(val color: String) : QuizCategory()
     data class FlagColorCombo(val colors: List<String>) : QuizCategory()
     data class FlagColorCount(val count: Int) : QuizCategory()
+    data class FlagElement(val element: String) : QuizCategory()
 
     val displayName: String
         get() = when (this) {
@@ -49,9 +52,12 @@ sealed class QuizCategory {
             is UniqueLetters -> "All Unique Letters"
             is CardinalDirection -> "Cardinal Direction"
             is CapitalMatchesCountry -> "Same as Country"
+            is EndingInVowel -> "Ending in a Vowel"
+            is SingleVowelType -> "Single Vowel Type"
             is FlagSingleColor -> color.replaceFirstChar { it.uppercase() }
             is FlagColorCombo -> "Only " + colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
             is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
+            is FlagElement -> ELEMENT_DISPLAY_NAMES[element] ?: element.replaceFirstChar { it.uppercase() }
         }
 
     val description: String?
@@ -65,6 +71,8 @@ sealed class QuizCategory {
             is UniqueLetters -> "Countries where no letter in the name repeats"
             is CardinalDirection -> "Countries with North, South, East or West in the name"
             is CapitalMatchesCountry -> "Capitals that share their country's name"
+            is EndingInVowel -> "Countries whose name ends with A, E, I, O or U"
+            is SingleVowelType -> "Countries whose name contains only one type of vowel"
             is IslandCountries -> "Countries with 'Island' in the name"
             is EndingWithSuffix -> "Countries ending with \"${suffix}\""
             is ContainingWord -> "Countries containing \"${word}\""
@@ -93,9 +101,12 @@ sealed class QuizCategory {
             is UniqueLetters -> "uniqueletters"
             is CardinalDirection -> "cardinal"
             is CapitalMatchesCountry -> "capitalmatches"
+            is EndingInVowel -> "endvowel"
+            is SingleVowelType -> "singlevowel"
             is FlagSingleColor -> "flagcolor"
             is FlagColorCombo -> "flagcombo"
             is FlagColorCount -> "flagcount"
+            is FlagElement -> "flagelement"
         }
 
     val valueKey: String
@@ -120,12 +131,26 @@ sealed class QuizCategory {
             is UniqueLetters -> "_"
             is CardinalDirection -> "_"
             is CapitalMatchesCountry -> "_"
+            is EndingInVowel -> "_"
+            is SingleVowelType -> "_"
             is FlagSingleColor -> color
             is FlagColorCombo -> colors.sorted().joinToString("+")
             is FlagColorCount -> count.toString()
+            is FlagElement -> element
         }
 
     companion object {
+        val ELEMENT_DISPLAY_NAMES = mapOf(
+            "plant" to "Plants & Trees",
+            "animal" to "Animals",
+            "sun" to "Sun",
+            "moon" to "Moon",
+            "constellation" to "Stars & Constellations",
+            "union_jack" to "Union Jack",
+            "coat_of_arms" to "Coat of Arms",
+            "text" to "Text & Script"
+        )
+
         fun fromRoute(type: String, value: String): QuizCategory = try {
             when (type) {
                 "all" -> AllCountries
@@ -155,9 +180,12 @@ sealed class QuizCategory {
                 "uniqueletters" -> UniqueLetters
                 "cardinal" -> CardinalDirection
                 "capitalmatches" -> CapitalMatchesCountry
+                "endvowel" -> EndingInVowel
+                "singlevowel" -> SingleVowelType
                 "flagcolor" -> FlagSingleColor(value)
                 "flagcombo" -> FlagColorCombo(value.split("+").sorted())
                 "flagcount" -> value.toIntOrNull()?.let { FlagColorCount(it) } ?: AllCountries
+                "flagelement" -> FlagElement(value)
                 else -> AllCountries
             }
         } catch (_: Exception) {

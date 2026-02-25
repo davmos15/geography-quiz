@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
+import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.Achievement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,7 +34,8 @@ data class StatsUiState(
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     private val quizHistoryRepository: QuizHistoryRepository,
-    achievementRepository: AchievementRepository
+    achievementRepository: AchievementRepository,
+    private val playGamesService: PlayGamesAchievementService
 ) : ViewModel() {
 
     val uiState: StateFlow<StatsUiState> = combine(
@@ -82,6 +84,10 @@ class StatsViewModel @Inject constructor(
             flagsQuizCount = modeCounts.third
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatsUiState())
+
+    fun showLeaderboards() {
+        playGamesService.showAllLeaderboardsUI()
+    }
 
     fun resetStatistics() {
         viewModelScope.launch {

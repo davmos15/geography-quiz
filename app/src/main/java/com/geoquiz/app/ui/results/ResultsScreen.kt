@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
@@ -31,12 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
+import com.geoquiz.app.ui.theme.IncorrectRed
 import java.util.UUID
 
 @Composable
@@ -58,6 +61,7 @@ fun ResultsScreen(
 ) {
     val context = LocalContext.current
     val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")
+    val challengeResult by viewModel.challengeResult.collectAsStateWithLifecycle()
 
     val percentage = if (totalCountries > 0) {
         (correctAnswers.toDouble() / totalCountries * 100)
@@ -158,6 +162,21 @@ fun ResultsScreen(
                 }
             }
 
+            // Challenge result comparison card
+            val challenge = challengeResult
+            if (challenge != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                ChallengeResultCard(
+                    challengerName = challenge.challengerName,
+                    challengerScore = challenge.challengerScore,
+                    challengerTotal = challenge.challengerTotal,
+                    challengerTime = challenge.challengerTime,
+                    myScore = correctAnswers,
+                    myTotal = totalCountries,
+                    myTime = timeElapsedSeconds
+                )
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             // Share buttons
@@ -190,7 +209,7 @@ fun ResultsScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Share")
+                    Text("Share", maxLines = 1, softWrap = false)
                 }
                 OutlinedButton(
                     onClick = {
@@ -214,7 +233,7 @@ fun ResultsScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Challenge")
+                    Text("Challenge", maxLines = 1, softWrap = false)
                 }
             }
 
@@ -249,6 +268,189 @@ fun ResultsScreen(
                 Text("Home")
             }
         }
+    }
+}
+
+@Composable
+private fun ChallengeResultCard(
+    challengerName: String,
+    challengerScore: Int?,
+    challengerTotal: Int?,
+    challengerTime: Int?,
+    myScore: Int,
+    myTotal: Int,
+    myTime: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.EmojiEvents,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(
+                    text = "Challenge Result",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (challengerScore != null && challengerTotal != null) {
+                val myPct = if (myTotal > 0) myScore.toDouble() / myTotal * 100 else 0.0
+                val theirPct = if (challengerTotal > 0) challengerScore.toDouble() / challengerTotal * 100 else 0.0
+
+                // Comparison header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "You",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        text = "",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = challengerName,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.End,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Score row
+                ComparisonRow("$myScore / $myTotal", "Score", "$challengerScore / $challengerTotal")
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Percentage row
+                ComparisonRow(
+                    String.format("%.1f%%", myPct),
+                    "Percentage",
+                    String.format("%.1f%%", theirPct)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Time row
+                val myMin = myTime / 60
+                val mySec = myTime % 60
+                val theirMin = (challengerTime ?: 0) / 60
+                val theirSec = (challengerTime ?: 0) % 60
+                ComparisonRow(
+                    String.format("%02d:%02d", myMin, mySec),
+                    "Time",
+                    String.format("%02d:%02d", theirMin, theirSec)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Win/loss/tie
+                val resultText: String
+                val resultColor: androidx.compose.ui.graphics.Color
+                when {
+                    myPct > theirPct -> {
+                        resultText = "You won!"
+                        resultColor = CorrectGreen
+                    }
+                    myPct < theirPct -> {
+                        resultText = "You lost - challenge them back!"
+                        resultColor = IncorrectRed
+                    }
+                    else -> {
+                        resultText = "It's a tie!"
+                        resultColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    }
+                }
+
+                Text(
+                    text = resultText,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = resultColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                // Challenger didn't share their score
+                Text(
+                    text = "Challenge from $challengerName completed!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Share your result so they can compare.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComparisonRow(leftValue: String, label: String, rightValue: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = leftValue,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Start
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f),
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = rightValue,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.End
+        )
     }
 }
 

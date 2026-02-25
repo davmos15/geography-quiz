@@ -1,6 +1,7 @@
 package com.geoquiz.app.domain.usecase
 
 import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.FlagElementDao
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.repository.CountryRepository
@@ -9,7 +10,8 @@ import javax.inject.Inject
 
 class GetCountriesForFlagQuizUseCase @Inject constructor(
     private val repository: CountryRepository,
-    private val flagColorDao: FlagColorDao
+    private val flagColorDao: FlagColorDao,
+    private val flagElementDao: FlagElementDao
 ) {
 
     suspend operator fun invoke(category: QuizCategory): List<Country> {
@@ -32,6 +34,14 @@ class GetCountriesForFlagQuizUseCase @Inject constructor(
 
             is QuizCategory.FlagColorCount -> {
                 allCountries.filter { (colorsByCountry[it.code]?.size ?: 0) == category.count }
+            }
+
+            is QuizCategory.FlagElement -> {
+                val elementMappings = flagElementDao.getAllMappings()
+                val countryCodes = elementMappings
+                    .filter { it.element == category.element }
+                    .map { it.countryCca3 }.toSet()
+                allCountries.filter { it.code in countryCodes }
             }
 
             else -> emptyList()

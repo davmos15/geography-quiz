@@ -35,8 +35,8 @@ android {
         applicationId = "com.geoquiz.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 14
-        versionName = "2.6.0"
+        versionCode = 15
+        versionName = "2.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -126,6 +126,9 @@ dependencies {
 
     // Play Games Services
     implementation(libs.play.services.games.v2)
+
+    // Play Billing
+    implementation(libs.play.billing)
 
     // Testing
     testImplementation(libs.junit)

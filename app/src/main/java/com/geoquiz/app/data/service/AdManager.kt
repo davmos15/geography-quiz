@@ -14,7 +14,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AdManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val billingRepository: BillingRepository
 ) {
     private var interstitialAd: InterstitialAd? = null
     private var isLoading = false
@@ -23,6 +24,7 @@ class AdManager @Inject constructor(
         get() = context.getString(R.string.admob_interstitial_id)
 
     fun preloadInterstitial() {
+        if (billingRepository.adsRemoved.value) return
         if (interstitialAd != null || isLoading) return
         isLoading = true
 
@@ -45,6 +47,11 @@ class AdManager @Inject constructor(
     }
 
     fun showInterstitial(activity: Activity, onDismissed: () -> Unit) {
+        if (billingRepository.adsRemoved.value) {
+            onDismissed()
+            return
+        }
+
         val ad = interstitialAd
         if (ad == null) {
             onDismissed()

@@ -268,6 +268,16 @@ private fun getContextHint(country: Country, category: QuizCategory, quizMode: Q
                 .containsMatchIn(country.name)
             if (!hasDirection) "No cardinal direction in name" else null
         }
+        is QuizCategory.EndingInVowel -> {
+            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val lastChar = actual.last().lowercaseChar()
+            if (lastChar !in setOf('a', 'e', 'i', 'o', 'u')) "Ends with '${lastChar.uppercaseChar()}'" else null
+        }
+        is QuizCategory.SingleVowelType -> {
+            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val dv = actual.lowercase().filter { it in setOf('a', 'e', 'i', 'o', 'u') }.toSet()
+            if (dv.size != 1) "${dv.size} vowel types (${dv.sorted().joinToString(", ")})" else null
+        }
         else -> null
     }
 }

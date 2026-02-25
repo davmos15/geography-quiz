@@ -3,6 +3,7 @@ package com.geoquiz.app.ui.flags
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.FlagElementDao
 import com.geoquiz.app.domain.model.FlagCategoryGroup
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +28,8 @@ data class FlagsHomeUiState(
 @HiltViewModel
 class FlagsHomeViewModel @Inject constructor(
     private val repository: CountryRepository,
-    private val flagColorDao: FlagColorDao
+    private val flagColorDao: FlagColorDao,
+    private val flagElementDao: FlagElementDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FlagsHomeUiState())
@@ -79,11 +81,16 @@ class FlagsHomeViewModel @Inject constructor(
             // Count distinct color counts
             val colorCountSet = countryToColors.values.map { it.size }.toSet()
 
+            // Count distinct flag element types
+            val elementMappings = flagElementDao.getAllMappings()
+            val elementTypeCount = elementMappings.map { it.element }.distinct().size
+
             val groups = listOf(
                 FlagCategoryGroupInfo(FlagCategoryGroup.FLAG_SINGLE_COLOR, colors.size),
                 FlagCategoryGroupInfo(FlagCategoryGroup.FLAG_TWO_COLOR_COMBO, twoColorCount),
                 FlagCategoryGroupInfo(FlagCategoryGroup.FLAG_THREE_COLOR_COMBO, threeColorCount),
-                FlagCategoryGroupInfo(FlagCategoryGroup.FLAG_COLOR_COUNT, colorCountSet.size)
+                FlagCategoryGroupInfo(FlagCategoryGroup.FLAG_COLOR_COUNT, colorCountSet.size),
+                FlagCategoryGroupInfo(FlagCategoryGroup.FLAG_ELEMENTS, elementTypeCount)
             ).filter { it.quizCount > 0 }
 
             _uiState.value = FlagsHomeUiState(

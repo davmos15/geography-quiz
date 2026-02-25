@@ -41,6 +41,10 @@ class SettingsRepository @Inject constructor(
         prefs[PLAYER_NAME_KEY] ?: ""
     }
 
+    val adsRemoved: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[ADS_REMOVED_KEY] ?: false
+    }
+
     suspend fun setShowTimer(show: Boolean) {
         dataStore.edit { prefs ->
             prefs[SHOW_TIMER_KEY] = show
@@ -71,11 +75,18 @@ class SettingsRepository @Inject constructor(
         }
     }
 
+    suspend fun setAdsRemoved(removed: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[ADS_REMOVED_KEY] = removed
+        }
+    }
+
     companion object {
         private val SHOW_TIMER_KEY = booleanPreferencesKey("show_timer")
         private val SHOW_FLAGS_KEY = booleanPreferencesKey("show_flags")
         private val SHOW_COUNTRY_HINT_KEY = booleanPreferencesKey("show_country_hint")
         private val HARD_MODE_KEY = booleanPreferencesKey("hard_mode")
         private val PLAYER_NAME_KEY = stringPreferencesKey("player_name")
+        private val ADS_REMOVED_KEY = booleanPreferencesKey("ads_removed")
     }
 }

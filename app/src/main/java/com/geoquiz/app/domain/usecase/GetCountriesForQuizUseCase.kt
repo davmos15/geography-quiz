@@ -96,9 +96,19 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 capitalMatchesCountryName(country)
             }
 
+            is QuizCategory.EndingInVowel -> allCountries.filter {
+                it.name.last().lowercaseChar() in VOWELS
+            }
+
+            is QuizCategory.SingleVowelType -> allCountries.filter { country ->
+                val distinctVowels = country.name.lowercase().filter { it in VOWELS }.toSet()
+                distinctVowels.size == 1
+            }
+
             is QuizCategory.FlagSingleColor,
             is QuizCategory.FlagColorCombo,
-            is QuizCategory.FlagColorCount -> {
+            is QuizCategory.FlagColorCount,
+            is QuizCategory.FlagElement -> {
                 // Flag categories are handled by GetCountriesForFlagQuizUseCase
                 emptyList()
             }

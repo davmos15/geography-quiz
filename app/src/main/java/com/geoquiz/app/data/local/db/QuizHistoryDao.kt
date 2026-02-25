@@ -68,6 +68,14 @@ interface QuizHistoryDao {
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
     fun getRecentQuizzes(limit: Int = 10): Flow<List<QuizHistoryEntity>>
 
+    // Cumulative totals (for leaderboard submission)
+
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history")
+    suspend fun getTotalCorrectAnswersSync(): Long
+
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode")
+    suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long
+
     // Reset
 
     @Query("DELETE FROM quiz_history")

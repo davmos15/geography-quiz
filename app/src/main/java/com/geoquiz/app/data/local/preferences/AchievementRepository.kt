@@ -88,9 +88,12 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.UniqueLetters -> "patterns"
                 is QuizCategory.CardinalDirection -> "wordpatterns"
                 is QuizCategory.CapitalMatchesCountry -> "capitalmatches"
+                is QuizCategory.EndingInVowel,
+                is QuizCategory.SingleVowelType -> "patterns"
                 is QuizCategory.FlagSingleColor -> "flagcolor"
                 is QuizCategory.FlagColorCombo -> "flagcombo"
                 is QuizCategory.FlagColorCount -> "flagcount"
+                is QuizCategory.FlagElement -> "flagelement"
             }
             val groups = (prefs[CATEGORY_GROUPS_KEY] ?: "").let {
                 if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()

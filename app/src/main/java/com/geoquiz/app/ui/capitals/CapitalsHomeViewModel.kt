@@ -67,8 +67,8 @@ class CapitalsHomeViewModel @Inject constructor(
             .map { it.capital.length }
             .distinct().size
 
-        val patternCount = 6
-        val wordPatternCount = 7
+        val patternCount = 9
+        val wordPatternCount = 8
 
         return listOf(
             CategoryGroupInfo(CategoryGroup.ALL_COUNTRIES, 1),

@@ -3,10 +3,14 @@ package com.geoquiz.app.ui.results
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geoquiz.app.data.local.db.ChallengeEntity
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.QuizCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,11 +28,15 @@ class ResultsViewModel @Inject constructor(
     private val total: Int = savedStateHandle["total"] ?: 0
     private val time: Int = savedStateHandle["time"] ?: 0
 
+    private val _challengeResult = MutableStateFlow<ChallengeEntity?>(null)
+    val challengeResult: StateFlow<ChallengeEntity?> = _challengeResult.asStateFlow()
+
     init {
         // Update the incoming challenge record with our quiz result
         if (challengeId != null) {
             viewModelScope.launch {
                 challengeRepository.updateMyResult(challengeId, correct, total, time)
+                _challengeResult.value = challengeRepository.getChallengeById(challengeId)
             }
         }
     }

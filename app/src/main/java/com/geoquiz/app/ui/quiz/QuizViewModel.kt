@@ -9,6 +9,7 @@ import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.data.PlayGamesLeaderboardIds
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Quiz
@@ -101,7 +102,8 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             val isFlagSpecificCategory = category is QuizCategory.FlagSingleColor ||
                     category is QuizCategory.FlagColorCombo ||
-                    category is QuizCategory.FlagColorCount
+                    category is QuizCategory.FlagColorCount ||
+                    category is QuizCategory.FlagElement
             val countries = when {
                 isFlagSpecificCategory -> getCountriesForFlagQuiz(category)
                 quizMode == QuizMode.CAPITALS -> getCountriesForCapitalQuiz(category)
@@ -305,6 +307,15 @@ class QuizViewModel @Inject constructor(
                     timeElapsedSeconds = result.timeElapsedSeconds,
                     perfectBonus = result.perfectBonus
                 )
+
+                // Submit leaderboard scores
+                val overallTotal = quizHistoryRepository.getTotalCorrectAnswersSync()
+                playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overallTotal)
+                val modeId = PlayGamesLeaderboardIds.forMode(quizModeId)
+                if (modeId != null) {
+                    val modeTotal = quizHistoryRepository.getTotalCorrectAnswersForModeSync(quizModeId)
+                    playGamesService.submitScore(modeId, modeTotal)
+                }
             }
         }
 

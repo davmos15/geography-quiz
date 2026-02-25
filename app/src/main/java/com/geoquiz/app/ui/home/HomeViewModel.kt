@@ -112,11 +112,12 @@ class HomeViewModel @Inject constructor(
 
         val islandCount = countries.count { it.name.contains("island", ignoreCase = true) }
 
-        // Letter patterns: count how many quiz options we'll have (6 pattern types)
-        val patternCount = 6
+        // Letter patterns: 9 quiz options (double letter, consonant cluster, repeated 3, repeated 4+,
+        // starts & ends same, all 5 vowels, unique letters, ending in vowel, single vowel type)
+        val patternCount = 9
 
-        // Word patterns: 7 quiz options
-        val wordPatternCount = 7
+        // Word patterns: 8 quiz options
+        val wordPatternCount = 8
 
         return listOf(
             CategoryGroupInfo(CategoryGroup.ALL_COUNTRIES, 1),

@@ -42,6 +42,7 @@ class ResultsViewModel @Inject constructor(
     }
 
     fun saveOutgoingChallenge(
+        challengeId: String,
         categoryType: String,
         categoryValue: String,
         quizMode: String,
@@ -53,6 +54,7 @@ class ResultsViewModel @Inject constructor(
             val name = playGamesService.playerName.value
             val displayName = QuizCategory.fromRoute(categoryType, categoryValue).displayName
             challengeRepository.createOutgoingChallenge(
+                id = challengeId,
                 categoryType = categoryType,
                 categoryValue = categoryValue,
                 categoryDisplayName = displayName,

@@ -40,6 +40,7 @@ import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
+import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -111,7 +112,7 @@ fun ResultsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = String.format("%.1f", score),
+                        text = String.format(Locale.US, "%.1f", score),
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -143,7 +144,7 @@ fun ResultsScreen(
                     }
                     ResultRow(resultLabel, "$correctAnswers / $totalCountries")
                     Spacer(modifier = Modifier.height(8.dp))
-                    ResultRow("Percentage", String.format("%.1f%%", percentage))
+                    ResultRow("Percentage", String.format(Locale.US, "%.1f%%", percentage))
                     Spacer(modifier = Modifier.height(8.dp))
                     ResultRow("Time", timeFormatted)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -196,10 +197,11 @@ fun ResultsScreen(
                             challengerTime = timeElapsedSeconds,
                             quizMode = quizMode
                         )
-                        viewModel.saveOutgoingChallenge(categoryType, categoryValue, quizMode, correctAnswers, totalCountries, timeElapsedSeconds)
+                        viewModel.saveOutgoingChallenge(deepLink.challengeId, categoryType, categoryValue, quizMode, correctAnswers, totalCountries, timeElapsedSeconds)
                         ShareUtils.shareResults(
                             context = context,
                             categoryName = categoryName,
+                            quizMode = quizMode,
                             score = correctAnswers,
                             total = totalCountries,
                             time = timeElapsedSeconds,
@@ -223,7 +225,7 @@ fun ResultsScreen(
                             challengerTime = null,
                             quizMode = quizMode
                         )
-                        viewModel.saveOutgoingChallenge(categoryType, categoryValue, quizMode, null, null, null)
+                        viewModel.saveOutgoingChallenge(deepLink.challengeId, categoryType, categoryValue, quizMode, null, null, null)
                         ShareUtils.shareChallenge(
                             context = context,
                             categoryName = categoryName,
@@ -353,9 +355,9 @@ private fun ChallengeResultCard(
 
                 // Percentage row
                 ComparisonRow(
-                    String.format("%.1f%%", myPct),
+                    String.format(Locale.US, "%.1f%%", myPct),
                     "Percentage",
-                    String.format("%.1f%%", theirPct)
+                    String.format(Locale.US, "%.1f%%", theirPct)
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))

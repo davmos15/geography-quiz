@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,8 +106,8 @@ fun StatsScreen(
                 StatRow("Quizzes Completed", state.totalQuizzesCompleted.toString())
                 StatRow("Unique Quizzes Played", state.uniqueQuizzesCompleted.toString())
                 StatRow("Perfect Scores (100%)", state.totalPerfectQuizzes.toString())
-                StatRow("Highest Score", String.format("%.1f", state.highestScore))
-                StatRow("Average Accuracy", String.format("%.1f%%", state.averageAccuracy * 100))
+                StatRow("Highest Score", String.format(Locale.US, "%.1f", state.highestScore))
+                StatRow("Average Accuracy", String.format(Locale.US, "%.1f%%", state.averageAccuracy * 100))
             }
 
             StatsCard(title = "Answers") {

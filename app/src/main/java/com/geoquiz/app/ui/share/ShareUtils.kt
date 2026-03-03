@@ -8,6 +8,7 @@ object ShareUtils {
     fun shareResults(
         context: Context,
         categoryName: String,
+        quizMode: String = "countries",
         score: Int,
         total: Int,
         time: Int,
@@ -16,7 +17,12 @@ object ShareUtils {
         val minutes = time / 60
         val seconds = time % 60
         val percentage = if (total > 0) (score.toDouble() / total * 100).toInt() else 0
-        val text = "I named $score/$total countries ($percentage%) on \"$categoryName\" " +
+        val modeLabel = when (quizMode) {
+            "capitals" -> "capitals"
+            "flags" -> "flags"
+            else -> "countries"
+        }
+        val text = "I named $score/$total $modeLabel ($percentage%) on \"$categoryName\" " +
             "in ${minutes}m ${seconds}s! Can you beat me?\n$deepLink"
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"

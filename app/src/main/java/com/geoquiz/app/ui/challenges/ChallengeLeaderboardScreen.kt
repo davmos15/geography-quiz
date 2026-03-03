@@ -129,12 +129,19 @@ private fun StatColumn(
 
 @Composable
 private fun ChallengeCard(challenge: ChallengeEntity) {
+    // Normalise scores: for outgoing, YOU are the challenger
+    val yourScore = if (challenge.direction == "outgoing") challenge.challengerScore else challenge.myScore
+    val yourTotal = if (challenge.direction == "outgoing") challenge.challengerTotal else challenge.myTotal
+    val opponentName = if (challenge.direction == "outgoing") "Opponent" else challenge.challengerName
+    val opponentScore = if (challenge.direction == "outgoing") challenge.myScore else challenge.challengerScore
+    val opponentTotal = if (challenge.direction == "outgoing") challenge.myTotal else challenge.challengerTotal
+
     val isWin = challenge.status == "completed" &&
-            challenge.myScore != null && challenge.challengerScore != null &&
-            challenge.myScore > challenge.challengerScore
+            yourScore != null && opponentScore != null &&
+            yourScore > opponentScore
     val isTie = challenge.status == "completed" &&
-            challenge.myScore != null && challenge.challengerScore != null &&
-            challenge.myScore == challenge.challengerScore
+            yourScore != null && opponentScore != null &&
+            yourScore == opponentScore
 
     val containerColor = when {
         isWin -> CorrectGreen.copy(alpha = 0.1f)
@@ -164,13 +171,13 @@ private fun ChallengeCard(challenge: ChallengeEntity) {
             ) {
                 Column {
                     Text(
-                        text = if (challenge.direction == "outgoing") "You" else challenge.challengerName,
+                        text = "You",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (challenge.myScore != null && challenge.myTotal != null) {
+                    if (yourScore != null && yourTotal != null) {
                         Text(
-                            text = "${challenge.myScore}/${challenge.myTotal}",
+                            text = "$yourScore/$yourTotal",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -190,13 +197,13 @@ private fun ChallengeCard(challenge: ChallengeEntity) {
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = challenge.challengerName,
+                        text = opponentName,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (challenge.challengerScore != null && challenge.challengerTotal != null) {
+                    if (opponentScore != null && opponentTotal != null) {
                         Text(
-                            text = "${challenge.challengerScore}/${challenge.challengerTotal}",
+                            text = "$opponentScore/$opponentTotal",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )

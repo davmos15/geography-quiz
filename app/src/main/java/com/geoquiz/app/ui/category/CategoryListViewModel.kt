@@ -114,11 +114,12 @@ class CategoryListViewModel @Inject constructor(
         }
     }
 
-    fun saveOutgoingChallenge(categoryType: String, categoryValue: String) {
+    fun saveOutgoingChallenge(challengeId: String, categoryType: String, categoryValue: String) {
         viewModelScope.launch {
             val name = playGamesService.playerName.value
             val displayName = QuizCategory.fromRoute(categoryType, categoryValue).displayName
             challengeRepository.createOutgoingChallenge(
+                id = challengeId,
                 categoryType = categoryType,
                 categoryValue = categoryValue,
                 categoryDisplayName = displayName,

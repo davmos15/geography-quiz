@@ -14,6 +14,7 @@ class ChallengeRepository @Inject constructor(
     val allChallenges: Flow<List<ChallengeEntity>> = challengeDao.getAllChallenges()
 
     suspend fun createOutgoingChallenge(
+        id: String = UUID.randomUUID().toString(),
         categoryType: String,
         categoryValue: String,
         categoryDisplayName: String,
@@ -24,7 +25,7 @@ class ChallengeRepository @Inject constructor(
         time: Int?
     ): ChallengeEntity {
         val challenge = ChallengeEntity(
-            id = UUID.randomUUID().toString(),
+            id = id,
             categoryType = categoryType,
             categoryValue = categoryValue,
             categoryDisplayName = categoryDisplayName,
@@ -33,11 +34,11 @@ class ChallengeRepository @Inject constructor(
             challengerScore = score,
             challengerTotal = total,
             challengerTime = time,
-            myScore = score,
-            myTotal = total,
-            myTime = time,
+            myScore = null,
+            myTotal = null,
+            myTime = null,
             direction = "outgoing",
-            status = if (score != null) "completed" else "pending",
+            status = "pending",
             createdAtMillis = System.currentTimeMillis()
         )
         challengeDao.insertChallenge(challenge)

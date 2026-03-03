@@ -85,25 +85,23 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleDeepLink(uri: Uri?) {
-        val challenge = uri?.let { ChallengeDeepLink.fromUri(it) }
-        deepLinkChallenge.value = challenge
-        if (challenge != null) {
-            lifecycleScope.launch {
-                val displayName = QuizCategory.fromRoute(
-                    challenge.categoryType, challenge.categoryValue
-                ).displayName
-                challengeRepository.createIncomingChallenge(
-                    id = challenge.challengeId,
-                    categoryType = challenge.categoryType,
-                    categoryValue = challenge.categoryValue,
-                    categoryDisplayName = displayName,
-                    quizMode = challenge.quizMode,
-                    challengerName = challenge.challengerName,
-                    challengerScore = challenge.challengerScore,
-                    challengerTotal = challenge.challengerTotal,
-                    challengerTime = challenge.challengerTime
-                )
-            }
+        val challenge = uri?.let { ChallengeDeepLink.fromUri(it) } ?: return
+        lifecycleScope.launch {
+            val displayName = QuizCategory.fromRoute(
+                challenge.categoryType, challenge.categoryValue
+            ).displayName
+            challengeRepository.createIncomingChallenge(
+                id = challenge.challengeId,
+                categoryType = challenge.categoryType,
+                categoryValue = challenge.categoryValue,
+                categoryDisplayName = displayName,
+                quizMode = challenge.quizMode,
+                challengerName = challenge.challengerName,
+                challengerScore = challenge.challengerScore,
+                challengerTotal = challenge.challengerTotal,
+                challengerTime = challenge.challengerTime
+            )
+            deepLinkChallenge.value = challenge
         }
     }
 }

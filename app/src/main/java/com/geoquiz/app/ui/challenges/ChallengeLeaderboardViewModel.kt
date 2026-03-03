@@ -30,7 +30,11 @@ class ChallengeLeaderboardViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             challengeRepository.allChallenges.collect { challenges ->
-                val completed = challenges.filter { it.status == "completed" && it.challengerScore != null && it.myScore != null }
+                // Only count incoming challenges for stats (outgoing have no opponent result)
+                val completed = challenges.filter {
+                    it.status == "completed" && it.direction == "incoming" &&
+                            it.challengerScore != null && it.myScore != null
+                }
                 val wins = completed.count { (it.myScore ?: 0) > (it.challengerScore ?: 0) }
                 val losses = completed.count { (it.myScore ?: 0) < (it.challengerScore ?: 0) }
                 val ties = completed.count { (it.myScore ?: 0) == (it.challengerScore ?: 0) }

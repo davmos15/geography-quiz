@@ -286,12 +286,11 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                     quizMode = quizMode,
                     incorrectGuesses = incorrectGuesses,
                     onPlayAgain = {
-                        val homeRoute = when (quizMode) {
-                            "capitals" -> Screen.CapitalsHome.route
-                            "flags" -> Screen.FlagsHome.route
-                            else -> Screen.CountriesHome.route
+                        navController.navigate(
+                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue)
+                        ) {
+                            popUpTo(Screen.Results.route) { inclusive = true }
                         }
-                        navController.popBackStack(homeRoute, inclusive = false)
                     },
                     onGoHome = {
                         val homeRoute = when (quizMode) {

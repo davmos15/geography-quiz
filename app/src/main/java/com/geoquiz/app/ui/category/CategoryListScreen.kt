@@ -44,6 +44,7 @@ import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
+import java.util.Locale
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,7 +143,7 @@ fun CategoryListScreen(
                                 challengerTime = null,
                                 quizMode = quizMode
                             )
-                            viewModel.saveOutgoingChallenge(option.categoryType, option.categoryValue)
+                            viewModel.saveOutgoingChallenge(deepLink.challengeId, option.categoryType, option.categoryValue)
                             ShareUtils.shareChallenge(
                                 context = context,
                                 categoryName = category.displayName,
@@ -205,7 +206,7 @@ private fun QuizOptionCard(
                 if (option.bestCorrect != null && option.bestTotal != null) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Best: ${option.bestCorrect}/${option.bestTotal} (${String.format("%.0f", option.bestScore)}pts)",
+                        text = "Best: ${option.bestCorrect}/${option.bestTotal} (${String.format(Locale.US, "%.0f", option.bestScore)}pts)",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

@@ -71,6 +71,8 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         playGamesService.setActivity(this)
+        // Picks up pending purchases that completed while the app was in the background
+        lifecycleScope.launch { billingRepository.restorePurchases() }
     }
 
     override fun onStop() {

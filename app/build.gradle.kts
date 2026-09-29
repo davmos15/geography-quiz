@@ -18,7 +18,7 @@ if (signingPropsFile.exists()) {
 
 android {
     namespace = "com.geoquiz.app"
-    compileSdk = 35
+    compileSdk = 36
 
     if (signingPropsFile.exists()) {
         signingConfigs {
@@ -34,9 +34,9 @@ android {
     defaultConfig {
         applicationId = "com.geoquiz.app"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 16
-        versionName = "2.7.1"
+        targetSdk = 36
+        versionCode = 17
+        versionName = "2.7.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

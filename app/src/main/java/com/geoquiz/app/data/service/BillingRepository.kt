@@ -113,22 +113,17 @@ class BillingRepository @Inject constructor(
     }
 
     suspend fun restorePurchases() {
-        val client = billingClient ?: return
+        // Not connected yet (e.g. onResume during startup): onBillingSetupFinished restores once connected
+        val client = billingClient?.takeIf { it.isReady } ?: return
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.INAPP)
             .build()
 
         val result = client.queryPurchasesAsync(params)
         if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-            val purchased = result.purchasesList.any { purchase ->
-                purchase.products.contains(PRODUCT_ID) &&
-                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
-            }
-            if (purchased) {
-                _adsRemoved.value = true
-                settingsRepository.setAdsRemoved(true)
-                Log.d(TAG, "Purchase restored")
-            }
+            // Also acknowledges purchases that completed while pending or whose
+            // earlier acknowledgement failed; unacknowledged purchases are refunded after 3 days
+            result.purchasesList.forEach { handlePurchase(it) }
         }
     }
 
@@ -154,18 +149,11 @@ class BillingRepository @Inject constructor(
 
     override fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            for (purchase in purchases) {
-                if (purchase.products.contains(PRODUCT_ID) &&
-                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
-                ) {
-                    scope.launch {
-                        acknowledgePurchase(purchase)
-                        _adsRemoved.value = true
-                        settingsRepository.setAdsRemoved(true)
-                        Log.d(TAG, "Purchase successful")
-                    }
-                }
+            scope.launch {
+                purchases.forEach { handlePurchase(it) }
             }
+        } else if (result.responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            scope.launch { restorePurchases() }
         } else if (result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
             Log.d(TAG, "Purchase cancelled")
         } else {
@@ -173,8 +161,26 @@ class BillingRepository @Inject constructor(
         }
     }
 
+    private suspend fun handlePurchase(purchase: Purchase) {
+        when (purchaseActionFor(purchase)) {
+            PurchaseAction.ACKNOWLEDGE_AND_GRANT -> {
+                acknowledgePurchase(purchase)
+                grantAdsRemoved()
+            }
+            PurchaseAction.GRANT -> grantAdsRemoved()
+            // Granted once it completes, via onPurchasesUpdated or restorePurchases()
+            PurchaseAction.PENDING -> Log.d(TAG, "Purchase pending")
+            PurchaseAction.IGNORE -> Unit
+        }
+    }
+
+    private suspend fun grantAdsRemoved() {
+        _adsRemoved.value = true
+        settingsRepository.setAdsRemoved(true)
+        Log.d(TAG, "Ads removed")
+    }
+
     private suspend fun acknowledgePurchase(purchase: Purchase) {
-        if (purchase.isAcknowledged) return
         val client = billingClient ?: return
 
         val params = com.android.billingclient.api.AcknowledgePurchaseParams.newBuilder()
@@ -184,6 +190,20 @@ class BillingRepository @Inject constructor(
         val result = client.acknowledgePurchase(params)
         if (result.responseCode == BillingClient.BillingResponseCode.OK) {
             Log.d(TAG, "Purchase acknowledged")
+        } else {
+            Log.w(TAG, "Acknowledge failed, will retry on next restore: ${result.debugMessage}")
         }
+    }
+}
+
+internal enum class PurchaseAction { ACKNOWLEDGE_AND_GRANT, GRANT, PENDING, IGNORE }
+
+internal fun purchaseActionFor(purchase: Purchase): PurchaseAction {
+    if (!purchase.products.contains(BillingRepository.PRODUCT_ID)) return PurchaseAction.IGNORE
+    return when (purchase.purchaseState) {
+        Purchase.PurchaseState.PURCHASED ->
+            if (purchase.isAcknowledged) PurchaseAction.GRANT else PurchaseAction.ACKNOWLEDGE_AND_GRANT
+        Purchase.PurchaseState.PENDING -> PurchaseAction.PENDING
+        else -> PurchaseAction.IGNORE
     }
 }

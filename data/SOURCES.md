@@ -112,9 +112,9 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 |---|---|
 | Files | `store_assets/play_store_icon_512.png`, `store_assets/feature_graphic_1024x500.png`, `store_assets/achievements/*.png` (38 icons), `store_assets/achievements/*.csv`, `store_assets/achievements_import.zip` |
 | Source | Drawn in code with Pillow by `generate_store_assets.py` and `generate_achievements_zip.py` (repo root); no external images |
-| Licence | All rights reserved (see [`LICENSE`](../LICENSE)). Text is rendered with Lato (OFL 1.1); rendered images are not subject to the OFL. |
+| Licence | All rights reserved (see [`LICENSE`](../LICENSE)). The scripts render text with Lato (OFL 1.1); rendered images are not subject to the OFL. The PNGs currently committed were rendered with system Arial before commit 089299d and will be regenerated with Lato in Phase 9. |
 | Transformation | The two scripts above; rerun after changing achievements or artwork |
-| Notes | Achievement names and descriptions come from the list in `generate_achievements_zip.py`, which duplicates `domain/model/Achievement.kt`. `AchievementsIconMappings.csv` and `AchievementsIconsMappings.csv` both exist (one is likely a stale duplicate). |
+| Notes | Achievement names and descriptions come from the list in `generate_achievements_zip.py`, which duplicates `domain/model/Achievement.kt`. `AchievementsIconMappings.csv` is a byte-identical stale copy of `AchievementsIconsMappings.csv`, which is the file the script writes and puts in the ZIP. Check which name the Play Games bulk import expects before removing either. |
 
 ## Planned (not yet used)
 

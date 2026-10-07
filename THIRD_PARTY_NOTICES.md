@@ -108,12 +108,12 @@ in by Coil) are covered by the in-app Open-source licences screen.
 | kotlinx.coroutines (core, android) | `org.jetbrains.kotlinx:kotlinx-coroutines-*` | 1.10.1 | Apache 2.0 | https://github.com/Kotlin/kotlinx.coroutines |
 | kotlinx.serialization JSON | `org.jetbrains.kotlinx:kotlinx-serialization-json` | 1.7.3 | Apache 2.0 | https://github.com/Kotlin/kotlinx.serialization |
 | Coil (coil-compose, coil-svg) | `io.coil-kt.coil3:*` | 3.1.0 | Apache 2.0 | https://github.com/coil-kt/coil |
-| AndroidSVG (transitive, via coil-svg) | `com.caverock:androidsvg-aar` | as resolved by Coil 3.1.0 | Apache 2.0 | https://github.com/BigBadaboom/androidsvg |
+| AndroidSVG (transitive, via coil-svg) | `com.caverock:androidsvg-aar` | 1.4 | Apache 2.0 | https://github.com/BigBadaboom/androidsvg |
 | Google Mobile Ads SDK (AdMob) | `com.google.android.gms:play-services-ads` | 23.6.0 | Google proprietary ([Android SDK licence](https://developer.android.com/studio/terms) and [Google Mobile Ads SDK terms](https://developers.google.com/admob/terms)) | https://developers.google.com/admob/android |
 | Google User Messaging Platform (consent) | `com.google.android.ump:user-messaging-platform` | 3.2.0 | Google proprietary (Android SDK licence) | https://developers.google.com/admob/android/privacy |
 | Google Play Games Services v2 | `com.google.android.gms:play-services-games-v2` | 21.0.0 | Google proprietary (Android SDK licence) | https://developer.android.com/games/pgs/overview |
 | Google Play Billing Library | `com.android.billingclient:billing-ktx` | 8.3.0 | Google proprietary ([Play Billing Library terms](https://developer.android.com/google/play/billing/integrate)) | https://developer.android.com/google/play/billing |
-| AboutLibraries (Open-source licences screen) | `com.mikepenz:aboutlibraries-*` | see `libs.versions.toml` (added in Phase 1) | Apache 2.0 | https://github.com/mikepenz/AboutLibraries |
+| AboutLibraries (Open-source licences screen) | `com.mikepenz:aboutlibraries-compose-m3` (+ `aboutlibraries-core`) | 11.6.3 | Apache 2.0 | https://github.com/mikepenz/AboutLibraries |
 
 ### Build and test only (not shipped)
 
@@ -121,6 +121,7 @@ in by Coil) are covered by the in-app Open-source licences screen.
 |---|---|---|---|
 | Android Gradle Plugin | 8.9.3 | Apache 2.0 | https://developer.android.com/build |
 | Kotlin Gradle plugins (android, compose, serialization) | 2.1.0 | Apache 2.0 | https://kotlinlang.org |
+| AboutLibraries Gradle plugin | 11.6.3 | Apache 2.0 | https://github.com/mikepenz/AboutLibraries |
 | KSP | 2.1.0-1.0.29 | Apache 2.0 | https://github.com/google/ksp |
 | Hilt compiler / Room compiler | 2.54 / 2.6.1 | Apache 2.0 | see above |
 | Compose UI Tooling (debug builds only) | BOM 2024.12.01 | Apache 2.0 | https://developer.android.com/jetpack/compose |

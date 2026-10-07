@@ -41,7 +41,7 @@ where you stopped, commit, and tell me to start a new session.
 | Phase | Name | Status | Branch | PR |
 |---|---|---|---|---|
 | 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
-| 1 | Licensing and IP compliance | Done – PR open | `upgrade/p1-licensing` | (see PR) |
+| 1 | Licensing and IP compliance | Done – PR open | `upgrade/p1-licensing` | #4 |
 | 2 | Code and architecture | Not started | `upgrade/p2-architecture` | |
 | 3 | Game engine and UX foundation | Not started | `upgrade/p3-ux-engine` | |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |

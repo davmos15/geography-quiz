@@ -99,6 +99,10 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
+    // Coil (flag SVGs from assets)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
+
     // Navigation
     implementation(libs.androidx.navigation.compose)
 

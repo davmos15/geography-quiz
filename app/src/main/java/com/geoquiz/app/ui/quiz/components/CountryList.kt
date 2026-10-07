@@ -13,10 +13,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.FlagImage
 
 @Composable
 fun CountryList(
@@ -36,6 +39,12 @@ fun CountryList(
     LazyColumn(modifier = modifier) {
         items(sorted, key = { it.code }) { country ->
             val isAnswered = country.code in answeredCodes
+            // Never reveal an unanswered country through the flag's description.
+            val flagDescription = if (isAnswered) {
+                stringResource(R.string.flag_content_description, country.name)
+            } else {
+                stringResource(R.string.flag_content_description_hidden)
+            }
 
             when (quizMode) {
                 QuizMode.COUNTRIES -> {
@@ -46,9 +55,9 @@ fun CountryList(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (showFlags) {
-                            Text(
-                                text = country.flag,
-                                style = MaterialTheme.typography.titleLarge
+                            FlagImage(
+                                countryCode = country.code,
+                                contentDescription = flagDescription
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                         }
@@ -73,9 +82,9 @@ fun CountryList(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (showFlags) {
-                            Text(
-                                text = country.flag,
-                                style = MaterialTheme.typography.titleLarge
+                            FlagImage(
+                                countryCode = country.code,
+                                contentDescription = flagDescription
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                         }
@@ -119,9 +128,9 @@ fun CountryList(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (showFlags) {
-                            Text(
-                                text = country.flag,
-                                style = MaterialTheme.typography.titleLarge
+                            FlagImage(
+                                countryCode = country.code,
+                                contentDescription = flagDescription
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                         }

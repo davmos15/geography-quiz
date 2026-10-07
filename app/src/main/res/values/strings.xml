@@ -18,4 +18,8 @@
     <string translatable="false" name="debug_menu_flag_overridden">Overridden</string>
     <string translatable="false" name="debug_menu_reset_flags">Reset all flags to defaults</string>
     <string translatable="false" name="debug_menu_opened">Debug menu unlocked</string>
+
+    <!-- Flags -->
+    <string name="flag_content_description_hidden">Flag</string>
+    <string name="flag_content_description">Flag of %1$s</string>
 </resources>

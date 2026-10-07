@@ -33,14 +33,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.R
 import com.geoquiz.app.data.local.preferences.settingsDataStore
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.FlagImage
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
 import kotlinx.coroutines.flow.map
@@ -179,9 +182,12 @@ fun AnswerReviewScreen(
                         Spacer(modifier = Modifier.width(12.dp))
 
                         if (showFlags) {
-                            Text(
-                                text = country.flag,
-                                style = MaterialTheme.typography.titleLarge
+                            FlagImage(
+                                countryCode = country.code,
+                                contentDescription = stringResource(
+                                    R.string.flag_content_description,
+                                    country.name
+                                )
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                         }

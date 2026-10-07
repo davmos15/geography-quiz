@@ -63,7 +63,8 @@ credentials/
 google-services.json
 
 # Claude Code local settings
-.claude/
+.claude/*
+!.claude/agents/
 
 # Windows reserved names (can appear as phantom files)
 nul

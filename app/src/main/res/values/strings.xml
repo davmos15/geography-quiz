@@ -7,4 +7,15 @@
     <string translatable="false" name="admob_app_id">ca-app-pub-2224190606606657~6807352706</string>
     <string translatable="false" name="admob_banner_id">ca-app-pub-2224190606606657/6070762209</string>
     <string translatable="false" name="admob_interstitial_id">ca-app-pub-2224190606606657/4757680535</string>
+
+    <!-- Common -->
+    <string name="action_back">Back</string>
+
+    <!-- Debug menu (debug builds only) -->
+    <string translatable="false" name="debug_menu_title">Debug menu</string>
+    <string translatable="false" name="debug_menu_feature_flags">Feature flags</string>
+    <string translatable="false" name="debug_menu_flag_default">Default</string>
+    <string translatable="false" name="debug_menu_flag_overridden">Overridden</string>
+    <string translatable="false" name="debug_menu_reset_flags">Reset all flags to defaults</string>
+    <string translatable="false" name="debug_menu_opened">Debug menu unlocked</string>
 </resources>

@@ -26,6 +26,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
@@ -239,17 +240,16 @@ class QuizViewModelTest {
         val completion = first.completion.value
         assertNotNull(completion)
         completion!!
-        assertEquals(QuizCompletion.Step.SHOW_INTERSTITIAL, completion.step)
+        assertEquals(QuizCompletion.Step.NAVIGATE, completion.step)
         assertEquals(completion.resultId, completedQuizzes.stored?.id)
         assertEquals(3, completedQuizzes.stored?.correct)
         assertEquals(listOf(achievement), first.newAchievements.value)
 
-        // Process death after completion, before or during the interstitial.
+        // Process death after completion, before Results was shown.
         val second = viewModel(afterProcessDeath(handle))
 
         val restored = second.completion.value!!
         assertEquals(completion.resultId, restored.resultId)
-        // Straight to Results: no second interstitial.
         assertEquals(QuizCompletion.Step.NAVIGATE, restored.step)
         assertTrue(second.quizState().isComplete)
         assertTrue(second.newAchievements.value.isEmpty())
@@ -298,15 +298,13 @@ class QuizViewModelTest {
     }
 
     @Test
-    fun `completion steps go from interstitial to navigation`() {
+    fun `completion goes straight to Results, with no interstitial on the quiz screen`() {
         val vm = viewModel(routeHandle())
         vm.onGiveUp()
         runCurrent()
 
-        vm.onInterstitialShowing()
-        assertEquals(QuizCompletion.Step.SHOWING_INTERSTITIAL, vm.completion.value?.step)
-        vm.onInterstitialFinished()
         assertEquals(QuizCompletion.Step.NAVIGATE, vm.completion.value?.step)
+        verify(exactly = 0) { adManager.showInterstitial(any(), any(), any()) }
         vm.onNavigatedToResults()
         assertEquals(QuizCompletion.Step.DONE, vm.completion.value?.step)
     }

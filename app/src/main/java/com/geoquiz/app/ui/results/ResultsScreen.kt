@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.results
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +27,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +59,7 @@ fun ResultsScreen(
         ResultsUiState.Missing -> ResultMissing(onGoHome = { onGoHome(QuizMode.COUNTRIES.id) })
         is ResultsUiState.Loaded -> {
             val result = state.result
+            InterstitialAfterFirstFrame(viewModel)
             ResultsContent(
                 score = result.score,
                 correctAnswers = result.correct,
@@ -72,6 +76,23 @@ fun ResultsScreen(
                 onViewAnswers = { onViewAnswers(result.id) },
                 viewModel = viewModel
             )
+        }
+    }
+}
+
+/**
+ * Shows a due interstitial only after the Results content has been composed and drawn: the
+ * effect starts once this composition is applied, and the next frame callback comes after that
+ * frame was drawn.
+ */
+@Composable
+private fun InterstitialAfterFirstFrame(viewModel: ResultsViewModel) {
+    val due by viewModel.interstitialDue.collectAsStateWithLifecycle()
+    val activity = LocalContext.current as? Activity
+    if (due && activity != null) {
+        LaunchedEffect(Unit) {
+            withFrameNanos { }
+            viewModel.showDueInterstitial(activity)
         }
     }
 }

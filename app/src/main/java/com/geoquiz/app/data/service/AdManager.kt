@@ -53,7 +53,18 @@ class AdManager @Inject constructor(
         )
     }
 
-    fun showInterstitial(activity: Activity, onDismissed: () -> Unit) {
+    /**
+     * Shows the preloaded interstitial, if there is one and ads are not removed.
+     *
+     * [onShown] runs only when the ad actually appeared on screen (so callers can count it
+     * against a frequency cap). [onDismissed] runs once the ad was closed, failed to show or
+     * was skipped (no ad loaded, ads removed).
+     */
+    fun showInterstitial(
+        activity: Activity,
+        onShown: () -> Unit = {},
+        onDismissed: () -> Unit = {}
+    ) {
         if (billingRepository.adsRemoved.value) {
             onDismissed()
             return
@@ -64,15 +75,19 @@ class AdManager @Inject constructor(
             onDismissed()
             return
         }
+        // An ad object can only be shown once.
+        interstitialAd = null
 
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdShowedFullScreenContent() {
+                onShown()
+            }
+
             override fun onAdDismissedFullScreenContent() {
-                interstitialAd = null
                 onDismissed()
             }
 
             override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
-                interstitialAd = null
                 onDismissed()
             }
         }

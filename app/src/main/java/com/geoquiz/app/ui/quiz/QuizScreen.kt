@@ -84,21 +84,12 @@ fun QuizScreen(
         if ((context as? Activity)?.isChangingConfigurations != true) viewModel.onBackgrounded()
     }
 
-    // Once the quiz is recorded: interstitial (fresh completions only), then Results. The steps
-    // live in the ViewModel so a recreated activity still navigates after the ad closes.
+    // Once the quiz is recorded, go to Results. Any interstitial is shown there, after Results
+    // has rendered (see ResultsScreen), never on the way.
     LaunchedEffect(completion) {
         val done = completion ?: return@LaunchedEffect
         when (done.step) {
-            QuizCompletion.Step.SHOW_INTERSTITIAL -> {
-                val activity = context as? Activity
-                if (activity != null) {
-                    viewModel.onInterstitialShowing()
-                    viewModel.adManager.showInterstitial(activity) { viewModel.onInterstitialFinished() }
-                } else {
-                    viewModel.onInterstitialFinished()
-                }
-            }
-            QuizCompletion.Step.SHOWING_INTERSTITIAL, QuizCompletion.Step.DONE -> Unit
+            QuizCompletion.Step.DONE -> Unit
             QuizCompletion.Step.NAVIGATE -> {
                 viewModel.onNavigatedToResults()
                 onQuizComplete(done.resultId)

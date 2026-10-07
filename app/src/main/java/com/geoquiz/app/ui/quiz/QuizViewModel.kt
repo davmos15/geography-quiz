@@ -43,7 +43,7 @@ class QuizViewModel @Inject constructor(
     private val completeQuiz: CompleteQuizUseCase,
     private val settingsRepository: SettingsRepository,
     private val savedQuizRepository: SavedQuizRepository,
-    val adManager: AdManager,
+    private val adManager: AdManager,
     clock: MonotonicClock
 ) : ViewModel() {
 
@@ -148,7 +148,7 @@ class QuizViewModel @Inject constructor(
         }
         onStateChanged()
         // A quiz restored as complete was finished before the process died: reuse its result.
-        finishQuizIfComplete(restored = snapshot != null)
+        finishQuizIfComplete()
     }
 
     /** Persists the state for process death and starts or stops the timer to match it. */
@@ -278,7 +278,7 @@ class QuizViewModel @Inject constructor(
                 } else uiState
             }
             onStateChanged()
-            finishQuizIfComplete(restored = false)
+            finishQuizIfComplete()
         }
     }
 
@@ -289,7 +289,7 @@ class QuizViewModel @Inject constructor(
             } else uiState
         }
         onStateChanged()
-        finishQuizIfComplete(restored = false)
+        finishQuizIfComplete()
     }
 
     /**
@@ -297,9 +297,9 @@ class QuizViewModel @Inject constructor(
      *
      * The result id is stored in the SavedStateHandle before recording, so a screen recreated
      * after process death reuses it: the use case then returns the stored result without
-     * recording again, and the screen goes straight to Results without another interstitial.
+     * recording again. Any interstitial is decided and shown on Results, after it has rendered.
      */
-    private fun finishQuizIfComplete(restored: Boolean) {
+    private fun finishQuizIfComplete() {
         val current = _uiState.value
         if (current !is QuizUiState.Active || !current.state.isComplete) return
         if (completionJob != null) return
@@ -320,21 +320,8 @@ class QuizViewModel @Inject constructor(
             if (outcome.newAchievements.isNotEmpty()) {
                 _newAchievements.value = outcome.newAchievements
             }
-            _completion.value = QuizCompletion(
-                resultId = resultId,
-                step = if (restored) QuizCompletion.Step.NAVIGATE else QuizCompletion.Step.SHOW_INTERSTITIAL
-            )
+            _completion.value = QuizCompletion(resultId = resultId, step = QuizCompletion.Step.NAVIGATE)
         }
-    }
-
-    /** The screen has started showing the interstitial. */
-    fun onInterstitialShowing() {
-        _completion.update { it?.copy(step = QuizCompletion.Step.SHOWING_INTERSTITIAL) }
-    }
-
-    /** The interstitial was closed, failed or skipped: go to Results. */
-    fun onInterstitialFinished() {
-        _completion.update { it?.copy(step = QuizCompletion.Step.NAVIGATE) }
     }
 
     /** The screen has navigated to Results; nothing more to do. */
@@ -373,10 +360,10 @@ class QuizViewModel @Inject constructor(
 
 /**
  * A recorded quiz on its way to Results. Kept in the ViewModel (not the composition) so that
- * navigation still happens if the activity is recreated while the interstitial is showing.
+ * navigation happens exactly once, even if the activity is recreated in between.
  */
 data class QuizCompletion(val resultId: String, val step: Step) {
-    enum class Step { SHOW_INTERSTITIAL, SHOWING_INTERSTITIAL, NAVIGATE, DONE }
+    enum class Step { NAVIGATE, DONE }
 }
 
 sealed class QuizUiState {

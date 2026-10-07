@@ -1,9 +1,15 @@
 package com.geoquiz.app.data.service
 
 import android.app.Activity
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.interstitial.InterstitialAd
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +17,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -108,9 +115,86 @@ class AdManagerTest {
         val consentManager = ConsentManager(FakeConsentGateway(canRequest = false))
         val adManager = AdManager(billingRepository, consentManager, loader, adScope())
         var dismissed = false
+        var shown = false
 
-        adManager.showInterstitial(activity) { dismissed = true }
+        adManager.showInterstitial(activity, onShown = { shown = true }, onDismissed = { dismissed = true })
 
+        assertTrue(dismissed)
+        assertFalse(shown)
+    }
+
+    /** AdManager with consent granted and one interstitial loaded. */
+    private fun TestScope.adManagerWithLoadedAd(ad: InterstitialAd): AdManager {
+        val consentManager = ConsentManager(FakeConsentGateway(canRequest = true))
+        consentManager.gatherConsent(activity)
+        val loader = object : InterstitialAdLoader {
+            override fun load(onLoaded: (InterstitialAd) -> Unit, onFailed: () -> Unit) = onLoaded(ad)
+        }
+        return AdManager(billingRepository, consentManager, loader, adScope()).also { it.preloadInterstitial() }
+    }
+
+    @Test
+    fun `onShown runs only once the ad is actually on screen`() = runTest {
+        val callback = slot<FullScreenContentCallback>()
+        val ad = mockk<InterstitialAd>(relaxed = true) {
+            every { fullScreenContentCallback = capture(callback) } just Runs
+        }
+        val adManager = adManagerWithLoadedAd(ad)
+        var shown = 0
+        var dismissed = 0
+
+        adManager.showInterstitial(activity, onShown = { shown++ }, onDismissed = { dismissed++ })
+
+        verify(exactly = 1) { ad.show(activity) }
+        assertEquals(0, shown)
+        callback.captured.onAdShowedFullScreenContent()
+        assertEquals(1, shown)
+        callback.captured.onAdDismissedFullScreenContent()
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `an ad that fails to show never reports onShown`() = runTest {
+        val callback = slot<FullScreenContentCallback>()
+        val ad = mockk<InterstitialAd>(relaxed = true) {
+            every { fullScreenContentCallback = capture(callback) } just Runs
+        }
+        val adManager = adManagerWithLoadedAd(ad)
+        var shown = false
+        var dismissed = false
+
+        adManager.showInterstitial(activity, onShown = { shown = true }, onDismissed = { dismissed = true })
+        callback.captured.onAdFailedToShowFullScreenContent(mockk<AdError>(relaxed = true))
+
+        assertFalse(shown)
+        assertTrue(dismissed)
+    }
+
+    @Test
+    fun `a loaded ad is shown only once`() = runTest {
+        val ad = mockk<InterstitialAd>(relaxed = true)
+        val adManager = adManagerWithLoadedAd(ad)
+        var dismissed = 0
+
+        adManager.showInterstitial(activity)
+        adManager.showInterstitial(activity, onDismissed = { dismissed++ })
+
+        verify(exactly = 1) { ad.show(activity) }
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `no interstitial when ads are removed, even if one is loaded`() = runTest {
+        val ad = mockk<InterstitialAd>(relaxed = true)
+        val adManager = adManagerWithLoadedAd(ad)
+        adsRemovedFlow.value = true
+        var shown = false
+        var dismissed = false
+
+        adManager.showInterstitial(activity, onShown = { shown = true }, onDismissed = { dismissed = true })
+
+        verify(exactly = 0) { ad.show(any()) }
+        assertFalse(shown)
         assertTrue(dismissed)
     }
 }

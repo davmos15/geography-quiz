@@ -22,10 +22,11 @@ import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
+import com.geoquiz.app.domain.time.MonotonicClock
+import com.geoquiz.app.domain.time.QuizTimer
 import com.geoquiz.app.ui.results.QuizResultHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +50,8 @@ class QuizViewModel @Inject constructor(
     private val savedQuizRepository: SavedQuizRepository,
     private val quizHistoryRepository: QuizHistoryRepository,
     private val playGamesService: PlayGamesAchievementService,
-    val adManager: AdManager
+    val adManager: AdManager,
+    clock: MonotonicClock
 ) : ViewModel() {
 
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
@@ -84,7 +86,8 @@ class QuizViewModel @Inject constructor(
     private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
     val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
-    private var timerJob: Job? = null
+    private val quizTimer = QuizTimer(clock)
+    private var tickerJob: Job? = null
     private var achievementsChecked = false
 
     init {
@@ -130,28 +133,33 @@ class QuizViewModel @Inject constructor(
                     quiz = quiz,
                     answeredCountries = validCodes
                 )
-                _timerSeconds.value = savedQuiz.timeElapsedSeconds
+                quizTimer.restore(savedQuiz.timeElapsedSeconds * 1000L)
                 _uiState.value = QuizUiState.Active(state)
                 savedQuizRepository.clearSavedQuiz()
             } else {
                 val state = QuizState(quiz = quiz)
                 _uiState.value = QuizUiState.Active(state)
             }
-            startTimer()
+            syncTimerWithState()
         }
     }
 
-    private fun startTimer() {
-        timerJob?.cancel()
-        timerJob = viewModelScope.launch {
-            while (true) {
-                delay(1000L)
-                val current = _uiState.value
-                if (current is QuizUiState.Active && !current.state.isComplete && !current.state.isPaused) {
-                    _timerSeconds.value += 1
-                } else if (current is QuizUiState.Active && current.state.isComplete) {
-                    break
-                }
+    /**
+     * Runs the timer only while the quiz is active, unpaused and not complete. Call after every
+     * state change that can affect this. The ticker only refreshes [timerSeconds] for display;
+     * saving and scoring read the timer directly.
+     */
+    private fun syncTimerWithState() {
+        val current = _uiState.value
+        val shouldRun = current is QuizUiState.Active &&
+            !current.state.isComplete && !current.state.isPaused
+        if (shouldRun) quizTimer.resume() else quizTimer.pause()
+
+        tickerJob?.cancel()
+        _timerSeconds.value = quizTimer.elapsedSeconds()
+        if (quizTimer.isRunning) {
+            tickerJob = viewModelScope.launch {
+                quizTimer.ticks().collect { _timerSeconds.value = it }
             }
         }
     }
@@ -162,6 +170,7 @@ class QuizViewModel @Inject constructor(
                 QuizUiState.Active(uiState.state.copy(isPaused = !uiState.state.isPaused))
             } else uiState
         }
+        syncTimerWithState()
     }
 
     fun onBackgrounded() {
@@ -172,6 +181,7 @@ class QuizViewModel @Inject constructor(
                     QuizUiState.Active(uiState.state.copy(isPaused = true))
                 } else uiState
             }
+            syncTimerWithState()
             saveQuizState()
         }
     }
@@ -184,7 +194,7 @@ class QuizViewModel @Inject constructor(
                     categoryType = categoryType,
                     categoryValue = categoryValue,
                     answeredCodes = current.state.answeredCountries,
-                    timeElapsed = _timerSeconds.value,
+                    timeElapsed = quizTimer.elapsedSeconds(),
                     quizMode = quizModeId
                 )
             }
@@ -248,16 +258,17 @@ class QuizViewModel @Inject constructor(
                     )
                 } else uiState
             }
+            syncTimerWithState()
         }
     }
 
     fun onGiveUp() {
         _uiState.update { uiState ->
             if (uiState is QuizUiState.Active) {
-                timerJob?.cancel()
                 QuizUiState.Active(uiState.state.copy(isComplete = true))
             } else uiState
         }
+        syncTimerWithState()
         viewModelScope.launch {
             savedQuizRepository.clearSavedQuiz()
         }
@@ -266,7 +277,7 @@ class QuizViewModel @Inject constructor(
     fun getResult(): com.geoquiz.app.domain.model.QuizResult? {
         val current = _uiState.value
         if (current !is QuizUiState.Active) return null
-        val result = calculateScore(current.state.copy(timeElapsedSeconds = _timerSeconds.value))
+        val result = calculateScore(current.state.copy(timeElapsedSeconds = quizTimer.elapsedSeconds()))
 
         QuizResultHolder.countries = current.state.quiz.countries
         QuizResultHolder.answeredCodes = current.state.answeredCountries

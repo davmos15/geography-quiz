@@ -12,6 +12,9 @@ import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.mode.ChoicePrompt
+import com.geoquiz.app.domain.mode.QuizRandom
+import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
@@ -45,6 +48,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.random.Random
 
 /**
  * Process-death round trips for [QuizViewModel]: a second ViewModel built from what the first one
@@ -74,6 +78,17 @@ class QuizViewModelTest {
     private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
     private val savedQuizRepository = mockk<SavedQuizRepository>(relaxed = true)
     private val adManager = mockk<AdManager>(relaxed = true)
+
+    /** The quiz set (THREE) plus outsiders for Easy distractors. */
+    private val allCountries = TestQuizData.THREE + listOf(
+        TestQuizData.country("ITA", "Italy", "Rome"),
+        TestQuizData.country("ESP", "Spain", "Madrid"),
+        TestQuizData.PERU,
+        TestQuizData.country("JPN", "Japan", "Tokyo", region = "Asia")
+    )
+    private val countryRepository = mockk<CountryRepository> {
+        every { getAllCountries() } returns flowOf(allCountries)
+    }
 
     private val completedQuizzes = FakeCompletedQuizRepository()
     private val achievementRepository = mockk<AchievementRepository>()
@@ -157,7 +172,9 @@ class QuizViewModelTest {
             settingsRepository = settingsRepository,
             savedQuizRepository = savedQuizRepository,
             adManager = adManager,
-            clock = clock
+            clock = clock,
+            countryRepository = countryRepository,
+            quizRandom = QuizRandom(Random(7))
         )
         runCurrent()
         return vm
@@ -449,7 +466,7 @@ class QuizViewModelTest {
     }
 
     @Test
-    fun `easy is wired through and recorded, with the normal typed rules until 3_2b`() {
+    fun `easy is wired through and recorded without achievements`() {
         val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
 
         assertEquals(Difficulty.EASY, vm.difficulty.value)
@@ -538,5 +555,225 @@ class QuizViewModelTest {
                 difficulty = Difficulty.HARD
             )
         }
+    }
+
+    // Easy tier, multiple choice (3.2b)
+
+    private fun easyViewModel(handle: SavedStateHandle = routeHandle(difficulty = Difficulty.EASY)) = viewModel(handle)
+
+    /** Lets the pick's feedback run out. */
+    private fun finishFeedback() {
+        dispatcher.scheduler.advanceTimeBy(QuizViewModel.CHOICE_FEEDBACK_MILLIS)
+        runCurrent()
+    }
+
+    private fun QuizViewModel.pick(correct: Boolean): String {
+        val choice = quizState().choice!!
+        val code = if (correct) choice.targetCode else choice.options.first { it.code != choice.targetCode }.code
+        onChoiceSelected(code)
+        runCurrent()
+        return code
+    }
+
+    @Test
+    fun `easy starts with a 4 option question about an item of the set`() {
+        val vm = easyViewModel()
+
+        val state = vm.quizState()
+        val choice = state.choice!!
+        assertTrue(choice.targetCode in TestQuizData.THREE.map { it.code })
+        assertEquals(4, choice.options.size)
+        assertEquals(ChoicePrompt.InSet("All Countries"), choice.prompt)
+        assertEquals(2, state.remainingOrder.size)
+        assertFalse(choice.targetCode in state.remainingOrder)
+        coVerify(exactly = 0) { validateAnswer(any(), any(), any()) }
+    }
+
+    @Test
+    fun `easy correct pick answers the item, shows feedback, then moves on`() {
+        val vm = easyViewModel()
+        val first = vm.quizState().choice!!
+
+        vm.pick(correct = true)
+
+        val during = vm.quizState()
+        assertEquals(setOf(first.targetCode), during.answeredCountries)
+        assertEquals(first, during.choice)
+        assertTrue(during.choiceFeedback!!.isCorrect)
+        assertEquals(0, during.incorrectGuesses)
+
+        // Picks are ignored while the feedback shows.
+        vm.onChoiceSelected(first.options.first { it.code != first.targetCode }.code)
+        runCurrent()
+        assertEquals(0, vm.quizState().incorrectGuesses)
+
+        dispatcher.scheduler.advanceTimeBy(QuizViewModel.CHOICE_FEEDBACK_MILLIS - 1)
+        runCurrent()
+        assertEquals("still showing the result", first, vm.quizState().choice)
+
+        dispatcher.scheduler.advanceTimeBy(1)
+        runCurrent()
+        val next = vm.quizState()
+        assertNull(next.choiceFeedback)
+        assertTrue(next.choice!!.targetCode != first.targetCode)
+        assertEquals(1, next.remainingOrder.size)
+    }
+
+    @Test
+    fun `easy wrong pick misses the item, records the label and never asks it again`() {
+        val vm = easyViewModel()
+        val first = vm.quizState().choice!!
+
+        val pickedCode = vm.pick(correct = false)
+
+        val state = vm.quizState()
+        assertEquals(setOf(first.targetCode), state.missedCountries)
+        assertTrue(state.answeredCountries.isEmpty())
+        assertEquals(1, state.incorrectGuesses)
+        assertEquals(listOf(first.option(pickedCode)!!.label), state.incorrectGuessStrings)
+        assertFalse(state.choiceFeedback!!.isCorrect)
+
+        val asked = mutableListOf(first.targetCode)
+        finishFeedback()
+        while (!vm.quizState().isComplete) {
+            asked += vm.quizState().choice!!.targetCode
+            vm.pick(correct = true)
+            finishFeedback()
+        }
+        assertEquals(TestQuizData.THREE.map { it.code }.sorted(), asked.sorted())
+    }
+
+    @Test
+    fun `easy completes once every item is asked, with the normal score and no achievements`() {
+        val vm = easyViewModel()
+
+        vm.pick(correct = true)
+        finishFeedback()
+        val wrongLabel = vm.quizState().choice!!.let { c -> c.options.first { it.code != c.targetCode }.label }
+        vm.pick(correct = false)
+        finishFeedback()
+        assertFalse(vm.quizState().isComplete)
+        vm.pick(correct = true)
+        assertFalse("the last result shows before completing", vm.quizState().isComplete)
+        finishFeedback()
+
+        assertTrue(vm.quizState().isComplete)
+        assertNotNull(vm.completion.value)
+        val stored = completedQuizzes.stored!!
+        assertEquals(2, stored.correct)
+        assertEquals(3, stored.total)
+        assertEquals(2.0 / 3.0 * 2.0, stored.score, 1e-9)
+        assertEquals(1, stored.incorrectGuesses)
+        assertEquals(listOf(wrongLabel), stored.incorrectGuessStrings)
+        assertEquals(Difficulty.EASY, stored.difficulty)
+        assertEquals(1, completedQuizzes.saveCount)
+        coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `easy picks are ignored while paused, and feedback waits for resume`() {
+        val vm = easyViewModel()
+        val first = vm.quizState().choice!!
+
+        vm.togglePause()
+        vm.onChoiceSelected(first.targetCode)
+        runCurrent()
+        assertTrue(vm.quizState().answeredCountries.isEmpty())
+        assertNull(vm.quizState().choiceFeedback)
+
+        vm.togglePause()
+        vm.pick(correct = true)
+        vm.togglePause()
+        finishFeedback()
+        assertEquals("no new question while paused", first, vm.quizState().choice)
+
+        vm.togglePause()
+        runCurrent()
+        assertNull(vm.quizState().choiceFeedback)
+        assertTrue(vm.quizState().choice!!.targetCode != first.targetCode)
+    }
+
+    @Test
+    fun `easy restores the same question, order and missed items after process death`() {
+        val handle = routeHandle(difficulty = Difficulty.EASY)
+        val first = viewModel(handle)
+        val missed = first.quizState().choice!!.targetCode
+        first.pick(correct = false)
+        finishFeedback()
+        val before = first.quizState()
+        first.onBackgrounded()
+        runCurrent()
+
+        val second = viewModel(afterProcessDeath(handle))
+
+        val after = second.quizState()
+        assertEquals(Difficulty.EASY, second.difficulty.value)
+        assertEquals(before.choice, after.choice)
+        assertEquals(before.remainingOrder, after.remainingOrder)
+        assertEquals(setOf(missed), after.missedCountries)
+        assertEquals(1, after.incorrectGuesses)
+        assertTrue(after.isPaused)
+
+        // And it carries on to the end, asking each item once.
+        second.togglePause()
+        second.pick(correct = true)
+        finishFeedback()
+        second.pick(correct = true)
+        finishFeedback()
+        assertTrue(second.quizState().isComplete)
+        assertEquals(2, completedQuizzes.stored?.correct)
+        assertEquals(1, completedQuizzes.stored?.incorrectGuesses)
+    }
+
+    @Test
+    fun `easy recreated during feedback moves on to the next question`() {
+        val handle = routeHandle(difficulty = Difficulty.EASY)
+        val first = viewModel(handle)
+        val answered = first.quizState().choice!!.targetCode
+        first.pick(correct = true)
+        // Process death before the feedback ran out.
+
+        val second = viewModel(afterProcessDeath(handle))
+
+        val state = second.quizState()
+        assertEquals(setOf(answered), state.answeredCountries)
+        assertNull(state.choiceFeedback)
+        assertTrue(state.choice!!.targetCode != answered)
+        assertEquals(1, state.remainingOrder.size)
+    }
+
+    @Test
+    fun `easy resume save asks the unanswered items, including ones missed before`() {
+        coEvery { savedQuizRepository.getSavedQuiz() } returns SavedQuizEntity(
+            categoryType = "all",
+            categoryValue = "_",
+            answeredCountryCodes = "[\"DEU\"]",
+            timeElapsedSeconds = 12,
+            savedAtMillis = 0L,
+            quizMode = "countries",
+            difficulty = "easy"
+        )
+        every { savedQuizRepository.parseAnsweredCodes(any()) } returns setOf("DEU")
+
+        val vm = viewModel(routeHandle())
+
+        val state = vm.quizState()
+        assertEquals(Difficulty.EASY, vm.difficulty.value)
+        assertEquals(setOf("DEU"), state.answeredCountries)
+        val toAsk = listOf(state.choice!!.targetCode) + state.remainingOrder
+        assertEquals(listOf("AUT", "FRA"), toAsk.sorted())
+    }
+
+    @Test
+    fun `capitals easy asks for the capital of a country`() {
+        coEvery { getCountriesForCapitalQuiz(any()) } returns TestQuizData.THREE
+
+        val vm = viewModel(routeHandle(quizMode = "capitals", difficulty = Difficulty.EASY))
+
+        val choice = vm.quizState().choice!!
+        val target = TestQuizData.THREE.first { it.code == choice.targetCode }
+        assertEquals(ChoicePrompt.CapitalOf(target.name), choice.prompt)
+        assertEquals(target.capital, choice.correctOption.label)
+        coVerify(exactly = 0) { validateCapitalAnswer(any(), any(), any()) }
     }
 }

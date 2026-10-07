@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -59,6 +61,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.R
 import com.geoquiz.app.ui.components.A11yText
@@ -66,6 +69,7 @@ import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
+import com.geoquiz.app.ui.quiz.components.MultipleChoicePanel
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.theme.geoColors
 
@@ -288,24 +292,7 @@ fun QuizScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Answer input
-                        AnswerInput(
-                            value = quizState.currentInput,
-                            onValueChange = viewModel::onInputChange,
-                            onSubmit = viewModel::onSubmitAnswer,
-                            lastResult = quizState.lastAnswerResult,
-                            enabled = !quizState.isComplete && !quizState.isPaused,
-                            quizMode = viewModel.quizMode
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Give up + Submit row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        val giveUpButton: @Composable () -> Unit = {
                             IconButton(
                                 onClick = { showGiveUpDialog = true },
                                 enabled = !quizState.isPaused
@@ -317,12 +304,51 @@ fun QuizScreen(
                                         else MaterialTheme.geoColors.wrong.copy(alpha = 0.38f)
                                 )
                             }
-                            Button(
-                                onClick = viewModel::onSubmitAnswer,
-                                modifier = Modifier.weight(1f),
-                                enabled = !quizState.isComplete && !quizState.isPaused
+                        }
+
+                        if (difficulty == Difficulty.EASY) {
+                            // Easy: pick from 4 options (D14). Not weighted, so the options get
+                            // the space they need first; they scroll if they don't fit (large
+                            // font scales), and the list below takes what is left.
+                            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                val choice = quizState.choice
+                                if (choice != null) {
+                                    MultipleChoicePanel(
+                                        question = choice,
+                                        feedback = quizState.choiceFeedback,
+                                        enabled = !quizState.isComplete && !quizState.isPaused,
+                                        onSelect = viewModel::onChoiceSelected
+                                    )
+                                }
+                                giveUpButton()
+                            }
+                        } else {
+                            // Answer input
+                            AnswerInput(
+                                value = quizState.currentInput,
+                                onValueChange = viewModel::onInputChange,
+                                onSubmit = viewModel::onSubmitAnswer,
+                                lastResult = quizState.lastAnswerResult,
+                                enabled = !quizState.isComplete && !quizState.isPaused,
+                                quizMode = viewModel.quizMode
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Give up + Submit row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Submit")
+                                giveUpButton()
+                                Button(
+                                    onClick = viewModel::onSubmitAnswer,
+                                    modifier = Modifier.weight(1f),
+                                    enabled = !quizState.isComplete && !quizState.isPaused
+                                ) {
+                                    Text("Submit")
+                                }
                             }
                         }
 

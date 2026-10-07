@@ -96,14 +96,18 @@ fun interface ScoringRule {
  * A playable mode: its [spec] plus the behaviour behind it.
  *
  * To add a mode: write its [QuestionGenerator] (and validator, if the answers are not country or
- * capital names), implement this interface with an `@Inject` constructor next to its spec, and
- * add one `@Binds @IntoSet` line to `di/GameModeModule.kt`. Nothing else needs a `when (mode)`.
+ * capital names) and its [ChoiceQuestionGenerator] for Easy, implement this interface with an
+ * `@Inject` constructor next to its spec, and add one `@Binds @IntoSet` line to
+ * `di/GameModeModule.kt`. Nothing else needs a `when (mode)`.
  */
 interface GameMode {
     val spec: GameModeSpec
     val generator: QuestionGenerator
     val validator: AnswerValidator
     val scoring: ScoringRule
+
+    /** Builds the multiple-choice questions for the Easy tier ([Difficulty.EASY]). */
+    val choiceGenerator: ChoiceQuestionGenerator
 
     val id: String get() = spec.id
 }

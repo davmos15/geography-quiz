@@ -1,5 +1,13 @@
 package com.geoquiz.app.domain.model
 
+import com.geoquiz.app.domain.mode.ChoiceQuestion
+
+/**
+ * A running quiz.
+ *
+ * The `choice*`, [remainingOrder] and [missedCountries] fields are used only at
+ * [Difficulty.EASY] (multiple choice); they stay empty at Normal and Hard.
+ */
 data class QuizState(
     val quiz: Quiz,
     val answeredCountries: Set<String> = emptySet(),
@@ -9,7 +17,15 @@ data class QuizState(
     val isPaused: Boolean = false,
     val lastAnswerResult: AnswerResult = AnswerResult.None,
     val incorrectGuesses: Int = 0,
-    val incorrectGuessStrings: List<String> = emptyList()
+    val incorrectGuessStrings: List<String> = emptyList(),
+    /** Easy: the question on screen, or null between questions and once all have been asked. */
+    val choice: ChoiceQuestion? = null,
+    /** Easy: the player's pick on [choice], shown briefly before the next question. */
+    val choiceFeedback: ChoiceFeedback? = null,
+    /** Easy: codes still to be asked after [choice], in the order they will be asked. */
+    val remainingOrder: List<String> = emptyList(),
+    /** Easy: codes asked and answered wrongly. They are not asked again. */
+    val missedCountries: Set<String> = emptySet()
 ) {
     val progress: Float
         get() = if (quiz.countries.isEmpty()) 0f
@@ -21,6 +37,9 @@ data class QuizState(
     val timerRemaining: Int?
         get() = quiz.timerSeconds?.let { (it - timeElapsedSeconds).coerceAtLeast(0) }
 }
+
+/** Easy: the option the player picked on the current question. */
+data class ChoiceFeedback(val selectedCode: String, val isCorrect: Boolean)
 
 sealed class AnswerResult {
     data object None : AnswerResult()

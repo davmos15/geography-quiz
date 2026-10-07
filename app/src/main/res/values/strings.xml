@@ -174,6 +174,18 @@
     <string name="quiz_timer_always_shown_hard">Always shown in Hard</string>
     <string name="settings_default_difficulty">Default difficulty</string>
     <string name="settings_default_difficulty_summary">Used for new quizzes. You can also change it at the top of each category list.</string>
+    <!-- Easy tier multiple choice (3.2b, ui/quiz/components/MultipleChoicePanel.kt) -->
+    <!-- %1$s is the category name, e.g. "Which of these fits “Europe”?" (reads for regions and letter/word patterns) -->
+    <string name="choice_prompt_in_set">Which of these fits “%1$s”?</string>
+    <string name="choice_prompt_capital_of">What is the capital of %1$s?</string>
+    <string name="choice_prompt_flag">Which country does this flag belong to?</string>
+    <!-- Must never name the country: it is the answer -->
+    <string name="choice_flag_description">Flag to identify</string>
+    <string name="choice_feedback_correct">Correct</string>
+    <string name="choice_feedback_incorrect">Incorrect, the answer was %1$s</string>
+    <!-- Spoken with an option while its result is shown -->
+    <string name="choice_option_correct">correct answer</string>
+    <string name="choice_option_wrong">your answer, incorrect</string>
     <!-- Mastery stars on a category row; quantity follows the maximum (%2$d) -->
     <plurals name="a11y_mastery_stars">
         <item quantity="one">%1$d of %2$d star</item>

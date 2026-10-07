@@ -9,6 +9,8 @@ import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
+import com.geoquiz.app.domain.model.ChoiceFeedback
+import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
@@ -17,11 +19,14 @@ import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.mode.GameModeSpec
+import com.geoquiz.app.domain.mode.QuizRandom
+import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.time.QuizTimer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +45,9 @@ class QuizViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val savedQuizRepository: SavedQuizRepository,
     private val adManager: AdManager,
-    clock: MonotonicClock
+    clock: MonotonicClock,
+    private val countryRepository: CountryRepository,
+    quizRandom: QuizRandom
 ) : ViewModel() {
 
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
@@ -104,6 +111,15 @@ class QuizViewModel @Inject constructor(
     private var tickerJob: Job? = null
     private var completionJob: Job? = null
 
+    /** Easy: order, distractors and option order. */
+    private val random = quizRandom.random
+
+    /** Easy: every country in the game, for distractors. Loaded only for Easy quizzes. */
+    private var allCountries: List<Country> = emptyList()
+
+    /** Easy: shows a pick's feedback for [CHOICE_FEEDBACK_MILLIS], then moves on. */
+    private var feedbackJob: Job? = null
+
     init {
         adManager.preloadInterstitial()
         viewModelScope.launch {
@@ -148,10 +164,11 @@ class QuizViewModel @Inject constructor(
     }
 
     private suspend fun loadQuiz(savedQuiz: SavedQuizEntity?) {
-        // TODO(3.2b): Easy is multiple choice (D14). Branch here on
-        //  `_difficulty.value == Difficulty.EASY` to build the 4-option questions and their
-        //  QuizState; until then Easy runs as a typed quiz with the Normal rules.
+        // Easy is multiple choice (D14): the same item set, asked one question at a time.
+        val isEasy = _difficulty.value == Difficulty.EASY
         val countries = gameMode.generator.items(category)
+        if (isEasy) allCountries = countryRepository.getAllCountries().first()
+        val withChoices: (QuizState) -> QuizState = { if (isEasy) prepareChoices(it) else it }
         val quiz = Quiz(
             category = category,
             countries = countries,
@@ -168,7 +185,7 @@ class QuizViewModel @Inject constructor(
             Difficulty.fromIdOrDefault(savedQuiz.difficulty) == _difficulty.value
         if (snapshot != null) {
             quizTimer.restore(snapshot.elapsedMillis)
-            _uiState.value = QuizUiState.Active(snapshot.toQuizState(quiz))
+            _uiState.value = QuizUiState.Active(withChoices(snapshot.toQuizState(quiz)))
             if (roomSaveMatches) savedQuizRepository.clearSavedQuiz()
         } else if (savedQuiz != null && roomSaveMatches) {
             val savedCodes = savedQuizRepository.parseAnsweredCodes(savedQuiz.answeredCountryCodes)
@@ -180,14 +197,102 @@ class QuizViewModel @Inject constructor(
                 answeredCountries = validCodes
             )
             quizTimer.restore(savedQuiz.timeElapsedSeconds * 1000L)
-            _uiState.value = QuizUiState.Active(state)
+            // Easy: the resume save holds answered codes only, so missed items are asked again.
+            _uiState.value = QuizUiState.Active(withChoices(state))
             savedQuizRepository.clearSavedQuiz()
         } else {
             val state = QuizState(quiz = quiz)
-            _uiState.value = QuizUiState.Active(state)
+            _uiState.value = QuizUiState.Active(withChoices(state))
         }
         onStateChanged()
         // A quiz restored as complete was finished before the process died: reuse its result.
+        finishQuizIfComplete()
+    }
+
+    /**
+     * Easy: makes the multiple-choice progress agree with the answers and puts a question on
+     * screen. Every item not yet answered or missed is asked once: the saved order first, then
+     * any item it does not list (e.g. after a Room resume, which keeps answered codes only, so
+     * missed items are asked again) in random order. A saved question whose target is already
+     * answered or missed was picked just before the screen was recreated: the next one is shown.
+     */
+    private fun prepareChoices(state: QuizState): QuizState {
+        if (state.isComplete) return state
+        val codes = state.quiz.countries.map { it.code }
+        val done = state.answeredCountries + state.missedCountries
+        val current = state.choice?.takeIf { it.targetCode in codes && it.targetCode !in done }
+        val pending = { code: String -> code !in done && code != current?.targetCode }
+        val listed = state.remainingOrder.filter(pending).distinct()
+        val unlisted = codes.filter { pending(it) && it !in listed }.shuffled(random)
+        val prepared = state.copy(choice = current, choiceFeedback = null, remainingOrder = listed + unlisted)
+        return if (current == null) nextChoice(prepared) else prepared
+    }
+
+    /** Easy: the next question, or the finished quiz once every item has been asked. */
+    private fun nextChoice(state: QuizState): QuizState {
+        val nextCode = state.remainingOrder.firstOrNull()
+            ?: return state.copy(
+                choice = null,
+                choiceFeedback = null,
+                isComplete = state.quiz.countries.isNotEmpty(),
+                isPaused = false
+            )
+        val target = state.quiz.countries.first { it.code == nextCode }
+        val question = gameMode.choiceGenerator.question(
+            target = target,
+            quizSet = state.quiz.countries,
+            allCountries = allCountries,
+            category = category,
+            random = random
+        )
+        return state.copy(choice = question, choiceFeedback = null, remainingOrder = state.remainingOrder.drop(1))
+    }
+
+    /**
+     * Easy: the player picked the option for [code]. A correct pick answers the item; a wrong
+     * pick misses it (an incorrect guess, recorded with the option's label for Answer review)
+     * and it is not asked again. The options show the result for [CHOICE_FEEDBACK_MILLIS], then
+     * the next question appears. Ignored while paused, during feedback and for unknown codes.
+     */
+    fun onChoiceSelected(code: String) {
+        val current = _uiState.value as? QuizUiState.Active ?: return
+        val state = current.state
+        if (state.isComplete || state.isPaused || state.choiceFeedback != null) return
+        val choice = state.choice ?: return
+        val picked = choice.option(code) ?: return
+        val target = choice.targetCode
+        val updated = if (code == target) {
+            state.copy(
+                answeredCountries = state.answeredCountries + target,
+                choiceFeedback = ChoiceFeedback(selectedCode = code, isCorrect = true)
+            )
+        } else {
+            state.copy(
+                missedCountries = state.missedCountries + target,
+                incorrectGuesses = state.incorrectGuesses + 1,
+                incorrectGuessStrings = state.incorrectGuessStrings + picked.label,
+                choiceFeedback = ChoiceFeedback(selectedCode = code, isCorrect = false)
+            )
+        }
+        _uiState.value = QuizUiState.Active(updated)
+        onStateChanged()
+        feedbackJob?.cancel()
+        feedbackJob = viewModelScope.launch {
+            delay(CHOICE_FEEDBACK_MILLIS)
+            advanceAfterFeedback()
+        }
+    }
+
+    /**
+     * Easy: replaces a shown pick with the next question. While paused it waits: [togglePause]
+     * calls it again on resume.
+     */
+    private fun advanceAfterFeedback() {
+        val current = _uiState.value as? QuizUiState.Active ?: return
+        val state = current.state
+        if (state.choiceFeedback == null || state.isComplete || state.isPaused) return
+        _uiState.value = QuizUiState.Active(nextChoice(state))
+        onStateChanged()
         finishQuizIfComplete()
     }
 
@@ -229,6 +334,8 @@ class QuizViewModel @Inject constructor(
             } else uiState
         }
         onStateChanged()
+        // Easy: a pick whose feedback ran out while paused moves on once play resumes.
+        if (feedbackJob?.isActive != true) advanceAfterFeedback()
     }
 
     fun onBackgrounded() {
@@ -244,6 +351,11 @@ class QuizViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Saves the "Resume quiz" record in Room: answered codes, time and tier only. At Easy the
+     * missed items and question order are not kept, so a resumed Easy quiz asks the missed items
+     * again (see [prepareChoices]).
+     */
     private fun saveQuizState() {
         val current = _uiState.value
         if (current is QuizUiState.Active && !current.state.isComplete && current.state.answeredCountries.isNotEmpty()) {
@@ -394,6 +506,9 @@ class QuizViewModel @Inject constructor(
     companion object {
         /** Optional route argument with a [Difficulty.id] (see `Screen.Quiz`). */
         const val ARG_DIFFICULTY = "difficulty"
+
+        /** Easy: how long a pick's result stays on the options before the next question. */
+        const val CHOICE_FEEDBACK_MILLIS = 900L
     }
 }
 

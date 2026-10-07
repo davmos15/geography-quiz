@@ -16,6 +16,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * The quiz loop through the real [QuizScreen] and [QuizViewModel] (real answer checking and
@@ -24,6 +25,8 @@ import org.robolectric.RobolectricTestRunner
  * Germany (rows 1 to 3).
  */
 @RunWith(RobolectricTestRunner::class)
+// A typical phone; the default Robolectric screen (320x470 dp) clips the third row.
+@Config(qualifiers = "w411dp-h891dp")
 class QuizLoopUiTest {
 
     @get:Rule(order = 0)

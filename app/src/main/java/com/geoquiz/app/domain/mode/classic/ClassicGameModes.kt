@@ -3,6 +3,10 @@ package com.geoquiz.app.domain.mode.classic
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.AnswerType
 import com.geoquiz.app.domain.mode.AnswerValidator
+import com.geoquiz.app.domain.mode.CapitalsChoiceGenerator
+import com.geoquiz.app.domain.mode.ChoiceQuestionGenerator
+import com.geoquiz.app.domain.mode.CountriesChoiceGenerator
+import com.geoquiz.app.domain.mode.FlagsChoiceGenerator
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.mode.ModeIcon
@@ -17,8 +21,9 @@ import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
 import javax.inject.Inject
 
 /*
- * Registrations for the three original modes. Each is "type every name in the set", supports all
- * three difficulty tiers (Easy arrives in task 3.2) and scores with CalculateScoreUseCase.
+ * Registrations for the three original modes. Each is "type every name in the set" at Normal and
+ * Hard, multiple choice at Easy (domain/mode/MultipleChoice.kt), and scores with
+ * CalculateScoreUseCase.
  * They declare no hints yet: hints are built in Phase 8, and a mode lists a HintType only once
  * the hint works for it.
  */
@@ -34,6 +39,7 @@ class CountriesGameMode @Inject constructor(
     override val spec: GameModeSpec = SPEC
     override val validator = AnswerValidator { input, state, allowFuzzy -> validateAnswer(input, state, allowFuzzy) }
     override val scoring = ScoringRule { state -> calculateScore(state) }
+    override val choiceGenerator: ChoiceQuestionGenerator = CountriesChoiceGenerator
 
     companion object {
         val SPEC = GameModeSpec(
@@ -67,6 +73,7 @@ class CapitalsGameMode @Inject constructor(
         validateCapitalAnswer(input, state, allowFuzzy)
     }
     override val scoring = ScoringRule { state -> calculateScore(state) }
+    override val choiceGenerator: ChoiceQuestionGenerator = CapitalsChoiceGenerator
 
     companion object {
         val SPEC = GameModeSpec(
@@ -98,6 +105,7 @@ class FlagsGameMode @Inject constructor(
     override val spec: GameModeSpec = SPEC
     override val validator = AnswerValidator { input, state, allowFuzzy -> validateAnswer(input, state, allowFuzzy) }
     override val scoring = ScoringRule { state -> calculateScore(state) }
+    override val choiceGenerator: ChoiceQuestionGenerator = FlagsChoiceGenerator
 
     companion object {
         val SPEC = GameModeSpec(

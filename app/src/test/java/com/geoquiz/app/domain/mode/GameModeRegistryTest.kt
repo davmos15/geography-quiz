@@ -99,6 +99,7 @@ class GameModeRegistryTest {
         override val spec = QuizMode.COUNTRIES.spec.copy(id = id, featureFlag = featureFlag, sortOrder = sortOrder)
         override val generator = QuestionGenerator { emptyList() }
         override val validator = AnswerValidator { _, _, _ -> error("unused") }
+        override val choiceGenerator = ChoiceQuestionGenerator { _, _, _, _, _ -> error("unused") }
         override val scoring = ScoringRule { state ->
             QuizResult(
                 category = state.quiz.category,

@@ -16,6 +16,7 @@ import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
@@ -41,6 +42,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
+import kotlin.random.Random
 
 /**
  * Real screen ViewModels built from fakes and mocks, with fixed data, for the Compose UI and
@@ -142,7 +144,9 @@ object ScreenTestFixtures {
             settingsRepository = settingsRepository(showTimer = showTimer),
             savedQuizRepository = savedQuizRepository,
             adManager = mockk<AdManager>(relaxed = true),
-            clock = FrozenClock
+            clock = FrozenClock,
+            countryRepository = countryRepository(countries),
+            quizRandom = QuizRandom(Random(42))
         )
     }
 

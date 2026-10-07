@@ -3,11 +3,14 @@ package com.geoquiz.app.data.repository
 import com.geoquiz.app.data.local.db.CapitalAliasDao
 import com.geoquiz.app.data.local.db.CountryDao
 import com.geoquiz.app.data.local.db.CountryEntity
+import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,6 +44,32 @@ class CountryRepositoryImpl @Inject constructor(
         if (normalized.isBlank()) return null
         return capitalAliasDao.findCountryByNormalizedCapitalAlias(normalized)?.toDomain()
     }
+
+    // The static database is read-only, so the alias lists never change while the app runs.
+    private val aliasCacheLock = Mutex()
+    private var countryAliases: List<AnswerAlias>? = null
+    private var capitalAliases: List<AnswerAlias>? = null
+
+    override suspend fun getCountryAnswerAliases(): List<AnswerAlias> = aliasCacheLock.withLock {
+        countryAliases ?: run {
+            val countries = countriesByCode()
+            countryDao.getAllAliases()
+                .map { AnswerAlias(it.normalizedAlias, countries.getValue(it.countryCca3)) }
+                .also { countryAliases = it }
+        }
+    }
+
+    override suspend fun getCapitalAnswerAliases(): List<AnswerAlias> = aliasCacheLock.withLock {
+        capitalAliases ?: run {
+            val countries = countriesByCode()
+            capitalAliasDao.getAllCapitalAliases()
+                .map { AnswerAlias(it.normalizedAlias, countries.getValue(it.countryCca3)) }
+                .also { capitalAliases = it }
+        }
+    }
+
+    private suspend fun countriesByCode(): Map<String, Country> =
+        countryDao.getAllCountriesOnce().associate { it.cca3 to it.toDomain() }
 
     private fun CountryEntity.toDomain() = Country(
         code = cca3,

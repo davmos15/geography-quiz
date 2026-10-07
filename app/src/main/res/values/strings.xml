@@ -23,6 +23,9 @@
     <string name="flag_content_description_hidden">Flag</string>
     <string name="flag_content_description">Flag of %1$s</string>
 
+    <!-- Quiz answer feedback -->
+    <string name="answer_near_miss">Close – check the spelling</string>
+
     <!-- Common actions -->
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>

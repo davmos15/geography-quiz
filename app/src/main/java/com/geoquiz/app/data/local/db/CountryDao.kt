@@ -22,4 +22,10 @@ interface CountryDao {
         """
     )
     suspend fun findCountryByNormalizedAlias(normalizedInput: String): CountryEntity?
+
+    @Query("SELECT * FROM countries")
+    suspend fun getAllCountriesOnce(): List<CountryEntity>
+
+    @Query("SELECT * FROM aliases")
+    suspend fun getAllAliases(): List<AliasEntity>
 }

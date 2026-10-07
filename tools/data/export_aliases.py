@@ -106,9 +106,17 @@ def normalize_input(text: str) -> str:
         .replace("’", "")
         .replace("‘", "")
         .replace("ʼ", "")
+        .replace(".", "")
+        .replace(",", " ")
+        .replace("&", " and ")
     )
     out = kt_trim(out)
-    return JAVA_WHITESPACE_RE.sub(" ", out)
+    out = JAVA_WHITESPACE_RE.sub(" ", out)
+    # Word-level canonicalisation: "st" -> "saint", drop a leading "the".
+    words = ["saint" if w == "st" else w for w in out.split(" ")]
+    if len(words) > 1 and words[0] == "the":
+        words = words[1:]
+    return " ".join(words)
 
 
 # --------------------------------------------------------------------------
@@ -234,7 +242,30 @@ def derive_countries() -> list[dict]:
             "aliases": aliases,
             "capitalAliases": cap_aliases,
         })
+    check_collisions(countries)
     return countries
+
+
+def check_collisions(countries: list[dict]) -> None:
+    """Fail if a normalised alias is empty or would answer for two different countries.
+
+    The app resolves an answer by exact match on the normalised form, so a shared
+    form would make one of the two countries impossible to name (and would let
+    the typo matcher treat an exact answer as ambiguous).
+    """
+    problems = []
+    for kind in ("aliases", "capitalAliases"):
+        owners: dict[str, set[str]] = {}
+        for c in countries:
+            for a in c[kind]:
+                if not a["normalized"]:
+                    problems.append(f"{kind}: {a['alias']!r} ({c['cca3']}) normalises to an empty string")
+                owners.setdefault(a["normalized"], set()).add(c["cca3"])
+        for normalized, cca3s in sorted(owners.items()):
+            if len(cca3s) > 1:
+                problems.append(f"{kind}: {normalized!r} is shared by {', '.join(sorted(cca3s))}")
+    if problems:
+        raise SystemExit("Alias collisions:\n  " + "\n  ".join(problems))
 
 
 # --------------------------------------------------------------------------

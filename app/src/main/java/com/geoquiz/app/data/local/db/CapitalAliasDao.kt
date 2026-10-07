@@ -15,4 +15,7 @@ interface CapitalAliasDao {
         """
     )
     suspend fun findCountryByNormalizedCapitalAlias(normalizedInput: String): CountryEntity?
+
+    @Query("SELECT * FROM capital_aliases")
+    suspend fun getAllCapitalAliases(): List<CapitalAliasEntity>
 }

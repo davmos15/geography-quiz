@@ -208,9 +208,11 @@ class QuizViewModel @Inject constructor(
         if (input.isBlank()) return
 
         viewModelScope.launch {
+            // Typos are forgiven except in hard mode, where they get a NearMiss (no strike).
+            val allowFuzzy = !_hardMode.value
             val result = when (quizMode) {
-                QuizMode.CAPITALS -> validateCapitalAnswer(input, current.state)
-                else -> validateAnswer(input, current.state)
+                QuizMode.CAPITALS -> validateCapitalAnswer(input, current.state, allowFuzzy)
+                else -> validateAnswer(input, current.state, allowFuzzy)
             }
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active) {

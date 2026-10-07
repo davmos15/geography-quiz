@@ -100,13 +100,20 @@ unit test checks every shipped alias against the Kotlin implementation.
    4. lower-case;
    5. replace `-` (hyphen-minus only) with a space;
    6. remove apostrophes: `'`, `’` (U+2019), `‘` (U+2018) and `ʼ` (U+02BC);
-   7. trim leading and trailing whitespace;
-   8. collapse runs of ASCII whitespace into a single space.
+   7. remove full stops (`.`), replace commas with a space and replace `&`
+      with ` and `;
+   8. trim leading and trailing whitespace;
+   9. collapse runs of ASCII whitespace into a single space;
+   10. split on spaces, replace every word `st` with `saint`, and drop a
+       leading `the` when other words follow it.
 
-   So `Côte d'Ivoire` becomes `cote divoire` and `Guinea-Bissau` becomes
-   `guinea bissau`. Other punctuation is kept (`Washington D.C.` becomes
-   `washington d.c.`), as are letters with no decomposition (`ß`, `ı`) and
-   non-Latin scripts.
+   So `Côte d'Ivoire` becomes `cote divoire`, `Guinea-Bissau` becomes
+   `guinea bissau`, `St. George's` becomes `saint georges`, `The Netherlands`
+   becomes `netherlands` and `Washington D.C.` becomes `washington dc`. Other
+   punctuation is kept (`Republic of China (Taiwan)` keeps its brackets), as
+   are letters with no decomposition (`ß`, `ı`) and non-Latin scripts.
+   The scripts stop with an error if two countries end up sharing a
+   normalised alias, or an alias normalises to an empty string.
 7. **Write** the result sorted by `cca3`, with aliases sorted as described
    above. The file has no timestamp so it only changes when the data or the
    rules change.

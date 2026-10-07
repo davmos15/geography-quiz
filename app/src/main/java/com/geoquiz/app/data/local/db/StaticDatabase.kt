@@ -30,7 +30,7 @@ abstract class StaticDatabase : RoomDatabase() {
     abstract fun flagElementDao(): FlagElementDao
 
     companion object {
-        const val VERSION = 1
+        const val VERSION = 2
         const val NAME = "static.db"
         const val ASSET_PATH = "databases/static.db"
     }

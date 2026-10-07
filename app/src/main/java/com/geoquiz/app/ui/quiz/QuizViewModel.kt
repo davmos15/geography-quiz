@@ -24,10 +24,14 @@ import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.time.QuizTimer
+import com.geoquiz.app.ui.quiz.feedback.AnswerFeedbackEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -105,6 +109,15 @@ class QuizViewModel @Inject constructor(
     /** Set once the finished quiz has been recorded; the screen then moves on to Results. */
     private val _completion = MutableStateFlow<QuizCompletion?>(null)
     val completion: StateFlow<QuizCompletion?> = _completion.asStateFlow()
+
+    private val _feedbackEvents = MutableSharedFlow<AnswerFeedbackEvent>(extraBufferCapacity = FEEDBACK_EVENT_BUFFER)
+
+    /**
+     * One event per typed answer or Easy pick (3.3), for the screen's haptic and animation.
+     * Not replayed: an event sent while nothing collects (e.g. the screen is gone) is dropped,
+     * so a recreated screen never buzzes for an old answer.
+     */
+    val feedbackEvents: SharedFlow<AnswerFeedbackEvent> = _feedbackEvents.asSharedFlow()
 
     private val savedState = QuizSavedState(savedStateHandle)
     private val quizTimer = QuizTimer(clock)
@@ -276,6 +289,9 @@ class QuizViewModel @Inject constructor(
         }
         _uiState.value = QuizUiState.Active(updated)
         onStateChanged()
+        _feedbackEvents.tryEmit(
+            if (code == target) AnswerFeedbackEvent.CORRECT else AnswerFeedbackEvent.INCORRECT
+        )
         feedbackJob?.cancel()
         feedbackJob = viewModelScope.launch {
             delay(CHOICE_FEEDBACK_MILLIS)
@@ -397,11 +413,18 @@ class QuizViewModel @Inject constructor(
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active) {
                     val state = uiState.state
-                    val newAnswered = if (result is AnswerResult.Correct) {
-                        state.answeredCountries + state.quiz.countries
-                            .first { it.name == result.countryName }.code
+                    val correctCode = (result as? AnswerResult.Correct)?.let { correct ->
+                        state.quiz.countries.first { it.name == correct.countryName }.code
+                    }
+                    val newAnswered = if (correctCode != null) {
+                        state.answeredCountries + correctCode
                     } else {
                         state.answeredCountries
+                    }
+                    val newRecent = if (correctCode != null) {
+                        QuizState.pushRecentCorrect(state.recentCorrect, correctCode)
+                    } else {
+                        state.recentCorrect
                     }
                     val newIncorrect = if (result is AnswerResult.Incorrect) {
                         state.incorrectGuesses + 1
@@ -423,12 +446,14 @@ class QuizViewModel @Inject constructor(
                             lastAnswerResult = result,
                             isComplete = isComplete,
                             incorrectGuesses = newIncorrect,
-                            incorrectGuessStrings = newIncorrectStrings
+                            incorrectGuessStrings = newIncorrectStrings,
+                            recentCorrect = newRecent
                         )
                     )
                 } else uiState
             }
             onStateChanged()
+            AnswerFeedbackEvent.from(result)?.let { _feedbackEvents.tryEmit(it) }
             finishQuizIfComplete()
         }
     }
@@ -509,6 +534,9 @@ class QuizViewModel @Inject constructor(
 
         /** Easy: how long a pick's result stays on the options before the next question. */
         const val CHOICE_FEEDBACK_MILLIS = 900L
+
+        /** Room for answer events while the screen's collector catches up. */
+        private const val FEEDBACK_EVENT_BUFFER = 8
     }
 }
 

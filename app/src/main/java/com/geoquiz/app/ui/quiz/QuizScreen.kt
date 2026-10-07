@@ -41,6 +41,7 @@ import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,6 +58,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.draw.clipToBounds
+import kotlinx.coroutines.delay
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -67,6 +70,13 @@ import com.geoquiz.app.R
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.a11yResources
+import com.geoquiz.app.ui.components.rememberReducedMotion
+import com.geoquiz.app.ui.quiz.components.RecentAnswers
+import com.geoquiz.app.ui.quiz.components.inlineIconSize
+import com.geoquiz.app.ui.quiz.feedback.FeedbackSignal
+import com.geoquiz.app.ui.quiz.feedback.HapticFeedbackPlayer
+import com.geoquiz.app.ui.quiz.feedback.rememberFeedbackMotion
+import com.geoquiz.app.ui.quiz.feedback.rememberHapticFeedbackPlayer
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
 import com.geoquiz.app.ui.quiz.components.MultipleChoicePanel
@@ -78,7 +88,8 @@ import com.geoquiz.app.ui.theme.geoColors
 fun QuizScreen(
     onQuizComplete: (resultId: String) -> Unit,
     onNavigateHome: () -> Unit,
-    viewModel: QuizViewModel = hiltViewModel()
+    viewModel: QuizViewModel = hiltViewModel(),
+    hapticFeedbackPlayer: HapticFeedbackPlayer = rememberHapticFeedbackPlayer()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,6 +103,19 @@ fun QuizScreen(
     var showSettingsSheet by remember { mutableStateOf(false) }
 
     val completion by viewModel.completion.collectAsStateWithLifecycle()
+
+    // Answer feedback (3.3): a haptic and a short animation per answer. The haptic respects the
+    // system touch-feedback setting; the animation is skipped when animations are turned off.
+    val haptics by rememberUpdatedState(hapticFeedbackPlayer)
+    var feedbackSignal by remember { mutableStateOf(FeedbackSignal()) }
+    LaunchedEffect(viewModel) {
+        viewModel.feedbackEvents.collect { event ->
+            haptics.play(event)
+            feedbackSignal = feedbackSignal.next(event)
+        }
+    }
+    val reducedMotion = rememberReducedMotion()
+    val feedbackMotion = rememberFeedbackMotion(feedbackSignal, reducedMotion)
 
     // Auto-pause and save when the app goes to the background. Rotation also stops the
     // activity, but the ViewModel survives it, so the quiz keeps running.
@@ -124,7 +148,7 @@ fun QuizScreen(
                 ) {
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Loading quiz...")
+                    Text(stringResource(R.string.quiz_loading))
                 }
             }
         }
@@ -135,6 +159,28 @@ fun QuizScreen(
             val answeredCount = quizState.answeredCountries.size
             val totalCount = quizState.quiz.countries.size
             val progressDescription = A11yText.progress(res, viewModel.quizMode, answeredCount, totalCount)
+            val pausedText = stringResource(R.string.quiz_paused)
+            val resumedText = stringResource(R.string.quiz_resumed)
+
+            // Says "Paused" / "Resumed" when the player pauses or resumes (follow-up (f)). The
+            // live region node below is always composed, so TalkBack hears its text change;
+            // a live region on the overlay itself is created at the same moment and may be
+            // missed. Nothing is said for the state the screen opens in. "Resumed" is cleared
+            // after a few seconds so a later swipe does not land on stale text.
+            var pauseAnnouncement by remember { mutableStateOf("") }
+            var announcedPaused by remember { mutableStateOf<Boolean?>(null) }
+            LaunchedEffect(quizState.isPaused) {
+                val previous = announcedPaused
+                announcedPaused = quizState.isPaused
+                if (previous == null || previous == quizState.isPaused) return@LaunchedEffect
+                if (quizState.isPaused) {
+                    pauseAnnouncement = pausedText
+                } else {
+                    pauseAnnouncement = resumedText
+                    delay(RESUMED_ANNOUNCEMENT_MILLIS)
+                    pauseAnnouncement = ""
+                }
+            }
 
             Scaffold { padding ->
                 Box(
@@ -180,7 +226,7 @@ fun QuizScreen(
                                         Icons.Default.Info,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(inlineIconSize(18.dp))
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
@@ -202,7 +248,7 @@ fun QuizScreen(
                             // Polite live region: announced when the count changes (a correct
                             // answer), e.g. "12 of 197 countries named". Not tied to the timer.
                             Text(
-                                text = "$answeredCount / $totalCount",
+                                text = stringResource(R.string.quiz_count_of, answeredCount, totalCount),
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.clearAndSetSemantics {
                                     contentDescription = progressDescription
@@ -233,10 +279,10 @@ fun QuizScreen(
                                         Icons.Default.Close,
                                         contentDescription = null,
                                         tint = strikesColor,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(inlineIconSize(18.dp))
                                     )
                                     Text(
-                                        text = "${quizState.incorrectGuesses} / $strikeLimit",
+                                        text = stringResource(R.string.quiz_count_of, quizState.incorrectGuesses, strikeLimit),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = strikesColor
                                     )
@@ -254,7 +300,7 @@ fun QuizScreen(
                                         Icons.Default.Close,
                                         contentDescription = null,
                                         tint = MaterialTheme.geoColors.wrong,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(inlineIconSize(18.dp))
                                     )
                                     Text(
                                         text = "${quizState.incorrectGuesses}",
@@ -267,13 +313,15 @@ fun QuizScreen(
                             IconButton(onClick = { showSettingsSheet = true }) {
                                 Icon(
                                     Icons.Default.Settings,
-                                    contentDescription = "Settings"
+                                    contentDescription = stringResource(R.string.quiz_settings)
                                 )
                             }
                             IconButton(onClick = { viewModel.togglePause() }) {
                                 Icon(
                                     imageVector = if (quizState.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                                    contentDescription = if (quizState.isPaused) "Resume" else "Pause"
+                                    contentDescription = stringResource(
+                                        if (quizState.isPaused) R.string.quiz_resume else R.string.quiz_pause
+                                    )
                                 )
                             }
                         }
@@ -299,7 +347,7 @@ fun QuizScreen(
                             ) {
                                 Icon(
                                     Icons.Default.Close,
-                                    contentDescription = "Give Up",
+                                    contentDescription = stringResource(R.string.quiz_give_up),
                                     tint = if (!quizState.isPaused) MaterialTheme.geoColors.wrong
                                         else MaterialTheme.geoColors.wrong.copy(alpha = 0.38f)
                                 )
@@ -317,12 +365,27 @@ fun QuizScreen(
                                         question = choice,
                                         feedback = quizState.choiceFeedback,
                                         enabled = !quizState.isComplete && !quizState.isPaused,
-                                        onSelect = viewModel::onChoiceSelected
+                                        onSelect = viewModel::onChoiceSelected,
+                                        motion = feedbackMotion
                                     )
                                 }
                                 giveUpButton()
                             }
                         } else {
+                            // The last three correct answers, newest first, just above the
+                            // field (and so above the keyboard). Typed tiers only.
+                            val recentCountries = quizState.recentCorrect.mapNotNull { code ->
+                                quizState.quiz.countries.find { it.code == code }
+                            }
+                            if (recentCountries.isNotEmpty()) {
+                                RecentAnswers(
+                                    recent = recentCountries,
+                                    quizMode = viewModel.quizMode,
+                                    showCountryHint = showCountryHint
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
                             // Answer input
                             AnswerInput(
                                 value = quizState.currentInput,
@@ -330,7 +393,8 @@ fun QuizScreen(
                                 onSubmit = viewModel::onSubmitAnswer,
                                 lastResult = quizState.lastAnswerResult,
                                 enabled = !quizState.isComplete && !quizState.isPaused,
-                                quizMode = viewModel.quizMode
+                                quizMode = viewModel.quizMode,
+                                motion = feedbackMotion
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -347,7 +411,7 @@ fun QuizScreen(
                                     modifier = Modifier.weight(1f),
                                     enabled = !quizState.isComplete && !quizState.isPaused
                                 ) {
-                                    Text("Submit")
+                                    Text(stringResource(R.string.quiz_submit))
                                 }
                             }
                         }
@@ -382,15 +446,12 @@ fun QuizScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
-                                // Live region so pausing is announced when the overlay appears.
+                                // Pausing is announced by the status node after the overlay.
                                 Text(
-                                    "Paused",
+                                    pausedText,
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.semantics {
-                                        heading()
-                                        liveRegion = LiveRegionMode.Polite
-                                    }
+                                    modifier = Modifier.semantics { heading() }
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
@@ -405,11 +466,25 @@ fun QuizScreen(
                                 )
                                 Spacer(modifier = Modifier.height(24.dp))
                                 Button(onClick = { viewModel.togglePause() }) {
-                                    Text("Resume")
+                                    Text(stringResource(R.string.quiz_resume))
                                 }
                             }
                         }
                     }
+
+                    // Always-composed status for TalkBack (see pauseAnnouncement). 1 dp and
+                    // clipped: nothing visible, but still on screen, so TalkBack keeps it.
+                    // Without a description while idle, so it is never an empty focus stop.
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .size(1.dp)
+                            .clipToBounds()
+                            .semantics {
+                                liveRegion = LiveRegionMode.Polite
+                                if (pauseAnnouncement.isNotEmpty()) contentDescription = pauseAnnouncement
+                            }
+                    )
                 }
             }
 
@@ -423,7 +498,7 @@ fun QuizScreen(
                             .padding(horizontal = 24.dp, vertical = 16.dp)
                     ) {
                         Text(
-                            "Settings",
+                            stringResource(R.string.quiz_settings),
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier
                                 .padding(bottom = 16.dp)
@@ -432,22 +507,34 @@ fun QuizScreen(
                         if (difficulty.timerAlwaysShown) {
                             // Hard always shows the timer (D15), so there is nothing to switch.
                             SettingsToggleRow(
-                                label = "Show Timer",
+                                label = stringResource(R.string.quiz_setting_show_timer),
                                 description = stringResource(R.string.quiz_timer_always_shown_hard),
                                 checked = true,
                                 enabled = false,
                                 onToggle = {}
                             )
                         } else {
-                            SettingsToggleRow("Show Timer", "Display count-up timer during quizzes", showTimer) {
+                            SettingsToggleRow(
+                                stringResource(R.string.quiz_setting_show_timer),
+                                stringResource(R.string.quiz_setting_show_timer_summary),
+                                showTimer
+                            ) {
                                 viewModel.toggleShowTimer()
                             }
                         }
-                        SettingsToggleRow("Show Flags", "Show flags next to countries", showFlags) {
+                        SettingsToggleRow(
+                            stringResource(R.string.quiz_setting_show_flags),
+                            stringResource(R.string.quiz_setting_show_flags_summary),
+                            showFlags
+                        ) {
                             viewModel.toggleShowFlags()
                         }
                         if (viewModel.quizMode == QuizMode.CAPITALS) {
-                            SettingsToggleRow("Country Hint", "Show the country name as a clue", showCountryHint) {
+                            SettingsToggleRow(
+                                stringResource(R.string.quiz_setting_country_hint),
+                                stringResource(R.string.quiz_setting_country_hint_summary),
+                                showCountryHint
+                            ) {
                                 viewModel.toggleShowCountryHint()
                             }
                         }
@@ -459,7 +546,7 @@ fun QuizScreen(
             if (showGiveUpDialog) {
                 AlertDialog(
                     onDismissRequest = { showGiveUpDialog = false },
-                    title = { Text("Give Up?") },
+                    title = { Text(stringResource(R.string.quiz_give_up_title)) },
                     text = {
                         Text(
                             stringResource(
@@ -474,12 +561,12 @@ fun QuizScreen(
                             showGiveUpDialog = false
                             viewModel.onGiveUp()
                         }) {
-                            Text("Yes, Give Up")
+                            Text(stringResource(R.string.quiz_give_up_confirm))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showGiveUpDialog = false }) {
-                            Text("Keep Going")
+                            Text(stringResource(R.string.quiz_give_up_dismiss))
                         }
                     }
                 )
@@ -513,3 +600,6 @@ private fun SettingsToggleRow(
         Switch(checked = checked, onCheckedChange = { onToggle() }, enabled = enabled)
     }
 }
+
+/** How long "Resumed" stays in the TalkBack status after it has been announced. */
+private const val RESUMED_ANNOUNCEMENT_MILLIS = 3_000L

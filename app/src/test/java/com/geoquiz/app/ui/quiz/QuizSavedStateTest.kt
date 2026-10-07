@@ -158,4 +158,42 @@ class QuizSavedStateTest {
         assertTrue(restored.remainingOrder.isEmpty())
         assertTrue(restored.missedCountries.isEmpty())
     }
+
+    // Recent correct answers (3.3)
+
+    @Test
+    fun `recent correct answers round-trip newest first`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(running.copy(recentCorrect = listOf("AUT", "FRA")), 0L)
+
+        val snapshot = QuizSavedState(recreate(handle)).restore()!!
+
+        assertEquals(listOf("AUT", "FRA"), snapshot.recentCorrect)
+        assertEquals(listOf("AUT", "FRA"), snapshot.toQuizState(quiz).recentCorrect)
+        assertTrue(handle.contains(QuizSavedState.KEY_RECENT_CORRECT))
+    }
+
+    @Test
+    fun `recent answers that are not answered in the rebuilt quiz are dropped`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(
+            running.copy(answeredCountries = setOf("FRA", "PER"), recentCorrect = listOf("PER", "DEU", "FRA")),
+            0L
+        )
+
+        val restored = QuizSavedState(handle).restore()!!.toQuizState(quiz)
+
+        assertEquals(listOf("FRA"), restored.recentCorrect)
+    }
+
+    @Test
+    fun `a handle saved before recent answers existed restores an empty list`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(running, 0L)
+        handle.remove<Any?>(QuizSavedState.KEY_RECENT_CORRECT)
+
+        val restored = QuizSavedState(recreate(handle)).restore()!!.toQuizState(quiz)
+
+        assertTrue(restored.recentCorrect.isEmpty())
+    }
 }

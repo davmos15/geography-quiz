@@ -39,6 +39,9 @@ import com.geoquiz.app.domain.mode.ChoicePrompt
 import com.geoquiz.app.domain.mode.ChoiceQuestion
 import com.geoquiz.app.domain.model.ChoiceFeedback
 import com.geoquiz.app.ui.components.FlagImage
+import com.geoquiz.app.ui.quiz.feedback.FeedbackMotion
+import com.geoquiz.app.ui.quiz.feedback.pulseOnCorrect
+import com.geoquiz.app.ui.quiz.feedback.shakeOnWrong
 import com.geoquiz.app.ui.theme.geoColors
 
 /** Height of the flag in a flag prompt: 160 dp wide at the 4:3 flag shape. */
@@ -52,6 +55,9 @@ private enum class OptionLook { NEUTRAL, CORRECT, WRONG, DIMMED }
  * full-width button per option. After a pick ([feedback] set) the correct option turns blue with
  * a tick, a wrongly picked option orange with a cross, the rest are dimmed, and nothing can be
  * picked until the next question. A polite live region announces the result.
+ *
+ * [motion] (3.3) pulses the feedback line after a correct pick and shakes it after a wrong one;
+ * null, or reduced motion, keeps it still.
  */
 @Composable
 fun MultipleChoicePanel(
@@ -59,7 +65,8 @@ fun MultipleChoicePanel(
     feedback: ChoiceFeedback?,
     enabled: Boolean,
     onSelect: (code: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    motion: FeedbackMotion? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -91,12 +98,18 @@ fun MultipleChoicePanel(
                 feedback.isCorrect -> FeedbackLine(
                     icon = Icons.Filled.Check,
                     text = stringResource(R.string.choice_feedback_correct),
-                    color = MaterialTheme.geoColors.correct
+                    color = MaterialTheme.geoColors.correct,
+                    style = MaterialTheme.typography.bodyMedium,
+                    iconSize = FEEDBACK_ICON_SIZE,
+                    modifier = Modifier.pulseOnCorrect(motion)
                 )
                 else -> FeedbackLine(
                     icon = Icons.Filled.Close,
                     text = stringResource(R.string.choice_feedback_incorrect, question.correctOption.label),
-                    color = MaterialTheme.geoColors.wrong
+                    color = MaterialTheme.geoColors.wrong,
+                    style = MaterialTheme.typography.bodyMedium,
+                    iconSize = FEEDBACK_ICON_SIZE,
+                    modifier = Modifier.shakeOnWrong(motion)
                 )
             }
         }
@@ -227,21 +240,5 @@ private fun ResultIcon(icon: ImageVector, description: String, tint: Color) {
     )
 }
 
-/** Icon + text, never colour alone. The icon is decorative: the text says it. */
-@Composable
-private fun FeedbackLine(icon: ImageVector, text: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            color = color,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
+/** Feedback icon size at 100% font; scaled with the text by [inlineIconSize]. */
+private val FEEDBACK_ICON_SIZE = 18.dp

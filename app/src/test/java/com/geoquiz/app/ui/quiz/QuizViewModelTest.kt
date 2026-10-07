@@ -27,6 +27,7 @@ import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.testutil.TestGameModes
 import com.geoquiz.app.testutil.TestQuizData
+import com.geoquiz.app.ui.quiz.feedback.AnswerFeedbackEvent
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -34,7 +35,11 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -775,5 +780,140 @@ class QuizViewModelTest {
         assertEquals(ChoicePrompt.CapitalOf(target.name), choice.prompt)
         assertEquals(target.capital, choice.correctOption.label)
         coVerify(exactly = 0) { validateCapitalAnswer(any(), any(), any()) }
+    }
+
+    // Answer feedback events and recent answers (3.3)
+
+    /** Collects [QuizViewModel.feedbackEvents] from now on, as the screen does. */
+    private fun QuizViewModel.collectFeedback(): List<AnswerFeedbackEvent> {
+        val events = mutableListOf<AnswerFeedbackEvent>()
+        CoroutineScope(dispatcher + Job()).launch { feedbackEvents.toList(events) }
+        runCurrent()
+        return events
+    }
+
+    @Test
+    fun `typed answers send correct, incorrect and already answered events`() {
+        val vm = viewModel(routeHandle())
+        val events = vm.collectFeedback()
+
+        vm.answer("France")
+        vm.answer("Narnia")
+        vm.answer("France")
+
+        assertEquals(
+            listOf(AnswerFeedbackEvent.CORRECT, AnswerFeedbackEvent.INCORRECT, AnswerFeedbackEvent.ALREADY_ANSWERED),
+            events
+        )
+    }
+
+    @Test
+    fun `an ambiguous typo at normal is a near miss event and no strike`() {
+        coEvery { validateAnswer("Germnay", any(), true) } returns AnswerResult.NearMiss
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+        val events = vm.collectFeedback()
+
+        vm.answer("Germnay")
+
+        assertEquals(listOf(AnswerFeedbackEvent.NEAR_MISS), events)
+        assertEquals(AnswerResult.NearMiss, vm.quizState().lastAnswerResult)
+        assertEquals(0, vm.quizState().incorrectGuesses)
+        assertEquals("Germnay", vm.quizState().currentInput)
+    }
+
+    @Test
+    fun `hard strikes send incorrect events, including the last one, and a typo is a near miss`() {
+        coEvery { validateAnswer("Germnay", any(), false) } returns AnswerResult.NearMiss
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
+        val events = vm.collectFeedback()
+
+        vm.answer("Germnay")
+        repeat(3) { vm.answer("Narnia $it") }
+
+        assertEquals(
+            listOf(AnswerFeedbackEvent.NEAR_MISS) + List(3) { AnswerFeedbackEvent.INCORRECT },
+            events
+        )
+        assertTrue(vm.quizState().isComplete)
+    }
+
+    @Test
+    fun `easy picks send correct and incorrect events`() {
+        val vm = easyViewModel()
+        val events = vm.collectFeedback()
+
+        vm.pick(correct = true)
+        finishFeedback()
+        vm.pick(correct = false)
+
+        assertEquals(listOf(AnswerFeedbackEvent.CORRECT, AnswerFeedbackEvent.INCORRECT), events)
+    }
+
+    @Test
+    fun `ignored submits and picks send no event`() {
+        val vm = viewModel(routeHandle())
+        val events = vm.collectFeedback()
+
+        vm.answer("   ")
+        vm.togglePause()
+        vm.answer("France")
+
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun `recent answers keep the last three correct answers, newest first`() {
+        coEvery { getCountriesForQuiz(any()) } returns TestQuizData.THREE + TestQuizData.PERU
+        val vm = viewModel(routeHandle())
+
+        vm.answer("France")
+        assertEquals(listOf("FRA"), vm.quizState().recentCorrect)
+        vm.answer("Germany")
+        vm.answer("Narnia")
+        vm.answer("France")
+        assertEquals("wrong and repeated answers change nothing", listOf("DEU", "FRA"), vm.quizState().recentCorrect)
+        vm.answer("Austria")
+        vm.answer("Peru")
+
+        assertEquals(listOf("PER", "AUT", "DEU"), vm.quizState().recentCorrect)
+    }
+
+    @Test
+    fun `capitals recent answers hold the country code of the answered capital`() {
+        coEvery { getCountriesForCapitalQuiz(any()) } returns TestQuizData.THREE
+        coEvery { validateCapitalAnswer("Paris", any(), any()) } returns AnswerResult.Correct("France")
+        coEvery { validateCapitalAnswer("Vienna", any(), any()) } returns AnswerResult.Correct("Austria")
+
+        val vm = viewModel(routeHandle(quizMode = "capitals"))
+        vm.answer("Paris")
+        vm.answer("Vienna")
+
+        assertEquals(listOf("AUT", "FRA"), vm.quizState().recentCorrect)
+    }
+
+    @Test
+    fun `easy keeps no recent answers`() {
+        val vm = easyViewModel()
+
+        vm.pick(correct = true)
+        finishFeedback()
+        vm.pick(correct = true)
+
+        assertEquals(2, vm.quizState().answeredCountries.size)
+        assertTrue(vm.quizState().recentCorrect.isEmpty())
+    }
+
+    @Test
+    fun `recent answers survive process death`() {
+        val handle = routeHandle()
+        val first = viewModel(handle)
+        first.answer("Austria")
+        first.answer("France")
+        first.onBackgrounded()
+        runCurrent()
+
+        val second = viewModel(afterProcessDeath(handle))
+
+        assertEquals(listOf("FRA", "AUT"), second.quizState().recentCorrect)
     }
 }

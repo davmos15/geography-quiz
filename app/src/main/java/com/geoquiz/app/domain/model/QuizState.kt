@@ -25,7 +25,12 @@ data class QuizState(
     /** Easy: codes still to be asked after [choice], in the order they will be asked. */
     val remainingOrder: List<String> = emptyList(),
     /** Easy: codes asked and answered wrongly. They are not asked again. */
-    val missedCountries: Set<String> = emptySet()
+    val missedCountries: Set<String> = emptySet(),
+    /**
+     * Normal and Hard (typed): codes of the latest correct answers, newest first, at most
+     * [RECENT_CORRECT_MAX]. Shown above the answer field; stays empty at Easy.
+     */
+    val recentCorrect: List<String> = emptyList()
 ) {
     val progress: Float
         get() = if (quiz.countries.isEmpty()) 0f
@@ -36,6 +41,15 @@ data class QuizState(
 
     val timerRemaining: Int?
         get() = quiz.timerSeconds?.let { (it - timeElapsedSeconds).coerceAtLeast(0) }
+
+    companion object {
+        /** How many recent correct answers [recentCorrect] keeps. */
+        const val RECENT_CORRECT_MAX = 3
+
+        /** [recent] with [code] added as the newest, without duplicates, capped at [RECENT_CORRECT_MAX]. */
+        fun pushRecentCorrect(recent: List<String>, code: String): List<String> =
+            (listOf(code) + recent.filter { it != code }).take(RECENT_CORRECT_MAX)
+    }
 }
 
 /** Easy: the option the player picked on the current question. */

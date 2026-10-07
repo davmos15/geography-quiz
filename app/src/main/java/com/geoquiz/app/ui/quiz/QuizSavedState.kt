@@ -14,7 +14,8 @@ import com.geoquiz.app.domain.model.QuizState
  * ViewModel and does not need this.
  *
  * The quiz's countries are not stored: they are rebuilt from the route's category, and only the
- * player's progress is applied on top. The last answer feedback is not restored.
+ * player's progress is applied on top. The last answer feedback is not restored; the recent
+ * correct answers shown above the answer field (Normal and Hard) are.
  *
  * Easy quizzes also keep their multiple-choice progress: the order still to be asked, the missed
  * codes and the question on screen (target, options with their labels, and the prompt), so a
@@ -37,7 +38,9 @@ class QuizSavedState(private val handle: SavedStateHandle) {
         /** Easy only: codes answered wrongly. */
         val missedCodes: List<String> = emptyList(),
         /** Easy only: the question on screen. */
-        val choice: ChoiceQuestion? = null
+        val choice: ChoiceQuestion? = null,
+        /** Normal and Hard: latest correct answers, newest first. */
+        val recentCorrect: List<String> = emptyList()
     ) {
         /**
          * Rebuilds the state for [quiz]. Codes that are not in the quiz are dropped. A quiz that
@@ -45,9 +48,10 @@ class QuizSavedState(private val handle: SavedStateHandle) {
          */
         fun toQuizState(quiz: Quiz): QuizState {
             val quizCodes = quiz.countries.mapTo(HashSet()) { it.code }
+            val answered = answeredCodes.filter { it in quizCodes }.toSet()
             return QuizState(
                 quiz = quiz,
-                answeredCountries = answeredCodes.filter { it in quizCodes }.toSet(),
+                answeredCountries = answered,
                 currentInput = currentInput,
                 isComplete = isComplete,
                 isPaused = !isComplete,
@@ -55,7 +59,9 @@ class QuizSavedState(private val handle: SavedStateHandle) {
                 incorrectGuessStrings = incorrectGuessStrings,
                 choice = choice,
                 remainingOrder = remainingOrder.filter { it in quizCodes },
-                missedCountries = missedCodes.filter { it in quizCodes }.toSet()
+                missedCountries = missedCodes.filter { it in quizCodes }.toSet(),
+                recentCorrect = recentCorrect.filter { it in answered }.distinct()
+                    .take(QuizState.RECENT_CORRECT_MAX)
             )
         }
     }
@@ -72,6 +78,7 @@ class QuizSavedState(private val handle: SavedStateHandle) {
         handle[KEY_PAUSED] = state.isPaused
         handle[KEY_COMPLETE] = state.isComplete
         handle[KEY_ELAPSED_MILLIS] = elapsedMillis
+        handle[KEY_RECENT_CORRECT] = ArrayList(state.recentCorrect)
         saveChoice(state)
     }
 
@@ -135,7 +142,8 @@ class QuizSavedState(private val handle: SavedStateHandle) {
             elapsedMillis = handle[KEY_ELAPSED_MILLIS] ?: 0L,
             remainingOrder = handle.get<ArrayList<String>>(KEY_CHOICE_REMAINING).orEmpty(),
             missedCodes = handle.get<ArrayList<String>>(KEY_CHOICE_MISSED).orEmpty(),
-            choice = restoreChoice()
+            choice = restoreChoice(),
+            recentCorrect = handle.get<ArrayList<String>>(KEY_RECENT_CORRECT).orEmpty()
         )
     }
 
@@ -169,6 +177,7 @@ class QuizSavedState(private val handle: SavedStateHandle) {
         const val KEY_COMPLETE = "quiz_complete"
         const val KEY_ELAPSED_MILLIS = "quiz_elapsed_millis"
         const val KEY_RESULT_ID = "quiz_result_id"
+        const val KEY_RECENT_CORRECT = "quiz_recent_correct"
         const val KEY_CHOICE_REMAINING = "quiz_choice_remaining"
         const val KEY_CHOICE_MISSED = "quiz_choice_missed"
         const val KEY_CHOICE_TARGET = "quiz_choice_target"

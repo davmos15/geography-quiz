@@ -174,13 +174,13 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - String routes in `J/ui/navigation/Screen.kt`, graph in `J/ui/navigation/AppNavigation.kt`. Bottom bar has 3 tabs (`countries_home`, `capitals_home`, `flags_home`). Other routes: settings, debug_menu (debug only), stats, achievements, challenges, answer_review, `category/{quizMode}/{groupId}`, `quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId=`, `results/...` (11 path args), `challenge_accept/{challengeId}`.
 - No `navDeepLink`: `MainActivity.handleDeepLink` writes a mutableState and a `LaunchedEffect` navigates.
 
-**Quiz flow**
-- Home → `CategoryListScreen` → `QuizViewModel` (`J/ui/quiz/QuizViewModel.kt`). It uses `SavedStateHandle` for nav args only (lines 55-64); quiz state is not in it.
-- `loadQuiz` (lines 101-142) picks the use case by mode/category. `onSubmitAnswer` (lines 202-250) validates: Correct / AlreadyAnswered / Incorrect. Hard mode ends at 3 incorrect (line 235).
-- Timer (lines 144-157): coroutine `delay(1000)` loop incrementing `_timerSeconds`. Not monotonic-clock based, so it drifts.
-- On `ON_STOP` (`QuizScreen.kt:80`) the quiz pauses and saves to Room `saved_quizzes` (single row id=1, only if ≥1 answer). Restored if type/value/mode match. A "Resume Quiz" card appears on Countries home only (`HomeScreen.kt:136-174`).
+**Quiz flow** (since Phase 2)
+- Home → `CategoryListScreen` → `QuizViewModel` (`J/ui/quiz/QuizViewModel.kt`). `loadQuiz` picks the use case by mode/category; `onSubmitAnswer` validates (`allowFuzzy = !hardMode`): Correct / AlreadyAnswered / Incorrect / NearMiss. Hard mode ends at 3 Incorrect (NearMiss never counts).
+- Progress survives rotation and process death: `J/ui/quiz/QuizSavedState.kt` keeps answered codes, wrong guesses, input, timer millis and the result id in the `SavedStateHandle`. Restore order: SavedStateHandle > Room resume save > fresh quiz; a restored quiz comes back paused. Rotation does not pause (ON_STOP is skipped while `isChangingConfigurations`).
+- Timer: `J/domain/time/QuizTimer.kt` on `MonotonicClock` (`SystemClock.elapsedRealtime`, `J/di/ClockModule.kt`): accumulated millis + running-since; the display ticker wakes at each whole second; saving and scoring read the clock.
+- On real backgrounding the quiz pauses and saves to Room `saved_quizzes` (single row, only if ≥1 answer) for the "Resume quiz" card on Countries home.
 - Score (`CalculateScoreUseCase`): `(correct/total) * correct`, ×1.2 if perfect.
-- `getResult` (lines 264-327) fills the global singleton `J/ui/results/QuizResultHolder` (lost on process death), runs achievements, Play Games unlocks, history and leaderboards, then clears the saved quiz. `QuizScreen.kt:107-127` shows an interstitial, then navigates to Results with all data as path args.
+- Completion: `J/domain/usecase/CompleteQuizUseCase.kt` scores the quiz, saves a `CompletedQuiz` to the `last_result` DataStore with an atomic `saveIfAbsent` (only the latest is kept), clears the Room save, then records achievements, Play Games unlocks, history and leaderboards, exactly once per result id. Navigation goes to `results/{resultId}`; Results and `answer_review/{resultId}` load the record by id and show "no longer available" if it is gone. `QuizResultHolder` no longer exists.
 
 **Room** (since Phase 2, task 2.1)
 - Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
@@ -207,16 +207,17 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 **Ads, billing, Play Games**
 - Since Phase 1 (D8): `J/data/service/ConsentManager.kt` runs UMP 3.2.0 (`gatherConsent` from `MainActivity.onCreate`, under-age tag) and initialises the Mobile Ads SDK once, after `AdTagging.requestConfiguration()` (TFCD + TFUA + rating G). SDK calls sit behind `ConsentGateway` / `InterstitialAdLoader` (bound in `J/di/AdsModule.kt`) so they are unit-tested. `BannerAd` (Hilt `@EntryPoint`) and `AdManager.preloadInterstitial` wait for `canRequestAds`. The manifest removes `AD_ID` and the three `ACCESS_ADSERVICES_*` permissions (`tools:node="remove"`). UMP 4.0.0 exists; we stayed on 3.x.
 - UMP testing: no debug geography is wired up. To see the form, add `ConsentDebugSettings` (EEA + test device hash from logcat) in `GoogleConsentGateway.requestConsent` behind `BuildConfig.DEBUG`, or add a debug-menu action.
-- `AdManager`: an interstitial is preloaded in `QuizViewModel.init` and shown on every quiz completion, including give-up. No frequency cap. Skipped if `ads_removed`. Banners on the three home screens.
+- Interstitials (since 2.4): preloaded in `QuizViewModel.init`; `J/data/service/InterstitialPolicy.kt` (in memory) allows one per 3 completed quizzes (give-ups count), never after a quiz under 60 s of play, reset only when an ad actually shows. `ResultsViewModel` decides once per Results entry and the screen shows it after its first frame. Skipped if `ads_removed`. Banners on the three home screens.
 - Billing: one INAPP product `remove_ads`; restore on resume and from Settings.
-- Achievements: **38** in the `Achievement` enum (`J/domain/model/Achievement.kt`), mapped to IDs in `PlayGamesAchievementIds.kt`. The same list is duplicated in `generate_achievements_zip.py:25-71`. The README says "30+". Local DataStore is the source of truth; `MainActivity` (lines 50-68) re-syncs all unlocks and leaderboard totals once Play Games sign-in succeeds.
+- Achievements: **38** in the `Achievement` enum (`J/domain/model/Achievement.kt`, the single source; `generate_achievements_zip.py` parses it and `--check` runs in CI), mapped to IDs in `PlayGamesAchievementIds.kt` (`PlayGamesAchievementIdsTest`). Local DataStore is the source of truth; `J/data/service/PlayGamesSyncManager.kt` re-syncs all unlocks and leaderboard totals on every sign-in, when a validated network returns and when the unlock set changes (debounced 2 s, needs an attached activity).
 
-**Challenges and deep links**
-- `J/domain/model/ChallengeDeepLink.kt`: query params `id`, `ct`, `cv`, `name`, `mode`, optional `score`/`total`/`time` (`toIntOrNull`). Accepts `geoquiz://challenge` and `https://geoquiz-app.netlify.app/challenge.html`. No signing; scores are trusted.
-- Manifest has a VIEW filter for `geoquiz://challenge` only (`autoVerify="false"`). There is no https filter; the netlify page (`docs/challenge.html`) redirects to the custom scheme. `allowBackup="false"`.
+**Challenges and deep links** (since 2.7)
+- `J/domain/challenge/ChallengeLinkParser.kt` + `ChallengeLinkSigner.kt`: strict origin (`geoquiz://challenge`, `https://geoquiz-app.netlify.app/challenge[.html]`), id `[A-Za-z0-9-]{1,64}`, known mode, `QuizCategory.fromRouteOrNull` + `isOfferedIn(mode)`, numbers clamped (total 1..197, score 0..total, time 0..86400), names sanitised to 24 characters. HMAC-SHA256 over a length-prefixed canonical form, params `v=1` and `sig`. Unsigned or tampered links keep the challenge but drop the score. Key: `BuildConfig.CHALLENGE_HMAC_KEY` from `signing.properties` `challengeHmacKey` or env `CHALLENGE_HMAC_KEY`; dev key fallback for debug/CI; `preReleaseBuild` fails without a real key.
+- `J/ui/challenges/IncomingChallengeHandler.kt` rejects categories with no countries; invalid links show a Toast. `MainActivity` handles the launch link only when `savedInstanceState == null`, plus `onNewIntent`.
+- Manifest: `geoquiz://challenge` filter plus an https filter with `autoVerify="true"` (host geoquiz-app.netlify.app, pathPrefix `/challenge`). `docs/.well-known/assetlinks.json` lists the upload key (com.geoquiz.app) and the debug key (com.geoquiz.app.debug); the Play signing key is an owner action. `allowBackup="false"`.
 
-**Accessibility**
-- No `semantics`, `clearAndSetSemantics` or `liveRegion` anywhere. Flag emoji have no description. Some icons are described (Back, Pause/Resume, Give Up, Answered/Missed); many decorative icons use `null`.
+**Accessibility** (since 2.8)
+- `J/ui/components/A11yText.kt` builds spoken descriptions (plurals in strings.xml). The quiz count ("12 of 197 countries named") and answer feedback are polite live regions; the timer has a description but is not a live region. Quiz and review rows are one item each (`clearAndSetSemantics`), never reading the hidden answer. Headings on titles and sections; cards are buttons with action labels.
 
 **Strings**
 - Existing UI hard-codes English strings. `strings.xml` held only IDs until Phase 0. New UI uses `strings.xml`.
@@ -228,7 +229,7 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 
 **Tests**
 - `app/src/test`: `CalculateScoreUseCaseTest`, `NormalizeInputUseCaseTest`, `ValidateAnswerUseCaseTest`, `PurchaseActionTest`, `FeatureFlagRepositoryTest`; Phase 1 added `FlagAssetPathTest`, `FlagAssetsPresentTest`, `ConsentManagerTest` (with a reusable `FakeConsentGateway`), `AdManagerTest`, `AdTaggingTest`, `ResetAllDataUseCaseTest`, `SettingsViewModelTest` (64 tests total). No `androidTest`, no Room migration or UI tests.
-- Local builds are slow on this machine (R8 release about 20 min). Sub-agents run `assembleDebug testDebugUnitTest`; the lead runs lint and release once per wave. Running `lintDebug assembleRelease` together once crashed a lint detector; run separately, both pass.
+- Local builds are slow on this machine (R8 release about 14–20 min, 8 GB RAM: never run two Gradle builds at once). Sub-agents run `assembleDebug testDebugUnitTest`; the lead runs lint and release once per wave. Running `lintDebug assembleRelease` together once crashed a lint detector; run separately, both pass.
 - `core.autocrlf=true` locally: Git warns LF to CRLF on new files. `tools/fonts/.gitattributes` keeps the font files and OFL byte-exact.
 
 **Licensing recon (0.2)**

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.roborazzi)
 }
 
 import java.io.FileInputStream
@@ -124,6 +125,12 @@ android {
     }
 }
 
+// Screenshot tests (Roborazzi on Robolectric). Goldens are committed under src/test/screenshots.
+// Record: ./gradlew recordRoborazziDebug   Verify: ./gradlew verifyRoborazziDebug
+roborazzi {
+    outputDir.set(file("src/test/screenshots"))
+}
+
 // A release build must not ship the dev challenge key. Checked when a release task actually
 // runs, so debug-only builds and CI work without the key.
 val requireChallengeKeyForRelease = challengeHmacKey == null
@@ -204,4 +211,10 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

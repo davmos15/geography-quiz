@@ -32,8 +32,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Build, unit test and lint
-        run: ./gradlew assembleDebug testDebugUnitTest lintDebug
+      # verifyRoborazziDebug runs the whole testDebugUnitTest task (every JVM unit test) with
+      # screenshot comparison switched on, so testDebugUnitTest is not listed separately.
+      - name: Build, unit test (with screenshot verification) and lint
+        run: ./gradlew assembleDebug verifyRoborazziDebug lintDebug
 
       - name: Upload test and lint reports
         if: always()
@@ -43,4 +45,12 @@ jobs:
           path: |
             app/build/reports/
             app/build/test-results/
+          if-no-files-found: ignore
+
+      - name: Upload screenshot diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: roborazzi-diffs
+          path: app/build/outputs/roborazzi/
           if-no-files-found: ignore

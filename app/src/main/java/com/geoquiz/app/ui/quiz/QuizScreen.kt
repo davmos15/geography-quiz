@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -357,13 +358,10 @@ fun QuizScreen(
                                     }
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
-                                val itemLabel = when (viewModel.quizMode) {
-                                    QuizMode.CAPITALS -> "capitals named"
-                                    QuizMode.FLAGS -> "flags identified"
-                                    QuizMode.COUNTRIES -> "countries named"
-                                }
                                 Text(
-                                    "$answeredCount / $totalCount $itemLabel",
+                                    stringResource(
+                                        viewModel.modeSpec.labels.pausedProgress, answeredCount, totalCount
+                                    ),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.clearAndSetSemantics {
@@ -420,14 +418,12 @@ fun QuizScreen(
                     onDismissRequest = { showGiveUpDialog = false },
                     title = { Text("Give Up?") },
                     text = {
-                        val giveUpLabel = when (viewModel.quizMode) {
-                            QuizMode.CAPITALS -> "capitals"
-                            QuizMode.FLAGS -> "flags"
-                            QuizMode.COUNTRIES -> "countries"
-                        }
                         Text(
-                            "You've named ${quizState.answeredCountries.size} of " +
-                                    "${quizState.quiz.countries.size} $giveUpLabel. Are you sure?"
+                            stringResource(
+                                viewModel.modeSpec.labels.giveUpMessage,
+                                quizState.answeredCountries.size,
+                                quizState.quiz.countries.size
+                            )
                         )
                     },
                     confirmButton = {

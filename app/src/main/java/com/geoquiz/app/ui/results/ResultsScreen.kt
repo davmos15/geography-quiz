@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -203,11 +204,7 @@ private fun ResultsContent(
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
-                    val resultLabel = when (quizMode) {
-                        "capitals" -> "Capitals"
-                        "flags" -> "Flags"
-                        else -> "Countries"
-                    }
+                    val resultLabel = stringResource(QuizMode.fromId(quizMode).spec.labels.name)
                     val res = a11yResources()
                     ResultRow(
                         resultLabel,

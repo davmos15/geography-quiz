@@ -143,4 +143,21 @@
     <string name="action_start_quiz">Start quiz</string>
     <string name="action_resume_quiz">Resume quiz</string>
     <string name="action_open_category">Open category</string>
+
+    <!-- Game modes (domain/mode/classic/ClassicGameModes.kt) -->
+    <string name="mode_countries_name">Countries</string>
+    <string name="mode_capitals_name">Capitals</string>
+    <string name="mode_flags_name">Flags</string>
+    <string name="mode_countries_input_label">Enter a country name</string>
+    <string name="mode_capitals_input_label">Enter a capital city</string>
+    <string name="mode_flags_input_label">Enter a country name</string>
+    <string name="mode_countries_items">countries</string>
+    <string name="mode_capitals_items">capitals</string>
+    <string name="mode_flags_items">flags</string>
+    <string name="mode_countries_paused_progress">%1$d / %2$d countries named</string>
+    <string name="mode_capitals_paused_progress">%1$d / %2$d capitals named</string>
+    <string name="mode_flags_paused_progress">%1$d / %2$d flags identified</string>
+    <string name="mode_countries_give_up">You\'ve named %1$d of %2$d countries. Are you sure?</string>
+    <string name="mode_capitals_give_up">You\'ve named %1$d of %2$d capitals. Are you sure?</string>
+    <string name="mode_flags_give_up">You\'ve named %1$d of %2$d flags. Are you sure?</string>
 </resources>

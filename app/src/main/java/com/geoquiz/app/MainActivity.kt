@@ -14,9 +14,10 @@ import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.data.service.PlayGamesSyncManager
+import com.geoquiz.app.domain.challenge.AcceptIncomingChallengeUseCase
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
+import com.geoquiz.app.domain.challenge.IncomingChallengeOutcome
 import com.geoquiz.app.domain.model.ChallengeDeepLink
-import com.geoquiz.app.ui.challenges.IncomingChallengeHandler
-import com.geoquiz.app.ui.challenges.IncomingChallengeOutcome
 import com.geoquiz.app.ui.navigation.AppNavigation
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +30,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var playGamesService: PlayGamesAchievementService
     @Inject lateinit var playGamesSyncManager: PlayGamesSyncManager
-    @Inject lateinit var incomingChallengeHandler: IncomingChallengeHandler
+    @Inject lateinit var acceptIncomingChallenge: AcceptIncomingChallengeUseCase
+    @Inject lateinit var challengeLinkSigner: ChallengeLinkSigner
     @Inject lateinit var billingRepository: BillingRepository
     @Inject lateinit var consentManager: ConsentManager
 
@@ -73,9 +75,9 @@ class MainActivity : ComponentActivity() {
 
     private fun handleDeepLink(uri: Uri?) {
         if (uri == null) return
-        val parsed = ChallengeDeepLink.parse(uri)
+        val parsed = ChallengeDeepLink.parse(uri, challengeLinkSigner)
         lifecycleScope.launch {
-            when (val outcome = incomingChallengeHandler.handle(parsed)) {
+            when (val outcome = acceptIncomingChallenge(parsed)) {
                 is IncomingChallengeOutcome.Accepted -> deepLinkChallenge.value = outcome.link
                 is IncomingChallengeOutcome.Rejected -> {
                     Log.w(TAG, "Challenge link rejected: ${outcome.reason}")

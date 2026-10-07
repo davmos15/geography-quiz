@@ -1,13 +1,13 @@
-package com.geoquiz.app.ui.challenges
+package com.geoquiz.app.domain.challenge
 
 import com.geoquiz.app.data.repository.ChallengeRepository
-import com.geoquiz.app.domain.challenge.ChallengeLinkParseResult
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
+import com.geoquiz.app.testutil.TestGameModes
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -16,13 +16,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class IncomingChallengeHandlerTest {
+class AcceptIncomingChallengeUseCaseTest {
 
     private val repository = mockk<ChallengeRepository>(relaxed = true)
     private val countriesQuiz = mockk<GetCountriesForQuizUseCase>()
     private val capitalsQuiz = mockk<GetCountriesForCapitalQuizUseCase>()
     private val flagsQuiz = mockk<GetCountriesForFlagQuizUseCase>()
-    private val handler = IncomingChallengeHandler(repository, countriesQuiz, capitalsQuiz, flagsQuiz)
+    private val gameModes = TestGameModes.registry(
+        getCountriesForQuiz = countriesQuiz,
+        getCountriesForCapitalQuiz = capitalsQuiz,
+        getCountriesForFlagQuiz = flagsQuiz
+    )
+    private val acceptChallenge = AcceptIncomingChallengeUseCase(repository, gameModes)
 
     private val country = mockk<Country>()
 
@@ -39,7 +44,7 @@ class IncomingChallengeHandlerTest {
 
     @Test
     fun `invalid parse result is rejected and nothing is saved`() = runTest {
-        val outcome = handler.handle(ChallengeLinkParseResult.Invalid("bad id"))
+        val outcome = acceptChallenge(ChallengeLinkParseResult.Invalid("bad id"))
         assertEquals(IncomingChallengeOutcome.Rejected("bad id"), outcome)
         coVerify(exactly = 0) { repository.createIncomingChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
     }
@@ -47,7 +52,7 @@ class IncomingChallengeHandlerTest {
     @Test
     fun `valid link is saved with the category display name`() = runTest {
         coEvery { countriesQuiz(any()) } returns listOf(country)
-        val outcome = handler.handle(
+        val outcome = acceptChallenge(
             ChallengeLinkParseResult.Valid(link, QuizCategory.ByRegion("Europe"), scoreVerified = true)
         )
         assertEquals(IncomingChallengeOutcome.Accepted(link, scoreVerified = true), outcome)
@@ -69,7 +74,7 @@ class IncomingChallengeHandlerTest {
     @Test
     fun `category with no countries is rejected`() = runTest {
         coEvery { countriesQuiz(any()) } returns emptyList()
-        val outcome = handler.handle(
+        val outcome = acceptChallenge(
             ChallengeLinkParseResult.Valid(
                 link.copy(categoryValue = "Atlantis"), QuizCategory.ByRegion("Atlantis"), scoreVerified = false
             )
@@ -86,12 +91,12 @@ class IncomingChallengeHandlerTest {
         val capitals = link.copy(quizMode = "capitals")
         assertEquals(
             IncomingChallengeOutcome.Accepted(capitals, scoreVerified = true),
-            handler.handle(ChallengeLinkParseResult.Valid(capitals, QuizCategory.ByRegion("Europe"), true))
+            acceptChallenge(ChallengeLinkParseResult.Valid(capitals, QuizCategory.ByRegion("Europe"), true))
         )
         val flags = link.copy(categoryType = "flagcolor", categoryValue = "red", quizMode = "flags")
         assertEquals(
             IncomingChallengeOutcome.Accepted(flags, scoreVerified = true),
-            handler.handle(ChallengeLinkParseResult.Valid(flags, QuizCategory.FlagSingleColor("red"), true))
+            acceptChallenge(ChallengeLinkParseResult.Valid(flags, QuizCategory.FlagSingleColor("red"), true))
         )
         coVerify(exactly = 1) { capitalsQuiz(QuizCategory.ByRegion("Europe")) }
         coVerify(exactly = 1) { flagsQuiz(QuizCategory.FlagSingleColor("red")) }
@@ -104,9 +109,19 @@ class IncomingChallengeHandlerTest {
         coEvery {
             repository.createIncomingChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
         } throws IllegalStateException("disk full")
-        val outcome = handler.handle(
+        val outcome = acceptChallenge(
             ChallengeLinkParseResult.Valid(link, QuizCategory.ByRegion("Europe"), scoreVerified = true)
         )
         assertTrue(outcome is IncomingChallengeOutcome.Rejected)
+    }
+
+    @Test
+    fun `a mode missing from the registry is rejected and nothing is saved`() = runTest {
+        val unknown = link.copy(quizMode = "no-such-mode")
+        val outcome = acceptChallenge(
+            ChallengeLinkParseResult.Valid(unknown, QuizCategory.ByRegion("Europe"), scoreVerified = true)
+        )
+        assertEquals(IncomingChallengeOutcome.Rejected("unknown mode"), outcome)
+        coVerify(exactly = 0) { repository.createIncomingChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 }

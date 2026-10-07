@@ -14,13 +14,14 @@ import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
-import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
+import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.testutil.TestGameModes
 import com.geoquiz.app.testutil.TestQuizData
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -77,8 +78,15 @@ class QuizViewModelTest {
     private val achievementRepository = mockk<AchievementRepository>()
     private val quizHistoryRepository = mockk<QuizHistoryRepository>(relaxed = true)
     private val playGames = mockk<PlayGamesAchievementService>(relaxed = true)
+    private val gameModes = TestGameModes.registry(
+        getCountriesForQuiz = getCountriesForQuiz,
+        getCountriesForCapitalQuiz = getCountriesForCapitalQuiz,
+        getCountriesForFlagQuiz = getCountriesForFlagQuiz,
+        validateAnswer = validateAnswer,
+        validateCapitalAnswer = validateCapitalAnswer
+    )
     private val completeQuiz = CompleteQuizUseCase(
-        calculateScore = CalculateScoreUseCase(),
+        gameModes = gameModes,
         completedQuizRepository = completedQuizzes,
         savedQuizRepository = savedQuizRepository,
         achievementRepository = achievementRepository,
@@ -120,8 +128,12 @@ class QuizViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun routeHandle() = SavedStateHandle(
-        mapOf("quizMode" to "countries", "categoryType" to "all", "categoryValue" to "_")
+    private fun routeHandle(
+        quizMode: String = "countries",
+        categoryType: String = "all",
+        categoryValue: String = "_"
+    ) = SavedStateHandle(
+        mapOf("quizMode" to quizMode, "categoryType" to categoryType, "categoryValue" to categoryValue)
     )
 
     /** What survives process death: a new handle holding only the saved values. */
@@ -131,11 +143,7 @@ class QuizViewModelTest {
     private fun viewModel(handle: SavedStateHandle): QuizViewModel {
         val vm = QuizViewModel(
             savedStateHandle = handle,
-            getCountriesForQuiz = getCountriesForQuiz,
-            getCountriesForCapitalQuiz = getCountriesForCapitalQuiz,
-            getCountriesForFlagQuiz = getCountriesForFlagQuiz,
-            validateAnswer = validateAnswer,
-            validateCapitalAnswer = validateCapitalAnswer,
+            gameModes = gameModes,
             completeQuiz = completeQuiz,
             settingsRepository = settingsRepository,
             savedQuizRepository = savedQuizRepository,
@@ -316,5 +324,43 @@ class QuizViewModelTest {
         assertNull(vm.completion.value)
         assertNull(completedQuizzes.stored)
         assertFalse(vm.quizState().isPaused)
+    }
+
+    // Mode framework (3.1): the generator and validator come from the registry.
+
+    @Test
+    fun `capitals mode asks the capital generator and checks answers as capitals`() {
+        coEvery { getCountriesForCapitalQuiz(any()) } returns TestQuizData.THREE
+        coEvery { validateCapitalAnswer(any(), any(), any()) } returns AnswerResult.Correct("France")
+
+        val vm = viewModel(routeHandle(quizMode = "capitals", categoryType = "region", categoryValue = "Europe"))
+        vm.answer("Paris")
+
+        assertEquals(setOf("FRA"), vm.quizState().answeredCountries)
+        coVerify(exactly = 1) { getCountriesForCapitalQuiz(QuizCategory.ByRegion("Europe")) }
+        coVerify(exactly = 1) { validateCapitalAnswer("Paris", any(), true) }
+        coVerify(exactly = 0) { getCountriesForQuiz(any()) }
+        coVerify(exactly = 0) { validateAnswer(any(), any(), any()) }
+    }
+
+    @Test
+    fun `flags mode with a flag category uses the flag generator and the country validator`() {
+        coEvery { getCountriesForFlagQuiz(any()) } returns TestQuizData.THREE
+
+        val vm = viewModel(routeHandle(quizMode = "flags", categoryType = "flagcolor", categoryValue = "red"))
+        vm.answer("Austria")
+
+        assertEquals(setOf("AUT"), vm.quizState().answeredCountries)
+        coVerify(exactly = 1) { getCountriesForFlagQuiz(QuizCategory.FlagSingleColor("red")) }
+        coVerify(exactly = 0) { getCountriesForQuiz(any()) }
+        coVerify(exactly = 0) { validateCapitalAnswer(any(), any(), any()) }
+    }
+
+    @Test
+    fun `an unknown mode id falls back to Countries`() {
+        val vm = viewModel(routeHandle(quizMode = "no-such-mode"))
+
+        assertEquals("countries", vm.modeSpec.id)
+        assertEquals(TestQuizData.THREE, vm.quizState().quiz.countries)
     }
 }

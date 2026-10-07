@@ -12,12 +12,10 @@ import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
+import com.geoquiz.app.domain.mode.GameMode
+import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
-import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
-import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
 import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.time.QuizTimer
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,11 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class QuizViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getCountriesForQuiz: GetCountriesForQuizUseCase,
-    private val getCountriesForCapitalQuiz: GetCountriesForCapitalQuizUseCase,
-    private val getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase,
-    private val validateAnswer: ValidateAnswerUseCase,
-    private val validateCapitalAnswer: ValidateCapitalAnswerUseCase,
+    gameModes: GameModeRegistry,
     private val completeQuiz: CompleteQuizUseCase,
     private val settingsRepository: SettingsRepository,
     private val savedQuizRepository: SavedQuizRepository,
@@ -49,6 +43,12 @@ class QuizViewModel @Inject constructor(
 
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
     val quizMode: QuizMode = QuizMode.fromId(quizModeId)
+
+    /** Generator, validator and scoring for this quiz; unknown ids fall back to Countries. */
+    private val gameMode: GameMode = gameModes.findOrDefault(quizModeId)
+
+    /** Labels and icon of this quiz's mode. */
+    val modeSpec: GameModeSpec get() = gameMode.spec
 
     val challengeId: String? = savedStateHandle.get<String>("challengeId")?.takeIf { it.isNotBlank() }
 
@@ -101,15 +101,7 @@ class QuizViewModel @Inject constructor(
     }
 
     private suspend fun loadQuiz() {
-        val isFlagSpecificCategory = category is QuizCategory.FlagSingleColor ||
-                category is QuizCategory.FlagColorCombo ||
-                category is QuizCategory.FlagColorCount ||
-                category is QuizCategory.FlagElement
-        val countries = when {
-            isFlagSpecificCategory -> getCountriesForFlagQuiz(category)
-            quizMode == QuizMode.CAPITALS -> getCountriesForCapitalQuiz(category)
-            else -> getCountriesForQuiz(category)
-        }
+        val countries = gameMode.generator.items(category)
         val quiz = Quiz(
             category = category,
             countries = countries,
@@ -239,10 +231,7 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             // Typos are forgiven except in hard mode, where they get a NearMiss (no strike).
             val allowFuzzy = !_hardMode.value
-            val result = when (quizMode) {
-                QuizMode.CAPITALS -> validateCapitalAnswer(input, current.state, allowFuzzy)
-                else -> validateAnswer(input, current.state, allowFuzzy)
-            }
+            val result = gameMode.validator.validate(input, current.state, allowFuzzy)
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active) {
                     val state = uiState.state

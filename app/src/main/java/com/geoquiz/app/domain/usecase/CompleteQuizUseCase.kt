@@ -5,6 +5,7 @@ import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.QuizMode
@@ -15,7 +16,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Finishes a quiz: scores it, saves the [CompletedQuiz] that Results and Answer review read,
+ * Finishes a quiz: scores it with its mode's scoring rule, saves the [CompletedQuiz] that Results and Answer review read,
  * clears the "Resume quiz" save, and records achievements, history and leaderboard scores.
  *
  * Idempotent per [Request.resultId]: if a result with that id is already stored, it is returned
@@ -27,7 +28,7 @@ import javax.inject.Inject
  * even if the caller's scope is cancelled (for example, the screen is destroyed meanwhile).
  */
 class CompleteQuizUseCase @Inject constructor(
-    private val calculateScore: CalculateScoreUseCase,
+    private val gameModes: GameModeRegistry,
     private val completedQuizRepository: CompletedQuizRepository,
     private val savedQuizRepository: SavedQuizRepository,
     private val achievementRepository: AchievementRepository,
@@ -62,7 +63,8 @@ class CompleteQuizUseCase @Inject constructor(
 
         val state = request.state
         val category = state.quiz.category
-        val result = calculateScore(state.copy(timeElapsedSeconds = request.timeElapsedSeconds))
+        val result = gameModes[request.quizMode].scoring
+            .score(state.copy(timeElapsedSeconds = request.timeElapsedSeconds))
         val completed = CompletedQuiz(
             id = request.resultId,
             quizModeId = request.quizMode.id,

@@ -18,15 +18,11 @@ import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
-import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
 import com.geoquiz.app.domain.usecase.ResetAllDataUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
-import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
 import com.geoquiz.app.ui.home.HomeViewModel
 import com.geoquiz.app.ui.navigation.Screen
 import com.geoquiz.app.ui.quiz.QuizViewModel
@@ -116,17 +112,18 @@ object ScreenTestFixtures {
             coEvery { this@mockk.invoke(any()) } returns countries
         }
 
+        private val gameModes = TestGameModes.registry(
+            getCountriesForQuiz = getCountriesForQuiz,
+            validateAnswer = ValidateAnswerUseCase(countryRepository(countries), NormalizeInputUseCase())
+        )
+
         val viewModel = QuizViewModel(
             savedStateHandle = SavedStateHandle(
                 mapOf("quizMode" to "countries", "categoryType" to "all", "categoryValue" to "_")
             ),
-            getCountriesForQuiz = getCountriesForQuiz,
-            getCountriesForCapitalQuiz = mockk<GetCountriesForCapitalQuizUseCase>(),
-            getCountriesForFlagQuiz = mockk<GetCountriesForFlagQuizUseCase>(),
-            validateAnswer = ValidateAnswerUseCase(countryRepository(countries), NormalizeInputUseCase()),
-            validateCapitalAnswer = mockk<ValidateCapitalAnswerUseCase>(),
+            gameModes = gameModes,
             completeQuiz = CompleteQuizUseCase(
-                calculateScore = CalculateScoreUseCase(),
+                gameModes = gameModes,
                 completedQuizRepository = completedQuizzes,
                 savedQuizRepository = savedQuizRepository,
                 achievementRepository = achievementRepository,

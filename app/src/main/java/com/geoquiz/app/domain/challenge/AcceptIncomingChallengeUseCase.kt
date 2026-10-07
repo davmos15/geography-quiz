@@ -1,13 +1,8 @@
-package com.geoquiz.app.ui.challenges
+package com.geoquiz.app.domain.challenge
 
 import com.geoquiz.app.data.repository.ChallengeRepository
-import com.geoquiz.app.domain.challenge.ChallengeLinkParseResult
+import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.model.ChallengeDeepLink
-import com.geoquiz.app.domain.model.QuizCategory
-import com.geoquiz.app.domain.model.QuizMode
-import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
-import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
@@ -22,25 +17,26 @@ sealed interface IncomingChallengeOutcome {
 /**
  * Turns a parsed challenge link into a saved incoming challenge. On top of the parser's
  * checks it rejects categories with no countries in the current data (an unknown region or
- * flag colour, for example), because the app never offers an empty quiz. Never throws,
- * except for coroutine cancellation.
+ * flag colour, for example), because the app never offers an empty quiz. The countries come
+ * from the mode's own generator in [GameModeRegistry], so this matches what the quiz will ask.
+ * Never throws, except for coroutine cancellation.
  */
-class IncomingChallengeHandler @Inject constructor(
+class AcceptIncomingChallengeUseCase @Inject constructor(
     private val challengeRepository: ChallengeRepository,
-    private val getCountriesForQuiz: GetCountriesForQuizUseCase,
-    private val getCountriesForCapitalQuiz: GetCountriesForCapitalQuizUseCase,
-    private val getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase
+    private val gameModes: GameModeRegistry
 ) {
 
-    suspend fun handle(parsed: ChallengeLinkParseResult): IncomingChallengeOutcome {
+    suspend operator fun invoke(parsed: ChallengeLinkParseResult): IncomingChallengeOutcome {
         val valid = when (parsed) {
             is ChallengeLinkParseResult.Invalid -> return IncomingChallengeOutcome.Rejected(parsed.reason)
             is ChallengeLinkParseResult.Valid -> parsed
         }
         val link = valid.link
         return try {
-            val mode = QuizMode.fromId(link.quizMode)
-            if (countriesFor(valid.category, mode) == 0) {
+            // The parser only accepts known modes, so a miss here means a registry gap.
+            val mode = gameModes.find(link.quizMode)
+                ?: return IncomingChallengeOutcome.Rejected("unknown mode")
+            if (mode.generator.items(valid.category).isEmpty()) {
                 return IncomingChallengeOutcome.Rejected("category has no countries")
             }
             challengeRepository.createIncomingChallenge(
@@ -60,12 +56,5 @@ class IncomingChallengeHandler @Inject constructor(
         } catch (e: Exception) {
             IncomingChallengeOutcome.Rejected("failed to save: ${e.javaClass.simpleName}")
         }
-    }
-
-    /** Same use case choice as QuizViewModel.loadQuiz. */
-    private suspend fun countriesFor(category: QuizCategory, mode: QuizMode): Int = when {
-        category.isFlagCategory -> getCountriesForFlagQuiz(category).size
-        mode == QuizMode.CAPITALS -> getCountriesForCapitalQuiz(category).size
-        else -> getCountriesForQuiz(category).size
     }
 }

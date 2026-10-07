@@ -11,6 +11,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Country
+import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.model.QuizMode
 
 /**
@@ -39,14 +40,12 @@ object A11yText {
         res.getString(R.string.a11y_timer, duration(res, totalSeconds))
 
     /** "12 of 197 countries named" (capitals named, flags identified). */
-    fun progress(res: Resources, mode: QuizMode, answered: Int, total: Int): String {
-        val id = when (mode) {
-            QuizMode.COUNTRIES -> R.plurals.a11y_progress_countries
-            QuizMode.CAPITALS -> R.plurals.a11y_progress_capitals
-            QuizMode.FLAGS -> R.plurals.a11y_progress_flags
-        }
-        return res.getQuantityString(id, total, answered, total)
-    }
+    fun progress(res: Resources, mode: QuizMode, answered: Int, total: Int): String =
+        progress(res, mode.spec, answered, total)
+
+    /** Same as above for any registered mode, using its own plural. */
+    fun progress(res: Resources, mode: GameModeSpec, answered: Int, total: Int): String =
+        res.getQuantityString(mode.labels.a11yProgress, total, answered, total)
 
     /** Hard mode: "1 of 3 incorrect guesses used". */
     fun strikes(res: Resources, used: Int, allowed: Int): String =

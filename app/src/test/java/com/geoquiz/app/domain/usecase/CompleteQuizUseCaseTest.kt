@@ -11,6 +11,7 @@ import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
+import com.geoquiz.app.testutil.TestGameModes
 import com.geoquiz.app.testutil.TestQuizData
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -33,7 +34,7 @@ class CompleteQuizUseCaseTest {
     private val playGames = mockk<PlayGamesAchievementService>(relaxed = true)
 
     private val useCase = CompleteQuizUseCase(
-        calculateScore = CalculateScoreUseCase(),
+        gameModes = TestGameModes.registry(),
         completedQuizRepository = completedQuizzes,
         savedQuizRepository = savedQuizRepository,
         achievementRepository = achievementRepository,

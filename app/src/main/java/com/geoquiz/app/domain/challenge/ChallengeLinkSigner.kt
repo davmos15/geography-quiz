@@ -91,7 +91,14 @@ class ChallengeLinkSigner(key: ByteArray) {
         fun fromBase64Url(key: String): ChallengeLinkSigner =
             ChallengeLinkSigner(BASE64_URL_DECODER.decode(key.trim()))
 
-        /** Signer using the key compiled into this build (see `CHALLENGE_HMAC_KEY` in app/build.gradle.kts). */
+        /**
+         * Signer using the key compiled into this build (see `CHALLENGE_HMAC_KEY` in app/build.gradle.kts).
+         *
+         * Prefer the Hilt-provided signer (`di/ChallengeModule.kt`). This remains only for the
+         * share buttons in CategoryListScreen and ResultsScreen, which call
+         * `ChallengeDeepLink.toShareUrl()` without a signer; once they pass the injected one,
+         * delete this and the BuildConfig import so `domain` no longer reads build config.
+         */
         val default: ChallengeLinkSigner by lazy { fromBase64Url(BuildConfig.CHALLENGE_HMAC_KEY) }
     }
 }

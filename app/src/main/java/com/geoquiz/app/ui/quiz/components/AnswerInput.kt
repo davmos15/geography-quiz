@@ -66,13 +66,7 @@ fun AnswerInput(
                 .focusRequester(focusRequester),
             enabled = enabled,
             label = {
-                Text(
-                    when (quizMode) {
-                        QuizMode.CAPITALS -> "Enter a capital city"
-                        QuizMode.FLAGS -> "Enter a country name"
-                        QuizMode.COUNTRIES -> "Enter a country name"
-                    }
-                )
+                Text(stringResource(quizMode.spec.labels.inputLabel))
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),

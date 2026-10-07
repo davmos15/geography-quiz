@@ -64,8 +64,7 @@ import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
-import com.geoquiz.app.ui.theme.CorrectGreen
-import com.geoquiz.app.ui.theme.IncorrectRed
+import com.geoquiz.app.ui.theme.geoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -207,26 +206,48 @@ fun QuizScreen(
                             if (hardMode) {
                                 Spacer(modifier = Modifier.width(12.dp))
                                 val strikesDescription = A11yText.strikes(res, quizState.incorrectGuesses, 3)
-                                Text(
-                                    text = "${quizState.incorrectGuesses} / 3",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (quizState.incorrectGuesses >= 2) IncorrectRed
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                val strikesColor = if (quizState.incorrectGuesses >= 2) MaterialTheme.geoColors.wrong
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                // Cross icon + count, so strikes never rely on colour alone.
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.clearAndSetSemantics {
                                         contentDescription = strikesDescription
                                     }
-                                )
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = strikesColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "${quizState.incorrectGuesses} / 3",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = strikesColor
+                                    )
+                                }
                             } else if (quizState.incorrectGuesses > 0) {
                                 Spacer(modifier = Modifier.width(12.dp))
                                 val incorrectDescription = A11yText.incorrectGuesses(res, quizState.incorrectGuesses)
-                                Text(
-                                    text = "${quizState.incorrectGuesses}x",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = IncorrectRed,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.clearAndSetSemantics {
                                         contentDescription = incorrectDescription
                                     }
-                                )
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.geoColors.wrong,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "${quizState.incorrectGuesses}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.geoColors.wrong
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.weight(1f))
                             IconButton(onClick = { showSettingsSheet = true }) {
@@ -251,7 +272,7 @@ fun QuizScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clearAndSetSemantics { },
-                            color = CorrectGreen,
+                            color = MaterialTheme.geoColors.correct,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
 
@@ -282,8 +303,8 @@ fun QuizScreen(
                                 Icon(
                                     Icons.Default.Close,
                                     contentDescription = "Give Up",
-                                    tint = if (!quizState.isPaused) IncorrectRed
-                                        else IncorrectRed.copy(alpha = 0.38f)
+                                    tint = if (!quizState.isPaused) MaterialTheme.geoColors.wrong
+                                        else MaterialTheme.geoColors.wrong.copy(alpha = 0.38f)
                                 )
                             }
                             Button(

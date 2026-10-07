@@ -53,7 +53,7 @@ import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.share.ShareUtils
-import com.geoquiz.app.ui.theme.CorrectGreen
+import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
 import java.util.UUID
 
@@ -199,7 +199,7 @@ private fun QuizOptionCard(
                 Icon(
                     Icons.Default.CheckCircle,
                     contentDescription = stringResource(R.string.a11y_completed),
-                    tint = CorrectGreen,
+                    tint = MaterialTheme.geoColors.correct,
                     modifier = Modifier
                         .size(20.dp)
                         .padding(end = 4.dp)

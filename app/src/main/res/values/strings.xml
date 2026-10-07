@@ -129,6 +129,8 @@
     <string name="a11y_status_missed">%1$s, missed</string>
     <string name="a11y_incorrect">Incorrect</string>
     <string name="a11y_completed">Completed</string>
+    <string name="a11y_challenge_won">Won</string>
+    <string name="a11y_challenge_lost">Lost</string>
     <plurals name="a11y_quiz_option_countries">
         <item quantity="one">%d country</item>
         <item quantity="other">%d countries</item>

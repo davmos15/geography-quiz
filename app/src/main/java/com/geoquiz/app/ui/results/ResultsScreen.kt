@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.PersonAdd
@@ -32,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -48,8 +52,7 @@ import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.share.ShareUtils
-import com.geoquiz.app.ui.theme.CorrectGreen
-import com.geoquiz.app.ui.theme.IncorrectRed
+import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
 import java.util.UUID
 
@@ -221,13 +224,11 @@ private fun ResultsContent(
                     ResultRow("Incorrect Guesses", incorrectGuesses.toString())
                     if (perfectBonus) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
+                        OutcomeLine(
                             text = "Perfect! +20% bonus!",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = CorrectGreen,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            icon = Icons.Default.Check,
+                            color = MaterialTheme.geoColors.correct,
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 }
@@ -449,28 +450,30 @@ private fun ChallengeResultCard(
                 // Win/loss/tie
                 val resultText: String
                 val resultColor: androidx.compose.ui.graphics.Color
+                val resultIcon: ImageVector?
                 when {
                     myPct > theirPct -> {
                         resultText = "You won!"
-                        resultColor = CorrectGreen
+                        resultColor = MaterialTheme.geoColors.correct
+                        resultIcon = Icons.Default.Check
                     }
                     myPct < theirPct -> {
                         resultText = "You lost - challenge them back!"
-                        resultColor = IncorrectRed
+                        resultColor = MaterialTheme.geoColors.wrong
+                        resultIcon = Icons.Default.Close
                     }
                     else -> {
                         resultText = "It's a tie!"
                         resultColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        resultIcon = null
                     }
                 }
 
-                Text(
+                OutcomeLine(
                     text = resultText,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    icon = resultIcon,
                     color = resultColor,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    style = MaterialTheme.typography.titleMedium
                 )
             } else {
                 // Challenger didn't share their score
@@ -553,6 +556,39 @@ private fun ResultRow(label: String, value: String, valueDescription: String? = 
             } else {
                 Modifier
             }
+        )
+    }
+}
+
+/** Centred bold outcome text with an optional leading icon (decorative: the text says it). */
+@Composable
+private fun OutcomeLine(
+    text: String,
+    icon: ImageVector?,
+    color: androidx.compose.ui.graphics.Color,
+    style: androidx.compose.ui.text.TextStyle
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+        }
+        Text(
+            text = text,
+            style = style,
+            fontWeight = FontWeight.Bold,
+            color = color,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f, fill = false)
         )
     }
 }

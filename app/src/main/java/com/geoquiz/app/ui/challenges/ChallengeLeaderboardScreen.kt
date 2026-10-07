@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,13 +31,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.data.local.db.ChallengeEntity
-import com.geoquiz.app.ui.theme.CorrectGreen
+import com.geoquiz.app.R
+import com.geoquiz.app.ui.theme.geoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,8 +83,8 @@ fun ChallengeLeaderboardScreen(
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatColumn("Wins", state.wins, CorrectGreen)
-                        StatColumn("Losses", state.losses, MaterialTheme.colorScheme.error)
+                        StatColumn("Wins", state.wins, MaterialTheme.geoColors.correct)
+                        StatColumn("Losses", state.losses, MaterialTheme.geoColors.wrong)
                         StatColumn("Ties", state.ties, MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -143,27 +148,51 @@ private fun ChallengeCard(challenge: ChallengeEntity) {
             yourScore != null && opponentScore != null &&
             yourScore == opponentScore
 
+    val isLoss = challenge.status == "completed" && !isWin && !isTie
+    val geoColors = MaterialTheme.geoColors
     val containerColor = when {
-        isWin -> CorrectGreen.copy(alpha = 0.1f)
-        challenge.status == "completed" && !isTie -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+        isWin -> geoColors.correctContainer
+        isLoss -> geoColors.wrongContainer
         else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val contentColor = when {
+        isWin -> geoColors.onCorrectContainer
+        isLoss -> geoColors.onWrongContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = challenge.categoryDisplayName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Won/lost is shown by a tick or cross as well as the card colour.
+                if (isWin || isLoss) {
+                    Icon(
+                        imageVector = if (isWin) Icons.Default.Check else Icons.Default.Close,
+                        contentDescription = stringResource(
+                            if (isWin) R.string.a11y_challenge_won else R.string.a11y_challenge_lost
+                        ),
+                        tint = if (isWin) geoColors.correct else geoColors.wrong,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(
+                    text = challenge.categoryDisplayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+            }
             Spacer(modifier = Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),

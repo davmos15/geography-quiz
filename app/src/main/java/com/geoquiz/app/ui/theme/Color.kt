@@ -54,7 +54,4 @@ val CountriesAccent = Color(0xFF00796B)    // Teal
 val CapitalsAccent = Color(0xFFE64A19)     // Deep Orange
 val FlagsAccent = Color(0xFF283593)        // Indigo
 
-// Feedback
-val CorrectGreen = Color(0xFF2E7D32)
-val IncorrectRed = Color(0xFFC62828)
-val AlreadyAnsweredAmber = Color(0xFFFF8F00)
+// Feedback colours (correct, wrong, near miss) and map colours live in GeoColors.kt.

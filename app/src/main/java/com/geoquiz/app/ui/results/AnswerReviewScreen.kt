@@ -48,8 +48,7 @@ import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.FlagImage
 import com.geoquiz.app.ui.components.a11yResources
-import com.geoquiz.app.ui.theme.CorrectGreen
-import com.geoquiz.app.ui.theme.IncorrectRed
+import com.geoquiz.app.ui.theme.geoColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,14 +162,14 @@ private fun AnswerReviewContent(
                         Icon(
                             Icons.Default.Close,
                             contentDescription = stringResource(R.string.a11y_incorrect),
-                            tint = IncorrectRed
+                            tint = MaterialTheme.geoColors.wrong
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = guess,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = IncorrectRed
+                                color = MaterialTheme.geoColors.wrong
                             )
                             if (hint != null) {
                                 Spacer(modifier = Modifier.height(2.dp))
@@ -203,7 +202,7 @@ private fun AnswerReviewContent(
                         Icon(
                             imageVector = if (isAnswered) Icons.Default.Check else Icons.Default.Close,
                             contentDescription = null, // the row description says it
-                            tint = if (isAnswered) CorrectGreen else IncorrectRed
+                            tint = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
                         )
                         Spacer(modifier = Modifier.width(12.dp))
 
@@ -225,7 +224,7 @@ private fun AnswerReviewContent(
                                         text = country.capital,
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Medium,
-                                        color = if (isAnswered) CorrectGreen else IncorrectRed
+                                        color = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
                                     )
                                     Text(
                                         text = country.name,
@@ -243,7 +242,7 @@ private fun AnswerReviewContent(
                                     color = if (isAnswered) {
                                         MaterialTheme.colorScheme.onSurface
                                     } else {
-                                        IncorrectRed
+                                        MaterialTheme.geoColors.wrong
                                     }
                                 )
                             }

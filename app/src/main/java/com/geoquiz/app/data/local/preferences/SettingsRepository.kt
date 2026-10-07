@@ -87,6 +87,7 @@ class SettingsRepository @Inject constructor(
         private val SHOW_COUNTRY_HINT_KEY = booleanPreferencesKey("show_country_hint")
         private val HARD_MODE_KEY = booleanPreferencesKey("hard_mode")
         private val PLAYER_NAME_KEY = stringPreferencesKey("player_name")
-        private val ADS_REMOVED_KEY = booleanPreferencesKey("ads_removed")
+        /** Kept by "Reset all data" so a paying user never sees ads before Play restores the purchase. */
+        val ADS_REMOVED_KEY = booleanPreferencesKey("ads_removed")
     }
 }

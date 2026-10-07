@@ -42,7 +42,7 @@ where you stopped, commit, and tell me to start a new session.
 |---|---|---|---|---|
 | 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
 | 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
-| 2 | Code and architecture | Done – PR open | `upgrade/p2-architecture` | |
+| 2 | Code and architecture | Done – PR open | `upgrade/p2-architecture` | #5 |
 | 3 | Game engine and UX foundation | Not started | `upgrade/p3-ux-engine` | |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |

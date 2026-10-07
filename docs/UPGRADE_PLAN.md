@@ -41,8 +41,8 @@ where you stopped, commit, and tell me to start a new session.
 | Phase | Name | Status | Branch | PR |
 |---|---|---|---|---|
 | 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
-| 1 | Licensing and IP compliance | Done – PR open | `upgrade/p1-licensing` | #4 |
-| 2 | Code and architecture | Not started | `upgrade/p2-architecture` | |
+| 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
+| 2 | Code and architecture | In progress | `upgrade/p2-architecture` | |
 | 3 | Game engine and UX foundation | Not started | `upgrade/p3-ux-engine` | |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |
@@ -139,7 +139,7 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Play Console: confirm Play Games Services sign-in is acceptable for a mixed-audience app under the Families policy.
 - [ ] Play Games bulk import: check whether it expects `AchievementsIconMappings.csv` or `AchievementsIconsMappings.csv` (byte-identical copies in `store_assets/achievements/`); keep one.
 - [ ] Phase 9: regenerate store images with the Lato scripts and re-upload to Play.
-- [ ] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
+- [x] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
 - [ ] App Links (task 2.7): provide the SHA-256 fingerprints of the new upload key and the Play app-signing key so `assetlinks.json` can be hosted on geoquiz-app.netlify.app.
 - [x] Merge the Phase 0 PR after checking the debug build on a device.
 

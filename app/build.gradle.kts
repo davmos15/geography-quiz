@@ -53,6 +53,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Installs next to the Play Store build; the launcher name comes from src/debug/res.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

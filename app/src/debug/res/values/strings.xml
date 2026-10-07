@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Use Google test ad unit IDs in debug builds -->
-    <string translatable="false" name="admob_banner_id">ca-app-pub-3940256099942544/6300978111</string>
-    <string translatable="false" name="admob_interstitial_id">ca-app-pub-3940256099942544/1033173712</string>
+    <!-- Debug builds use the package com.geoquiz.app.debug, so they install next to the Play Store
+         build. A distinct launcher name tells the two apart. -->
+    <string name="app_name">GeoQuiz Debug</string>
 </resources>

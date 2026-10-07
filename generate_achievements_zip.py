@@ -13,13 +13,16 @@ import csv
 import io
 import math
 import os
+import re
+import sys
 import zipfile
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+if "--check" not in sys.argv:
+    # Drawing needs Pillow; `--check` only validates the data and runs without it.
+    from PIL import Image, ImageDraw, ImageFont
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "store_assets", "achievements")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Bundled OFL font (see tools/fonts/README.md). No fallback to system fonts.
 FONT_BOLD = Path(__file__).resolve().parent / "tools" / "fonts" / "Lato-Bold.ttf"
@@ -34,56 +37,90 @@ def load_bold_font(size):
         )
     return ImageFont.truetype(str(FONT_BOLD), int(size))
 
-# ── Achievement data (matches Achievement.kt) ──────────────────────────────
+# ── Achievement data ───────────────────────────────────────────────────────
+# The `Achievement` enum in Achievement.kt is the single source of truth for ids,
+# titles, descriptions and tiers. This script only adds an icon theme per id and
+# fails if the two drift apart. `--check` validates without drawing anything
+# (no Pillow needed), and also checks the README count; CI runs it.
 
-ACHIEVEMENTS = [
-    # (id, title, description, tier, theme)
-    # Original
-    ("first_steps",        "First Steps",         "Complete any quiz",                              "BRONZE", "star"),
-    ("world_traveler",     "World Traveler",       "Complete the All Countries quiz",                "GOLD",   "globe"),
-    ("perfectionist",      "Perfectionist",        "Get 100% on any quiz",                          "GOLD",   "trophy"),
-    ("speed_demon",        "Speed Demon",          "Complete any quiz in under 2 minutes",           "SILVER", "clock"),
-    ("region_master",      "Region Master",        "Complete all 5 region quizzes",                  "GOLD",   "map"),
-    ("alphabet_soup",      "Alphabet Soup",        "Complete 10 starting-letter quizzes",            "SILVER", "letter"),
-    ("century_club",       "Century Club",         "Name 100+ countries in a single quiz",           "SILVER", "hundred"),
-    ("half_way_there",     "Half Way There",       "Name 50%+ in All Countries",                    "BRONZE", "globe"),
-    ("geography_buff",     "Geography Buff",       "Complete 20 quizzes total",                      "GOLD",   "book"),
-    ("explorer",           "Explorer",             "Try 5 different category groups",                "BRONZE", "compass"),
-    # New Bronze
-    ("quick_study",        "Quick Study",          "Complete a quiz in under 5 minutes",             "BRONZE", "clock"),
-    ("island_hopper",      "Island Hopper",        "Complete the Island Countries quiz",             "BRONZE", "island"),
-    ("pattern_finder",     "Pattern Finder",       "Complete any Letter Pattern quiz",               "BRONZE", "pattern"),
-    # New Silver
-    ("world_scholar",      "World Scholar",        "Name 75%+ in All Countries",                    "SILVER", "globe"),
-    ("length_master",      "Length Master",        "Complete 5 different name length quizzes",       "SILVER", "ruler"),
-    ("vowel_hunter",       "Vowel Hunter",         "Complete the All Vowels Present quiz",           "SILVER", "letter"),
-    ("continental",        "Continental",           "Complete all region quizzes with 80%+",          "SILVER", "map"),
-    ("letter_collector",   "Letter Collector",      "Complete 15 starting-letter quizzes",            "SILVER", "letter"),
-    # New Gold
-    ("ultimate_geographer","Ultimate Geographer",   "Name every country in the world",               "GOLD",   "globe"),
-    ("speed_master",       "Speed Master",          "Complete All Countries in under 15 minutes",    "GOLD",   "clock"),
-    ("pattern_master",     "Pattern Master",        "Complete all Letter Pattern quizzes",            "GOLD",   "pattern"),
-    ("subregion_explorer", "Subregion Explorer",    "Complete 10 different subregion quizzes",        "GOLD",   "map"),
-    # Capitals
-    ("capital_beginner",   "Capital Beginner",      "Complete any capital quiz",                      "BRONZE", "capital"),
-    ("capital_expert",     "Capital Expert",         "Get 80%+ on any capital quiz",                  "SILVER", "capital"),
-    ("world_capitals",     "World Capitals",         "Complete the All Capitals quiz",                "GOLD",   "capital"),
-    ("capital_speed_run",  "Capital Speed Run",      "Complete a capital quiz in under 2 minutes",    "SILVER", "clock"),
-    ("capital_scholar",    "Capital Scholar",         "Complete 10 capital quizzes",                   "SILVER", "book"),
-    ("capital_master",     "Capital Master",          "Get 100% on the All Capitals quiz",            "GOLD",   "trophy"),
-    # Flags
-    ("flag_spotter",       "Flag Spotter",            "Complete any flag quiz",                       "BRONZE", "flag"),
-    ("color_expert",       "Color Expert",             "Complete 5 different flag color quizzes",     "SILVER", "palette"),
-    ("rainbow",            "Rainbow",                  "Complete flag quizzes for 6 different colors","GOLD",   "rainbow"),
-    ("flag_perfectionist", "Flag Perfectionist",       "Get 100% on any flag quiz",                  "SILVER", "flag"),
-    ("vexillologist",      "Vexillologist",             "Complete 10 flag quizzes",                   "GOLD",   "flag"),
-    ("flag_master",        "Flag Master",               "Complete Flags of the World quiz with 80%+","GOLD",   "trophy"),
-    # Incorrect guesses & hard mode
-    ("flawless",           "Flawless",                  "Complete a quiz with 0 incorrect guesses",  "BRONZE", "diamond"),
-    ("sharp_mind",         "Sharp Mind",                "Complete 5 quizzes with 0 incorrect guesses","SILVER","diamond"),
-    ("survivor",           "Survivor",                  "Complete a quiz in hard mode",               "BRONZE", "shield"),
-    ("nerves_of_steel",    "Nerves of Steel",           "Get 100% in hard mode",                     "GOLD",   "shield"),
-]
+REPO_ROOT = Path(__file__).resolve().parent
+ACHIEVEMENT_KT = (
+    REPO_ROOT / "app" / "src" / "main" / "java" / "com" / "geoquiz" / "app"
+    / "domain" / "model" / "Achievement.kt"
+)
+README = REPO_ROOT / "README.md"
+
+# Icon theme per achievement id (drawing only).
+THEMES = {
+    "first_steps": "star",
+    "world_traveler": "globe",
+    "perfectionist": "trophy",
+    "speed_demon": "clock",
+    "region_master": "map",
+    "alphabet_soup": "letter",
+    "century_club": "hundred",
+    "half_way_there": "globe",
+    "geography_buff": "book",
+    "explorer": "compass",
+    "quick_study": "clock",
+    "island_hopper": "island",
+    "pattern_finder": "pattern",
+    "world_scholar": "globe",
+    "length_master": "ruler",
+    "vowel_hunter": "letter",
+    "continental": "map",
+    "letter_collector": "letter",
+    "ultimate_geographer": "globe",
+    "speed_master": "clock",
+    "pattern_master": "pattern",
+    "subregion_explorer": "map",
+    "capital_beginner": "capital",
+    "capital_expert": "capital",
+    "world_capitals": "capital",
+    "capital_speed_run": "clock",
+    "capital_scholar": "book",
+    "capital_master": "trophy",
+    "flag_spotter": "flag",
+    "color_expert": "palette",
+    "rainbow": "rainbow",
+    "flag_perfectionist": "flag",
+    "vexillologist": "flag",
+    "flag_master": "trophy",
+    "flawless": "diamond",
+    "sharp_mind": "diamond",
+    "survivor": "shield",
+    "nerves_of_steel": "shield",
+}
+
+ENUM_ENTRY_RE = re.compile(
+    r'^\s*[A-Z_]+\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*AchievementTier\.(BRONZE|SILVER|GOLD)\s*\)',
+    re.MULTILINE,
+)
+README_COUNT_RE = re.compile(r"(\d+) achievements")
+
+
+def load_achievements():
+    """Parse Achievement.kt into (id, title, description, tier, theme) tuples, in enum order."""
+    entries = ENUM_ENTRY_RE.findall(ACHIEVEMENT_KT.read_text(encoding="utf-8"))
+    if not entries:
+        raise SystemExit(f"No achievements parsed from {ACHIEVEMENT_KT}")
+    ids = [e[0] for e in entries]
+    if len(set(ids)) != len(ids):
+        raise SystemExit("Duplicate achievement ids in Achievement.kt")
+    missing = [i for i in ids if i not in THEMES]
+    stale = sorted(set(THEMES) - set(ids))
+    if missing or stale:
+        raise SystemExit(f"THEMES out of sync with Achievement.kt. Missing: {missing}. Not in enum: {stale}.")
+    return [(aid, title, desc, tier, THEMES[aid]) for aid, title, desc, tier in entries]
+
+
+def check_readme(count):
+    counts = {int(n) for n in README_COUNT_RE.findall(README.read_text(encoding="utf-8"))}
+    if counts != {count}:
+        raise SystemExit(f"README.md achievement count {sorted(counts) or 'missing'} != {count} in Achievement.kt")
+
+
+ACHIEVEMENTS = load_achievements()
 
 TIER_POINTS = {"BRONZE": 5, "SILVER": 15, "GOLD": 30}
 
@@ -491,6 +528,7 @@ def create_achievement_icon(achievement_id, title, tier, theme, size=512):
 
 
 def main():
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     print(f"Generating achievements ZIP for {len(ACHIEVEMENTS)} achievements...")
 
     # ── Generate icons ──────────────────────────────────────────────────
@@ -564,4 +602,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    check_readme(len(ACHIEVEMENTS))
+    if "--check" in sys.argv:
+        print(f"OK: {len(ACHIEVEMENTS)} achievements, themes and README in sync with Achievement.kt")
+    else:
+        main()

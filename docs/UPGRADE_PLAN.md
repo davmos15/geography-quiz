@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 3, task 3.9 and 3.1 (group "first"), once the Phase 2 PR is merged. Read the Phase 2 session log first (owner actions, the Roborazzi Linux/Windows note and the Phase 3 follow-ups).
+> Phase 3 continues on branch `upgrade/p3-ux-engine` (pushed, no PR yet). Done: 3.9, 3.1, 3.2 (a+b), 3.3 (+3.3a vibration switch). Next session: 3.5 Results, then 3.4 Home and navigation. The session after that: 3.6 (toolchain bump first), 3.7, 3.8, then the full gate and the PR. Read the session 4 log first: it has the phase build rule (D19) and every carry-over item.
 
 ---
 
@@ -182,10 +182,19 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Score (`CalculateScoreUseCase`): `(correct/total) * correct`, ×1.2 if perfect.
 - Completion: `J/domain/usecase/CompleteQuizUseCase.kt` scores the quiz, saves a `CompletedQuiz` to the `last_result` DataStore with an atomic `saveIfAbsent` (only the latest is kept), clears the Room save, then records achievements, Play Games unlocks, history and leaderboards, exactly once per result id. Navigation goes to `results/{resultId}`; Results and `answer_review/{resultId}` load the record by id and show "no longer available" if it is gone. `QuizResultHolder` no longer exists.
 
+**Game modes and difficulty** (since Phase 3)
+- `J/domain/mode/GameMode.kt`: `GameModeSpec` (id, `ModeLabels` string/plural res ids, `ModeIcon` key, `AnswerType`, `supportedDifficulties`, `HintType`s, optional `FeatureFlag`, `sortOrder`), `QuestionGenerator.items(category)`, `AnswerValidator`, `ScoringRule`, `ChoiceQuestionGenerator` (Easy). `GameModeRegistry` (`@Singleton`, from a Hilt `@IntoSet` in `J/di/GameModeModule.kt`): `all`, `classic`, `find`, `require`, `findOrDefault`, `available(isEnabled)`. Classic modes in `J/domain/mode/classic/`. Adding a mode = GameMode class + generator + one `@Binds @IntoSet` line. `QuizMode` keeps the persisted ids and exposes `spec`. Icons map to `ImageVector` in `J/ui/mode/ModeIcons.kt` (not used by the UI yet). `ChallengeLinkParser` and `QuizCategory.isOfferedIn` still take `QuizMode` (new modes will need registry ids).
+- `J/domain/model/Difficulty.kt`: EASY/NORMAL/HARD (ids easy/normal/hard) with rules (`allowsTypos`, `strikeLimit` Hard 3, `timerAlwaysShown`, `countsForAchievements` Easy false), `forChallenge` (never Easy). Settings DataStore key `difficulty` replaces `hard_mode` (read as fallback, removed on write). Quiz route `quiz/{mode}/{type}/{value}?challengeId=&difficulty=`; resolution: route → SavedStateHandle → matching resume save → default. Selector `J/ui/components/DifficultySelector.kt` on the category list and in Settings; `DifficultyLabel` chip in the quiz header; `MasteryStarsRow`.
+- Easy (D14): `J/domain/mode/MultipleChoice.kt` (`ChoiceQuestion`, `ChoicePrompt` InSet/CapitalOf/FlagOf, three generators, injectable `QuizRandom`). Each item asked once; wrong pick = miss + incorrect guess; ~900 ms feedback from the ViewModel. `J/ui/quiz/components/MultipleChoicePanel.kt`. Easy progress lives in `QuizSavedState`; the Room resume save keeps answered codes only (missed items are re-asked).
+- Mastery stars (D17): `J/domain/usecase/MasteryStars.kt`, `QuizHistoryDao.observeMasteryRowsForMode`, shown on category rows.
+- Feedback (3.3): `QuizViewModel.feedbackEvents` → `J/ui/quiz/feedback/` (`HapticFeedbackPlayer` CONFIRM/REJECT, no VIBRATE permission; pulse/shake `FeedbackMotion`), `J/ui/components/ReducedMotion.kt` (`rememberReducedMotion()`, reuse in Phase 8), recent-answer chips (`RecentAnswers.kt`, last 3, Normal/Hard), shared `FeedbackLine.kt`, `inlineIconSize()` scales inline icons with font. Settings key `vibration` (default on) gates haptics; the system touch-feedback setting also applies.
+- Theme (3.9): `J/ui/theme/GeoColors.kt` via `MaterialTheme.geoColors` (correct/wrong/nearMiss + containers, star/onStar, map land/border/water/found/highlight/wrong/start/end/tapZone), `Shape.kt`, full type scale. `GeoColorsContrastTest` enforces contrast. Category tile, tab accent and achievement tier colours in `Color.kt` are legacy.
+- Challenge acceptance is `J/domain/challenge/AcceptIncomingChallengeUseCase.kt` (was `ui/challenges/IncomingChallengeHandler`); `ChallengeLinkSigner` is provided by `J/di/ChallengeModule.kt`.
+
 **Room** (since Phase 2, task 2.1)
 - Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
-- `AppDatabase` (`geoquiz.db`, v11): `saved_quizzes`, `challenges`, `quiz_history` only. Migrations in `J/data/local/db/AppDatabaseMigrations.kt` (`ALL`); 10→11 drops the static tables; the old re-seed `DELETE`s are gone. No destructive fallback. `RoomTransactionRunner` wraps `AppDatabase` only.
-- Exported schemas: AppDatabase 1, 4–11 (2 and 3 never existed: commit `1c9326e` went from v1 to v4, so no released build used them); StaticDatabase 1–2.
+- `AppDatabase` (`geoquiz.db`, v12 since 3.2: `difficulty TEXT NOT NULL DEFAULT 'normal'` on `quiz_history` and `saved_quizzes`; leaderboard totals exclude Easy): `saved_quizzes`, `challenges`, `quiz_history` only. Migrations in `J/data/local/db/AppDatabaseMigrations.kt` (`ALL`); 10→11 drops the static tables; the old re-seed `DELETE`s are gone. No destructive fallback. `RoomTransactionRunner` wraps `AppDatabase` only.
+- Exported schemas: AppDatabase 1, 4–12 (2 and 3 never existed: commit `1c9326e` went from v1 to v4, so no released build used them); StaticDatabase 1–2.
 - No seeding and no `ensureSeeded()`. Source JSON (`countries.json`, `flag_colors.json`, `flag_elements.json`, `alias_overrides.json` with the abbreviations, capital aliases and the four non-UN extras) lives in `data/source/`, not in the APK. Filter: `unMember || cca3 in {VAT, PSE, TWN, UNK}` → 197 of 250.
 - `build_static_db.py` builds tables from the exported Room schema (`createSql`, `room_master_table` identity hash, `user_version`); `--check` (in CI) compares logical content. It shares its rules with `tools/data/export_aliases.py` and fails on any alias that maps to two countries.
 - Tests (Robolectric 4.17, SDK 36; JVM `--add-opens` flags in `app/build.gradle.kts`): `StaticDatabaseTest`, `StaticDatabaseAssetTest` (raw asset version and hash; an older installed copy is replaced), `AppDatabaseMigrationTest` (every version 1, 4–10 → 11 keeps player data). `RoomSchemaFixture` builds an old-version DB from the schema JSON because `MigrationTestHelper` can't read schemas in JVM tests under AGP 8.9.
@@ -351,6 +360,10 @@ Builds the shared pieces every new mode uses. Do not build new modes here.
 | 3.8 | Dark mode: audit all screens; hairline border on every flag in both themes; map colour tokens defined for both themes (used in Phase 4) | Screenshot tests in dark mode pass | C |
 | 3.9 | Design tokens: one theme file for colours (including correct = blue, wrong = orange, map land/water/found/highlight), type scale and shapes, used by all new UI | No hard-coded colours in new code | first |
 
+Order used: 3.9 → 3.1 → 3.2a → 3.2b → 3.3 → 3.3a | 3.5 → 3.4 | 3.6 → 3.7 → 3.8 → gate. Sequential, one agent at a time (shared quiz files, one Gradle build at a time).
+
+Status: 3.9, 3.1, 3.2, 3.3 (+3.3a in-app Vibration switch) done in session 4 (2026-10-08). 3.4–3.8 not started.
+
 ### Phase 4 – Map engine and geodata pipeline
 
 Shared by modes 1, 3, 5, 10 and 12.
@@ -435,6 +448,11 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 | D13 | `static.db` is offered as a whole under ODbL 1.0, including the GeoQuiz-authored `flag_colors` and `flag_elements` tables (Dav, 2026-10-07, after the Phase 2 licence audit). Documented in `data/README.md` and `data/SOURCES.md`. | Decided |
 | D14 | Easy tier (3.2), Countries mode: "spot the member" – 4 options, one unanswered country from the set and three from the same region that are not in it; categories with no outsiders (All countries) fall back to a flag prompt. Capitals Easy: "capital of X?"; Flags Easy: show the flag, pick the country (Dav, 2026-10-08). | Decided |
 | D15 | Hard tier timer (3.2) = always-on count-up timer that can't be hidden, plus 3 strikes; no time limit (Dav, 2026-10-08). | Decided |
+| D16 | Easy quizzes are recorded in history, stats and mastery stars, but unlock no achievements and submit no Play Games leaderboard scores (lead, 2026-10-08; Dav can reverse). | Decided (Phase 3) |
+| D17 | Mastery stars per (mode, category), best over history: 1 = any finished quiz ≥ 50% correct; 2 = ≥ 80% at Normal or Hard; 3 = 100% at Hard. Rows from before v12 count as Normal. | Decided (Phase 3) |
+| D18 | Difficulty tiers are not behind a feature flag: they change how the existing modes are played (Phase 3 AC requires all three tiers), like D12. | Decided (Phase 3) |
+| D19 | Phase 3 build rule (Dav, 2026-10-08): per task only `compileDebugUnitTestKotlin` plus that task's own test classes (`testDebugUnitTest --tests ...`); full suite, Roborazzi record/verify, lint and release run once at the phase gate. Goldens are re-recorded once at the end, not per task. | Decided |
+| D20 | In-app "Vibration" switch (default on) in Settings and the quiz sheet; haptics need it and the system touch-feedback setting (Dav asked, 2026-10-08). | Decided (Phase 3) |
 | D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
 
 ---
@@ -504,3 +522,17 @@ Each session appends one entry:
   9. Settings → Reset all data still works; Credits shows the ODbL notice covering the built-in database.
   10. Release build (`./gradlew assembleRelease`, needs `challengeHmacKey` in `signing.properties`): runs a quiz, opens a challenge link and the Remove Ads purchase sheet without crashing.
 - Next session starts at: Phase 3, tasks 3.9 and 3.1 (after the Phase 2 PR is merged).
+
+### Session 4 – 2026-10-08 – Phase 3 (part 1)
+- Done: 3.9 (GeoColors, shapes, type scale; correct blue + tick, wrong orange + cross; follow-up a), 3.1 (GameMode registry; follow-up e mostly), 3.2a (difficulty plumbing, Normal/Hard rules, selector, route arg, AppDatabase v12, mastery stars), 3.2b (Easy multiple choice), 3.3 (haptics, pulse/shake with reduced motion, recent answers, strings incl. "Not recognised" (c), pause announcement (f), inline icons scale with font), 3.3a (Vibration switch).
+- Not done / carried over: 3.4, 3.5, 3.6, 3.7, 3.8 and the gate. Carry-overs:
+  - 3.5: show newly unlocked achievements on Results (follow-up d: `QuizViewModel.newAchievements` exists but nothing displays it). Finish follow-up (e): pass the injected `ChallengeLinkSigner` at the 3 `toShareUrl()` call sites (`ui/category/CategoryListScreen.kt` ~161, `ui/results/ResultsScreen.kt` ~279 and ~303), then delete `ChallengeLinkSigner.default`, the default parameters in `ChallengeDeepLink` and the `BuildConfig` import in domain; update `ChallengeLinkSignerTest`. "Practise the ones you missed" must carry the difficulty (route arg) and work for Easy misses.
+  - 3.4: wire the home "New modes" grid and bottom nav to `GameModeRegistry.available(...)` and `ModeIcons`. Category rows still load "Best: x/y" once while stars update live; tidy when touching home/category.
+  - 3.6: toolchain bump first (follow-ups g, h: Gradle, AGP, Kotlin 2.2+, KSP, Roborazzi); then 200% font on every screen: Results Share/Challenge clip (b), Answer review top-bar title clips, difficulty selector "Normal" segment, the Easy panel squeezes the country list, Easy option result icons (24 dp) don't scale.
+  - 3.8 / gate: re-record all goldens once (quiz, review, settings and category screens all changed), check each image, add screenshot tests for the Easy panel and the category list with the selector and stars.
+  - Open questions for Dav: near miss has no haptic (chosen); a capitals recent-answer chip reads "Paris (France)" when the country hint is on.
+- Decisions: D14, D15 (Dav), D16–D18 (lead), D19 build rule and D20 vibration switch (Dav).
+- Owner actions added: none.
+- Verification so far: each task compiled (`compileDebugUnitTestKotlin`; Hilt graph via `hiltJavaCompileDebug` for 3.1/3.2a) and its own test classes passed (latest: QuizLoopUiTest 10, QuizViewModelTest 39, SettingsRepositoryTest 8, SettingsViewModelTest 5, ResetAllDataUseCaseTest 8; earlier: AppDatabaseMigrationTest 54, registry, generators, mastery, choice generators, contrast). The full suite, Roborazzi, lint and release have not run since 3.9 (316 tests passed then). `QuizLoopUiTest` now uses `@Config(qualifiers = "w411dp-h891dp")` (the difficulty chip pushed row 3 off Robolectric's 320x470 default). Goldens are stale for the quiz and settings screens; re-record at the gate.
+- Manual test checklist: written at the end of the phase.
+- Next session starts at: Phase 3, task 3.5 (Results), then 3.4, on `upgrade/p3-ux-engine`.

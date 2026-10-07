@@ -10,20 +10,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
-import com.geoquiz.app.data.PlayGamesLeaderboardIds
-import com.geoquiz.app.data.local.preferences.AchievementRepository
-import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.data.service.PlayGamesSyncManager
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.ui.challenges.IncomingChallengeHandler
 import com.geoquiz.app.ui.challenges.IncomingChallengeOutcome
 import com.geoquiz.app.ui.navigation.AppNavigation
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,9 +28,8 @@ class MainActivity : ComponentActivity() {
     private val deepLinkChallenge = mutableStateOf<ChallengeDeepLink?>(null)
 
     @Inject lateinit var playGamesService: PlayGamesAchievementService
-    @Inject lateinit var achievementRepository: AchievementRepository
+    @Inject lateinit var playGamesSyncManager: PlayGamesSyncManager
     @Inject lateinit var incomingChallengeHandler: IncomingChallengeHandler
-    @Inject lateinit var quizHistoryRepository: QuizHistoryRepository
     @Inject lateinit var billingRepository: BillingRepository
     @Inject lateinit var consentManager: ConsentManager
 
@@ -42,6 +37,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         playGamesService.setActivity(this)
+        // Pushes local achievements and leaderboard totals to Play Games on sign-in,
+        // reconnection and new unlocks (no-op after the first call)
+        playGamesSyncManager.start()
         billingRepository.connect()
         // Ads stay off until UMP consent allows them (D8 tagging is applied at initialisation)
         consentManager.gatherConsent(this)
@@ -51,27 +49,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             GeographyQuizTheme {
                 AppNavigation(challengeDeepLink = deepLinkChallenge.value)
-            }
-        }
-
-        // Sync locally unlocked achievements and leaderboard scores on startup
-        lifecycleScope.launch {
-            playGamesService.isSignedIn.filter { it }.first()
-            val unlocked = achievementRepository.unlockedAchievements.first()
-            if (unlocked.isNotEmpty()) {
-                playGamesService.syncAllUnlocked(unlocked)
-            }
-            // Sync leaderboard scores
-            val overall = quizHistoryRepository.getTotalCorrectAnswersSync()
-            if (overall > 0) {
-                playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overall)
-                for (mode in listOf("countries", "capitals", "flags")) {
-                    val modeTotal = quizHistoryRepository.getTotalCorrectAnswersForModeSync(mode)
-                    if (modeTotal > 0) {
-                        val id = PlayGamesLeaderboardIds.forMode(mode) ?: continue
-                        playGamesService.submitScore(id, modeTotal)
-                    }
-                }
             }
         }
     }

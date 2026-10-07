@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 2.10: lets PlayGamesSyncManager notice when connectivity returns so offline achievement
+         unlocks reach Play Games. Normal permission; reads network state only, no data collected. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- D8: every user is treated as child-directed, so the advertising ID is never used.
          play-services-ads merges this permission in; strip it from the final manifest. -->
     <uses-permission

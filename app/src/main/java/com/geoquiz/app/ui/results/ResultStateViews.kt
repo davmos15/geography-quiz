@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
@@ -60,7 +61,10 @@ internal fun ResultMissing(onGoHome: () -> Unit) {
                 text = stringResource(R.string.result_missing_title),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                modifier = Modifier.semantics {
+                    heading()
+                    liveRegion = LiveRegionMode.Polite
+                }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

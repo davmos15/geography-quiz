@@ -135,7 +135,7 @@ fun SettingsScreen(
                     } else {
                         Modifier
                     }
-                    Text("Settings", modifier = titleModifier)
+                    Text("Settings", modifier = titleModifier.semantics { heading() })
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {

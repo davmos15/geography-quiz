@@ -33,6 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,7 +45,9 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.FlagImage
+import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
 
@@ -86,7 +92,12 @@ private fun AnswerReviewContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Answers - $categoryName") },
+                title = {
+                    Text(
+                        "Answers - $categoryName",
+                        modifier = Modifier.semantics { heading() }
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -102,11 +113,14 @@ private fun AnswerReviewContent(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             item {
+                val summaryDescription = A11yText.progress(a11yResources(), quizMode, answeredCount, sorted.size)
                 Text(
                     text = "$answeredCount / ${sorted.size} answered",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .clearAndSetSemantics { contentDescription = summaryDescription }
                 )
             }
 
@@ -138,15 +152,17 @@ private fun AnswerReviewContent(
                         getContextHint(matchedCountry, category, quizMode)
                     } else null
 
+                    // One item for TalkBack: "Incorrect, <guess>, <hint>".
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 10.dp)
+                            .semantics(mergeDescendants = true) { },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Incorrect",
+                            contentDescription = stringResource(R.string.a11y_incorrect),
                             tint = IncorrectRed
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -173,16 +189,20 @@ private fun AnswerReviewContent(
             } else {
                 items(sorted, key = { it.code }) { country ->
                     val isAnswered = country.code in answeredCodes
+                    // One item for TalkBack: "Brazil, missed" (the status icon and flag are
+                    // covered by this description).
+                    val rowDescription = A11yText.reviewRow(a11yResources(), quizMode, country, isAnswered)
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 10.dp)
+                            .clearAndSetSemantics { contentDescription = rowDescription },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = if (isAnswered) Icons.Default.Check else Icons.Default.Close,
-                            contentDescription = if (isAnswered) "Answered" else "Missed",
+                            contentDescription = null, // the row description says it
                             tint = if (isAnswered) CorrectGreen else IncorrectRed
                         )
                         Spacer(modifier = Modifier.width(12.dp))

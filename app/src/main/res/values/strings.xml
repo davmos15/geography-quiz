@@ -87,4 +87,58 @@
     <string name="result_missing_body">It may have been replaced by a newer quiz or cleared when your data was reset.</string>
     <string name="action_go_home">Go home</string>
     <string name="challenge_link_invalid">This challenge link isn\'t valid. Ask your friend to share it again.</string>
+
+    <!-- Accessibility (screen reader descriptions, 2.8) -->
+    <plurals name="a11y_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="a11y_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <!-- %1$s = minutes, %2$s = seconds, e.g. "3 minutes 12 seconds" -->
+    <string name="a11y_duration_minutes_seconds">%1$s %2$s</string>
+    <string name="a11y_timer">Time %1$s</string>
+    <!-- Quantity follows the total (%2$d) -->
+    <plurals name="a11y_progress_countries">
+        <item quantity="one">%1$d of %2$d country named</item>
+        <item quantity="other">%1$d of %2$d countries named</item>
+    </plurals>
+    <plurals name="a11y_progress_capitals">
+        <item quantity="one">%1$d of %2$d capital named</item>
+        <item quantity="other">%1$d of %2$d capitals named</item>
+    </plurals>
+    <plurals name="a11y_progress_flags">
+        <item quantity="one">%1$d of %2$d flag identified</item>
+        <item quantity="other">%1$d of %2$d flags identified</item>
+    </plurals>
+    <plurals name="a11y_hard_mode_strikes">
+        <item quantity="one">%1$d of %2$d incorrect guess used</item>
+        <item quantity="other">%1$d of %2$d incorrect guesses used</item>
+    </plurals>
+    <plurals name="a11y_incorrect_guesses">
+        <item quantity="one">%d incorrect guess</item>
+        <item quantity="other">%d incorrect guesses</item>
+    </plurals>
+    <string name="a11y_row_number">Row %1$d</string>
+    <string name="a11y_capital_of">%1$s, capital of %2$s</string>
+    <string name="a11y_capital_of_hint">Capital of %1$s</string>
+    <string name="a11y_status_answered">%1$s, answered</string>
+    <string name="a11y_status_not_answered">%1$s, not yet answered</string>
+    <string name="a11y_status_missed">%1$s, missed</string>
+    <string name="a11y_incorrect">Incorrect</string>
+    <string name="a11y_completed">Completed</string>
+    <plurals name="a11y_quiz_option_countries">
+        <item quantity="one">%d country</item>
+        <item quantity="other">%d countries</item>
+    </plurals>
+    <plurals name="a11y_quiz_option_capitals">
+        <item quantity="one">%d capital</item>
+        <item quantity="other">%d capitals</item>
+    </plurals>
+    <string name="a11y_best_score">Best score %1$d of %2$d, %3$s points</string>
+    <string name="action_start_quiz">Start quiz</string>
+    <string name="action_resume_quiz">Resume quiz</string>
+    <string name="action_open_category">Open category</string>
 </resources>

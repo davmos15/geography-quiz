@@ -45,6 +45,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -53,6 +59,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
@@ -116,6 +124,10 @@ fun QuizScreen(
 
         is QuizUiState.Active -> {
             val quizState = state.state
+            val res = a11yResources()
+            val answeredCount = quizState.answeredCountries.size
+            val totalCount = quizState.quiz.countries.size
+            val progressDescription = A11yText.progress(res, viewModel.quizMode, answeredCount, totalCount)
 
             Scaffold { padding ->
                 Box(
@@ -127,11 +139,14 @@ fun QuizScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
+                            // While paused, only the pause overlay is reachable by TalkBack.
+                            .then(if (quizState.isPaused) Modifier.clearAndSetSemantics { } else Modifier)
                     ) {
                         // Category name
                         Text(
                             text = quizState.quiz.category.displayName,
-                            style = MaterialTheme.typography.headlineMedium
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.semantics { heading() }
                         )
 
                         // Pattern explainer banner
@@ -172,9 +187,15 @@ fun QuizScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Polite live region: announced when the count changes (a correct
+                            // answer), e.g. "12 of 197 countries named". Not tied to the timer.
                             Text(
-                                text = "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size}",
-                                style = MaterialTheme.typography.titleMedium
+                                text = "$answeredCount / $totalCount",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.clearAndSetSemantics {
+                                    contentDescription = progressDescription
+                                    liveRegion = LiveRegionMode.Polite
+                                }
                             )
                             if (showTimer) {
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -185,18 +206,26 @@ fun QuizScreen(
                             }
                             if (hardMode) {
                                 Spacer(modifier = Modifier.width(12.dp))
+                                val strikesDescription = A11yText.strikes(res, quizState.incorrectGuesses, 3)
                                 Text(
                                     text = "${quizState.incorrectGuesses} / 3",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = if (quizState.incorrectGuesses >= 2) IncorrectRed
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.clearAndSetSemantics {
+                                        contentDescription = strikesDescription
+                                    }
                                 )
                             } else if (quizState.incorrectGuesses > 0) {
                                 Spacer(modifier = Modifier.width(12.dp))
+                                val incorrectDescription = A11yText.incorrectGuesses(res, quizState.incorrectGuesses)
                                 Text(
                                     text = "${quizState.incorrectGuesses}x",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = IncorrectRed
+                                    color = IncorrectRed,
+                                    modifier = Modifier.clearAndSetSemantics {
+                                        contentDescription = incorrectDescription
+                                    }
                                 )
                             }
                             Spacer(modifier = Modifier.weight(1f))
@@ -216,9 +245,12 @@ fun QuizScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        // Same information as the count above, so hidden from TalkBack.
                         LinearProgressIndicator(
                             progress = { quizState.progress },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clearAndSetSemantics { },
                             color = CorrectGreen,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
@@ -293,10 +325,15 @@ fun QuizScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
+                                // Live region so pausing is announced when the overlay appears.
                                 Text(
                                     "Paused",
                                     style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.semantics {
+                                        heading()
+                                        liveRegion = LiveRegionMode.Polite
+                                    }
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 val itemLabel = when (viewModel.quizMode) {
@@ -305,9 +342,12 @@ fun QuizScreen(
                                     QuizMode.COUNTRIES -> "countries named"
                                 }
                                 Text(
-                                    "${quizState.answeredCountries.size} / ${quizState.quiz.countries.size} $itemLabel",
+                                    "$answeredCount / $totalCount $itemLabel",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.clearAndSetSemantics {
+                                        contentDescription = progressDescription
+                                    }
                                 )
                                 Spacer(modifier = Modifier.height(24.dp))
                                 Button(onClick = { viewModel.togglePause() }) {
@@ -331,7 +371,9 @@ fun QuizScreen(
                         Text(
                             "Settings",
                             style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                                .semantics { heading() }
                         )
                         SettingsToggleRow("Show Timer", "Display count-up timer during quizzes", showTimer) {
                             viewModel.toggleShowTimer()

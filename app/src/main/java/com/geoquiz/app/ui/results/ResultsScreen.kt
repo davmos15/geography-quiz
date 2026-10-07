@@ -33,6 +33,10 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +45,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
@@ -139,7 +145,8 @@ private fun ResultsContent(
             Text(
                 text = "Quiz Complete!",
                 style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.semantics { heading() }
             )
 
             if (categoryName.isNotBlank()) {
@@ -162,7 +169,9 @@ private fun ResultsContent(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .semantics(mergeDescendants = true) { },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -196,11 +205,18 @@ private fun ResultsContent(
                         "flags" -> "Flags"
                         else -> "Countries"
                     }
-                    ResultRow(resultLabel, "$correctAnswers / $totalCountries")
+                    val res = a11yResources()
+                    ResultRow(
+                        resultLabel,
+                        "$correctAnswers / $totalCountries",
+                        valueDescription = A11yText.progress(
+                            res, QuizMode.fromId(quizMode), correctAnswers, totalCountries
+                        )
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     ResultRow("Percentage", String.format(Locale.US, "%.1f%%", percentage))
                     Spacer(modifier = Modifier.height(8.dp))
-                    ResultRow("Time", timeFormatted)
+                    ResultRow("Time", timeFormatted, valueDescription = A11yText.duration(res, timeElapsedSeconds))
                     Spacer(modifier = Modifier.height(8.dp))
                     ResultRow("Incorrect Guesses", incorrectGuesses.toString())
                     if (perfectBonus) {
@@ -361,7 +377,8 @@ private fun ChallengeResultCard(
                     text = "Challenge Result",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.semantics { heading() }
                 )
             }
 
@@ -479,8 +496,11 @@ private fun ChallengeResultCard(
 
 @Composable
 private fun ComparisonRow(leftValue: String, label: String, rightValue: String) {
+    // One item for TalkBack: "<you>, <label>, <them>".
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -511,9 +531,12 @@ private fun ComparisonRow(leftValue: String, label: String, rightValue: String) 
 }
 
 @Composable
-private fun ResultRow(label: String, value: String) {
+private fun ResultRow(label: String, value: String, valueDescription: String? = null) {
+    // One item for TalkBack: "Time, 3 minutes 12 seconds".
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
@@ -524,7 +547,12 @@ private fun ResultRow(label: String, value: String) {
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            modifier = if (valueDescription != null) {
+                Modifier.clearAndSetSemantics { contentDescription = valueDescription }
+            } else {
+                Modifier
+            }
         )
     }
 }

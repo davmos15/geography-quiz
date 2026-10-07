@@ -1,12 +1,15 @@
 package com.geoquiz.app.ui.category
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.db.FlagColorDao
 import com.geoquiz.app.data.local.db.FlagElementDao
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 data class CategoryListUiState(
@@ -61,6 +65,7 @@ class CategoryListViewModel @Inject constructor(
     private val challengeRepository: ChallengeRepository,
     private val playGamesService: PlayGamesAchievementService,
     private val settingsRepository: SettingsRepository,
+    private val challengeLinkSigner: ChallengeLinkSigner,
     gameModes: GameModeRegistry
 ) : ViewModel() {
 
@@ -150,7 +155,23 @@ class CategoryListViewModel @Inject constructor(
         }
     }
 
-    fun saveOutgoingChallenge(challengeId: String, categoryType: String, categoryValue: String) {
+    /** Records a new outgoing challenge (no score yet) and returns its signed share link. */
+    fun createChallengeShareUrl(categoryType: String, categoryValue: String): Uri {
+        val deepLink = ChallengeDeepLink(
+            challengeId = UUID.randomUUID().toString(),
+            categoryType = categoryType,
+            categoryValue = categoryValue,
+            challengerName = playGamesService.playerName.value,
+            challengerScore = null,
+            challengerTotal = null,
+            challengerTime = null,
+            quizMode = quizModeId
+        )
+        saveOutgoingChallenge(deepLink.challengeId, categoryType, categoryValue)
+        return deepLink.toShareUrl(challengeLinkSigner)
+    }
+
+    private fun saveOutgoingChallenge(challengeId: String, categoryType: String, categoryValue: String) {
         viewModelScope.launch {
             val name = playGamesService.playerName.value
             val displayName = QuizCategory.fromRoute(categoryType, categoryValue).displayName

@@ -45,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
@@ -57,7 +56,6 @@ import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +68,6 @@ fun CategoryListScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
-    val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")
     val context = LocalContext.current
 
     Scaffold(
@@ -166,21 +163,10 @@ fun CategoryListScreen(
                         onClick = { onStartQuiz(option.categoryType, option.categoryValue, difficulty.id) },
                         onChallenge = {
                             val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
-                            val deepLink = ChallengeDeepLink(
-                                challengeId = UUID.randomUUID().toString(),
-                                categoryType = option.categoryType,
-                                categoryValue = option.categoryValue,
-                                challengerName = playerName,
-                                challengerScore = null,
-                                challengerTotal = null,
-                                challengerTime = null,
-                                quizMode = quizMode
-                            )
-                            viewModel.saveOutgoingChallenge(deepLink.challengeId, option.categoryType, option.categoryValue)
                             ShareUtils.shareChallenge(
                                 context = context,
                                 categoryName = category.displayName,
-                                deepLink = deepLink.toShareUrl()
+                                deepLink = viewModel.createChallengeShareUrl(option.categoryType, option.categoryValue)
                             )
                         }
                     )

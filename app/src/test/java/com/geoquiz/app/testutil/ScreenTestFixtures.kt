@@ -12,6 +12,7 @@ import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.Country
@@ -174,7 +175,8 @@ object ScreenTestFixtures {
             challengeRepository = mockk<ChallengeRepository>(relaxed = true),
             completedQuizRepository = FakeCompletedQuizRepository(result),
             adManager = mockk<AdManager>(relaxed = true),
-            interstitialPolicy = policy
+            interstitialPolicy = policy,
+            challengeLinkSigner = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray())
         )
     }
 

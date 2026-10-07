@@ -1,6 +1,7 @@
 package com.geoquiz.app.ui.results
 
 import android.app.Activity
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,8 @@ import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
+import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.repository.CompletedQuizRepository
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 sealed interface ResultsUiState {
@@ -45,7 +49,8 @@ class ResultsViewModel @Inject constructor(
     private val challengeRepository: ChallengeRepository,
     private val completedQuizRepository: CompletedQuizRepository,
     private val adManager: AdManager,
-    private val interstitialPolicy: InterstitialPolicy
+    private val interstitialPolicy: InterstitialPolicy,
+    private val challengeLinkSigner: ChallengeLinkSigner
 ) : ViewModel() {
     val playerName = playGamesService.playerName
 
@@ -98,7 +103,33 @@ class ResultsViewModel @Inject constructor(
         adManager.showInterstitial(activity, onShown = interstitialPolicy::onInterstitialShown)
     }
 
-    fun saveOutgoingChallenge(
+    /**
+     * Records a new outgoing challenge and returns its signed share link. Pass the player's
+     * [score], [total] and [time] to share a result, or nulls for a plain challenge.
+     */
+    fun createChallengeShareUrl(
+        categoryType: String,
+        categoryValue: String,
+        quizMode: String,
+        score: Int?,
+        total: Int?,
+        time: Int?
+    ): Uri {
+        val deepLink = ChallengeDeepLink(
+            challengeId = UUID.randomUUID().toString(),
+            categoryType = categoryType,
+            categoryValue = categoryValue,
+            challengerName = playGamesService.playerName.value,
+            challengerScore = score,
+            challengerTotal = total,
+            challengerTime = time,
+            quizMode = quizMode
+        )
+        saveOutgoingChallenge(deepLink.challengeId, categoryType, categoryValue, quizMode, score, total, time)
+        return deepLink.toShareUrl(challengeLinkSigner)
+    }
+
+    private fun saveOutgoingChallenge(
         challengeId: String,
         categoryType: String,
         categoryValue: String,

@@ -7,6 +7,7 @@ import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.testutil.TestQuizData
 import io.mockk.coEvery
@@ -41,6 +42,7 @@ class ResultsViewModelTest {
     private val adManager = mockk<AdManager>(relaxed = true)
     private val policy = mockk<InterstitialPolicy>(relaxed = true)
     private val activity = mockk<Activity>()
+    private val signer = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray())
 
     @Before
     fun setUp() {
@@ -56,7 +58,7 @@ class ResultsViewModelTest {
         viewModel(SavedStateHandle(if (resultId != null) mapOf("resultId" to resultId) else emptyMap()))
 
     private fun viewModel(handle: SavedStateHandle): ResultsViewModel {
-        val vm = ResultsViewModel(handle, playGames, challengeRepository, completedQuizzes, adManager, policy)
+        val vm = ResultsViewModel(handle, playGames, challengeRepository, completedQuizzes, adManager, policy, signer)
         dispatcher.scheduler.advanceUntilIdle()
         return vm
     }

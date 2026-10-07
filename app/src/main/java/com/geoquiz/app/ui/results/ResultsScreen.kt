@@ -48,14 +48,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
-import java.util.UUID
 
 @Composable
 fun ResultsScreen(
@@ -128,7 +126,6 @@ private fun ResultsContent(
     viewModel: ResultsViewModel
 ) {
     val context = LocalContext.current
-    val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")
     val challengeResult by viewModel.challengeResult.collectAsStateWithLifecycle()
 
     val percentage = if (totalCountries > 0) {
@@ -258,17 +255,6 @@ private fun ResultsContent(
             ) {
                 OutlinedButton(
                     onClick = {
-                        val deepLink = ChallengeDeepLink(
-                            challengeId = UUID.randomUUID().toString(),
-                            categoryType = categoryType,
-                            categoryValue = categoryValue,
-                            challengerName = playerName,
-                            challengerScore = correctAnswers,
-                            challengerTotal = totalCountries,
-                            challengerTime = timeElapsedSeconds,
-                            quizMode = quizMode
-                        )
-                        viewModel.saveOutgoingChallenge(deepLink.challengeId, categoryType, categoryValue, quizMode, correctAnswers, totalCountries, timeElapsedSeconds)
                         ShareUtils.shareResults(
                             context = context,
                             categoryName = categoryName,
@@ -276,7 +262,10 @@ private fun ResultsContent(
                             score = correctAnswers,
                             total = totalCountries,
                             time = timeElapsedSeconds,
-                            deepLink = deepLink.toShareUrl()
+                            deepLink = viewModel.createChallengeShareUrl(
+                                categoryType, categoryValue, quizMode,
+                                score = correctAnswers, total = totalCountries, time = timeElapsedSeconds
+                            )
                         )
                     },
                     modifier = Modifier.weight(1f)
@@ -286,21 +275,13 @@ private fun ResultsContent(
                 }
                 OutlinedButton(
                     onClick = {
-                        val deepLink = ChallengeDeepLink(
-                            challengeId = UUID.randomUUID().toString(),
-                            categoryType = categoryType,
-                            categoryValue = categoryValue,
-                            challengerName = playerName,
-                            challengerScore = null,
-                            challengerTotal = null,
-                            challengerTime = null,
-                            quizMode = quizMode
-                        )
-                        viewModel.saveOutgoingChallenge(deepLink.challengeId, categoryType, categoryValue, quizMode, null, null, null)
                         ShareUtils.shareChallenge(
                             context = context,
                             categoryName = categoryName,
-                            deepLink = deepLink.toShareUrl()
+                            deepLink = viewModel.createChallengeShareUrl(
+                                categoryType, categoryValue, quizMode,
+                                score = null, total = null, time = null
+                            )
                         )
                     },
                     modifier = Modifier.weight(1f)

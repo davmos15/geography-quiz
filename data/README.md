@@ -3,9 +3,10 @@
 ## `aliases.json`
 
 `aliases.json` is the table of accepted answers GeoQuiz uses to recognise country
-and capital names typed by players. It contains exactly the rows the app writes
-into its Room `aliases` and `capital_aliases` tables when it seeds the database
-on first launch.
+and capital names typed by players. It contains exactly the rows of the
+`aliases` and `capital_aliases` tables in the database the app ships
+(`app/src/main/assets/databases/static.db`, built by
+`tools/data/build_static_db.py` with the same rules).
 
 It is published here, separately from the app, because it is a Derivative
 Database of [mledoze/countries](https://github.com/mledoze/countries), which is
@@ -34,9 +35,9 @@ Top level:
 | --- | --- |
 | `licence`, `licenceUrl` | Licence of this file (`ODbL-1.0`). |
 | `attribution` | Required attribution text for the upstream source. |
-| `source` | Upstream database: name, URL, licence and the path of the copy bundled in the app (`app/src/main/assets/countries.json`). |
+| `source` | Upstream database: name, URL, licence and the path of the copy kept in this repository (`data/source/countries.json`). |
 | `generatedBy` | Script that produced the file. |
-| `rulesFrom` | Kotlin files whose logic the script mirrors. |
+| `rulesFrom` | The hand-written alias file and the Kotlin normaliser the script mirrors. |
 | `countryCount`, `aliasCount`, `capitalAliasCount` | Totals, for quick sanity checks. |
 | `countries` | One entry per country in the app, sorted by `cca3`. |
 
@@ -58,34 +59,36 @@ so does this file.
 
 ### How it is derived
 
-The steps below mirror `seedFromAsset()` in
-`app/src/main/java/com/geoquiz/app/data/repository/CountryRepositoryImpl.kt` and
-`NormalizeInputUseCase` in
-`app/src/main/java/com/geoquiz/app/domain/usecase/NormalizeInputUseCase.kt`.
+The steps below are implemented in `tools/data/export_aliases.py`, which
+`tools/data/build_static_db.py` also uses to build the app's database. The
+normalisation step mirrors `NormalizeInputUseCase` in
+`app/src/main/java/com/geoquiz/app/domain/usecase/NormalizeInputUseCase.kt`; a
+unit test checks every shipped alias against the Kotlin implementation.
 
-1. **Load** `app/src/main/assets/countries.json` (250 entries, mledoze/countries
+1. **Load** `data/source/countries.json` (250 entries, mledoze/countries
    schema).
 2. **Filter** to the countries used in the app: keep an entry if `unMember` is
-   `true`, or its `cca3` is one of `VAT`, `PSE`, `TWN` or `UNK`. This gives 197
-   countries.
+   `true`, or its `cca3` is listed in `extraCountries` in
+   `data/source/alias_overrides.json` (`VAT`, `PSE`, `TWN` and `UNK`). This
+   gives 197 countries.
 3. **Country aliases.** For each country, collect, in order and without exact
    duplicates:
    1. `name.common`
    2. `name.official`
    3. every entry of `altSpellings`
    4. the hand-written abbreviations and alternative names for that country in
-      the `ABBREVIATIONS` map in `CountryRepositoryImpl.kt` (for example
+      `abbreviations` in `data/source/alias_overrides.json` (for example
       `UK`, `Britain` and `Great Britain` for `GBR`; `Ivory Coast` for `CIV`).
 4. **Drop** from that set:
    - blank strings;
    - short codes: any string of 3 or fewer characters that are all upper-case
      letters (for example `AU`, `AUS`, `GB`), **unless** the string appears in
-     that country's `ABBREVIATIONS` list (which is how `UK`, `US`, `USA`, `UAE`
+     that country's `abbreviations` list (which is how `UK`, `US`, `USA`, `UAE`
      and `DRC` survive). Strings with lower-case or non-cased characters, such
      as `Lao` or Korean names, are not affected.
 5. **Capital aliases.** For each country, collect every entry of `capital`
    followed by any hand-written extras for that country in the
-   `CAPITAL_ALIASES` map in `CountryRepositoryImpl.kt` (for example `Kotte`
+   `capitalAliases` in `data/source/alias_overrides.json` (for example `Kotte`
    for `LKA`, or `Pretoria`, `Cape Town` and `Bloemfontein` for `ZAF`). Drop
    exact duplicates and blank strings. No short-code rule applies to capitals,
    so `KL` (Kuala Lumpur) is kept.
@@ -108,10 +111,10 @@ The steps below mirror `seedFromAsset()` in
    above. The file has no timestamp so it only changes when the data or the
    rules change.
 
-`ABBREVIATIONS`, `CAPITAL_ALIASES` and the list of extra countries are read
-directly from the Kotlin source, so the app remains the single source of truth.
-If you change those maps, the normalisation rules or `countries.json`,
-regenerate this file in the same change.
+`data/source/alias_overrides.json` is the single source of the hand-written
+aliases and extra countries. If you change it, the normalisation rules or
+`countries.json`, regenerate this file and the app's `static.db` in the same
+change (and bump `StaticDatabase.VERSION`).
 
 ### Regenerating
 
@@ -120,12 +123,14 @@ From the repository root (Python 3.9 or later, standard library only):
 ```
 python tools/data/export_aliases.py           # rewrite data/aliases.json
 python tools/data/export_aliases.py --check   # exit 1 if data/aliases.json is out of date
+python tools/data/build_static_db.py          # rebuild app/src/main/assets/databases/static.db
+python tools/data/build_static_db.py --check  # exit 1 if static.db is out of date
 ```
 
-The `--check` mode writes nothing and is suitable for CI.
+The `--check` modes write nothing; CI runs both.
 
 ### Upstream version
 
-The copy of mledoze/countries in `app/src/main/assets/countries.json` arrived
+The copy of mledoze/countries in `data/source/countries.json` arrived
 with the project's initial commit; the upstream release or commit it was taken
 from was not recorded.

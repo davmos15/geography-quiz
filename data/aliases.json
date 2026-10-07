@@ -6,11 +6,11 @@
     "name": "mledoze/countries",
     "url": "https://github.com/mledoze/countries",
     "licence": "ODbL-1.0",
-    "file": "app/src/main/assets/countries.json"
+    "file": "data/source/countries.json"
   },
   "generatedBy": "tools/data/export_aliases.py",
   "rulesFrom": [
-    "app/src/main/java/com/geoquiz/app/data/repository/CountryRepositoryImpl.kt",
+    "data/source/alias_overrides.json",
     "app/src/main/java/com/geoquiz/app/domain/usecase/NormalizeInputUseCase.kt"
   ],
   "countryCount": 197,

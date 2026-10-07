@@ -1,15 +1,10 @@
 package com.geoquiz.app.data.local.db
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
 interface FlagColorDao {
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFlagColors(colors: List<FlagColorEntity>)
 
     @Query("SELECT * FROM flag_colors")
     suspend fun getAllMappings(): List<FlagColorEntity>

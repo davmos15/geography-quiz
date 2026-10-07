@@ -17,7 +17,7 @@ Kosovo). They are rendered by `ui/components/FlagImage.kt` (Coil 3 + coil-svg).
 
 ## Which countries
 
-Every entry in `app/src/main/assets/countries.json` the app shows: UN members
+Every entry in `data/source/countries.json` the app shows: UN members
 plus VAT, PSE, TWN and UNK (197 today). This mirrors the filter in
 `CountryRepositoryImpl`; keep `EXTRA_CCA3` in `fetch_flags.py` in sync with it.
 The script maps cca2 (flag-icons file name) to cca3 (asset name) at build time,

@@ -17,12 +17,17 @@ import java.io.File
 class FlagAssetsPresentTest {
 
     private val assetsDir = File("src/main/assets")
+    private val sourceDir = File("../data/source")
 
-    // Mirrors the filter in CountryRepositoryImpl.
-    private val extraCountries = setOf("VAT", "PSE", "TWN", "UNK")
+    // Same filter as tools/data/build_static_db.py: UN members plus extraCountries.
+    private val extraCountries: Set<String> by lazy {
+        Json.parseToJsonElement(File(sourceDir, "alias_overrides.json").readText())
+            .jsonObject.getValue("extraCountries").jsonArray
+            .map { it.jsonPrimitive.content }.toSet()
+    }
 
     private fun usedCca3Codes(): List<String> {
-        val json = Json.parseToJsonElement(File(assetsDir, "countries.json").readText())
+        val json = Json.parseToJsonElement(File(sourceDir, "countries.json").readText())
         return json.jsonArray.map { it.jsonObject }
             .filter { obj ->
                 val unMember = obj["unMember"]?.jsonPrimitive?.booleanOrNull == true

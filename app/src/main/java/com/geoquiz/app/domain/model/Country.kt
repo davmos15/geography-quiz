@@ -7,6 +7,5 @@ data class Country(
     val region: String,
     val subregion: String,
     val nameLength: Int,
-    val capital: String,
-    val flag: String
+    val capital: String
 )

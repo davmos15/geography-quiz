@@ -11,7 +11,6 @@ class GetCountriesForCapitalQuizUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(category: QuizCategory): List<Country> {
-        repository.ensureSeeded()
         val allCountries = repository.getAllCountries().first()
             .filter { it.capital.isNotBlank() }
 

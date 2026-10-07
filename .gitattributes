@@ -1,0 +1,2 @@
+# Binary assets must never get line-ending conversion.
+*.db binary

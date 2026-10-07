@@ -30,7 +30,6 @@ class CapitalsHomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.ensureSeeded()
             val allCountries = repository.getAllCountries().first()
                 .filter { it.capital.isNotBlank() }
 

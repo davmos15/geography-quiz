@@ -47,7 +47,6 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.ensureSeeded()
             val allCountries = repository.getAllCountries().first()
 
             val groups = buildCategoryGroups(allCountries)

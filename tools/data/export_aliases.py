@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""Export the country and capital alias table that GeoQuiz builds at seed time.
+"""Export the country and capital alias table that GeoQuiz ships in its static database.
 
-The app derives its answer aliases from mledoze/countries (ODbL 1.0) plus two
-hand-written maps in CountryRepositoryImpl.kt. Because that derived table is a
-"Derivative Database" under the ODbL, we publish it separately as
+The app derives its answer aliases from mledoze/countries (ODbL 1.0) plus the
+hand-written maps in data/source/alias_overrides.json. Because that derived
+table is a "Derivative Database" under the ODbL, we publish it separately as
 data/aliases.json under the same licence.
 
-This script replicates the Kotlin seeding logic exactly:
+This module is also the single home of the derivation rules, shared with
+tools/data/build_static_db.py (which builds app/src/main/assets/databases/static.db):
 
-  * CountryRepositoryImpl.seedFromAsset()  (filter, alias sets, short-code rule)
-  * NormalizeInputUseCase.invoke()         (normalised form)
-
-ABBREVIATIONS and CAPITAL_ALIASES are parsed straight out of the Kotlin source,
-so the Kotlin file stays the single source of truth.
+  * derive_countries()   filter (UN members + extraCountries), alias sets,
+                         short-code rule, capital aliases
+  * normalize_input()    exact port of NormalizeInputUseCase.invoke(); the
+                         Robolectric StaticDatabaseTest checks every shipped
+                         alias against the Kotlin implementation
 
 Usage (from the repository root or anywhere):
 
@@ -32,21 +33,16 @@ import unicodedata
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-COUNTRIES_JSON = REPO_ROOT / "app" / "src" / "main" / "assets" / "countries.json"
-REPOSITORY_KT = (
-    REPO_ROOT / "app" / "src" / "main" / "java" / "com" / "geoquiz" / "app"
-    / "data" / "repository" / "CountryRepositoryImpl.kt"
-)
+SOURCE_DIR = REPO_ROOT / "data" / "source"
+COUNTRIES_JSON = SOURCE_DIR / "countries.json"
+OVERRIDES_JSON = SOURCE_DIR / "alias_overrides.json"
 OUTPUT = REPO_ROOT / "data" / "aliases.json"
-
-# Must match `extraCountries` in CountryRepositoryImpl.seedFromAsset().
-EXTRA_COUNTRIES_RE = re.compile(r"val\s+extraCountries\s*=\s*setOf\(([^)]*)\)")
 
 SOURCE = {
     "name": "mledoze/countries",
     "url": "https://github.com/mledoze/countries",
     "licence": "ODbL-1.0",
-    "file": "app/src/main/assets/countries.json",
+    "file": "data/source/countries.json",
 }
 
 
@@ -116,71 +112,39 @@ def normalize_input(text: str) -> str:
 
 
 # --------------------------------------------------------------------------
-# Kotlin source parsing
+# Inputs
 # --------------------------------------------------------------------------
 
-def _kt_string_literals(text: str) -> list[str]:
-    literals = re.findall(r'"((?:[^"\\]|\\.)*)"', text)
-    for lit in literals:
-        if "\\" in lit or "$" in lit:
-            raise SystemExit(
-                f"Unsupported escape or template in Kotlin string literal: {lit!r}"
-            )
-    return literals
+def _string_list(value, where: str) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+        raise SystemExit(f"{where} must be a list of strings")
+    return value
 
 
-def parse_kotlin_map(source: str, name: str) -> dict[str, list[str]]:
-    """Parse `private val NAME = mapOf("K" to listOf("a", "b"), ...)`."""
-    m = re.search(rf"val\s+{name}\s*=\s*mapOf\(", source)
-    if not m:
-        raise SystemExit(f"Could not find `{name} = mapOf(` in {REPOSITORY_KT}")
-    # Find the matching close paren of mapOf( ... ).
-    depth, i = 1, m.end()
-    in_str = False
-    while depth and i < len(source):
-        ch = source[i]
-        if in_str:
-            if ch == "\\":
-                i += 1
-            elif ch == '"':
-                in_str = False
-        elif ch == '"':
-            in_str = True
-        elif ch == "(":
-            depth += 1
-        elif ch == ")":
-            depth -= 1
-        i += 1
-    body = source[m.end(): i - 1]
-
-    entry_re = re.compile(r'"([A-Z]{3})"\s+to\s+listOf\(([^)]*)\)')
-    result: dict[str, list[str]] = {}
-    consumed = entry_re.sub("", body)
-    if re.sub(r"[\s,]", "", re.sub(r"//[^\n]*", "", consumed)):
-        raise SystemExit(f"Unexpected content in {name}: {consumed.strip()[:200]!r}")
-    for key, values in entry_re.findall(body):
-        if key in result:
-            # Kotlin mapOf keeps the last value for a duplicate key.
-            print(f"warning: duplicate key {key} in {name}", file=sys.stderr)
-        result[key] = _kt_string_literals(values)
-    if not result:
-        raise SystemExit(f"Parsed no entries from {name}")
-    return result
+def _string_list_map(value, where: str) -> dict[str, list[str]]:
+    if not isinstance(value, dict):
+        raise SystemExit(f"{where} must be an object")
+    for key in value:
+        if not re.fullmatch(r"[A-Z]{3}", key):
+            raise SystemExit(f"{where}: key {key!r} is not a cca3 code")
+    return {k: _string_list(v, f"{where}.{k}") for k, v in value.items()}
 
 
-def parse_extra_countries(source: str) -> set[str]:
-    m = EXTRA_COUNTRIES_RE.search(source)
-    if not m:
-        raise SystemExit("Could not find `extraCountries = setOf(...)` in Kotlin source")
-    return set(_kt_string_literals(m.group(1)))
+def load_overrides() -> tuple[dict[str, list[str]], dict[str, list[str]], set[str]]:
+    """Return (abbreviations, capital_aliases, extra_countries) from alias_overrides.json."""
+    data = json.loads(OVERRIDES_JSON.read_text(encoding="utf-8"))
+    abbreviations = _string_list_map(data.get("abbreviations"), "abbreviations")
+    capital_aliases = _string_list_map(data.get("capitalAliases"), "capitalAliases")
+    extra = set(_string_list(data.get("extraCountries"), "extraCountries"))
+    return abbreviations, capital_aliases, extra
 
 
 # --------------------------------------------------------------------------
-# Build
+# Derivation (shared with build_static_db.py)
 # --------------------------------------------------------------------------
 
 def _require(entry: dict, key: str, typ, default=None, nullable=False):
-    """Mimic kotlinx.serialization decoding of CountryJson fields."""
+    """Mimic the kotlinx.serialization decoding the app used before Phase 2."""
     if key not in entry:
         if default is None and not nullable:
             raise SystemExit(f"countries.json entry missing required field {key!r}")
@@ -195,20 +159,25 @@ def _require(entry: dict, key: str, typ, default=None, nullable=False):
     return value
 
 
-def build() -> dict:
-    kt_source = REPOSITORY_KT.read_text(encoding="utf-8")
-    abbreviations = parse_kotlin_map(kt_source, "ABBREVIATIONS")
-    capital_aliases_map = parse_kotlin_map(kt_source, "CAPITAL_ALIASES")
-    extra_countries = parse_extra_countries(kt_source)
+def derive_countries() -> list[dict]:
+    """Every country the app shows, in countries.json order.
 
+    Each record has cca3, cca2, common, official, region, subregion, capitals,
+    aliases and capitalAliases. The alias lists hold {"alias", "normalized"}
+    dicts in insertion order (as the old Kotlin LinkedHashSet seeding did).
+    """
+    abbreviations, capital_aliases_map, extra_countries = load_overrides()
     raw = json.loads(COUNTRIES_JSON.read_text(encoding="utf-8"))
 
     countries = []
     for entry in raw:
         cca3 = _require(entry, "cca3", str)
+        cca2 = _require(entry, "cca2", str, default="")
         name = _require(entry, "name", dict)
         common = _require(name, "common", str)
         official = _require(name, "official", str)
+        region = _require(entry, "region", str)
+        subregion = _require(entry, "subregion", str, nullable=True) or ""
         alt_spellings = _require(entry, "altSpellings", list, default=[])
         un_member = _require(entry, "unMember", bool, default=False)
         capitals = _require(entry, "capital", list, default=[])
@@ -232,6 +201,7 @@ def build() -> dict:
         for alias in alias_set:
             if kt_is_blank(alias):
                 continue
+            # Drop codes such as "FR" or "FRA" unless whitelisted for this country.
             if (
                 kt_length(alias) <= 3
                 and all(kt_is_upper(c) for c in alias)
@@ -253,16 +223,37 @@ def build() -> dict:
                 continue
             cap_aliases.append({"alias": cap, "normalized": normalize_input(cap)})
 
-        sort_key = lambda a: (a["normalized"], a["alias"])  # noqa: E731
         countries.append({
             "cca3": cca3,
-            "name": common,
-            "officialName": official,
-            "capital": capitals[0] if capitals else "",
-            "aliases": sorted(aliases, key=sort_key),
-            "capitalAliases": sorted(cap_aliases, key=sort_key),
+            "cca2": cca2,
+            "common": common,
+            "official": official,
+            "region": region,
+            "subregion": subregion,
+            "capitals": capitals,
+            "aliases": aliases,
+            "capitalAliases": cap_aliases,
         })
+    return countries
 
+
+# --------------------------------------------------------------------------
+# Build data/aliases.json
+# --------------------------------------------------------------------------
+
+def build() -> dict:
+    sort_key = lambda a: (a["normalized"], a["alias"])  # noqa: E731
+    countries = [
+        {
+            "cca3": c["cca3"],
+            "name": c["common"],
+            "officialName": c["official"],
+            "capital": c["capitals"][0] if c["capitals"] else "",
+            "aliases": sorted(c["aliases"], key=sort_key),
+            "capitalAliases": sorted(c["capitalAliases"], key=sort_key),
+        }
+        for c in derive_countries()
+    ]
     countries.sort(key=lambda c: c["cca3"])
 
     return {
@@ -276,7 +267,7 @@ def build() -> dict:
         "source": SOURCE,
         "generatedBy": "tools/data/export_aliases.py",
         "rulesFrom": [
-            "app/src/main/java/com/geoquiz/app/data/repository/CountryRepositoryImpl.kt",
+            "data/source/alias_overrides.json",
             "app/src/main/java/com/geoquiz/app/domain/usecase/NormalizeInputUseCase.kt",
         ],
         "countryCount": len(countries),

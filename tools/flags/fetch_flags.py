@@ -27,11 +27,11 @@ TARBALL_URL = (
 TARBALL_SHA256 = "c0b80bf0e08006a60f56621d6bc49f8c7131f4d1fef6737a165a673431f4b518"
 
 # Non-UN-member entries the app includes alongside UN members.
-# Keep in sync with the filter in CountryRepositoryImpl.
+# Keep in sync with extraCountries in data/source/alias_overrides.json.
 EXTRA_CCA3 = {"VAT", "PSE", "TWN", "UNK"}
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-COUNTRIES_JSON = REPO_ROOT / "app" / "src" / "main" / "assets" / "countries.json"
+COUNTRIES_JSON = REPO_ROOT / "data" / "source" / "countries.json"
 OUT_DIR = REPO_ROOT / "app" / "src" / "main" / "assets" / "flags"
 LICENCE_COPY = Path(__file__).resolve().parent / "LICENSE.flag-icons"
 

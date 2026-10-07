@@ -87,6 +87,19 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        // Robolectric tests read the real assets (static.db) and resources.
+        unitTests.isIncludeAndroidResources = true
+        // Robolectric's SDK 36 sandbox reaches into JDK internals (FileDescriptor via SharedSecrets).
+        unitTests.all {
+            it.jvmArgs(
+                "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.base/java.io=ALL-UNNAMED"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -152,4 +165,6 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }

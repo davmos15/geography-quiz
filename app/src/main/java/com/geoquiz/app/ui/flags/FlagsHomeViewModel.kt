@@ -37,7 +37,6 @@ class FlagsHomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.ensureSeeded()
             val allCountries = repository.getAllCountries().first()
 
             // Single query: load all mappings at once

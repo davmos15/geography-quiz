@@ -283,7 +283,8 @@ class QuizViewModelTest {
         assertEquals(QuizCompletion.Step.NAVIGATE, completion.step)
         assertEquals(completion.resultId, completedQuizzes.stored?.id)
         assertEquals(3, completedQuizzes.stored?.correct)
-        assertEquals(listOf(achievement), first.newAchievements.value)
+        // What the quiz unlocked travels with the stored result, for Results to show.
+        assertEquals(listOf(achievement.id), completedQuizzes.stored?.newAchievementIds)
 
         // Process death after completion, before Results was shown.
         val second = viewModel(afterProcessDeath(handle))
@@ -292,8 +293,9 @@ class QuizViewModelTest {
         assertEquals(completion.resultId, restored.resultId)
         assertEquals(QuizCompletion.Step.NAVIGATE, restored.step)
         assertTrue(second.quizState().isComplete)
-        assertTrue(second.newAchievements.value.isEmpty())
-        assertEquals(1, completedQuizzes.saveCount)
+        assertEquals(listOf(achievement.id), completedQuizzes.stored?.newAchievementIds)
+        // One save of the result, one re-save with the unlocked achievement; none on recreation.
+        assertEquals(2, completedQuizzes.saveCount)
         coVerify(exactly = 1) {
             quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         }

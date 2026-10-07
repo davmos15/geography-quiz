@@ -36,11 +36,20 @@ data class CompletedQuiz(
      * [Difficulty.id] of the tier the quiz was played at. Records from before 3.2 have none and
      * read as Normal (or Hard, if [hardMode] is set). Use [difficulty] rather than this.
      */
-    val difficultyId: String = Difficulty.DEFAULT.id
+    val difficultyId: String = Difficulty.DEFAULT.id,
+    /**
+     * [Achievement.id]s this quiz unlocked, so Results can show them (also after process death).
+     * Records from before 3.5b have none. Use [newAchievements] rather than this.
+     */
+    val newAchievementIds: List<String> = emptyList()
 ) {
     /** The tier the quiz was played at. */
     val difficulty: Difficulty
         get() = if (hardMode) Difficulty.HARD else Difficulty.fromIdOrDefault(difficultyId)
+
+    /** The achievements this quiz unlocked, in unlock order; ids no longer known are skipped. */
+    val newAchievements: List<Achievement>
+        get() = newAchievementIds.mapNotNull { id -> Achievement.entries.firstOrNull { it.id == id } }
 
     val quizMode: QuizMode
         get() = QuizMode.fromId(quizModeId)

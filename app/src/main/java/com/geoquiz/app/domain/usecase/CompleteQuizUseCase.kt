@@ -23,9 +23,12 @@ import javax.inject.Inject
  * Easy quizzes are recorded in history (so they show in stats and mastery stars) but unlock no
  * achievements and submit no leaderboard scores (D16, [Difficulty.countsForAchievements]).
  *
+ * Achievements the quiz unlocks are stored with the result ([CompletedQuiz.newAchievementIds]) so
+ * Results can show them.
+ *
  * Idempotent per [Request.resultId]: if a result with that id is already stored, it is returned
- * and nothing is recorded again. The caller keeps the id across process death (in its
- * `SavedStateHandle`), so a quiz is never recorded twice.
+ * (with the achievements it unlocked) and nothing is recorded again. The caller keeps the id
+ * across process death (in its `SavedStateHandle`), so a quiz is never recorded twice.
  *
  * The result is saved before the side effects run, so a crash in between can lose an
  * achievement or history row but can never record the quiz twice. The work runs to the end
@@ -112,6 +115,13 @@ class CompleteQuizUseCase @Inject constructor(
         } else {
             emptyList()
         }
+        // Keep what this quiz unlocked with the result, so Results shows it even after process death.
+        val recorded = if (newlyUnlocked.isEmpty()) {
+            completed
+        } else {
+            completed.copy(newAchievementIds = newlyUnlocked.map { it.id })
+                .also { completedQuizRepository.save(it) }
+        }
         newlyUnlocked.forEach { playGamesService.unlockAchievement(it) }
 
         quizHistoryRepository.recordQuizResult(
@@ -127,7 +137,7 @@ class CompleteQuizUseCase @Inject constructor(
             difficulty = request.difficulty
         )
 
-        if (!counts) return@withContext Outcome(completed, newlyUnlocked, newlyRecorded = true)
+        if (!counts) return@withContext Outcome(recorded, newlyUnlocked, newlyRecorded = true)
 
         val overallTotal = quizHistoryRepository.getTotalCorrectAnswersSync()
         playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overallTotal)
@@ -136,6 +146,6 @@ class CompleteQuizUseCase @Inject constructor(
             playGamesService.submitScore(leaderboardId, modeTotal)
         }
 
-        Outcome(completed, newlyUnlocked, newlyRecorded = true)
+        Outcome(recorded, newlyUnlocked, newlyRecorded = true)
     }
 }

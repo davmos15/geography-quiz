@@ -151,10 +151,38 @@ class CompleteQuizUseCaseTest {
         assertEquals(first.completedQuiz, second.completedQuiz)
         assertFalse(second.newlyRecorded)
         assertTrue(second.newAchievements.isEmpty())
-        assertEquals(1, completedQuizzes.saveCount)
+        // The stored result still lists what the first run unlocked.
+        assertEquals(listOf(Achievement.entries.first()), second.completedQuiz.newAchievements)
+        // The first run saves the result, then again with its achievements; the second saves nothing.
+        assertEquals(2, completedQuizzes.saveCount)
         coVerify(exactly = 1) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
         coVerify(exactly = 1) { quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
         verify(exactly = 2) { playGames.submitScore(any(), any()) }
+    }
+
+    @Test
+    fun `the stored result carries the achievements it unlocked`() = runTest {
+        val unlocked = Achievement.entries.take(2)
+        coEvery { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) } returns unlocked
+
+        val outcome = useCase(request())
+
+        val stored = completedQuizzes.get("result-1")!!
+        assertEquals(unlocked.map { it.id }, stored.newAchievementIds)
+        assertEquals(unlocked, stored.newAchievements)
+        assertEquals(stored, outcome.completedQuiz)
+        assertEquals(unlocked, outcome.newAchievements)
+    }
+
+    @Test
+    fun `a quiz that unlocks nothing stores no achievements and saves once`() = runTest {
+        coEvery { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) } returns emptyList()
+
+        val outcome = useCase(request())
+
+        assertTrue(completedQuizzes.get("result-1")!!.newAchievementIds.isEmpty())
+        assertTrue(outcome.completedQuiz.newAchievements.isEmpty())
+        assertEquals(1, completedQuizzes.saveCount)
     }
 
     @Test
@@ -162,7 +190,9 @@ class CompleteQuizUseCaseTest {
         useCase(request(id = "a"))
         useCase(request(id = "b"))
 
-        assertEquals(2, completedQuizzes.saveCount)
+        // Each run saves its result, then again with the achievement it unlocked.
+        assertEquals(4, completedQuizzes.saveCount)
+        assertEquals("b", completedQuizzes.stored?.id)
         coVerify(exactly = 2) { quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
@@ -214,6 +244,8 @@ class CompleteQuizUseCaseTest {
         assertTrue(outcome.newlyRecorded)
         assertTrue(outcome.newAchievements.isEmpty())
         assertEquals(Difficulty.EASY, completedQuizzes.get("result-1")?.difficulty)
+        assertTrue(completedQuizzes.get("result-1")!!.newAchievementIds.isEmpty())
+        assertTrue(outcome.completedQuiz.newAchievements.isEmpty())
         coVerify(exactly = 1) {
             quizHistoryRepository.recordQuizResult(
                 quizMode = "capitals",

@@ -37,10 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +51,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.R
+import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.a11yResources
@@ -80,6 +85,7 @@ fun ResultsScreen(
                 categoryValue = result.categoryValue,
                 quizMode = result.quizModeId,
                 incorrectGuesses = result.incorrectGuesses,
+                newAchievements = result.newAchievements,
                 onPlayAgain = {
                     onPlayAgain(result.quizModeId, result.categoryType, result.categoryValue, result.difficulty.id)
                 },
@@ -120,6 +126,7 @@ private fun ResultsContent(
     categoryValue: String,
     quizMode: String,
     incorrectGuesses: Int,
+    newAchievements: List<Achievement>,
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
     onViewAnswers: () -> Unit,
@@ -231,6 +238,11 @@ private fun ResultsContent(
                 }
             }
 
+            if (newAchievements.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                NewAchievementsCard(newAchievements)
+            }
+
             // Challenge result comparison card
             val challenge = challengeResult
             if (challenge != null) {
@@ -320,6 +332,66 @@ private fun ResultsContent(
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
                 Text("Home")
+            }
+        }
+    }
+}
+
+/**
+ * The achievements this quiz unlocked. A polite live region, so TalkBack reads it once when it
+ * appears; each achievement is one TalkBack item ("First Steps, Complete any quiz").
+ */
+@Composable
+internal fun NewAchievementsCard(achievements: List<Achievement>, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(20.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite }
+        ) {
+            Text(
+                text = pluralStringResource(R.plurals.results_new_achievements_heading, achievements.size),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.semantics { heading() }
+            )
+            achievements.forEach { achievement ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) { },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.EmojiEvents,
+                        // Decorative: the title says it.
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = achievement.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        Text(
+                            text = achievement.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
             }
         }
     }

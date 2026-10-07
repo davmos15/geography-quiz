@@ -8,6 +8,7 @@ import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
+import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.testutil.TestQuizData
 import io.mockk.coEvery
@@ -75,6 +76,19 @@ class ResultsViewModelTest {
         val vm = viewModel("r1")
 
         assertEquals(ResultsUiState.Loaded(quiz), vm.uiState.value)
+    }
+
+    @Test
+    fun `achievements the quiz unlocked are still there after process death`() {
+        val unlocked = listOf(Achievement.FIRST_STEPS)
+        completedQuizzes.stored = TestQuizData.completedQuiz(id = "r1").copy(newAchievementIds = unlocked.map { it.id })
+        val handle = SavedStateHandle(mapOf("resultId" to "r1"))
+        viewModel(handle)
+
+        val restored = viewModel(afterProcessDeath(handle))
+
+        val loaded = restored.uiState.value as ResultsUiState.Loaded
+        assertEquals(unlocked, loaded.result.newAchievements)
     }
 
     @Test

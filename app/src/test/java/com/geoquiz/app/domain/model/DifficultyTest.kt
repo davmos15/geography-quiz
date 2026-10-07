@@ -85,4 +85,25 @@ class CompletedQuizDifficultyTest {
             assertEquals(quiz, decoded)
         }
     }
+
+    @Test
+    fun `an old record without newAchievementIds decodes with none`() {
+        val quiz = json.decodeFromString(CompletedQuiz.serializer(), oldRecord(hardMode = false))
+
+        assertTrue(quiz.newAchievementIds.isEmpty())
+        assertTrue(quiz.newAchievements.isEmpty())
+    }
+
+    @Test
+    fun `new achievements round-trip and unknown ids are skipped`() {
+        val first = Achievement.entries[0]
+        val second = Achievement.entries[1]
+        val quiz = json.decodeFromString(CompletedQuiz.serializer(), oldRecord(hardMode = false))
+            .copy(newAchievementIds = listOf(first.id, "no_longer_exists", second.id))
+
+        val decoded = json.decodeFromString(CompletedQuiz.serializer(), json.encodeToString(CompletedQuiz.serializer(), quiz))
+
+        assertEquals(quiz, decoded)
+        assertEquals(listOf(first, second), decoded.newAchievements)
+    }
 }

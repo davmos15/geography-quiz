@@ -7,7 +7,6 @@ import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.local.db.SavedQuizEntity
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
-import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.ChoiceFeedback
 import com.geoquiz.app.domain.model.Country
@@ -106,9 +105,6 @@ class QuizViewModel @Inject constructor(
 
     private val _timerSeconds = MutableStateFlow(0)
     val timerSeconds: StateFlow<Int> = _timerSeconds.asStateFlow()
-
-    private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
-    val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
     /** Set once the finished quiz has been recorded; the screen then moves on to Results. */
     private val _completion = MutableStateFlow<QuizCompletion?>(null)
@@ -497,10 +493,7 @@ class QuizViewModel @Inject constructor(
             challengeId = challengeId
         )
         completionJob = viewModelScope.launch {
-            val outcome = completeQuiz(request)
-            if (outcome.newAchievements.isNotEmpty()) {
-                _newAchievements.value = outcome.newAchievements
-            }
+            completeQuiz(request)
             _completion.value = QuizCompletion(resultId = resultId, step = QuizCompletion.Step.NAVIGATE)
         }
     }
@@ -508,10 +501,6 @@ class QuizViewModel @Inject constructor(
     /** The screen has navigated to Results; nothing more to do. */
     fun onNavigatedToResults() {
         _completion.update { it?.copy(step = QuizCompletion.Step.DONE) }
-    }
-
-    fun clearNewAchievements() {
-        _newAchievements.value = emptyList()
     }
 
     fun toggleShowTimer() {

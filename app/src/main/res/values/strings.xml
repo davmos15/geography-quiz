@@ -224,4 +224,9 @@
         <item quantity="one">%1$d of %2$d star</item>
         <item quantity="other">%1$d of %2$d stars</item>
     </plurals>
+    <!-- Results: heading of the card listing achievements this quiz unlocked -->
+    <plurals name="results_new_achievements_heading">
+        <item quantity="one">New achievement</item>
+        <item quantity="other">New achievements</item>
+    </plurals>
 </resources>

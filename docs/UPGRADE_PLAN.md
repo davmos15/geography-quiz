@@ -140,8 +140,10 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Play Games bulk import: check whether it expects `AchievementsIconMappings.csv` or `AchievementsIconsMappings.csv` (byte-identical copies in `store_assets/achievements/`); keep one.
 - [ ] Phase 9: regenerate store images with the Lato scripts and re-upload to Play.
 - [x] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
-- [ ] App Links (task 2.7): provide the SHA-256 fingerprints of the new upload key and the Play app-signing key so `assetlinks.json` can be hosted on geoquiz-app.netlify.app.
-- [x] Merge the Phase 0 PR after checking the debug build on a device.
+- [ ] Back up `challengeHmacKey` (added to the local `signing.properties` in Phase 2) with the keystore in Drive and Bitwarden. Every release must use the same key; losing it means older challenge links open without scores.
+- [ ] App Links: add the Play App Signing key SHA-256 (Play Console → App integrity) to the `com.geoquiz.app` entry in `docs/.well-known/assetlinks.json`; after merge check `https://geoquiz-app.netlify.app/.well-known/assetlinks.json` is served as JSON with no redirect. The upload key and debug key are already listed.
+- [ ] Debug builds are now `com.geoquiz.app.debug` ("GeoQuiz Debug"). Play Games sign-in and Billing won't work in them unless that package is linked in Play Console (Play Games: add a linked Android app with the debug SHA-1); not required for testing.
+- [ ] Play Console achievements: the Flag Master description in Play Games reads "Complete Flags of the World quiz with 80%+" while the app says "Complete the Flags of the World quiz with 80%+"; update it in Phase 9 with the store refresh. Achievement titles still use US spelling ("World Traveler", "Color Expert"); decide in Phase 9 whether to rename.
 
 ---
 

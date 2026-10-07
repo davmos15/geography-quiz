@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 2.10: lets PlayGamesSyncManager notice when connectivity returns so offline achievement
+         unlocks reach Play Games. Normal permission; reads network state only, no data collected. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- D8: every user is treated as child-directed, so the advertising ID is never used.
          play-services-ads merges this permission in; strip it from the final manifest. -->
     <uses-permission
@@ -52,6 +55,17 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="geoquiz" android:host="challenge" />
+            </intent-filter>
+            <!-- Verified App Link for shared challenge URLs (/challenge.html and /challenge).
+                 Verification needs docs/.well-known/assetlinks.json on the host to list this
+                 package's signing certificate. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="geoquiz-app.netlify.app" />
+                <data android:pathPrefix="/challenge" />
             </intent-filter>
         </activity>
     </application>

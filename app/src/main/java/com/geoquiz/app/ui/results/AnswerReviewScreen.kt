@@ -28,60 +28,76 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
-import com.geoquiz.app.data.local.preferences.settingsDataStore
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.FlagImage
+import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
-import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnswerReviewScreen(
+    onNavigateBack: () -> Unit,
+    onGoHome: () -> Unit,
+    viewModel: AnswerReviewViewModel = hiltViewModel()
+) {
+    val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
+    when (val state = viewModel.uiState.collectAsStateWithLifecycle().value) {
+        AnswerReviewUiState.Loading -> ResultLoading()
+        AnswerReviewUiState.Missing -> ResultMissing(onGoHome = onGoHome)
+        is AnswerReviewUiState.Loaded -> AnswerReviewContent(
+            state = state,
+            showFlags = showFlags,
+            onNavigateBack = onNavigateBack
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AnswerReviewContent(
+    state: AnswerReviewUiState.Loaded,
+    showFlags: Boolean,
     onNavigateBack: () -> Unit
 ) {
-    val countries = QuizResultHolder.countries
-    val answeredCodes = QuizResultHolder.answeredCodes
-    val categoryName = QuizResultHolder.categoryName
-    val quizMode = QuizResultHolder.quizMode
-    val incorrectGuessStrings = QuizResultHolder.incorrectGuessStrings
-    val category = QuizResultHolder.category
-    val allCountries = QuizResultHolder.allCountries
-    val sorted = if (quizMode == QuizMode.CAPITALS) {
-        countries.sortedBy { it.capital }
-    } else {
-        countries.sortedBy { it.name }
-    }
+    val sorted = state.countries
+    val answeredCodes = state.answeredCodes
+    val categoryName = state.categoryName
+    val quizMode = state.quizMode
+    val incorrectGuesses = state.incorrectGuesses
+    val category = state.category
 
-    val context = LocalContext.current
-    val showFlagsFlow = remember {
-        context.settingsDataStore.data.map {
-            it[booleanPreferencesKey("show_flags")] ?: false
-        }
-    }
-    val showFlags by showFlagsFlow.collectAsStateWithLifecycle(initialValue = false)
-
-    val answeredCount = sorted.count { it.code in answeredCodes }
-    val hasIncorrectGuesses = incorrectGuessStrings.isNotEmpty()
-    var showIncorrectGuesses by remember { mutableStateOf(false) }
+    val answeredCount = state.answeredCount
+    val hasIncorrectGuesses = incorrectGuesses.isNotEmpty()
+    // Saveable, so the selected tab survives rotation and process death.
+    var showIncorrectGuesses by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Answers - $categoryName") },
+                title = {
+                    Text(
+                        "Answers - $categoryName",
+                        modifier = Modifier.semantics { heading() }
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -97,11 +113,14 @@ fun AnswerReviewScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             item {
+                val summaryDescription = A11yText.progress(a11yResources(), quizMode, answeredCount, sorted.size)
                 Text(
                     text = "$answeredCount / ${sorted.size} answered",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .clearAndSetSemantics { contentDescription = summaryDescription }
                 )
             }
 
@@ -119,28 +138,31 @@ fun AnswerReviewScreen(
                         FilterChip(
                             selected = showIncorrectGuesses,
                             onClick = { showIncorrectGuesses = true },
-                            label = { Text("Incorrect Guesses (${incorrectGuessStrings.size})") }
+                            label = { Text("Incorrect Guesses (${incorrectGuesses.size})") }
                         )
                     }
                 }
             }
 
             if (showIncorrectGuesses) {
-                items(incorrectGuessStrings) { guess ->
-                    val matchedCountry = findMatchingCountry(guess, allCountries)
+                items(incorrectGuesses) { incorrect ->
+                    val guess = incorrect.guess
+                    val matchedCountry = incorrect.matchedCountry
                     val hint = if (matchedCountry != null) {
                         getContextHint(matchedCountry, category, quizMode)
                     } else null
 
+                    // One item for TalkBack: "Incorrect, <guess>, <hint>".
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 10.dp)
+                            .semantics(mergeDescendants = true) { },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Incorrect",
+                            contentDescription = stringResource(R.string.a11y_incorrect),
                             tint = IncorrectRed
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -167,16 +189,20 @@ fun AnswerReviewScreen(
             } else {
                 items(sorted, key = { it.code }) { country ->
                     val isAnswered = country.code in answeredCodes
+                    // One item for TalkBack: "Brazil, missed" (the status icon and flag are
+                    // covered by this description).
+                    val rowDescription = A11yText.reviewRow(a11yResources(), quizMode, country, isAnswered)
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 10.dp)
+                            .clearAndSetSemantics { contentDescription = rowDescription },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = if (isAnswered) Icons.Default.Check else Icons.Default.Close,
-                            contentDescription = if (isAnswered) "Answered" else "Missed",
+                            contentDescription = null, // the row description says it
                             tint = if (isAnswered) CorrectGreen else IncorrectRed
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -229,13 +255,6 @@ fun AnswerReviewScreen(
                 }
             }
         }
-    }
-}
-
-private fun findMatchingCountry(guess: String, allCountries: List<Country>): Country? {
-    val normalised = guess.trim().lowercase()
-    return allCountries.find {
-        it.name.lowercase() == normalised || it.capital.lowercase() == normalised
     }
 }
 

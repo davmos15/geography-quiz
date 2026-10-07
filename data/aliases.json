@@ -6,11 +6,11 @@
     "name": "mledoze/countries",
     "url": "https://github.com/mledoze/countries",
     "licence": "ODbL-1.0",
-    "file": "app/src/main/assets/countries.json"
+    "file": "data/source/countries.json"
   },
   "generatedBy": "tools/data/export_aliases.py",
   "rulesFrom": [
-    "app/src/main/java/com/geoquiz/app/data/repository/CountryRepositoryImpl.kt",
+    "data/source/alias_overrides.json",
     "app/src/main/java/com/geoquiz/app/domain/usecase/NormalizeInputUseCase.kt"
   ],
   "countryCount": 197,
@@ -633,7 +633,7 @@
         },
         {
           "alias": "Bolivia, Plurinational State of",
-          "normalized": "bolivia, plurinational state of"
+          "normalized": "bolivia plurinational state of"
         },
         {
           "alias": "Buliwya",
@@ -726,6 +726,10 @@
       "capital": "Bandar Seri Begawan",
       "aliases": [
         {
+          "alias": "the Abode of Peace",
+          "normalized": "abode of peace"
+        },
+        {
           "alias": "Brunei",
           "normalized": "brunei"
         },
@@ -739,11 +743,7 @@
         },
         {
           "alias": "Nation of Brunei, Abode of Peace",
-          "normalized": "nation of brunei, abode of peace"
-        },
-        {
-          "alias": "the Abode of Peace",
-          "normalized": "the abode of peace"
+          "normalized": "nation of brunei abode of peace"
         }
       ],
       "capitalAliases": [
@@ -1023,7 +1023,7 @@
         },
         {
           "alias": "Congo, the Democratic Republic of the",
-          "normalized": "congo, the democratic republic of the"
+          "normalized": "congo the democratic republic of the"
         },
         {
           "alias": "Democratic Republic of Congo",
@@ -1747,7 +1747,7 @@
         },
         {
           "alias": "Micronesia, Federated States of",
-          "normalized": "micronesia, federated states of"
+          "normalized": "micronesia federated states of"
         }
       ],
       "capitalAliases": [
@@ -2013,7 +2013,7 @@
       "capitalAliases": [
         {
           "alias": "St. George's",
-          "normalized": "st. georges"
+          "normalized": "saint georges"
         }
       ]
     },
@@ -2267,7 +2267,7 @@
         },
         {
           "alias": "Iran, Islamic Republic of",
-          "normalized": "iran, islamic republic of"
+          "normalized": "iran islamic republic of"
         },
         {
           "alias": "Islamic Republic of Iran",
@@ -2636,12 +2636,12 @@
           "normalized": "saint kitts"
         },
         {
-          "alias": "Saint Kitts and Nevis",
-          "normalized": "saint kitts and nevis"
+          "alias": "St Kitts",
+          "normalized": "saint kitts"
         },
         {
-          "alias": "St Kitts",
-          "normalized": "st kitts"
+          "alias": "Saint Kitts and Nevis",
+          "normalized": "saint kitts and nevis"
         }
       ],
       "capitalAliases": [
@@ -2659,7 +2659,7 @@
       "aliases": [
         {
           "alias": "Korea, Republic of",
-          "normalized": "korea, republic of"
+          "normalized": "korea republic of"
         },
         {
           "alias": "Republic of Korea",
@@ -2827,7 +2827,7 @@
         },
         {
           "alias": "St Lucia",
-          "normalized": "st lucia"
+          "normalized": "saint lucia"
         }
       ],
       "capitalAliases": [
@@ -3073,7 +3073,7 @@
         },
         {
           "alias": "Moldova, Republic of",
-          "normalized": "moldova, republic of"
+          "normalized": "moldova republic of"
         },
         {
           "alias": "Republic of Moldova",
@@ -3214,12 +3214,16 @@
       "capital": "Skopje",
       "aliases": [
         {
+          "alias": "The former Yugoslav Republic of Macedonia",
+          "normalized": "former yugoslav republic of macedonia"
+        },
+        {
           "alias": "Macedonia",
           "normalized": "macedonia"
         },
         {
           "alias": "Macedonia, The Former Yugoslav Republic of",
-          "normalized": "macedonia, the former yugoslav republic of"
+          "normalized": "macedonia the former yugoslav republic of"
         },
         {
           "alias": "North Macedonia",
@@ -3228,10 +3232,6 @@
         {
           "alias": "Republic of North Macedonia",
           "normalized": "republic of north macedonia"
-        },
-        {
-          "alias": "The former Yugoslav Republic of Macedonia",
-          "normalized": "the former yugoslav republic of macedonia"
         },
         {
           "alias": "Република Северна Македонија",
@@ -3625,7 +3625,7 @@
         },
         {
           "alias": "The Netherlands",
-          "normalized": "the netherlands"
+          "normalized": "netherlands"
         }
       ],
       "capitalAliases": [
@@ -3987,7 +3987,7 @@
         },
         {
           "alias": "Korea, Democratic People's Republic of",
-          "normalized": "korea, democratic peoples republic of"
+          "normalized": "korea democratic peoples republic of"
         },
         {
           "alias": "North Korea",
@@ -4089,7 +4089,7 @@
         },
         {
           "alias": "Palestine, State of",
-          "normalized": "palestine, state of"
+          "normalized": "palestine state of"
         },
         {
           "alias": "State of Palestine",
@@ -5153,7 +5153,7 @@
         },
         {
           "alias": "Tanzania, United Republic of",
-          "normalized": "tanzania, united republic of"
+          "normalized": "tanzania united republic of"
         },
         {
           "alias": "United Republic of Tanzania",
@@ -5297,7 +5297,7 @@
       "capitalAliases": [
         {
           "alias": "Washington D.C.",
-          "normalized": "washington d.c."
+          "normalized": "washington dc"
         }
       ]
     },
@@ -5380,12 +5380,12 @@
           "normalized": "saint vincent"
         },
         {
-          "alias": "Saint Vincent and the Grenadines",
-          "normalized": "saint vincent and the grenadines"
+          "alias": "St Vincent",
+          "normalized": "saint vincent"
         },
         {
-          "alias": "St Vincent",
-          "normalized": "st vincent"
+          "alias": "Saint Vincent and the Grenadines",
+          "normalized": "saint vincent and the grenadines"
         }
       ],
       "capitalAliases": [
@@ -5415,7 +5415,7 @@
         },
         {
           "alias": "Venezuela, Bolivarian Republic of",
-          "normalized": "venezuela, bolivarian republic of"
+          "normalized": "venezuela bolivarian republic of"
         }
       ],
       "capitalAliases": [

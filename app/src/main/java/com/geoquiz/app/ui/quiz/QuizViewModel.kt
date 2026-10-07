@@ -3,29 +3,25 @@ package com.geoquiz.app.ui.quiz
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
-import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
-import com.geoquiz.app.data.service.PlayGamesAchievementService
-import com.geoquiz.app.data.PlayGamesLeaderboardIds
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
-import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
+import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
-import com.geoquiz.app.ui.results.QuizResultHolder
+import com.geoquiz.app.domain.time.MonotonicClock
+import com.geoquiz.app.domain.time.QuizTimer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.net.Uri
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,13 +40,11 @@ class QuizViewModel @Inject constructor(
     private val getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase,
     private val validateAnswer: ValidateAnswerUseCase,
     private val validateCapitalAnswer: ValidateCapitalAnswerUseCase,
-    private val calculateScore: CalculateScoreUseCase,
+    private val completeQuiz: CompleteQuizUseCase,
     private val settingsRepository: SettingsRepository,
-    private val achievementRepository: AchievementRepository,
     private val savedQuizRepository: SavedQuizRepository,
-    private val quizHistoryRepository: QuizHistoryRepository,
-    private val playGamesService: PlayGamesAchievementService,
-    val adManager: AdManager
+    private val adManager: AdManager,
+    clock: MonotonicClock
 ) : ViewModel() {
 
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
@@ -84,74 +79,105 @@ class QuizViewModel @Inject constructor(
     private val _newAchievements = MutableStateFlow<List<Achievement>>(emptyList())
     val newAchievements: StateFlow<List<Achievement>> = _newAchievements.asStateFlow()
 
-    private var timerJob: Job? = null
-    private var achievementsChecked = false
+    /** Set once the finished quiz has been recorded; the screen then moves on to Results. */
+    private val _completion = MutableStateFlow<QuizCompletion?>(null)
+    val completion: StateFlow<QuizCompletion?> = _completion.asStateFlow()
+
+    private val savedState = QuizSavedState(savedStateHandle)
+    private val quizTimer = QuizTimer(clock)
+    private var tickerJob: Job? = null
+    private var completionJob: Job? = null
 
     init {
-        loadQuiz()
         adManager.preloadInterstitial()
         viewModelScope.launch {
+            // Settings first: hard mode decides strikes and is recorded with the result.
             _showTimer.value = settingsRepository.showTimer.first()
             _showFlags.value = settingsRepository.showFlags.first()
             _showCountryHint.value = settingsRepository.showCountryHint.first()
             _hardMode.value = settingsRepository.hardMode.first()
+            loadQuiz()
         }
     }
 
-    private fun loadQuiz() {
-        viewModelScope.launch {
-            val isFlagSpecificCategory = category is QuizCategory.FlagSingleColor ||
-                    category is QuizCategory.FlagColorCombo ||
-                    category is QuizCategory.FlagColorCount ||
-                    category is QuizCategory.FlagElement
-            val countries = when {
-                isFlagSpecificCategory -> getCountriesForFlagQuiz(category)
-                quizMode == QuizMode.CAPITALS -> getCountriesForCapitalQuiz(category)
-                else -> getCountriesForQuiz(category)
-            }
-            val quiz = Quiz(
-                category = category,
-                countries = countries,
-                timerSeconds = null
+    private suspend fun loadQuiz() {
+        val isFlagSpecificCategory = category is QuizCategory.FlagSingleColor ||
+                category is QuizCategory.FlagColorCombo ||
+                category is QuizCategory.FlagColorCount ||
+                category is QuizCategory.FlagElement
+        val countries = when {
+            isFlagSpecificCategory -> getCountriesForFlagQuiz(category)
+            quizMode == QuizMode.CAPITALS -> getCountriesForCapitalQuiz(category)
+            else -> getCountriesForQuiz(category)
+        }
+        val quiz = Quiz(
+            category = category,
+            countries = countries,
+            timerSeconds = null
+        )
+
+        // 1. Progress in the SavedStateHandle: this screen was recreated after process death
+        //    or activity destruction. It wins over the "Resume quiz" save in Room.
+        // 2. The Room save ("Resume quiz" on the home screen) for the same quiz.
+        // 3. A fresh quiz.
+        val snapshot = savedState.restore()
+        val savedQuiz = savedQuizRepository.getSavedQuiz()
+        val roomSaveMatches = savedQuiz != null &&
+            savedQuiz.categoryType == categoryType &&
+            savedQuiz.categoryValue == categoryValue &&
+            savedQuiz.quizMode == quizModeId
+        if (snapshot != null) {
+            quizTimer.restore(snapshot.elapsedMillis)
+            _uiState.value = QuizUiState.Active(snapshot.toQuizState(quiz))
+            if (roomSaveMatches) savedQuizRepository.clearSavedQuiz()
+        } else if (savedQuiz != null && roomSaveMatches) {
+            val savedCodes = savedQuizRepository.parseAnsweredCodes(savedQuiz.answeredCountryCodes)
+            val validCodes = savedCodes.filter { code ->
+                countries.any { it.code == code }
+            }.toSet()
+            val state = QuizState(
+                quiz = quiz,
+                answeredCountries = validCodes
             )
-
-            // Check for saved quiz state to restore
-            val savedQuiz = savedQuizRepository.getSavedQuiz()
-            if (savedQuiz != null &&
-                savedQuiz.categoryType == categoryType &&
-                savedQuiz.categoryValue == categoryValue &&
-                savedQuiz.quizMode == quizModeId
-            ) {
-                val savedCodes = savedQuizRepository.parseAnsweredCodes(savedQuiz.answeredCountryCodes)
-                val validCodes = savedCodes.filter { code ->
-                    countries.any { it.code == code }
-                }.toSet()
-                val state = QuizState(
-                    quiz = quiz,
-                    answeredCountries = validCodes
-                )
-                _timerSeconds.value = savedQuiz.timeElapsedSeconds
-                _uiState.value = QuizUiState.Active(state)
-                savedQuizRepository.clearSavedQuiz()
-            } else {
-                val state = QuizState(quiz = quiz)
-                _uiState.value = QuizUiState.Active(state)
-            }
-            startTimer()
+            quizTimer.restore(savedQuiz.timeElapsedSeconds * 1000L)
+            _uiState.value = QuizUiState.Active(state)
+            savedQuizRepository.clearSavedQuiz()
+        } else {
+            val state = QuizState(quiz = quiz)
+            _uiState.value = QuizUiState.Active(state)
         }
+        onStateChanged()
+        // A quiz restored as complete was finished before the process died: reuse its result.
+        finishQuizIfComplete()
     }
 
-    private fun startTimer() {
-        timerJob?.cancel()
-        timerJob = viewModelScope.launch {
-            while (true) {
-                delay(1000L)
-                val current = _uiState.value
-                if (current is QuizUiState.Active && !current.state.isComplete && !current.state.isPaused) {
-                    _timerSeconds.value += 1
-                } else if (current is QuizUiState.Active && current.state.isComplete) {
-                    break
-                }
+    /** Persists the state for process death and starts or stops the timer to match it. */
+    private fun onStateChanged() {
+        syncTimerWithState()
+        saveToHandle()
+    }
+
+    private fun saveToHandle() {
+        val current = _uiState.value
+        if (current is QuizUiState.Active) savedState.save(current.state, quizTimer.snapshot())
+    }
+
+    /**
+     * Runs the timer only while the quiz is active, unpaused and not complete. Call after every
+     * state change that can affect this. The ticker only refreshes [timerSeconds] for display;
+     * saving and scoring read the timer directly.
+     */
+    private fun syncTimerWithState() {
+        val current = _uiState.value
+        val shouldRun = current is QuizUiState.Active &&
+            !current.state.isComplete && !current.state.isPaused
+        if (shouldRun) quizTimer.resume() else quizTimer.pause()
+
+        tickerJob?.cancel()
+        _timerSeconds.value = quizTimer.elapsedSeconds()
+        if (quizTimer.isRunning) {
+            tickerJob = viewModelScope.launch {
+                quizTimer.ticks().collect { _timerSeconds.value = it }
             }
         }
     }
@@ -162,6 +188,7 @@ class QuizViewModel @Inject constructor(
                 QuizUiState.Active(uiState.state.copy(isPaused = !uiState.state.isPaused))
             } else uiState
         }
+        onStateChanged()
     }
 
     fun onBackgrounded() {
@@ -172,6 +199,7 @@ class QuizViewModel @Inject constructor(
                     QuizUiState.Active(uiState.state.copy(isPaused = true))
                 } else uiState
             }
+            onStateChanged()
             saveQuizState()
         }
     }
@@ -184,7 +212,7 @@ class QuizViewModel @Inject constructor(
                     categoryType = categoryType,
                     categoryValue = categoryValue,
                     answeredCodes = current.state.answeredCountries,
-                    timeElapsed = _timerSeconds.value,
+                    timeElapsed = quizTimer.elapsedSeconds(),
                     quizMode = quizModeId
                 )
             }
@@ -197,6 +225,7 @@ class QuizViewModel @Inject constructor(
                 QuizUiState.Active(uiState.state.copy(currentInput = input))
             } else uiState
         }
+        saveToHandle()
     }
 
     fun onSubmitAnswer() {
@@ -208,9 +237,11 @@ class QuizViewModel @Inject constructor(
         if (input.isBlank()) return
 
         viewModelScope.launch {
+            // Typos are forgiven except in hard mode, where they get a NearMiss (no strike).
+            val allowFuzzy = !_hardMode.value
             val result = when (quizMode) {
-                QuizMode.CAPITALS -> validateCapitalAnswer(input, current.state)
-                else -> validateAnswer(input, current.state)
+                QuizMode.CAPITALS -> validateCapitalAnswer(input, current.state, allowFuzzy)
+                else -> validateAnswer(input, current.state, allowFuzzy)
             }
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active) {
@@ -246,84 +277,56 @@ class QuizViewModel @Inject constructor(
                     )
                 } else uiState
             }
+            onStateChanged()
+            finishQuizIfComplete()
         }
     }
 
     fun onGiveUp() {
         _uiState.update { uiState ->
             if (uiState is QuizUiState.Active) {
-                timerJob?.cancel()
                 QuizUiState.Active(uiState.state.copy(isComplete = true))
             } else uiState
         }
-        viewModelScope.launch {
-            savedQuizRepository.clearSavedQuiz()
+        onStateChanged()
+        finishQuizIfComplete()
+    }
+
+    /**
+     * Records a finished quiz once (see [CompleteQuizUseCase]) and then publishes [completion].
+     *
+     * The result id is stored in the SavedStateHandle before recording, so a screen recreated
+     * after process death reuses it: the use case then returns the stored result without
+     * recording again. Any interstitial is decided and shown on Results, after it has rendered.
+     */
+    private fun finishQuizIfComplete() {
+        val current = _uiState.value
+        if (current !is QuizUiState.Active || !current.state.isComplete) return
+        if (completionJob != null) return
+
+        val resultId = savedState.resultId ?: UUID.randomUUID().toString().also { savedState.resultId = it }
+        val request = CompleteQuizUseCase.Request(
+            resultId = resultId,
+            state = current.state,
+            timeElapsedSeconds = quizTimer.elapsedSeconds(),
+            quizMode = quizMode,
+            routeCategoryType = categoryType,
+            routeCategoryValue = categoryValue,
+            hardMode = _hardMode.value,
+            challengeId = challengeId
+        )
+        completionJob = viewModelScope.launch {
+            val outcome = completeQuiz(request)
+            if (outcome.newAchievements.isNotEmpty()) {
+                _newAchievements.value = outcome.newAchievements
+            }
+            _completion.value = QuizCompletion(resultId = resultId, step = QuizCompletion.Step.NAVIGATE)
         }
     }
 
-    fun getResult(): com.geoquiz.app.domain.model.QuizResult? {
-        val current = _uiState.value
-        if (current !is QuizUiState.Active) return null
-        val result = calculateScore(current.state.copy(timeElapsedSeconds = _timerSeconds.value))
-
-        QuizResultHolder.countries = current.state.quiz.countries
-        QuizResultHolder.answeredCodes = current.state.answeredCountries
-        QuizResultHolder.categoryName = category.displayName
-        QuizResultHolder.quizMode = quizMode
-        QuizResultHolder.incorrectGuessStrings = current.state.incorrectGuessStrings
-        QuizResultHolder.category = category
-
-        // Populate allCountries for incorrect guess lookup (non-blocking)
-        if (QuizResultHolder.allCountries.isEmpty()) {
-            viewModelScope.launch {
-                QuizResultHolder.allCountries = getCountriesForQuiz(QuizCategory.AllCountries)
-            }
-        }
-
-        if (!achievementsChecked) {
-            achievementsChecked = true
-            viewModelScope.launch {
-                val newlyUnlocked = achievementRepository.onQuizCompleted(
-                    category = category,
-                    correctAnswers = result.correctAnswers,
-                    totalCountries = result.totalCountries,
-                    timeElapsedSeconds = result.timeElapsedSeconds,
-                    quizMode = quizMode,
-                    incorrectGuesses = result.incorrectGuesses,
-                    hardMode = _hardMode.value
-                )
-                if (newlyUnlocked.isNotEmpty()) {
-                    _newAchievements.value = newlyUnlocked
-                    newlyUnlocked.forEach { playGamesService.unlockAchievement(it) }
-                }
-                quizHistoryRepository.recordQuizResult(
-                    quizMode = quizModeId,
-                    categoryType = categoryType,
-                    categoryValue = categoryValue,
-                    correctAnswers = result.correctAnswers,
-                    totalQuestions = result.totalCountries,
-                    incorrectGuesses = result.incorrectGuesses,
-                    score = result.score,
-                    timeElapsedSeconds = result.timeElapsedSeconds,
-                    perfectBonus = result.perfectBonus
-                )
-
-                // Submit leaderboard scores
-                val overallTotal = quizHistoryRepository.getTotalCorrectAnswersSync()
-                playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overallTotal)
-                val modeId = PlayGamesLeaderboardIds.forMode(quizModeId)
-                if (modeId != null) {
-                    val modeTotal = quizHistoryRepository.getTotalCorrectAnswersForModeSync(quizModeId)
-                    playGamesService.submitScore(modeId, modeTotal)
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            savedQuizRepository.clearSavedQuiz()
-        }
-
-        return result
+    /** The screen has navigated to Results; nothing more to do. */
+    fun onNavigatedToResults() {
+        _completion.update { it?.copy(step = QuizCompletion.Step.DONE) }
     }
 
     fun clearNewAchievements() {
@@ -353,6 +356,14 @@ class QuizViewModel @Inject constructor(
         _hardMode.value = newValue
         viewModelScope.launch { settingsRepository.setHardMode(newValue) }
     }
+}
+
+/**
+ * A recorded quiz on its way to Results. Kept in the ViewModel (not the composition) so that
+ * navigation happens exactly once, even if the activity is recreated in between.
+ */
+data class QuizCompletion(val resultId: String, val step: Step) {
+    enum class Step { NAVIGATE, DONE }
 }
 
 sealed class QuizUiState {

@@ -41,8 +41,8 @@ where you stopped, commit, and tell me to start a new session.
 | Phase | Name | Status | Branch | PR |
 |---|---|---|---|---|
 | 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
-| 1 | Licensing and IP compliance | Done – PR open | `upgrade/p1-licensing` | #4 |
-| 2 | Code and architecture | Not started | `upgrade/p2-architecture` | |
+| 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
+| 2 | Code and architecture | Done – PR open | `upgrade/p2-architecture` | #5 |
 | 3 | Game engine and UX foundation | Not started | `upgrade/p3-ux-engine` | |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 2, task 2.1, once the Phase 1 PR is merged. Read the Phase 1 session log first (owner actions and the UMP debug note).
+> Phase 3, task 3.9 and 3.1 (group "first"), once the Phase 2 PR is merged. Read the Phase 2 session log first (owner actions, the Roborazzi Linux/Windows note and the Phase 3 follow-ups).
 
 ---
 
@@ -139,9 +139,11 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Play Console: confirm Play Games Services sign-in is acceptable for a mixed-audience app under the Families policy.
 - [ ] Play Games bulk import: check whether it expects `AchievementsIconMappings.csv` or `AchievementsIconsMappings.csv` (byte-identical copies in `store_assets/achievements/`); keep one.
 - [ ] Phase 9: regenerate store images with the Lato scripts and re-upload to Play.
-- [ ] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
-- [ ] App Links (task 2.7): provide the SHA-256 fingerprints of the new upload key and the Play app-signing key so `assetlinks.json` can be hosted on geoquiz-app.netlify.app.
-- [x] Merge the Phase 0 PR after checking the debug build on a device.
+- [x] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
+- [ ] Back up `challengeHmacKey` (added to the local `signing.properties` in Phase 2) with the keystore in Drive and Bitwarden. Every release must use the same key; losing it means older challenge links open without scores.
+- [ ] App Links: add the Play App Signing key SHA-256 (Play Console → App integrity) to the `com.geoquiz.app` entry in `docs/.well-known/assetlinks.json`; after merge check `https://geoquiz-app.netlify.app/.well-known/assetlinks.json` is served as JSON with no redirect. The upload key and debug key are already listed.
+- [ ] Debug builds are now `com.geoquiz.app.debug` ("GeoQuiz Debug"). Play Games sign-in and Billing won't work in them unless that package is linked in Play Console (Play Games: add a linked Android app with the debug SHA-1); not required for testing.
+- [ ] Play Console achievements: the Flag Master description in Play Games reads "Complete Flags of the World quiz with 80%+" while the app says "Complete the Flags of the World quiz with 80%+"; update it in Phase 9 with the store refresh. Achievement titles still use US spelling ("World Traveler", "Color Expert"); decide in Phase 9 whether to rename.
 
 ---
 
@@ -172,20 +174,21 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - String routes in `J/ui/navigation/Screen.kt`, graph in `J/ui/navigation/AppNavigation.kt`. Bottom bar has 3 tabs (`countries_home`, `capitals_home`, `flags_home`). Other routes: settings, debug_menu (debug only), stats, achievements, challenges, answer_review, `category/{quizMode}/{groupId}`, `quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId=`, `results/...` (11 path args), `challenge_accept/{challengeId}`.
 - No `navDeepLink`: `MainActivity.handleDeepLink` writes a mutableState and a `LaunchedEffect` navigates.
 
-**Quiz flow**
-- Home → `CategoryListScreen` → `QuizViewModel` (`J/ui/quiz/QuizViewModel.kt`). It uses `SavedStateHandle` for nav args only (lines 55-64); quiz state is not in it.
-- `loadQuiz` (lines 101-142) picks the use case by mode/category. `onSubmitAnswer` (lines 202-250) validates: Correct / AlreadyAnswered / Incorrect. Hard mode ends at 3 incorrect (line 235).
-- Timer (lines 144-157): coroutine `delay(1000)` loop incrementing `_timerSeconds`. Not monotonic-clock based, so it drifts.
-- On `ON_STOP` (`QuizScreen.kt:80`) the quiz pauses and saves to Room `saved_quizzes` (single row id=1, only if ≥1 answer). Restored if type/value/mode match. A "Resume Quiz" card appears on Countries home only (`HomeScreen.kt:136-174`).
+**Quiz flow** (since Phase 2)
+- Home → `CategoryListScreen` → `QuizViewModel` (`J/ui/quiz/QuizViewModel.kt`). `loadQuiz` picks the use case by mode/category; `onSubmitAnswer` validates (`allowFuzzy = !hardMode`): Correct / AlreadyAnswered / Incorrect / NearMiss. Hard mode ends at 3 Incorrect (NearMiss never counts).
+- Progress survives rotation and process death: `J/ui/quiz/QuizSavedState.kt` keeps answered codes, wrong guesses, input, timer millis and the result id in the `SavedStateHandle`. Restore order: SavedStateHandle > Room resume save > fresh quiz; a restored quiz comes back paused. Rotation does not pause (ON_STOP is skipped while `isChangingConfigurations`).
+- Timer: `J/domain/time/QuizTimer.kt` on `MonotonicClock` (`SystemClock.elapsedRealtime`, `J/di/ClockModule.kt`): accumulated millis + running-since; the display ticker wakes at each whole second; saving and scoring read the clock.
+- On real backgrounding the quiz pauses and saves to Room `saved_quizzes` (single row, only if ≥1 answer) for the "Resume quiz" card on Countries home.
 - Score (`CalculateScoreUseCase`): `(correct/total) * correct`, ×1.2 if perfect.
-- `getResult` (lines 264-327) fills the global singleton `J/ui/results/QuizResultHolder` (lost on process death), runs achievements, Play Games unlocks, history and leaderboards, then clears the saved quiz. `QuizScreen.kt:107-127` shows an interstitial, then navigates to Results with all data as path args.
+- Completion: `J/domain/usecase/CompleteQuizUseCase.kt` scores the quiz, saves a `CompletedQuiz` to the `last_result` DataStore with an atomic `saveIfAbsent` (only the latest is kept), clears the Room save, then records achievements, Play Games unlocks, history and leaderboards, exactly once per result id. Navigation goes to `results/{resultId}`; Results and `answer_review/{resultId}` load the record by id and show "no longer available" if it is gone. `QuizResultHolder` no longer exists.
 
-**Room**
-- Static content tables (seeded from assets): `countries` (cca3 PK), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`. The four child tables have an FK to countries with CASCADE.
-- User tables: `saved_quizzes`, `challenges`, `quiz_history`.
-- Migrations in `J/di/DatabaseModule.kt:54-221`: 1→2 … 9→10 plus 1→3, 1→4, 2→4. No destructive fallback. Migrations 3→4, 4→5, 5→6, 8→9 and 9→10 `DELETE` the static tables to force a re-seed.
-- Exported schemas: `app/schemas/.../AppDatabase/` 1, 4–10. **2 and 3 are missing.**
-- Seeding: no `createFromAsset`, no callback. `CountryRepositoryImpl.ensureSeeded()` (lines 151-157, Mutex, runs when count == 0) parses `countries.json`, `flag_colors.json`, `flag_elements.json` on `Dispatchers.IO`. Inserts are not in a transaction. Filter: `unMember || cca3 in {VAT, PSE, TWN, UNK}` → 197 of 250. Every use case calls `ensureSeeded()`.
+**Room** (since Phase 2, task 2.1)
+- Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
+- `AppDatabase` (`geoquiz.db`, v11): `saved_quizzes`, `challenges`, `quiz_history` only. Migrations in `J/data/local/db/AppDatabaseMigrations.kt` (`ALL`); 10→11 drops the static tables; the old re-seed `DELETE`s are gone. No destructive fallback. `RoomTransactionRunner` wraps `AppDatabase` only.
+- Exported schemas: AppDatabase 1, 4–11 (2 and 3 never existed: commit `1c9326e` went from v1 to v4, so no released build used them); StaticDatabase 1–2.
+- No seeding and no `ensureSeeded()`. Source JSON (`countries.json`, `flag_colors.json`, `flag_elements.json`, `alias_overrides.json` with the abbreviations, capital aliases and the four non-UN extras) lives in `data/source/`, not in the APK. Filter: `unMember || cca3 in {VAT, PSE, TWN, UNK}` → 197 of 250.
+- `build_static_db.py` builds tables from the exported Room schema (`createSql`, `room_master_table` identity hash, `user_version`); `--check` (in CI) compares logical content. It shares its rules with `tools/data/export_aliases.py` and fails on any alias that maps to two countries.
+- Tests (Robolectric 4.17, SDK 36; JVM `--add-opens` flags in `app/build.gradle.kts`): `StaticDatabaseTest`, `StaticDatabaseAssetTest` (raw asset version and hash; an older installed copy is replaced), `AppDatabaseMigrationTest` (every version 1, 4–10 → 11 keeps player data). `RoomSchemaFixture` builds an old-version DB from the schema JSON because `MigrationTestHelper` can't read schemas in JVM tests under AGP 8.9.
 
 **Categories**
 - `J/domain/model/QuizCategory.kt`: sealed class with 26 types (22 name-based, 4 flag-based: single colour, colour combo, colour count, element). `typeKey`/`valueKey` for routes; `fromRoute()` falls back to AllCountries.
@@ -193,8 +196,9 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Filtering happens in memory in the three `GetCountriesFor*` use cases.
 
 **Aliases**
-- Room tables `aliases` and `capital_aliases` (alias + `normalizedAlias`, indexed), built at seed time in `CountryRepositoryImpl.kt:205-263`. Sources: common name, official name, `altSpellings`, hard-coded `ABBREVIATIONS` (35 countries) and `CAPITAL_ALIASES` (18 countries). Codes of 3 or fewer upper-case letters are dropped unless whitelisted.
-- Matching: `NormalizeInputUseCase` (NFD, strip diacritics, lowercase, `-`→space, drop apostrophes, collapse whitespace), then exact SQL match (`CountryDao.kt:24-32`). No fuzzy matching.
+- Room tables `aliases` (704) and `capital_aliases` (204) in `static.db`, built by `tools/data/export_aliases.py` rules. Sources: common name, official name, `altSpellings`, `data/source/alias_overrides.json` (abbreviations for 35 countries, capital aliases for 18). Codes of 3 or fewer upper-case letters are dropped unless whitelisted. Published as `data/aliases.json` (ODbL).
+- Normaliser (`NormalizeInputUseCase`, ported exactly in Python): NFD, strip diacritics, lowercase, `-`→space, drop apostrophes and `.`, `,`→space, `&`→" and ", collapse whitespace, whole-word `st`→`saint`, drop a leading "the". `StaticDatabaseTest` fails if stored aliases drift from the Kotlin normaliser.
+- Matching (since 2.3): exact alias of any country wins. Otherwise `FuzzyAnswerMatcher` (OSA Damerau–Levenshtein ≤1, input and alias both over 6 characters) over a cached alias list. Normal: a unique match is judged like an exact answer (`Correct(viaTypo = true)`, AlreadyAnswered, or Incorrect if not in the quiz). Hard: `NearMiss` for an unanswered quiz country, AlreadyAnswered for an answered one, Incorrect if not in the quiz. Two or more countries within one edit (e.g. Iceland/Ireland, Kingston/Kingstown) → `NearMiss` in both modes if any is in the quiz, else Incorrect. Feedback text in `AnswerInput` is a polite live region. `NearMiss` is never a strike or an incorrect guess. Shared rules in `J/domain/usecase/AnswerResolution.kt`.
 
 **Flags**
 - Since Phase 1 (D7): flag-icons 7.5.0 (MIT) SVGs in `app/src/main/assets/flags/<cca3 lower>.svg` (197 + LICENSE, ~1.3 MB raw, ~420 KB in APK), fetched by `tools/flags/fetch_flags.py` (pinned tarball SHA-256). Rendered by `J/ui/components/FlagImage.kt` (Coil 3.1.0 + coil-svg, 4:3, hairline `outlineVariant` border) in `CountryList` and `AnswerReviewScreen`, only when `show_flags` is on. Description is "Flag" for unanswered rows, "Flag of X" once answered. The emoji `flag` column still exists in Room but is not displayed (Phase 2 can drop it).
@@ -203,16 +207,17 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 **Ads, billing, Play Games**
 - Since Phase 1 (D8): `J/data/service/ConsentManager.kt` runs UMP 3.2.0 (`gatherConsent` from `MainActivity.onCreate`, under-age tag) and initialises the Mobile Ads SDK once, after `AdTagging.requestConfiguration()` (TFCD + TFUA + rating G). SDK calls sit behind `ConsentGateway` / `InterstitialAdLoader` (bound in `J/di/AdsModule.kt`) so they are unit-tested. `BannerAd` (Hilt `@EntryPoint`) and `AdManager.preloadInterstitial` wait for `canRequestAds`. The manifest removes `AD_ID` and the three `ACCESS_ADSERVICES_*` permissions (`tools:node="remove"`). UMP 4.0.0 exists; we stayed on 3.x.
 - UMP testing: no debug geography is wired up. To see the form, add `ConsentDebugSettings` (EEA + test device hash from logcat) in `GoogleConsentGateway.requestConsent` behind `BuildConfig.DEBUG`, or add a debug-menu action.
-- `AdManager`: an interstitial is preloaded in `QuizViewModel.init` and shown on every quiz completion, including give-up. No frequency cap. Skipped if `ads_removed`. Banners on the three home screens.
+- Interstitials (since 2.4): preloaded in `QuizViewModel.init`; `J/data/service/InterstitialPolicy.kt` (in memory) allows one per 3 completed quizzes (give-ups count), never after a quiz under 60 s of play, reset only when an ad actually shows. `ResultsViewModel` decides once per Results entry and the screen shows it after its first frame. Skipped if `ads_removed`. Banners on the three home screens.
 - Billing: one INAPP product `remove_ads`; restore on resume and from Settings.
-- Achievements: **38** in the `Achievement` enum (`J/domain/model/Achievement.kt`), mapped to IDs in `PlayGamesAchievementIds.kt`. The same list is duplicated in `generate_achievements_zip.py:25-71`. The README says "30+". Local DataStore is the source of truth; `MainActivity` (lines 50-68) re-syncs all unlocks and leaderboard totals once Play Games sign-in succeeds.
+- Achievements: **38** in the `Achievement` enum (`J/domain/model/Achievement.kt`, the single source; `generate_achievements_zip.py` parses it and `--check` runs in CI), mapped to IDs in `PlayGamesAchievementIds.kt` (`PlayGamesAchievementIdsTest`). Local DataStore is the source of truth; `J/data/service/PlayGamesSyncManager.kt` re-syncs all unlocks and leaderboard totals on every sign-in, when a validated network returns and when the unlock set changes (debounced 2 s, needs an attached activity).
 
-**Challenges and deep links**
-- `J/domain/model/ChallengeDeepLink.kt`: query params `id`, `ct`, `cv`, `name`, `mode`, optional `score`/`total`/`time` (`toIntOrNull`). Accepts `geoquiz://challenge` and `https://geoquiz-app.netlify.app/challenge.html`. No signing; scores are trusted.
-- Manifest has a VIEW filter for `geoquiz://challenge` only (`autoVerify="false"`). There is no https filter; the netlify page (`docs/challenge.html`) redirects to the custom scheme. `allowBackup="false"`.
+**Challenges and deep links** (since 2.7)
+- `J/domain/challenge/ChallengeLinkParser.kt` + `ChallengeLinkSigner.kt`: strict origin (`geoquiz://challenge`, `https://geoquiz-app.netlify.app/challenge[.html]`), id `[A-Za-z0-9-]{1,64}`, known mode, `QuizCategory.fromRouteOrNull` + `isOfferedIn(mode)`, numbers clamped (total 1..197, score 0..total, time 0..86400), names sanitised to 24 characters. HMAC-SHA256 over a length-prefixed canonical form, params `v=1` and `sig`. Unsigned or tampered links keep the challenge but drop the score. Key: `BuildConfig.CHALLENGE_HMAC_KEY` from `signing.properties` `challengeHmacKey` or env `CHALLENGE_HMAC_KEY`; dev key fallback for debug/CI; `preReleaseBuild` fails without a real key.
+- `J/ui/challenges/IncomingChallengeHandler.kt` rejects categories with no countries; invalid links show a Toast. `MainActivity` handles the launch link only when `savedInstanceState == null`, plus `onNewIntent`.
+- Manifest: `geoquiz://challenge` filter plus an https filter with `autoVerify="true"` (host geoquiz-app.netlify.app, pathPrefix `/challenge`). `docs/.well-known/assetlinks.json` lists the upload key (com.geoquiz.app) and the debug key (com.geoquiz.app.debug); the Play signing key is an owner action. `allowBackup="false"`.
 
-**Accessibility**
-- No `semantics`, `clearAndSetSemantics` or `liveRegion` anywhere. Flag emoji have no description. Some icons are described (Back, Pause/Resume, Give Up, Answered/Missed); many decorative icons use `null`.
+**Accessibility** (since 2.8)
+- `J/ui/components/A11yText.kt` builds spoken descriptions (plurals in strings.xml). The quiz count ("12 of 197 countries named") and answer feedback are polite live regions; the timer has a description but is not a live region. Quiz and review rows are one item each (`clearAndSetSemantics`), never reading the hidden answer. Headings on titles and sections; cards are buttons with action labels.
 
 **Strings**
 - Existing UI hard-codes English strings. `strings.xml` held only IDs until Phase 0. New UI uses `strings.xml`.
@@ -224,7 +229,7 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 
 **Tests**
 - `app/src/test`: `CalculateScoreUseCaseTest`, `NormalizeInputUseCaseTest`, `ValidateAnswerUseCaseTest`, `PurchaseActionTest`, `FeatureFlagRepositoryTest`; Phase 1 added `FlagAssetPathTest`, `FlagAssetsPresentTest`, `ConsentManagerTest` (with a reusable `FakeConsentGateway`), `AdManagerTest`, `AdTaggingTest`, `ResetAllDataUseCaseTest`, `SettingsViewModelTest` (64 tests total). No `androidTest`, no Room migration or UI tests.
-- Local builds are slow on this machine (R8 release about 20 min). Sub-agents run `assembleDebug testDebugUnitTest`; the lead runs lint and release once per wave. Running `lintDebug assembleRelease` together once crashed a lint detector; run separately, both pass.
+- Local builds are slow on this machine (R8 release about 14–20 min, 8 GB RAM: never run two Gradle builds at once). Sub-agents run `assembleDebug testDebugUnitTest`; the lead runs lint and release once per wave. Running `lintDebug assembleRelease` together once crashed a lint detector; run separately, both pass.
 - `core.autocrlf=true` locally: Git warns LF to CRLF on new files. `tools/fonts/.gitattributes` keeps the font files and OFL byte-exact.
 
 **Licensing recon (0.2)**
@@ -328,6 +333,8 @@ Status: 1.1–1.8 done in session 2 (2026-10-07). The auditor's one Required ite
 
 Phase 0 edited this table to match the code (task 0.3, 2026-10-07). Follow this version.
 
+Status: 2.1–2.12 done in session 3 (2026-10-07). Manual device checks ("Don't keep activities", TalkBack walkthrough, release build run) are in the session 3 log.
+
 ### Phase 3 – Game engine and UX foundation
 
 Builds the shared pieces every new mode uses. Do not build new modes here.
@@ -423,6 +430,9 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 | D7 | Flags switch from Unicode emoji to flag-icons (lipis, MIT) SVG images bundled in the APK (Dav, 2026-10-07). Emoji glyphs varied by OEM and could not be shown large. | Decided |
 | D9 | Flag images rendered with Coil 3 (coil-compose + coil-svg, Apache 2.0) from `assets/flags/<cca3>.svg`; files named by cca3 so no Room schema change was needed. Open-source licences via AboutLibraries 11.6.3 (Apache 2.0). Store asset font: Lato (OFL 1.1), because Noto Sans and Inter are variable-only in google/fonts. | Decided (Phase 1) |
 | D10 | Reset all data keeps `ads_removed` (so a paying user doesn't see ads before Play restores the purchase) and the static content tables; everything else the player created is cleared. | Decided (Phase 1) |
+| D11 | Static content ships as a prebuilt `static.db` generated by a committed Python script and checked in CI (`--check`), rather than generated during the Gradle build: no Python needed to build the app, and the asset is reviewable. Static updates bump `StaticDatabase.VERSION`; Room replaces the installed copy. | Decided (Phase 2) |
+| D12 | Typo tolerance (2.3): on in Normal, off in Hard; no feature flag, because it changes how existing answers are judged rather than adding a mode. Hard mode answers a near miss on a quiz country with "Close – check the spelling" and no strike. | Decided (Phase 2) |
+| D13 | `static.db` is offered as a whole under ODbL 1.0, including the GeoQuiz-authored `flag_colors` and `flag_elements` tables (Dav, 2026-10-07, after the Phase 2 licence audit). Documented in `data/README.md` and `data/SOURCES.md`. | Decided |
 | D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
 
 ---
@@ -472,3 +482,23 @@ Each session appends one entry:
   7. Tapping the Settings title 7 times still opens the debug menu.
   8. (Optional) A release build runs a quiz and opens the Open-source licences screen without crashing.
 - Next session starts at: Phase 2, task 2.1 (after the Phase 1 PR is merged).
+
+### Session 3 – 2026-10-07 – Phase 2
+- Done: debug build installs alongside Play (`com.geoquiz.app.debug`, "GeoQuiz Debug"); 2.1 (prebuilt `static.db`, AppDatabase v11), 2.2 (migration tests 1, 4–10 → 11; schemas 2/3 never existed), 2.3 (canonical normaliser, typo tolerance, NearMiss), 2.4 (interstitial cap, shown after Results renders), 2.5 (quiz/results/review survive process death; `CompleteQuizUseCase` records once), 2.6 (monotonic `QuizTimer`), 2.7 (validated, HMAC-signed challenge links; App Links filter + `assetlinks.json`), 2.8 (TalkBack semantics), 2.9 (keep rules audited, line numbers kept), 2.10 (`PlayGamesSyncManager`), 2.11 (achievements single source + CI check), 2.12 (Compose UI tests, 15 Roborazzi goldens, CI runs `verifyRoborazziDebug`). Licence audit: two required items fixed (static.db offered under ODbL in `data/README.md`; D13).
+- Not done / carried over: none in scope. Follow-ups for Phase 3: (a) colours still green/red in quiz progress, review ticks/crosses and near-miss text (3.9 tokens: correct = blue + tick, wrong = orange + cross); (b) Results "Share"/"Challenge" buttons clip at 100% and 200% font (3.6); (c) hard-coded feedback strings incl. US "Not recognized" (3.3, move to strings.xml); (d) newly unlocked achievements are not shown anywhere (3.5 Results); (e) optional: move `IncomingChallengeHandler` to a domain use case and provide `ChallengeLinkSigner` via Hilt (signer currently reads `BuildConfig` in `domain`); (f) "Paused" live-region announcement may not fire on appear (check on device); (g) Roborazzi 1.60.0 is the newest built for Kotlin 2.1; upgrade with Kotlin. (h) CI advises Gradle 8.11.1 is out of date: plan one toolchain bump (Gradle, AGP, Kotlin 2.2+, then Roborazzi) as its own task, re-recording goldens if rendering changes.
+- Decisions: D11 (static DB generated by script, checked in CI), D12 (typo tolerance on in Normal, off in Hard, no flag), D13 (static.db wholly ODbL incl. flag tables). Interstitial counter is in memory (cold start: earliest ad on the 3rd quiz). Unsigned or tampered challenge links keep the challenge, drop the score. Rotation no longer pauses the quiz.
+- Owner actions added: back up `challengeHmacKey`; Play signing SHA-256 into `assetlinks.json` and check it is served after merge; debug package not linked to Play Games/Billing; Flag Master description and US-spelt achievement titles in Play Console (Phase 9).
+- CI: passes on the PR (about 4 min). Actions updated to checkout v7, setup-java v6, setup-gradle v6, upload-artifact v7 (Node 24); runner pinned to `ubuntu-24.04` so screenshot rendering doesn't change when `ubuntu-latest` moves to Ubuntu 26. The Windows-recorded goldens verify on Linux.
+- Verification: `./gradlew clean assembleDebug verifyRoborazziDebug lintDebug` passed locally (311 unit tests incl. 15 screenshot comparisons, 0 failures; lint 0 errors, 88 warnings, the new ones all "newer version available"); all three Python `--check`s pass; `assembleRelease` (R8, real challenge key) passed, 4.6 MB APK with `static.db`. Every task diff was reviewed (code-reviewer agent for 2.1, 2.3, 2.5, 2.7; lead review for the rest); licence-auditor pass done. Goldens were recorded on Windows; if CI on Linux fails only on screenshots, copy the CI `*_actual.png` artifacts into `app/src/test/screenshots/`.
+- Manual test checklist (debug build "GeoQuiz Debug", installs next to the Play version):
+  1. First launch after upgrading from the Play build data: not applicable (separate package). To test the upgrade path, install the debug build over an older debug build if you have one; otherwise rely on the migration tests.
+  2. Play a Countries, a Capitals and a Flags quiz end to end, including a letter/word-pattern category. Typos: "Austrailia" is accepted in Normal (shown as correct); in Hard it says "Close – check the spelling" with no strike. "St Lucia", "the Gambia", "Bosnia & Herzegovina" are accepted.
+  3. Rotate during a quiz: it keeps running, nothing lost. Developer options → "Don't keep activities" on: mid-quiz press Home and reopen → same answers, wrong guesses, typed text and time, paused. Finish a quiz → Results; Home and reopen on Results and on Answer review → still there; Stats shows the quiz once.
+  4. Ads (test ads, not purchased): no interstitial on quizzes 1–2 after a cold start; on the 3rd quiz of at least 60 s, Results appears first, then the ad; closing it stays on Results. Quizzes under 60 s never show one.
+  5. Challenges: share a challenge from Results and open the link on the phone → challenge screen with the score. Edit `score=` in the link → opens without the score. `adb shell am start -a android.intent.action.VIEW -d "geoquiz://challenge?id=x&ct=nonsense&cv=_" com.geoquiz.app.debug` → "This challenge link isn't valid" toast, no crash. After merge and deploy: `adb shell pm get-app-links com.geoquiz.app.debug` shows verified.
+  6. Play Games (if linked) or logcat `PlayGamesSync`: airplane mode on, finish a quiz that unlocks an achievement, airplane mode off with the app open → synced within a few seconds.
+  7. TalkBack walkthrough: home cards read as buttons ("double-tap to start quiz"); in a quiz the count is announced after each correct answer ("12 of 197 countries named"), the timer does not talk every second, rows read "France, answered" / "Row 12, not yet answered"; Results and Answer review rows read as one item each; check whether "Paused" is announced when pausing.
+  8. 200% font: quiz, results, review, home and settings are readable (known: Share/Challenge clip on Results, Phase 3).
+  9. Settings → Reset all data still works; Credits shows the ODbL notice covering the built-in database.
+  10. Release build (`./gradlew assembleRelease`, needs `challengeHmacKey` in `signing.properties`): runs a quiz, opens a challenge link and the Remove Ads purchase sheet without crashing.
+- Next session starts at: Phase 3, tasks 3.9 and 3.1 (after the Phase 2 PR is merged).

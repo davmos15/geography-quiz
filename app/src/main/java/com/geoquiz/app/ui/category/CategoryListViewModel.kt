@@ -65,7 +65,6 @@ class CategoryListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.ensureSeeded()
             val allCountries = if (quizMode == QuizMode.CAPITALS) {
                 repository.getAllCountries().first().filter { it.capital.isNotBlank() }
             } else {

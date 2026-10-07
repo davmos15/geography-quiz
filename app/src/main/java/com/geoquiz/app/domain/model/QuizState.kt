@@ -24,7 +24,15 @@ data class QuizState(
 
 sealed class AnswerResult {
     data object None : AnswerResult()
-    data class Correct(val countryName: String) : AnswerResult()
+
+    /** Accepted. [viaTypo] is true when the answer was one small typo away from an alias. */
+    data class Correct(val countryName: String, val viaTypo: Boolean = false) : AnswerResult()
     data object AlreadyAnswered : AnswerResult()
     data object Incorrect : AnswerResult()
+
+    /**
+     * Close to a valid answer but not accepted: a typo in hard mode, or a typo that is
+     * equally close to more than one country. No strike; the input is kept for editing.
+     */
+    data object NearMiss : AnswerResult()
 }

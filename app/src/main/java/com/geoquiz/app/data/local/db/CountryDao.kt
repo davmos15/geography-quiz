@@ -1,19 +1,11 @@
 package com.geoquiz.app.data.local.db
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CountryDao {
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCountries(countries: List<CountryEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAliases(aliases: List<AliasEntity>)
 
     @Query("SELECT * FROM countries ORDER BY commonName ASC")
     fun getAllCountries(): Flow<List<CountryEntity>>
@@ -30,4 +22,13 @@ interface CountryDao {
         """
     )
     suspend fun findCountryByNormalizedAlias(normalizedInput: String): CountryEntity?
+
+    @Query("SELECT * FROM countries")
+    suspend fun getAllCountriesOnce(): List<CountryEntity>
+
+    @Query("SELECT * FROM countries WHERE cca3 IN (:codes)")
+    suspend fun getCountriesByCodes(codes: List<String>): List<CountryEntity>
+
+    @Query("SELECT * FROM aliases")
+    suspend fun getAllAliases(): List<AliasEntity>
 }

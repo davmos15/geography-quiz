@@ -1,6 +1,8 @@
 package com.geoquiz.app.di
 
+import com.geoquiz.app.data.repository.CompletedQuizRepositoryImpl
 import com.geoquiz.app.data.repository.CountryRepositoryImpl
+import com.geoquiz.app.domain.repository.CompletedQuizRepository
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +17,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCountryRepository(impl: CountryRepositoryImpl): CountryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCompletedQuizRepository(impl: CompletedQuizRepositoryImpl): CompletedQuizRepository
 }

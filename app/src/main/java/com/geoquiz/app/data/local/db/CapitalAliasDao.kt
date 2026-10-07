@@ -1,15 +1,10 @@
 package com.geoquiz.app.data.local.db
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
 interface CapitalAliasDao {
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAliases(aliases: List<CapitalAliasEntity>)
 
     @Query(
         """
@@ -20,4 +15,7 @@ interface CapitalAliasDao {
         """
     )
     suspend fun findCountryByNormalizedCapitalAlias(normalizedInput: String): CountryEntity?
+
+    @Query("SELECT * FROM capital_aliases")
+    suspend fun getAllCapitalAliases(): List<CapitalAliasEntity>
 }

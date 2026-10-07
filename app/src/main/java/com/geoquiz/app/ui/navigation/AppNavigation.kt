@@ -258,10 +258,8 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             ) {
                 val quizMode = it.arguments?.getString("quizMode") ?: "countries"
                 QuizScreen(
-                    onQuizComplete = { score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses, challengeId ->
-                        navController.navigate(
-                            Screen.Results.createRoute(quizMode, score, correct, total, time, perfectBonus, categoryName, categoryType, categoryValue, incorrectGuesses, challengeId)
-                        ) {
+                    onQuizComplete = { resultId ->
+                        navController.navigate(Screen.Results.createRoute(resultId)) {
                             popUpTo(Screen.Quiz.route) { inclusive = true }
                         }
                     },
@@ -279,67 +277,37 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             composable(
                 route = Screen.Results.route,
                 arguments = listOf(
-                    navArgument("quizMode") { type = NavType.StringType },
-                    navArgument("score") { type = NavType.FloatType },
-                    navArgument("correct") { type = NavType.IntType },
-                    navArgument("total") { type = NavType.IntType },
-                    navArgument("time") { type = NavType.IntType },
-                    navArgument("perfectBonus") { type = NavType.BoolType },
-                    navArgument("categoryName") { type = NavType.StringType },
-                    navArgument("categoryType") { type = NavType.StringType },
-                    navArgument("categoryValue") { type = NavType.StringType },
-                    navArgument("incorrectGuesses") { type = NavType.IntType },
-                    navArgument("challengeId") { type = NavType.StringType }
+                    navArgument(Screen.Results.ARG_RESULT_ID) { type = NavType.StringType }
                 )
-            ) { backStackEntry ->
-                val quizMode = backStackEntry.arguments?.getString("quizMode") ?: "countries"
-                val score = backStackEntry.arguments?.getFloat("score")?.toDouble() ?: 0.0
-                val correct = backStackEntry.arguments?.getInt("correct") ?: 0
-                val total = backStackEntry.arguments?.getInt("total") ?: 0
-                val time = backStackEntry.arguments?.getInt("time") ?: 0
-                val perfectBonus = backStackEntry.arguments?.getBoolean("perfectBonus") ?: false
-                val rawName = backStackEntry.arguments?.getString("categoryName") ?: ""
-                val categoryName = android.net.Uri.decode(rawName)
-                val categoryType = backStackEntry.arguments?.getString("categoryType") ?: ""
-                val rawValue = backStackEntry.arguments?.getString("categoryValue") ?: ""
-                val categoryValue = android.net.Uri.decode(rawValue)
-                val incorrectGuesses = backStackEntry.arguments?.getInt("incorrectGuesses") ?: 0
-
+            ) {
                 ResultsScreen(
-                    score = score,
-                    correctAnswers = correct,
-                    totalCountries = total,
-                    timeElapsedSeconds = time,
-                    perfectBonus = perfectBonus,
-                    categoryName = categoryName,
-                    categoryType = categoryType,
-                    categoryValue = categoryValue,
-                    quizMode = quizMode,
-                    incorrectGuesses = incorrectGuesses,
-                    onPlayAgain = {
+                    onPlayAgain = { quizMode, categoryType, categoryValue ->
                         navController.navigate(
                             Screen.Quiz.createRoute(quizMode, categoryType, categoryValue)
                         ) {
                             popUpTo(Screen.Results.route) { inclusive = true }
                         }
                     },
-                    onGoHome = {
-                        val homeRoute = when (quizMode) {
-                            "capitals" -> Screen.CapitalsHome.route
-                            "flags" -> Screen.FlagsHome.route
-                            else -> Screen.CountriesHome.route
-                        }
-                        navController.popBackStack(homeRoute, inclusive = false)
+                    onGoHome = { quizMode ->
+                        navController.popBackStack(homeRouteFor(quizMode), inclusive = false)
                     },
-                    onViewAnswers = {
-                        navController.navigate(Screen.AnswerReview.route)
+                    onViewAnswers = { resultId ->
+                        navController.navigate(Screen.AnswerReview.createRoute(resultId))
                     }
                 )
             }
 
-            composable(Screen.AnswerReview.route) {
+            composable(
+                route = Screen.AnswerReview.route,
+                arguments = listOf(
+                    navArgument(Screen.AnswerReview.ARG_RESULT_ID) { type = NavType.StringType }
+                )
+            ) {
                 AnswerReviewScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onGoHome = {
+                        navController.popBackStack(Screen.CountriesHome.route, inclusive = false)
+                    }
                 )
             }
 
@@ -370,4 +338,11 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             }
         }
     }
+}
+
+/** The home tab for a quiz mode id ("countries", "capitals" or "flags"). */
+private fun homeRouteFor(quizMode: String): String = when (quizMode) {
+    "capitals" -> Screen.CapitalsHome.route
+    "flags" -> Screen.FlagsHome.route
+    else -> Screen.CountriesHome.route
 }

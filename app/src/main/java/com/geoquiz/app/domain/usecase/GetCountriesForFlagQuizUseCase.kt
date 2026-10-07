@@ -15,7 +15,6 @@ class GetCountriesForFlagQuizUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(category: QuizCategory): List<Country> {
-        repository.ensureSeeded()
         val allCountries = repository.getAllCountries().first()
 
         // Batch-fetch all flag color mappings once to avoid N+1 queries

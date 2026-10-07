@@ -36,6 +36,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.buttonSemantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -70,7 +75,8 @@ fun FlagsHomeScreen(
                         Text(
                             "Flags Quiz",
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.semantics { heading() }
                         )
                     }
                 },
@@ -131,7 +137,9 @@ fun FlagsHomeScreen(
                         text = "Categories",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .semantics { heading() }
                     )
                 }
 
@@ -155,6 +163,7 @@ private fun FlagsCategoryTile(
 
     Card(
         onClick = onClick,
+        modifier = Modifier.buttonSemantics(stringResource(R.string.action_open_category), onClick),
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = colors.first)

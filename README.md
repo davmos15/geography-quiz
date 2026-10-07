@@ -137,7 +137,7 @@ app/src/main/java/com/geoquiz/app/
 | [mledoze/countries](https://github.com/mledoze/countries) | Country names, official names, alternative spellings, capitals, regions and subregions | ODbL 1.0 |
 | [flag-icons](https://github.com/lipis/flag-icons) 7.5.0 | Flag images (SVG, bundled) | MIT |
 
-Country data is bundled as JSON in app assets and seeded into Room on first launch. Flag colour and flag element data (`flag_colors.json`, `flag_elements.json`) were curated for GeoQuiz. A curated alias table handles answer validation with about 900 accepted name variants (704 country names and 204 capital names); it is published as [`data/aliases.json`](data/aliases.json) under ODbL 1.0.
+Country data ships as a prebuilt read-only SQLite database (`app/src/main/assets/databases/static.db`), generated from the JSON sources in `data/source/` by `tools/data/build_static_db.py`. Flag colour and flag element data (`flag_colors.json`, `flag_elements.json`) were curated for GeoQuiz. A curated alias table handles answer validation with about 900 accepted name variants (704 country names and 204 capital names); it is published as [`data/aliases.json`](data/aliases.json) under ODbL 1.0.
 
 ---
 

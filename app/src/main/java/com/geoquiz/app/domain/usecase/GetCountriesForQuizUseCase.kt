@@ -11,7 +11,6 @@ class GetCountriesForQuizUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(category: QuizCategory): List<Country> {
-        repository.ensureSeeded()
         val allCountries = repository.getAllCountries().first()
 
         return when (category) {

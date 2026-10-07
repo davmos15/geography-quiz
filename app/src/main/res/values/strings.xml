@@ -23,6 +23,9 @@
     <string name="flag_content_description_hidden">Flag</string>
     <string name="flag_content_description">Flag of %1$s</string>
 
+    <!-- Quiz answer feedback -->
+    <string name="answer_near_miss">Close – check the spelling</string>
+
     <!-- Common actions -->
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
@@ -54,9 +57,9 @@
     <string name="credits_country_data_body">Contains information from mledoze/countries, made available under the Open Database License (ODbL) v1.0.</string>
     <string name="credits_link_mledoze">mledoze/countries on GitHub</string>
     <string name="credits_link_odbl">Open Database License (ODbL) v1.0</string>
-    <string name="credits_aliases_heading">Answer aliases</string>
-    <string name="credits_aliases_body">The table of alternative answer spellings this app accepts is published under the Open Database License (ODbL) v1.0.</string>
-    <string name="credits_link_aliases">Published alias table on GitHub</string>
+    <string name="credits_aliases_heading">Built-in country data</string>
+    <string name="credits_aliases_body">The app\'s built-in country database, including the table of accepted answer spellings and the flag colour and element data, is published under the Open Database License (ODbL) v1.0.</string>
+    <string name="credits_link_aliases">Published country data on GitHub</string>
     <string name="credits_flags_heading">Flags</string>
     <string name="credits_flags_body">Flag images from flag-icons by Panayiotis Lipiridis and contributors, MIT licence.</string>
     <string name="credits_link_flag_icons">flag-icons on GitHub</string>
@@ -72,9 +75,70 @@
     <string name="credits_open_source_licences_summary">Libraries used to build this app and their licences</string>
     <string translatable="false" name="credits_url_mledoze">https://github.com/mledoze/countries</string>
     <string translatable="false" name="credits_url_odbl">https://opendatacommons.org/licenses/odbl/1-0/</string>
-    <string translatable="false" name="credits_url_aliases">https://github.com/davmos15/geography-quiz/blob/main/data/aliases.json</string>
+    <string translatable="false" name="credits_url_aliases">https://github.com/davmos15/geography-quiz/blob/main/data/README.md</string>
     <string translatable="false" name="credits_url_flag_icons">https://github.com/lipis/flag-icons</string>
 
     <!-- Open-source licences -->
     <string name="open_source_licences_title">Open-source licences</string>
+
+    <!-- Results and answer review -->
+    <string name="result_loading">Loading your result…</string>
+    <string name="result_missing_title">This result is no longer available</string>
+    <string name="result_missing_body">It may have been replaced by a newer quiz or cleared when your data was reset.</string>
+    <string name="action_go_home">Go home</string>
+    <string name="challenge_link_invalid">This challenge link isn\'t valid. Ask your friend to share it again.</string>
+
+    <!-- Accessibility (screen reader descriptions, 2.8) -->
+    <plurals name="a11y_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="a11y_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <!-- %1$s = minutes, %2$s = seconds, e.g. "3 minutes 12 seconds" -->
+    <string name="a11y_duration_minutes_seconds">%1$s %2$s</string>
+    <string name="a11y_timer">Time %1$s</string>
+    <!-- Quantity follows the total (%2$d) -->
+    <plurals name="a11y_progress_countries">
+        <item quantity="one">%1$d of %2$d country named</item>
+        <item quantity="other">%1$d of %2$d countries named</item>
+    </plurals>
+    <plurals name="a11y_progress_capitals">
+        <item quantity="one">%1$d of %2$d capital named</item>
+        <item quantity="other">%1$d of %2$d capitals named</item>
+    </plurals>
+    <plurals name="a11y_progress_flags">
+        <item quantity="one">%1$d of %2$d flag identified</item>
+        <item quantity="other">%1$d of %2$d flags identified</item>
+    </plurals>
+    <plurals name="a11y_hard_mode_strikes">
+        <item quantity="one">%1$d of %2$d incorrect guess used</item>
+        <item quantity="other">%1$d of %2$d incorrect guesses used</item>
+    </plurals>
+    <plurals name="a11y_incorrect_guesses">
+        <item quantity="one">%d incorrect guess</item>
+        <item quantity="other">%d incorrect guesses</item>
+    </plurals>
+    <string name="a11y_row_number">Row %1$d</string>
+    <string name="a11y_capital_of">%1$s, capital of %2$s</string>
+    <string name="a11y_capital_of_hint">Capital of %1$s</string>
+    <string name="a11y_status_answered">%1$s, answered</string>
+    <string name="a11y_status_not_answered">%1$s, not yet answered</string>
+    <string name="a11y_status_missed">%1$s, missed</string>
+    <string name="a11y_incorrect">Incorrect</string>
+    <string name="a11y_completed">Completed</string>
+    <plurals name="a11y_quiz_option_countries">
+        <item quantity="one">%d country</item>
+        <item quantity="other">%d countries</item>
+    </plurals>
+    <plurals name="a11y_quiz_option_capitals">
+        <item quantity="one">%d capital</item>
+        <item quantity="other">%d capitals</item>
+    </plurals>
+    <string name="a11y_best_score">Best score %1$d of %2$d, %3$s points</string>
+    <string name="action_start_quiz">Start quiz</string>
+    <string name="action_resume_quiz">Resume quiz</string>
+    <string name="action_open_category">Open category</string>
 </resources>

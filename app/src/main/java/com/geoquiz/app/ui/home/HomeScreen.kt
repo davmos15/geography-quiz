@@ -38,6 +38,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.buttonSemantics
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -80,7 +85,8 @@ fun HomeScreen(
                         Text(
                             "Geography Quiz",
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.semantics { heading() }
                         )
                     }
                 },
@@ -137,9 +143,12 @@ fun HomeScreen(
                 val savedQuiz = state.savedQuiz
                 if (savedQuiz != null) {
                     item(span = { GridItemSpan(2) }) {
+                        val resume = { onStartQuiz(savedQuiz.categoryType, savedQuiz.categoryValue) }
                         Card(
-                            onClick = { onStartQuiz(savedQuiz.categoryType, savedQuiz.categoryValue) },
-                            modifier = Modifier.fillMaxWidth(),
+                            onClick = resume,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .buttonSemantics(stringResource(R.string.action_resume_quiz), resume),
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer
@@ -185,9 +194,12 @@ fun HomeScreen(
 
                 // Featured "All Countries" card spanning full width
                 item(span = { GridItemSpan(2) }) {
+                    val startAll = { onStartQuiz("all", "_") }
                     ElevatedCard(
-                        onClick = { onStartQuiz("all", "_") },
-                        modifier = Modifier.fillMaxWidth(),
+                        onClick = startAll,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .buttonSemantics(stringResource(R.string.action_start_quiz), startAll),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
                     ) {
@@ -241,7 +253,9 @@ fun HomeScreen(
                         text = "Categories",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .semantics { heading() }
                     )
                 }
 
@@ -268,6 +282,7 @@ private fun CategoryTile(
 
     Card(
         onClick = onClick,
+        modifier = Modifier.buttonSemantics(stringResource(R.string.action_open_category), onClick),
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = colors.first)

@@ -12,11 +12,12 @@ Requires JDK 17+ and the Android SDK (`local.properties` with `sdk.dir`, not com
 ./gradlew assembleDebug              # debug APK
 ./gradlew testDebugUnitTest          # JVM unit tests (JUnit 4, MockK, Turbine, coroutines-test)
 ./gradlew lintDebug                  # Android lint
-./gradlew assembleRelease            # R8-minified release (signs only if signing.properties exists)
+./gradlew assembleRelease            # R8-minified release (signs only if signing.properties exists;
+                                     # fails without challengeHmacKey in signing.properties or CHALLENGE_HMAC_KEY)
 ./gradlew clean assembleDebug testDebugUnitTest lintDebug   # phase verification gate
 ```
 CI (`.github/workflows/ci.yml`) runs build, unit tests and lint on every PR.
-Never commit `signing.properties`, `*.jks` or `local.properties`.
+Never commit `signing.properties`, `*.jks` or `local.properties`. `signing.properties` also holds `challengeHmacKey` (signs challenge links); every release must use the same key. Debug builds and CI fall back to a dev key.
 
 ## Architecture conventions
 - Single `:app` module, package `com.geoquiz.app`: `data` (Room in `data/local/db`, DataStore in `data/local/preferences`, repositories, services such as ads, billing, Play Games), `domain` (models, repository interfaces, use cases), `ui` (one package per screen, Compose + Material 3), `di` (Hilt modules).

@@ -1,0 +1,343 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "b7a8b218bc62cd378973c10f7cfe21ff",
+    "entities": [
+      {
+        "tableName": "countries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cca3` TEXT NOT NULL, `commonName` TEXT NOT NULL, `officialName` TEXT NOT NULL, `region` TEXT NOT NULL, `subregion` TEXT NOT NULL, `nameLength` INTEGER NOT NULL, `capital` TEXT NOT NULL, PRIMARY KEY(`cca3`))",
+        "fields": [
+          {
+            "fieldPath": "cca3",
+            "columnName": "cca3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commonName",
+            "columnName": "commonName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "officialName",
+            "columnName": "officialName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "region",
+            "columnName": "region",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subregion",
+            "columnName": "subregion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameLength",
+            "columnName": "nameLength",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capital",
+            "columnName": "capital",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "cca3"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_countries_commonName",
+            "unique": false,
+            "columnNames": [
+              "commonName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_countries_commonName` ON `${TABLE_NAME}` (`commonName`)"
+          },
+          {
+            "name": "index_countries_region",
+            "unique": false,
+            "columnNames": [
+              "region"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_countries_region` ON `${TABLE_NAME}` (`region`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "aliases",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `countryCca3` TEXT NOT NULL, `alias` TEXT NOT NULL, `normalizedAlias` TEXT NOT NULL, FOREIGN KEY(`countryCca3`) REFERENCES `countries`(`cca3`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countryCca3",
+            "columnName": "countryCca3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alias",
+            "columnName": "alias",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "normalizedAlias",
+            "columnName": "normalizedAlias",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_aliases_normalizedAlias",
+            "unique": false,
+            "columnNames": [
+              "normalizedAlias"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_aliases_normalizedAlias` ON `${TABLE_NAME}` (`normalizedAlias`)"
+          },
+          {
+            "name": "index_aliases_countryCca3",
+            "unique": false,
+            "columnNames": [
+              "countryCca3"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_aliases_countryCca3` ON `${TABLE_NAME}` (`countryCca3`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "countries",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "countryCca3"
+            ],
+            "referencedColumns": [
+              "cca3"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "capital_aliases",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `countryCca3` TEXT NOT NULL, `alias` TEXT NOT NULL, `normalizedAlias` TEXT NOT NULL, FOREIGN KEY(`countryCca3`) REFERENCES `countries`(`cca3`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countryCca3",
+            "columnName": "countryCca3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alias",
+            "columnName": "alias",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "normalizedAlias",
+            "columnName": "normalizedAlias",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_capital_aliases_normalizedAlias",
+            "unique": false,
+            "columnNames": [
+              "normalizedAlias"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_capital_aliases_normalizedAlias` ON `${TABLE_NAME}` (`normalizedAlias`)"
+          },
+          {
+            "name": "index_capital_aliases_countryCca3",
+            "unique": false,
+            "columnNames": [
+              "countryCca3"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_capital_aliases_countryCca3` ON `${TABLE_NAME}` (`countryCca3`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "countries",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "countryCca3"
+            ],
+            "referencedColumns": [
+              "cca3"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "flag_colors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`countryCca3` TEXT NOT NULL, `color` TEXT NOT NULL, PRIMARY KEY(`countryCca3`, `color`), FOREIGN KEY(`countryCca3`) REFERENCES `countries`(`cca3`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "countryCca3",
+            "columnName": "countryCca3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "countryCca3",
+            "color"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_flag_colors_color",
+            "unique": false,
+            "columnNames": [
+              "color"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_flag_colors_color` ON `${TABLE_NAME}` (`color`)"
+          },
+          {
+            "name": "index_flag_colors_countryCca3",
+            "unique": false,
+            "columnNames": [
+              "countryCca3"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_flag_colors_countryCca3` ON `${TABLE_NAME}` (`countryCca3`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "countries",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "countryCca3"
+            ],
+            "referencedColumns": [
+              "cca3"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "flag_elements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`countryCca3` TEXT NOT NULL, `element` TEXT NOT NULL, PRIMARY KEY(`countryCca3`, `element`), FOREIGN KEY(`countryCca3`) REFERENCES `countries`(`cca3`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "countryCca3",
+            "columnName": "countryCca3",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "element",
+            "columnName": "element",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "countryCca3",
+            "element"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_flag_elements_element",
+            "unique": false,
+            "columnNames": [
+              "element"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_flag_elements_element` ON `${TABLE_NAME}` (`element`)"
+          },
+          {
+            "name": "index_flag_elements_countryCca3",
+            "unique": false,
+            "columnNames": [
+              "countryCca3"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_flag_elements_countryCca3` ON `${TABLE_NAME}` (`countryCca3`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "countries",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "countryCca3"
+            ],
+            "referencedColumns": [
+              "cca3"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b7a8b218bc62cd378973c10f7cfe21ff')"
+    ]
+  }
+}

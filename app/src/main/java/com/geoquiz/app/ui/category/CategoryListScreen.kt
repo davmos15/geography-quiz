@@ -36,12 +36,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.ChallengeDeepLink
+import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.a11yResources
+import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
 import java.util.Locale
@@ -62,7 +72,7 @@ fun CategoryListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state.groupName) },
+                title = { Text(state.groupName, modifier = Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -130,6 +140,7 @@ fun CategoryListScreen(
                 items(displayedOptions) { option ->
                     QuizOptionCard(
                         option = option,
+                        quizMode = QuizMode.fromId(quizMode),
                         onClick = { onStartQuiz(option.categoryType, option.categoryValue) },
                         onChallenge = {
                             val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
@@ -160,12 +171,18 @@ fun CategoryListScreen(
 @Composable
 private fun QuizOptionCard(
     option: QuizOptionInfo,
+    quizMode: QuizMode,
     onClick: () -> Unit,
     onChallenge: () -> Unit
 ) {
+    val res = a11yResources()
+    // The card merges its texts into one TalkBack item ("Completed, Africa, 54 countries,
+    // double-tap to start quiz"); the share button stays a separate item.
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .buttonSemantics(stringResource(R.string.action_start_quiz), onClick),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
@@ -181,7 +198,7 @@ private fun QuizOptionCard(
             if (option.isCompleted) {
                 Icon(
                     Icons.Default.CheckCircle,
-                    contentDescription = "Completed",
+                    contentDescription = stringResource(R.string.a11y_completed),
                     tint = CorrectGreen,
                     modifier = Modifier
                         .size(20.dp)
@@ -205,18 +222,26 @@ private fun QuizOptionCard(
                 }
                 if (option.bestCorrect != null && option.bestTotal != null) {
                     Spacer(modifier = Modifier.height(2.dp))
+                    val bestPoints = String.format(Locale.US, "%.0f", option.bestScore)
+                    val bestDescription = stringResource(
+                        R.string.a11y_best_score, option.bestCorrect, option.bestTotal, bestPoints
+                    )
                     Text(
-                        text = "Best: ${option.bestCorrect}/${option.bestTotal} (${String.format(Locale.US, "%.0f", option.bestScore)}pts)",
+                        text = "Best: ${option.bestCorrect}/${option.bestTotal} (${bestPoints}pts)",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = bestDescription }
                     )
                 }
             }
+            val countDescription = A11yText.quizOptionCount(res, quizMode, option.countryCount)
             Text(
                 text = "${option.countryCount}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .clearAndSetSemantics { contentDescription = countDescription }
             )
             IconButton(
                 onClick = onChallenge,

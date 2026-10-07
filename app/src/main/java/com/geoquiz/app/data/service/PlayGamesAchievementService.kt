@@ -30,13 +30,29 @@ class PlayGamesAchievementService @Inject constructor(
 
     private var currentActivity: Activity? = null
 
+    // Every client call needs an Activity, so unlocks and score submits are silently skipped
+    // while none is attached (app in the background). PlayGamesSyncManager waits on this.
+    private val _hasActivity = MutableStateFlow(false)
+    val hasActivity: StateFlow<Boolean> = _hasActivity.asStateFlow()
+
     fun setActivity(activity: Activity) {
         currentActivity = activity
+        _hasActivity.value = true
         checkAuthentication(activity)
     }
 
     fun clearActivity() {
         currentActivity = null
+        _hasActivity.value = false
+    }
+
+    /**
+     * Asks Play Games again whether the player is signed in, e.g. after connectivity returns
+     * when the check at launch failed offline. No-op without an attached Activity.
+     */
+    fun refreshSignInState() {
+        val activity = currentActivity ?: return
+        checkAuthentication(activity)
     }
 
     private fun checkAuthentication(activity: Activity) {

@@ -1,0 +1,194 @@
+{
+  "description": "Hand-written answer aliases and extra non-UN-member countries for GeoQuiz. Read by tools/data/export_aliases.py and tools/data/build_static_db.py; not shipped in the APK.",
+  "extraCountries": [
+    "PSE",
+    "TWN",
+    "UNK",
+    "VAT"
+  ],
+  "abbreviations": {
+    "GBR": [
+      "UK",
+      "Britain",
+      "Great Britain"
+    ],
+    "USA": [
+      "US",
+      "USA",
+      "America",
+      "United States"
+    ],
+    "ARE": [
+      "UAE"
+    ],
+    "COD": [
+      "DRC",
+      "DR Congo",
+      "Congo Kinshasa"
+    ],
+    "COG": [
+      "Congo Brazzaville",
+      "Republic of the Congo",
+      "Republic of Congo"
+    ],
+    "PRK": [
+      "DPRK",
+      "North Korea"
+    ],
+    "KOR": [
+      "South Korea"
+    ],
+    "CIV": [
+      "Ivory Coast"
+    ],
+    "SWZ": [
+      "Swaziland"
+    ],
+    "MKD": [
+      "Macedonia"
+    ],
+    "CZE": [
+      "Czech Republic",
+      "Czechia"
+    ],
+    "TLS": [
+      "East Timor"
+    ],
+    "MMR": [
+      "Burma"
+    ],
+    "RUS": [
+      "Russia"
+    ],
+    "BRN": [
+      "Brunei"
+    ],
+    "LAO": [
+      "Laos"
+    ],
+    "FSM": [
+      "Micronesia"
+    ],
+    "VCT": [
+      "St Vincent",
+      "Saint Vincent"
+    ],
+    "KNA": [
+      "St Kitts",
+      "Saint Kitts"
+    ],
+    "LCA": [
+      "St Lucia",
+      "Saint Lucia"
+    ],
+    "STP": [
+      "Sao Tome"
+    ],
+    "BIH": [
+      "Bosnia"
+    ],
+    "TTO": [
+      "Trinidad"
+    ],
+    "ATG": [
+      "Antigua"
+    ],
+    "PNG": [
+      "Papua New Guinea"
+    ],
+    "CAF": [
+      "Central African Republic"
+    ],
+    "GNQ": [
+      "Equatorial Guinea"
+    ],
+    "DOM": [
+      "Dominican Republic"
+    ],
+    "SLB": [
+      "Solomon Islands"
+    ],
+    "MHL": [
+      "Marshall Islands"
+    ],
+    "CPV": [
+      "Cape Verde"
+    ],
+    "VAT": [
+      "Vatican",
+      "Holy See"
+    ],
+    "PSE": [
+      "Palestine"
+    ],
+    "TWN": [
+      "Taiwan"
+    ],
+    "UNK": [
+      "Kosovo"
+    ]
+  },
+  "capitalAliases": {
+    "TUR": [
+      "Ankara"
+    ],
+    "CZE": [
+      "Prague"
+    ],
+    "MMR": [
+      "Naypyidaw",
+      "Nay Pyi Taw"
+    ],
+    "LKA": [
+      "Colombo",
+      "Sri Jayawardenepura Kotte",
+      "Kotte"
+    ],
+    "MYS": [
+      "Kuala Lumpur",
+      "KL"
+    ],
+    "ZAF": [
+      "Pretoria",
+      "Cape Town",
+      "Bloemfontein"
+    ],
+    "BRN": [
+      "Bandar Seri Begawan"
+    ],
+    "SWZ": [
+      "Mbabane",
+      "Lobamba"
+    ],
+    "CPV": [
+      "Praia"
+    ],
+    "CIV": [
+      "Yamoussoukro"
+    ],
+    "COD": [
+      "Kinshasa"
+    ],
+    "COG": [
+      "Brazzaville"
+    ],
+    "KOR": [
+      "Seoul"
+    ],
+    "PRK": [
+      "Pyongyang"
+    ],
+    "TLS": [
+      "Dili"
+    ],
+    "FSM": [
+      "Palikir"
+    ],
+    "MHL": [
+      "Majuro"
+    ],
+    "SLB": [
+      "Honiara"
+    ]
+  }
+}

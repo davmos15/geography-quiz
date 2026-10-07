@@ -11,14 +11,15 @@ import com.geoquiz.app.data.local.preferences.FeatureFlagRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.di.AchievementStore
 import com.geoquiz.app.di.SettingsStore
+import com.geoquiz.app.domain.repository.CompletedQuizRepository
 import javax.inject.Inject
 
 /**
  * "Settings → Reset all data" (L8): deletes everything the player has created on this device.
  *
- * Cleared: quiz history, challenges and the saved quiz (Room, in one transaction), all achievement
- * unlocks and progress counters, every setting including the player name, and debug feature-flag
- * overrides.
+ * Cleared: quiz history, challenges and the saved quiz (Room, in one transaction), the last quiz
+ * result shown on Results and Answer review, all achievement unlocks and progress counters, every
+ * setting including the player name, and debug feature-flag overrides.
  *
  * Kept: the static content tables (countries, aliases, capital aliases, flag colours and flag
  * elements; this use case has no access to them), and the `ads_removed` flag so a paying user
@@ -32,7 +33,8 @@ class ResetAllDataUseCase @Inject constructor(
     private val savedQuizDao: SavedQuizDao,
     @SettingsStore private val settingsStore: DataStore<Preferences>,
     @AchievementStore private val achievementStore: DataStore<Preferences>,
-    private val featureFlagRepository: FeatureFlagRepository
+    private val featureFlagRepository: FeatureFlagRepository,
+    private val completedQuizRepository: CompletedQuizRepository
 ) {
 
     suspend operator fun invoke() {
@@ -41,6 +43,8 @@ class ResetAllDataUseCase @Inject constructor(
             challengeDao.deleteAllChallenges()
             savedQuizDao.clearSavedQuiz()
         }
+
+        completedQuizRepository.clear()
 
         achievementStore.edit { it.clear() }
 

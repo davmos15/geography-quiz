@@ -13,7 +13,9 @@ import com.geoquiz.app.data.local.db.SavedQuizDao
 import com.geoquiz.app.data.local.db.TransactionRunner
 import com.geoquiz.app.data.local.preferences.FeatureFlagRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.FeatureFlag
+import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
@@ -67,6 +69,7 @@ class ResetAllDataUseCaseTest {
     }
 
     private val transaction = FakeTransactionRunner()
+    private val completedQuizzes = FakeCompletedQuizRepository()
 
     @Before
     fun setUp() {
@@ -94,7 +97,8 @@ class ResetAllDataUseCaseTest {
         savedQuizDao = savedQuizDao,
         settingsStore = settingsStore,
         achievementStore = achievementStore,
-        featureFlagRepository = featureFlags
+        featureFlagRepository = featureFlags,
+        completedQuizRepository = completedQuizzes
     )
 
     @Test
@@ -161,6 +165,22 @@ class ResetAllDataUseCaseTest {
         useCase()()
 
         assertTrue(achievementStore.data.first().asMap().isEmpty())
+    }
+
+    @Test
+    fun `clears the last quiz result`() = runTest {
+        completedQuizzes.stored = CompletedQuiz(
+            id = "r1", quizModeId = "countries", categoryType = "all", categoryValue = "_",
+            categoryName = "All Countries", countryCodes = listOf("FRA"), answeredCodes = listOf("FRA"),
+            incorrectGuessStrings = emptyList(), correct = 1, total = 1, timeSeconds = 5, score = 1.2,
+            perfectBonus = true, incorrectGuesses = 0, hardMode = false, challengeId = null,
+            completedAtMillis = 0L
+        )
+
+        useCase()()
+
+        assertEquals(1, completedQuizzes.clearCount)
+        assertNull(completedQuizzes.get("r1"))
     }
 
     @Test

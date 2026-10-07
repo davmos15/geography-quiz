@@ -62,7 +62,7 @@ import com.geoquiz.app.ui.theme.IncorrectRed
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizScreen(
-    onQuizComplete: (score: Double, correct: Int, total: Int, time: Int, perfectBonus: Boolean, categoryName: String, categoryType: String, categoryValue: String, incorrectGuesses: Int, challengeId: String?) -> Unit,
+    onQuizComplete: (resultId: String) -> Unit,
     onNavigateHome: () -> Unit,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
@@ -76,9 +76,34 @@ fun QuizScreen(
     var showGiveUpDialog by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
 
-    // Auto-pause and save when app goes to background
+    val completion by viewModel.completion.collectAsStateWithLifecycle()
+
+    // Auto-pause and save when the app goes to the background. Rotation also stops the
+    // activity, but the ViewModel survives it, so the quiz keeps running.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
-        viewModel.onBackgrounded()
+        if ((context as? Activity)?.isChangingConfigurations != true) viewModel.onBackgrounded()
+    }
+
+    // Once the quiz is recorded: interstitial (fresh completions only), then Results. The steps
+    // live in the ViewModel so a recreated activity still navigates after the ad closes.
+    LaunchedEffect(completion) {
+        val done = completion ?: return@LaunchedEffect
+        when (done.step) {
+            QuizCompletion.Step.SHOW_INTERSTITIAL -> {
+                val activity = context as? Activity
+                if (activity != null) {
+                    viewModel.onInterstitialShowing()
+                    viewModel.adManager.showInterstitial(activity) { viewModel.onInterstitialFinished() }
+                } else {
+                    viewModel.onInterstitialFinished()
+                }
+            }
+            QuizCompletion.Step.SHOWING_INTERSTITIAL, QuizCompletion.Step.DONE -> Unit
+            QuizCompletion.Step.NAVIGATE -> {
+                viewModel.onNavigatedToResults()
+                onQuizComplete(done.resultId)
+            }
+        }
     }
 
     when (val state = uiState) {
@@ -100,32 +125,6 @@ fun QuizScreen(
 
         is QuizUiState.Active -> {
             val quizState = state.state
-
-            LaunchedEffect(quizState.isComplete) {
-                if (quizState.isComplete) {
-                    val result = viewModel.getResult() ?: return@LaunchedEffect
-                    val navigate = {
-                        onQuizComplete(
-                            result.score,
-                            result.correctAnswers,
-                            result.totalCountries,
-                            result.timeElapsedSeconds,
-                            result.perfectBonus,
-                            result.category.displayName,
-                            viewModel.category.typeKey,
-                            viewModel.category.valueKey,
-                            result.incorrectGuesses,
-                            viewModel.challengeId
-                        )
-                    }
-                    val activity = context as? Activity
-                    if (activity != null) {
-                        viewModel.adManager.showInterstitial(activity) { navigate() }
-                    } else {
-                        navigate()
-                    }
-                }
-            }
 
             Scaffold { padding ->
                 Box(

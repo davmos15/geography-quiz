@@ -26,6 +26,9 @@ interface CountryDao {
     @Query("SELECT * FROM countries")
     suspend fun getAllCountriesOnce(): List<CountryEntity>
 
+    @Query("SELECT * FROM countries WHERE cca3 IN (:codes)")
+    suspend fun getCountriesByCodes(codes: List<String>): List<CountryEntity>
+
     @Query("SELECT * FROM aliases")
     suspend fun getAllAliases(): List<AliasEntity>
 }

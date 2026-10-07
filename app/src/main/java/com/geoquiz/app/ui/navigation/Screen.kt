@@ -31,29 +31,16 @@ sealed class Screen(val route: String) {
         }
     }
 
-    data object Results : Screen(
-        "results/{quizMode}/{score}/{correct}/{total}/{time}/{perfectBonus}/{categoryName}/{categoryType}/{categoryValue}/{incorrectGuesses}/{challengeId}"
-    ) {
-        fun createRoute(
-            quizMode: String,
-            score: Double,
-            correct: Int,
-            total: Int,
-            time: Int,
-            perfectBonus: Boolean,
-            categoryName: String,
-            categoryType: String,
-            categoryValue: String,
-            incorrectGuesses: Int,
-            challengeId: String? = null
-        ): String {
-            val encodedName = Uri.encode(categoryName)
-            val encodedValue = Uri.encode(categoryValue)
-            return "results/$quizMode/$score/$correct/$total/$time/$perfectBonus/$encodedName/$categoryType/$encodedValue/$incorrectGuesses/${challengeId ?: "_"}"
-        }
+    /** Results for a stored [com.geoquiz.app.domain.model.CompletedQuiz]. */
+    data object Results : Screen("results/{resultId}") {
+        const val ARG_RESULT_ID = "resultId"
+        fun createRoute(resultId: String): String = "results/${Uri.encode(resultId)}"
     }
 
-    data object AnswerReview : Screen("answer_review")
+    data object AnswerReview : Screen("answer_review/{resultId}") {
+        const val ARG_RESULT_ID = "resultId"
+        fun createRoute(resultId: String): String = "answer_review/${Uri.encode(resultId)}"
+    }
 
     data object ChallengeAccept : Screen("challenge_accept/{challengeId}") {
         fun createRoute(challengeId: String): String = "challenge_accept/$challengeId"

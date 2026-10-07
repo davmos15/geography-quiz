@@ -54,6 +54,14 @@ class StaticDatabaseTest {
     }
 
     @Test
+    fun `countries by code come back in the order asked, skipping unknown codes`() = runBlocking {
+        val countries = repository.getCountriesByCodes(listOf("PER", "FRA", "XXX", "AUS", "FRA"))
+        assertEquals(listOf("PER", "FRA", "AUS"), countries.map { it.code })
+        assertEquals("Peru", countries.first().name)
+        assertTrue(repository.getCountriesByCodes(emptyList()).isEmpty())
+    }
+
+    @Test
     fun `country answers resolve through aliases`() = runBlocking {
         assertEquals("GBR", repository.findCountryByAnswer("uk")?.code)
         assertEquals("GBR", repository.findCountryByAnswer("Great Britain")?.code)

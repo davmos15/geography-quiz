@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.ChallengeDeepLink
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.CorrectGreen
 import com.geoquiz.app.ui.theme.IncorrectRed
@@ -45,6 +46,38 @@ import java.util.UUID
 
 @Composable
 fun ResultsScreen(
+    onPlayAgain: (quizMode: String, categoryType: String, categoryValue: String) -> Unit,
+    onGoHome: (quizMode: String) -> Unit,
+    onViewAnswers: (resultId: String) -> Unit,
+    viewModel: ResultsViewModel = hiltViewModel()
+) {
+    when (val state = viewModel.uiState.collectAsStateWithLifecycle().value) {
+        ResultsUiState.Loading -> ResultLoading()
+        ResultsUiState.Missing -> ResultMissing(onGoHome = { onGoHome(QuizMode.COUNTRIES.id) })
+        is ResultsUiState.Loaded -> {
+            val result = state.result
+            ResultsContent(
+                score = result.score,
+                correctAnswers = result.correct,
+                totalCountries = result.total,
+                timeElapsedSeconds = result.timeSeconds,
+                perfectBonus = result.perfectBonus,
+                categoryName = result.categoryName,
+                categoryType = result.categoryType,
+                categoryValue = result.categoryValue,
+                quizMode = result.quizModeId,
+                incorrectGuesses = result.incorrectGuesses,
+                onPlayAgain = { onPlayAgain(result.quizModeId, result.categoryType, result.categoryValue) },
+                onGoHome = { onGoHome(result.quizModeId) },
+                onViewAnswers = { onViewAnswers(result.id) },
+                viewModel = viewModel
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResultsContent(
     score: Double,
     correctAnswers: Int,
     totalCountries: Int,
@@ -53,12 +86,12 @@ fun ResultsScreen(
     categoryName: String,
     categoryType: String,
     categoryValue: String,
-    quizMode: String = "countries",
-    incorrectGuesses: Int = 0,
+    quizMode: String,
+    incorrectGuesses: Int,
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
     onViewAnswers: () -> Unit,
-    viewModel: ResultsViewModel = hiltViewModel()
+    viewModel: ResultsViewModel
 ) {
     val context = LocalContext.current
     val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")

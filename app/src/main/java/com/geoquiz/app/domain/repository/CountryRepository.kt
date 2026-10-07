@@ -7,6 +7,13 @@ import kotlinx.coroutines.flow.Flow
 interface CountryRepository {
     fun getAllCountries(): Flow<List<Country>>
     suspend fun getCountryCount(): Int
+
+    /**
+     * The countries with these codes (cca3), in the order given. Unknown codes are skipped and
+     * duplicates are returned once.
+     */
+    suspend fun getCountriesByCodes(codes: List<String>): List<Country>
+
     suspend fun findCountryByAnswer(input: String): Country?
     suspend fun findCountryByCapitalAnswer(input: String): Country?
 

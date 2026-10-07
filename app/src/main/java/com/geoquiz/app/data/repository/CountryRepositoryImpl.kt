@@ -33,6 +33,13 @@ class CountryRepositoryImpl @Inject constructor(
 
     override suspend fun getCountryCount(): Int = countryDao.getCountryCount()
 
+    override suspend fun getCountriesByCodes(codes: List<String>): List<Country> {
+        if (codes.isEmpty()) return emptyList()
+        // At most ~200 codes, well under SQLite's bound-variable limit.
+        val byCode = countryDao.getCountriesByCodes(codes.distinct()).associateBy { it.cca3 }
+        return codes.distinct().mapNotNull { byCode[it]?.toDomain() }
+    }
+
     override suspend fun findCountryByAnswer(input: String): Country? {
         val normalized = normalizeInput(input)
         if (normalized.isBlank()) return null

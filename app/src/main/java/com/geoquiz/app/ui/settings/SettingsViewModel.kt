@@ -35,6 +35,9 @@ class SettingsViewModel @Inject constructor(
     val showFlags: StateFlow<Boolean> = settingsRepository.showFlags
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val vibration: StateFlow<Boolean> = settingsRepository.vibration
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val showCountryHint: StateFlow<Boolean> = settingsRepository.showCountryHint
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -60,6 +63,12 @@ class SettingsViewModel @Inject constructor(
     fun onToggleShowFlags(show: Boolean) {
         viewModelScope.launch {
             settingsRepository.setShowFlags(show)
+        }
+    }
+
+    fun onToggleVibration(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setVibration(enabled)
         }
     }
 

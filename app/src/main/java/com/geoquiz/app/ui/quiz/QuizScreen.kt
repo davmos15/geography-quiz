@@ -107,10 +107,12 @@ fun QuizScreen(
     // Answer feedback (3.3): a haptic and a short animation per answer. The haptic respects the
     // system touch-feedback setting; the animation is skipped when animations are turned off.
     val haptics by rememberUpdatedState(hapticFeedbackPlayer)
+    val vibration by viewModel.vibration.collectAsStateWithLifecycle()
+    val vibrationEnabled by rememberUpdatedState(vibration)
     var feedbackSignal by remember { mutableStateOf(FeedbackSignal()) }
     LaunchedEffect(viewModel) {
         viewModel.feedbackEvents.collect { event ->
-            haptics.play(event)
+            if (vibrationEnabled) haptics.play(event)
             feedbackSignal = feedbackSignal.next(event)
         }
     }
@@ -521,6 +523,13 @@ fun QuizScreen(
                             ) {
                                 viewModel.toggleShowTimer()
                             }
+                        }
+                        SettingsToggleRow(
+                            stringResource(R.string.setting_vibration),
+                            stringResource(R.string.setting_vibration_summary),
+                            vibration
+                        ) {
+                            viewModel.toggleVibration()
                         }
                         SettingsToggleRow(
                             stringResource(R.string.quiz_setting_show_flags),

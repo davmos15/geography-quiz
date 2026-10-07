@@ -83,6 +83,10 @@ class QuizViewModel @Inject constructor(
     private val _showFlags = MutableStateFlow(false)
     val showFlags: StateFlow<Boolean> = _showFlags.asStateFlow()
 
+    /** In-app vibration switch; the screen only plays haptics while this is on. */
+    private val _vibration = MutableStateFlow(true)
+    val vibration: StateFlow<Boolean> = _vibration.asStateFlow()
+
     private val _showCountryHint = MutableStateFlow(false)
     val showCountryHint: StateFlow<Boolean> = _showCountryHint.asStateFlow()
 
@@ -140,6 +144,7 @@ class QuizViewModel @Inject constructor(
             // with the result.
             _showTimer.value = settingsRepository.showTimer.first()
             _showFlags.value = settingsRepository.showFlags.first()
+            _vibration.value = settingsRepository.vibration.first()
             _showCountryHint.value = settingsRepository.showCountryHint.first()
             val savedQuiz = savedQuizRepository.getSavedQuiz()
             _difficulty.value = resolveDifficulty(savedQuiz)
@@ -514,6 +519,12 @@ class QuizViewModel @Inject constructor(
         _showTimer.value = newValue
         updateTimerVisible()
         viewModelScope.launch { settingsRepository.setShowTimer(newValue) }
+    }
+
+    fun toggleVibration() {
+        val newValue = !_vibration.value
+        _vibration.value = newValue
+        viewModelScope.launch { settingsRepository.setVibration(newValue) }
     }
 
     fun toggleShowFlags() {

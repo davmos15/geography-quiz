@@ -47,6 +47,8 @@
     <string name="quiz_give_up_dismiss">Keep Going</string>
     <string name="quiz_setting_show_timer">Show Timer</string>
     <string name="quiz_setting_show_timer_summary">Display count-up timer during quizzes</string>
+    <string name="setting_vibration">Vibration</string>
+    <string name="setting_vibration_summary">Vibrate on correct and wrong answers</string>
     <string name="quiz_setting_show_flags">Show Flags</string>
     <string name="quiz_setting_show_flags_summary">Show flags next to countries</string>
     <string name="quiz_setting_country_hint">Country Hint</string>

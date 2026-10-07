@@ -45,8 +45,8 @@ class QuizLoopUiTest {
     /** Haptics the screen asked for (the real player needs a device). */
     private val haptics = mutableListOf<AnswerFeedbackEvent>()
 
-    private fun launch(hardMode: Boolean = false): QuizHarness {
-        val harness = QuizHarness(hardMode = hardMode)
+    private fun launch(hardMode: Boolean = false, vibration: Boolean = true): QuizHarness {
+        val harness = QuizHarness(hardMode = hardMode, vibration = vibration)
         compose.setContent {
             GeographyQuizTheme(darkTheme = false) {
                 QuizScreen(
@@ -156,6 +156,16 @@ class QuizLoopUiTest {
         submit("Narnia")
 
         assertEquals(listOf(AnswerFeedbackEvent.CORRECT, AnswerFeedbackEvent.INCORRECT), haptics)
+    }
+
+    @Test
+    fun vibrationSwitchedOffPlaysNoHaptics() {
+        launch(vibration = false)
+
+        submit("France")
+        submit("Narnia")
+
+        assertEquals(emptyList<AnswerFeedbackEvent>(), haptics)
     }
 
     @Test

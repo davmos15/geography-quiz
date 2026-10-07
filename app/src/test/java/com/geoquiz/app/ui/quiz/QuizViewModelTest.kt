@@ -136,6 +136,7 @@ class QuizViewModelTest {
         }
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.showFlags } returns flowOf(false)
+        every { settingsRepository.vibration } returns flowOf(true)
         every { settingsRepository.showCountryHint } returns flowOf(false)
         every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         coEvery { savedQuizRepository.getSavedQuiz() } returns null

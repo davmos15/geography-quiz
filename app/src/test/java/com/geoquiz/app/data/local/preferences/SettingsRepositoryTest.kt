@@ -102,6 +102,17 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `vibration defaults to on and round-trips`() = runTest {
+        assertTrue(repository.vibration.first())
+
+        repository.setVibration(false)
+        assertEquals(false, repository.vibration.first())
+
+        repository.setVibration(true)
+        assertTrue(repository.vibration.first())
+    }
+
+    @Test
     fun `other settings are untouched by the difficulty`() = runTest {
         repository.setShowTimer(false)
         repository.setAdsRemoved(true)

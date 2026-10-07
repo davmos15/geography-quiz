@@ -75,6 +75,7 @@ fun SettingsScreen(
 ) {
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
+    val vibration by viewModel.vibration.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
     val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
     val adsRemoved by viewModel.adsRemoved.collectAsStateWithLifecycle()
@@ -198,6 +199,30 @@ fun SettingsScreen(
                 Switch(
                     checked = showFlags,
                     onCheckedChange = { viewModel.onToggleShowFlags(it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.setting_vibration),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = stringResource(R.string.setting_vibration_summary),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(
+                    checked = vibration,
+                    onCheckedChange = { viewModel.onToggleVibration(it) }
                 )
             }
 

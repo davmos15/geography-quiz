@@ -89,8 +89,10 @@ object ScreenTestFixtures {
         showTimer: Boolean = true,
         showFlags: Boolean = false,
         showCountryHint: Boolean = false,
-        difficulty: Difficulty = Difficulty.NORMAL
+        difficulty: Difficulty = Difficulty.NORMAL,
+        vibration: Boolean = true
     ): SettingsRepository = mockk(relaxed = true) {
+        every { this@mockk.vibration } returns flowOf(vibration)
         every { this@mockk.showTimer } returns flowOf(showTimer)
         every { this@mockk.showFlags } returns flowOf(showFlags)
         every { this@mockk.showCountryHint } returns flowOf(showCountryHint)
@@ -104,7 +106,8 @@ object ScreenTestFixtures {
     class QuizHarness(
         countries: List<Country> = TestQuizData.THREE,
         hardMode: Boolean = false,
-        showTimer: Boolean = true
+        showTimer: Boolean = true,
+        vibration: Boolean = true
     ) {
         val completedQuizzes = FakeCompletedQuizRepository()
 
@@ -141,7 +144,7 @@ object ScreenTestFixtures {
                 quizHistoryRepository = mockk<QuizHistoryRepository>(relaxed = true),
                 playGamesService = mockk<PlayGamesAchievementService>(relaxed = true)
             ),
-            settingsRepository = settingsRepository(showTimer = showTimer),
+            settingsRepository = settingsRepository(showTimer = showTimer, vibration = vibration),
             savedQuizRepository = savedQuizRepository,
             adManager = mockk<AdManager>(relaxed = true),
             clock = FrozenClock,

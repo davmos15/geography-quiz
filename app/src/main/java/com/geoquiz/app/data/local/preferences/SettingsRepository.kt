@@ -30,6 +30,11 @@ class SettingsRepository @Inject constructor(
         prefs[SHOW_FLAGS_KEY] ?: false
     }
 
+    /** In-app vibration for answer feedback (3.3); the system touch-feedback setting also applies. */
+    val vibration: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[VIBRATION_KEY] ?: true
+    }
+
     val showCountryHint: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[SHOW_COUNTRY_HINT_KEY] ?: false
     }
@@ -57,6 +62,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setShowFlags(show: Boolean) {
         dataStore.edit { prefs ->
             prefs[SHOW_FLAGS_KEY] = show
+        }
+    }
+
+    suspend fun setVibration(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[VIBRATION_KEY] = enabled
         }
     }
 
@@ -90,6 +101,7 @@ class SettingsRepository @Inject constructor(
         private val SHOW_TIMER_KEY = booleanPreferencesKey("show_timer")
         private val SHOW_FLAGS_KEY = booleanPreferencesKey("show_flags")
         private val SHOW_COUNTRY_HINT_KEY = booleanPreferencesKey("show_country_hint")
+        private val VIBRATION_KEY = booleanPreferencesKey("vibration")
         private val DIFFICULTY_KEY = stringPreferencesKey("difficulty")
         /** Replaced by [DIFFICULTY_KEY] in 3.2; only read to migrate the old setting. */
         private val LEGACY_HARD_MODE_KEY = booleanPreferencesKey("hard_mode")

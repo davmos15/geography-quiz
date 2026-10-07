@@ -10,6 +10,7 @@ room = "2.6.1"
 datastore = "1.1.1"
 coroutines = "1.10.1"
 playServicesAds = "23.6.0"
+userMessagingPlatform = "3.2.0"
 playServicesGamesV2 = "21.0.0"
 playBilling = "8.3.0"
 kotlinxSerialization = "1.7.3"
@@ -66,6 +67,9 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 # Google Mobile Ads
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+
+# Google User Messaging Platform (consent)
+user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
 
 # Play Games Services
 play-services-games-v2 = { group = "com.google.android.gms", name = "play-services-games-v2", version.ref = "playServicesGamesV2" }

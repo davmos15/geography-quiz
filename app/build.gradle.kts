@@ -129,6 +129,9 @@ dependencies {
     // Google Mobile Ads
     implementation(libs.play.services.ads)
 
+    // Google User Messaging Platform (consent form, privacy options)
+    implementation(libs.user.messaging.platform)
+
     // Play Games Services
     implementation(libs.play.services.games.v2)
 

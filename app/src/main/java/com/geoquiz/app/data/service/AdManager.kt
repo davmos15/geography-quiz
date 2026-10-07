@@ -1,47 +1,54 @@
 package com.geoquiz.app.data.service
 
 import android.app.Activity
-import android.content.Context
-import com.google.android.gms.ads.AdRequest
+import com.geoquiz.app.di.AdsMainScope
 import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.geoquiz.app.R
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AdManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val billingRepository: BillingRepository
+    private val billingRepository: BillingRepository,
+    private val consentManager: ConsentManager,
+    private val interstitialLoader: InterstitialAdLoader,
+    @AdsMainScope scope: CoroutineScope
 ) {
     private var interstitialAd: InterstitialAd? = null
     private var isLoading = false
+    private var preloadPending = false
 
-    private val interstitialAdUnitId: String
-        get() = context.getString(R.string.admob_interstitial_id)
+    init {
+        // A preload asked for before consent completed runs once ads become available.
+        scope.launch {
+            consentManager.canRequestAds.first { it }
+            if (preloadPending) {
+                preloadPending = false
+                preloadInterstitial()
+            }
+        }
+    }
 
     fun preloadInterstitial() {
         if (billingRepository.adsRemoved.value) return
+        if (!consentManager.canRequestAds.value) {
+            preloadPending = true
+            return
+        }
         if (interstitialAd != null || isLoading) return
         isLoading = true
 
-        InterstitialAd.load(
-            context,
-            interstitialAdUnitId,
-            AdRequest.Builder().build(),
-            object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    interstitialAd = ad
-                    isLoading = false
-                }
-
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    interstitialAd = null
-                    isLoading = false
-                }
+        interstitialLoader.load(
+            onLoaded = { ad ->
+                interstitialAd = ad
+                isLoading = false
+            },
+            onFailed = {
+                interstitialAd = null
+                isLoading = false
             }
         )
     }

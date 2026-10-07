@@ -13,6 +13,7 @@ import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.service.BillingRepository
+import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizCategory
@@ -33,12 +34,15 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var challengeRepository: ChallengeRepository
     @Inject lateinit var quizHistoryRepository: QuizHistoryRepository
     @Inject lateinit var billingRepository: BillingRepository
+    @Inject lateinit var consentManager: ConsentManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         playGamesService.setActivity(this)
         billingRepository.connect()
+        // Ads stay off until UMP consent allows them (D8 tagging is applied at initialisation)
+        consentManager.gatherConsent(this)
         handleDeepLink(intent?.data)
         setContent {
             GeographyQuizTheme {

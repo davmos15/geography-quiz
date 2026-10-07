@@ -160,4 +160,23 @@
     <string name="mode_countries_give_up">You\'ve named %1$d of %2$d countries. Are you sure?</string>
     <string name="mode_capitals_give_up">You\'ve named %1$d of %2$d capitals. Are you sure?</string>
     <string name="mode_flags_give_up">You\'ve named %1$d of %2$d flags. Are you sure?</string>
+
+    <!-- Difficulty tiers (3.2) -->
+    <string name="difficulty_title">Difficulty</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_normal">Normal</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="difficulty_easy_summary">Pick each answer from 4 options.</string>
+    <string name="difficulty_normal_summary">Type the answers. Small typos are forgiven.</string>
+    <string name="difficulty_hard_summary">Type the exact spelling. 3 wrong guesses ends the quiz, and the timer is always on.</string>
+    <!-- Quiz header label, e.g. "Difficulty: Hard" for screen readers -->
+    <string name="a11y_quiz_difficulty">Difficulty: %1$s</string>
+    <string name="quiz_timer_always_shown_hard">Always shown in Hard</string>
+    <string name="settings_default_difficulty">Default difficulty</string>
+    <string name="settings_default_difficulty_summary">Used for new quizzes. You can also change it at the top of each category list.</string>
+    <!-- Mastery stars on a category row; quantity follows the maximum (%2$d) -->
+    <plurals name="a11y_mastery_stars">
+        <item quantity="one">%1$d of %2$d star</item>
+        <item quantity="other">%1$d of %2$d stars</item>
+    </plurals>
 </resources>

@@ -23,11 +23,30 @@ sealed class Screen(val route: String) {
         fun createRoute(quizMode: String, groupId: String): String = "category/$quizMode/$groupId"
     }
 
-    data object Quiz : Screen("quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId={challengeId}") {
-        fun createRoute(quizMode: String, categoryType: String, categoryValue: String, challengeId: String? = null): String {
+    /**
+     * A quiz. `difficulty` is an optional [com.geoquiz.app.domain.model.Difficulty.id]; without
+     * it (old callers, challenges, "Resume quiz") the quiz uses the resume save's tier or the
+     * remembered default (see `QuizViewModel`).
+     */
+    data object Quiz : Screen(
+        "quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId={challengeId}&difficulty={difficulty}"
+    ) {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(
+            quizMode: String,
+            categoryType: String,
+            categoryValue: String,
+            challengeId: String? = null,
+            difficulty: String? = null
+        ): String {
             val encoded = Uri.encode(categoryValue)
             val base = "quiz/$quizMode/$categoryType/$encoded"
-            return if (challengeId != null) "$base?challengeId=$challengeId" else base
+            val query = listOfNotNull(
+                challengeId?.let { "challengeId=$it" },
+                difficulty?.let { "$ARG_DIFFICULTY=${Uri.encode(it)}" }
+            )
+            return if (query.isEmpty()) base else base + query.joinToString("&", prefix = "?")
         }
     }
 

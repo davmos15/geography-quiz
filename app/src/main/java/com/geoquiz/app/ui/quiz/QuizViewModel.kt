@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.data.local.db.SavedQuizEntity
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
@@ -58,6 +60,9 @@ class QuizViewModel @Inject constructor(
 
     val category: QuizCategory = QuizCategory.fromRoute(categoryType, categoryValue)
 
+    /** Tier asked for by the route (`?difficulty=`), or null for old callers, challenges and resume. */
+    private val routeDifficulty: Difficulty? = Difficulty.fromIdOrNull(savedStateHandle[ARG_DIFFICULTY])
+
     private val _uiState = MutableStateFlow<QuizUiState>(QuizUiState.Loading)
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
 
@@ -70,8 +75,19 @@ class QuizViewModel @Inject constructor(
     private val _showCountryHint = MutableStateFlow(false)
     val showCountryHint: StateFlow<Boolean> = _showCountryHint.asStateFlow()
 
-    private val _hardMode = MutableStateFlow(false)
-    val hardMode: StateFlow<Boolean> = _hardMode.asStateFlow()
+    private val _difficulty = MutableStateFlow(Difficulty.DEFAULT)
+
+    /**
+     * The tier this quiz is played at. Resolved once before the quiz loads (route, then the
+     * value saved for process death, then the resume save, then the remembered default) and
+     * never changes during the quiz. Read it once [uiState] is [QuizUiState.Active].
+     */
+    val difficulty: StateFlow<Difficulty> = _difficulty.asStateFlow()
+
+    private val _timerVisible = MutableStateFlow(true)
+
+    /** Whether the timer is on screen: the "Show timer" setting, except Hard always shows it (D15). */
+    val timerVisible: StateFlow<Boolean> = _timerVisible.asStateFlow()
 
     private val _timerSeconds = MutableStateFlow(0)
     val timerSeconds: StateFlow<Int> = _timerSeconds.asStateFlow()
@@ -91,16 +107,50 @@ class QuizViewModel @Inject constructor(
     init {
         adManager.preloadInterstitial()
         viewModelScope.launch {
-            // Settings first: hard mode decides strikes and is recorded with the result.
+            // Settings first: the difficulty decides typo tolerance and strikes and is recorded
+            // with the result.
             _showTimer.value = settingsRepository.showTimer.first()
             _showFlags.value = settingsRepository.showFlags.first()
             _showCountryHint.value = settingsRepository.showCountryHint.first()
-            _hardMode.value = settingsRepository.hardMode.first()
-            loadQuiz()
+            val savedQuiz = savedQuizRepository.getSavedQuiz()
+            _difficulty.value = resolveDifficulty(savedQuiz)
+            savedState.difficulty = _difficulty.value
+            updateTimerVisible()
+            loadQuiz(savedQuiz)
         }
     }
 
-    private suspend fun loadQuiz() {
+    /**
+     * Route > value saved for process death > the matching resume save's tier > the remembered
+     * default. Challenges never run at Easy ([Difficulty.forChallenge]), and a tier the mode
+     * does not offer falls back to Normal.
+     */
+    private suspend fun resolveDifficulty(savedQuiz: SavedQuizEntity?): Difficulty {
+        val requested = routeDifficulty
+            ?: savedState.difficulty
+            ?: savedQuiz?.takeIf { it.isSameQuiz() }?.let { Difficulty.fromIdOrDefault(it.difficulty) }
+        val resolved = if (challengeId != null) {
+            Difficulty.forChallenge(requested, settingsRepository.difficulty.first())
+        } else {
+            requested ?: settingsRepository.difficulty.first()
+        }
+        return resolved.takeIf { it in gameMode.spec.supportedDifficulties } ?: Difficulty.NORMAL
+    }
+
+    /** Same mode and category as this quiz (the tier is checked separately). */
+    private fun SavedQuizEntity.isSameQuiz(): Boolean =
+        categoryType == this@QuizViewModel.categoryType &&
+            categoryValue == this@QuizViewModel.categoryValue &&
+            quizMode == quizModeId
+
+    private fun updateTimerVisible() {
+        _timerVisible.value = _showTimer.value || _difficulty.value.timerAlwaysShown
+    }
+
+    private suspend fun loadQuiz(savedQuiz: SavedQuizEntity?) {
+        // TODO(3.2b): Easy is multiple choice (D14). Branch here on
+        //  `_difficulty.value == Difficulty.EASY` to build the 4-option questions and their
+        //  QuizState; until then Easy runs as a typed quiz with the Normal rules.
         val countries = gameMode.generator.items(category)
         val quiz = Quiz(
             category = category,
@@ -111,13 +161,11 @@ class QuizViewModel @Inject constructor(
         // 1. Progress in the SavedStateHandle: this screen was recreated after process death
         //    or activity destruction. It wins over the "Resume quiz" save in Room.
         // 2. The Room save ("Resume quiz" on the home screen) for the same quiz.
+        //    It must also match the tier: a Hard save is not resumed as a Normal quiz.
         // 3. A fresh quiz.
         val snapshot = savedState.restore()
-        val savedQuiz = savedQuizRepository.getSavedQuiz()
-        val roomSaveMatches = savedQuiz != null &&
-            savedQuiz.categoryType == categoryType &&
-            savedQuiz.categoryValue == categoryValue &&
-            savedQuiz.quizMode == quizModeId
+        val roomSaveMatches = savedQuiz != null && savedQuiz.isSameQuiz() &&
+            Difficulty.fromIdOrDefault(savedQuiz.difficulty) == _difficulty.value
         if (snapshot != null) {
             quizTimer.restore(snapshot.elapsedMillis)
             _uiState.value = QuizUiState.Active(snapshot.toQuizState(quiz))
@@ -205,7 +253,8 @@ class QuizViewModel @Inject constructor(
                     categoryValue = categoryValue,
                     answeredCodes = current.state.answeredCountries,
                     timeElapsed = quizTimer.elapsedSeconds(),
-                    quizMode = quizModeId
+                    quizMode = quizModeId,
+                    difficulty = _difficulty.value
                 )
             }
         }
@@ -229,8 +278,9 @@ class QuizViewModel @Inject constructor(
         if (input.isBlank()) return
 
         viewModelScope.launch {
-            // Typos are forgiven except in hard mode, where they get a NearMiss (no strike).
-            val allowFuzzy = !_hardMode.value
+            // Typos are forgiven except at Hard, where they get a NearMiss (no strike).
+            val rules = _difficulty.value
+            val allowFuzzy = rules.allowsTypos
             val result = gameMode.validator.validate(input, current.state, allowFuzzy)
             _uiState.update { uiState ->
                 if (uiState is QuizUiState.Active) {
@@ -252,8 +302,8 @@ class QuizViewModel @Inject constructor(
                         state.incorrectGuessStrings
                     }
                     val allAnswered = newAnswered.size == state.quiz.countries.size
-                    val hardModeStrikeOut = _hardMode.value && newIncorrect >= 3
-                    val isComplete = allAnswered || hardModeStrikeOut
+                    val struckOut = rules.strikeLimit?.let { newIncorrect >= it } ?: false
+                    val isComplete = allAnswered || struckOut
                     QuizUiState.Active(
                         state.copy(
                             answeredCountries = newAnswered,
@@ -301,7 +351,7 @@ class QuizViewModel @Inject constructor(
             quizMode = quizMode,
             routeCategoryType = categoryType,
             routeCategoryValue = categoryValue,
-            hardMode = _hardMode.value,
+            difficulty = _difficulty.value,
             challengeId = challengeId
         )
         completionJob = viewModelScope.launch {
@@ -325,6 +375,7 @@ class QuizViewModel @Inject constructor(
     fun toggleShowTimer() {
         val newValue = !_showTimer.value
         _showTimer.value = newValue
+        updateTimerVisible()
         viewModelScope.launch { settingsRepository.setShowTimer(newValue) }
     }
 
@@ -340,10 +391,9 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setShowCountryHint(newValue) }
     }
 
-    fun toggleHardMode() {
-        val newValue = !_hardMode.value
-        _hardMode.value = newValue
-        viewModelScope.launch { settingsRepository.setHardMode(newValue) }
+    companion object {
+        /** Optional route argument with a [Difficulty.id] (see `Screen.Quiz`). */
+        const val ARG_DIFFICULTY = "difficulty"
     }
 }
 

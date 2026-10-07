@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.db.FlagColorDao
 import com.geoquiz.app.data.local.db.FlagElementDao
+import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FlagCategoryGroup
@@ -17,9 +20,12 @@ import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,7 +46,9 @@ data class QuizOptionInfo(
     val isCompleted: Boolean = false,
     val bestScore: Double? = null,
     val bestCorrect: Int? = null,
-    val bestTotal: Int? = null
+    val bestTotal: Int? = null,
+    /** Mastery stars, 0 to 3 ([com.geoquiz.app.domain.usecase.MasteryStars]). */
+    val masteryStars: Int = 0
 )
 
 @HiltViewModel
@@ -51,7 +59,9 @@ class CategoryListViewModel @Inject constructor(
     private val flagElementDao: FlagElementDao,
     private val quizHistoryRepository: QuizHistoryRepository,
     private val challengeRepository: ChallengeRepository,
-    private val playGamesService: PlayGamesAchievementService
+    private val playGamesService: PlayGamesAchievementService,
+    private val settingsRepository: SettingsRepository,
+    gameModes: GameModeRegistry
 ) : ViewModel() {
 
     val playerName = playGamesService.playerName
@@ -62,6 +72,21 @@ class CategoryListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CategoryListUiState())
     val uiState: StateFlow<CategoryListUiState> = _uiState.asStateFlow()
+
+    /** Tiers this mode offers, in Easy, Normal, Hard order. */
+    val difficulties: List<Difficulty> = gameModes.findOrDefault(quizModeId).spec.supportedDifficulties
+        .sortedBy { it.ordinal }
+
+    /**
+     * The tier a tapped category starts at: the remembered default. Changing it here changes
+     * the default too, so a quiz stays two taps from home.
+     */
+    val difficulty: StateFlow<Difficulty> = settingsRepository.difficulty
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Difficulty.DEFAULT)
+
+    fun onDifficultySelected(difficulty: Difficulty) {
+        viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
+    }
 
     init {
         viewModelScope.launch {
@@ -110,6 +135,18 @@ class CategoryListViewModel @Inject constructor(
                 groupDescription = groupDescription,
                 quizOptions = enrichedOptions
             )
+
+            // Stars follow history, so they are up to date when the player comes back from a quiz.
+            quizHistoryRepository.masteryStarsForMode(quizModeId).collect { starsByCategory ->
+                _uiState.update { state ->
+                    state.copy(
+                        quizOptions = state.quizOptions.map { option ->
+                            val key = QuizHistoryRepository.categoryKey(option.categoryType, option.categoryValue)
+                            option.copy(masteryStars = starsByCategory[key] ?: 0)
+                        }
+                    )
+                }
+            }
         }
     }
 

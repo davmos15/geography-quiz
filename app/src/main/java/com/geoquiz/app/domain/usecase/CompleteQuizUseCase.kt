@@ -8,6 +8,7 @@ import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.CompletedQuiz
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.repository.CompletedQuizRepository
@@ -18,6 +19,9 @@ import javax.inject.Inject
 /**
  * Finishes a quiz: scores it with its mode's scoring rule, saves the [CompletedQuiz] that Results and Answer review read,
  * clears the "Resume quiz" save, and records achievements, history and leaderboard scores.
+ *
+ * Easy quizzes are recorded in history (so they show in stats and mastery stars) but unlock no
+ * achievements and submit no leaderboard scores (D16, [Difficulty.countsForAchievements]).
  *
  * Idempotent per [Request.resultId]: if a result with that id is already stored, it is returned
  * and nothing is recorded again. The caller keeps the id across process death (in its
@@ -44,7 +48,7 @@ class CompleteQuizUseCase @Inject constructor(
         /** Category keys as given in the quiz route; history rows have always used these. */
         val routeCategoryType: String,
         val routeCategoryValue: String,
-        val hardMode: Boolean,
+        val difficulty: Difficulty,
         val challengeId: String?
     )
 
@@ -80,9 +84,10 @@ class CompleteQuizUseCase @Inject constructor(
             score = result.score,
             perfectBonus = result.perfectBonus,
             incorrectGuesses = result.incorrectGuesses,
-            hardMode = request.hardMode,
+            hardMode = request.difficulty == Difficulty.HARD,
             challengeId = request.challengeId,
-            completedAtMillis = System.currentTimeMillis()
+            completedAtMillis = System.currentTimeMillis(),
+            difficultyId = request.difficulty.id
         )
 
         // Atomic check-and-save: a second run with the same id (e.g. a recreated screen racing
@@ -93,15 +98,20 @@ class CompleteQuizUseCase @Inject constructor(
         }
         savedQuizRepository.clearSavedQuiz()
 
-        val newlyUnlocked = achievementRepository.onQuizCompleted(
-            category = category,
-            correctAnswers = result.correctAnswers,
-            totalCountries = result.totalCountries,
-            timeElapsedSeconds = result.timeElapsedSeconds,
-            quizMode = request.quizMode,
-            incorrectGuesses = result.incorrectGuesses,
-            hardMode = request.hardMode
-        )
+        val counts = request.difficulty.countsForAchievements
+        val newlyUnlocked = if (counts) {
+            achievementRepository.onQuizCompleted(
+                category = category,
+                correctAnswers = result.correctAnswers,
+                totalCountries = result.totalCountries,
+                timeElapsedSeconds = result.timeElapsedSeconds,
+                quizMode = request.quizMode,
+                incorrectGuesses = result.incorrectGuesses,
+                hardMode = request.difficulty == Difficulty.HARD
+            )
+        } else {
+            emptyList()
+        }
         newlyUnlocked.forEach { playGamesService.unlockAchievement(it) }
 
         quizHistoryRepository.recordQuizResult(
@@ -113,8 +123,11 @@ class CompleteQuizUseCase @Inject constructor(
             incorrectGuesses = result.incorrectGuesses,
             score = result.score,
             timeElapsedSeconds = result.timeElapsedSeconds,
-            perfectBonus = result.perfectBonus
+            perfectBonus = result.perfectBonus,
+            difficulty = request.difficulty
         )
+
+        if (!counts) return@withContext Outcome(completed, newlyUnlocked, newlyRecorded = true)
 
         val overallTotal = quizHistoryRepository.getTotalCorrectAnswersSync()
         playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overallTotal)

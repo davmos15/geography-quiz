@@ -11,6 +11,7 @@ import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
@@ -116,7 +117,7 @@ class QuizViewModelTest {
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.showFlags } returns flowOf(false)
         every { settingsRepository.showCountryHint } returns flowOf(false)
-        every { settingsRepository.hardMode } returns flowOf(false)
+        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         coEvery { savedQuizRepository.getSavedQuiz() } returns null
         coEvery { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) } returns
             listOf(achievement)
@@ -131,9 +132,17 @@ class QuizViewModelTest {
     private fun routeHandle(
         quizMode: String = "countries",
         categoryType: String = "all",
-        categoryValue: String = "_"
+        categoryValue: String = "_",
+        difficulty: Difficulty? = null,
+        challengeId: String? = null
     ) = SavedStateHandle(
-        mapOf("quizMode" to quizMode, "categoryType" to categoryType, "categoryValue" to categoryValue)
+        buildMap<String, Any?> {
+            put("quizMode", quizMode)
+            put("categoryType", categoryType)
+            put("categoryValue", categoryValue)
+            if (difficulty != null) put(QuizViewModel.ARG_DIFFICULTY, difficulty.id)
+            if (challengeId != null) put("challengeId", challengeId)
+        }
     )
 
     /** What survives process death: a new handle holding only the saved values. */
@@ -263,7 +272,7 @@ class QuizViewModelTest {
         assertTrue(second.newAchievements.value.isEmpty())
         assertEquals(1, completedQuizzes.saveCount)
         coVerify(exactly = 1) {
-            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         }
         coVerify(exactly = 1) {
             achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any())
@@ -287,7 +296,7 @@ class QuizViewModelTest {
         assertEquals("pending-id", completedQuizzes.stored?.id)
         assertEquals(3, completedQuizzes.stored?.timeSeconds)
         coVerify(exactly = 1) {
-            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -362,5 +371,172 @@ class QuizViewModelTest {
 
         assertEquals("countries", vm.modeSpec.id)
         assertEquals(TestQuizData.THREE, vm.quizState().quiz.countries)
+    }
+
+    // Difficulty tiers (3.2a)
+
+    private fun defaultDifficulty(difficulty: Difficulty) {
+        every { settingsRepository.difficulty } returns flowOf(difficulty)
+    }
+
+    private fun hardResumeSave() = SavedQuizEntity(
+        categoryType = "all",
+        categoryValue = "_",
+        answeredCountryCodes = "[\"DEU\"]",
+        timeElapsedSeconds = 12,
+        savedAtMillis = 0L,
+        quizMode = "countries",
+        difficulty = "hard"
+    )
+
+    @Test
+    fun `hard allows 3 strikes, rejects typos and always shows the timer`() {
+        every { settingsRepository.showTimer } returns flowOf(false)
+
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
+
+        assertEquals(Difficulty.HARD, vm.difficulty.value)
+        assertTrue("timer is forced on at Hard", vm.timerVisible.value)
+        vm.toggleShowTimer()
+        assertTrue("the Show timer switch cannot hide it at Hard", vm.timerVisible.value)
+
+        vm.answer("France")
+        coVerify { validateAnswer("France", any(), false) }
+        vm.answer("Narnia")
+        vm.answer("Atlantis")
+        assertFalse(vm.quizState().isComplete)
+        vm.answer("Lemuria")
+
+        assertTrue("3 strikes end the quiz", vm.quizState().isComplete)
+        assertEquals(3, vm.quizState().incorrectGuesses)
+        assertEquals(Difficulty.HARD, completedQuizzes.stored?.difficulty)
+        assertTrue(completedQuizzes.stored!!.hardMode)
+    }
+
+    @Test
+    fun `normal forgives typos, has no strike limit and follows the timer setting`() {
+        every { settingsRepository.showTimer } returns flowOf(false)
+
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+
+        assertEquals(Difficulty.NORMAL, vm.difficulty.value)
+        assertFalse(vm.timerVisible.value)
+        vm.toggleShowTimer()
+        assertTrue(vm.timerVisible.value)
+
+        repeat(5) { vm.answer("Narnia $it") }
+        coVerify { validateAnswer(any(), any(), true) }
+        assertFalse("no strike limit at Normal", vm.quizState().isComplete)
+        assertEquals(5, vm.quizState().incorrectGuesses)
+    }
+
+    @Test
+    fun `the route difficulty wins over the remembered default`() {
+        defaultDifficulty(Difficulty.HARD)
+
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+
+        assertEquals(Difficulty.NORMAL, vm.difficulty.value)
+    }
+
+    @Test
+    fun `without a route difficulty the remembered default is used`() {
+        defaultDifficulty(Difficulty.HARD)
+
+        val vm = viewModel(routeHandle())
+
+        assertEquals(Difficulty.HARD, vm.difficulty.value)
+    }
+
+    @Test
+    fun `easy is wired through and recorded, with the normal typed rules until 3_2b`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
+
+        assertEquals(Difficulty.EASY, vm.difficulty.value)
+        vm.onGiveUp()
+        runCurrent()
+
+        assertEquals(Difficulty.EASY, completedQuizzes.stored?.difficulty)
+        coVerify(exactly = 1) {
+            quizHistoryRepository.recordQuizResult(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), Difficulty.EASY
+            )
+        }
+        coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a challenge never runs at easy`() {
+        defaultDifficulty(Difficulty.EASY)
+        assertEquals(Difficulty.NORMAL, viewModel(routeHandle(challengeId = "c-1")).difficulty.value)
+        assertEquals(
+            Difficulty.NORMAL,
+            viewModel(routeHandle(challengeId = "c-2", difficulty = Difficulty.EASY)).difficulty.value
+        )
+
+        defaultDifficulty(Difficulty.HARD)
+        assertEquals(Difficulty.HARD, viewModel(routeHandle(challengeId = "c-3")).difficulty.value)
+
+        defaultDifficulty(Difficulty.NORMAL)
+        assertEquals(Difficulty.NORMAL, viewModel(routeHandle(challengeId = "c-4")).difficulty.value)
+    }
+
+    @Test
+    fun `the difficulty survives process death even if the default changes`() {
+        defaultDifficulty(Difficulty.HARD)
+        val handle = routeHandle()
+        val first = viewModel(handle)
+        first.answer("France")
+        first.onBackgrounded()
+        runCurrent()
+
+        defaultDifficulty(Difficulty.NORMAL)
+        val second = viewModel(afterProcessDeath(handle))
+
+        assertEquals(Difficulty.HARD, second.difficulty.value)
+        assertEquals(setOf("FRA"), second.quizState().answeredCountries)
+    }
+
+    @Test
+    fun `resuming without a route difficulty takes the tier of the resume save`() {
+        coEvery { savedQuizRepository.getSavedQuiz() } returns hardResumeSave()
+        every { savedQuizRepository.parseAnsweredCodes(any()) } returns setOf("DEU")
+
+        val vm = viewModel(routeHandle())
+
+        assertEquals(Difficulty.HARD, vm.difficulty.value)
+        assertEquals(setOf("DEU"), vm.quizState().answeredCountries)
+    }
+
+    @Test
+    fun `a resume save at another tier is not restored`() {
+        coEvery { savedQuizRepository.getSavedQuiz() } returns hardResumeSave()
+        every { savedQuizRepository.parseAnsweredCodes(any()) } returns setOf("DEU")
+
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+
+        assertEquals(Difficulty.NORMAL, vm.difficulty.value)
+        assertTrue(vm.quizState().answeredCountries.isEmpty())
+        coVerify(exactly = 0) { savedQuizRepository.clearSavedQuiz() }
+    }
+
+    @Test
+    fun `backgrounding saves the tier with the resume save`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
+        vm.answer("France")
+
+        vm.onBackgrounded()
+        runCurrent()
+
+        coVerify {
+            savedQuizRepository.saveQuizState(
+                categoryType = "all",
+                categoryValue = "_",
+                answeredCodes = setOf("FRA"),
+                timeElapsed = any(),
+                quizMode = "countries",
+                difficulty = Difficulty.HARD
+            )
+        }
     }
 }

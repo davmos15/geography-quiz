@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.DifficultySelector
 
 private const val DEBUG_MENU_TAPS = 7
 
@@ -75,7 +76,7 @@ fun SettingsScreen(
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
-    val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
+    val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
     val adsRemoved by viewModel.adsRemoved.collectAsStateWithLifecycle()
     val removeAdsPrice by viewModel.removeAdsPrice.collectAsStateWithLifecycle()
     val privacyOptionsRequired by viewModel.privacyOptionsRequired.collectAsStateWithLifecycle()
@@ -224,27 +225,24 @@ fun SettingsScreen(
                 )
             }
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 12.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Hard Mode",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Only 3 incorrect guesses allowed per quiz",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Switch(
-                    checked = hardMode,
-                    onCheckedChange = { viewModel.onToggleHardMode(it) }
+                Text(
+                    text = stringResource(R.string.settings_default_difficulty),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.settings_default_difficulty_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                DifficultySelector(
+                    selected = difficulty,
+                    onSelect = viewModel::onDifficultySelected
                 )
             }
 

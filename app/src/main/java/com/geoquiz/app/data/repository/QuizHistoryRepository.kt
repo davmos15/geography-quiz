@@ -3,7 +3,11 @@ package com.geoquiz.app.data.repository
 import com.geoquiz.app.data.local.db.QuizBestScore
 import com.geoquiz.app.data.local.db.QuizHistoryDao
 import com.geoquiz.app.data.local.db.QuizHistoryEntity
+import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.usecase.MasteryAttempt
+import com.geoquiz.app.domain.usecase.MasteryStars
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,7 +24,8 @@ class QuizHistoryRepository @Inject constructor(
         incorrectGuesses: Int,
         score: Double,
         timeElapsedSeconds: Int,
-        perfectBonus: Boolean
+        perfectBonus: Boolean,
+        difficulty: Difficulty
     ) {
         quizHistoryDao.insertQuizResult(
             QuizHistoryEntity(
@@ -33,7 +38,8 @@ class QuizHistoryRepository @Inject constructor(
                 score = score,
                 timeElapsedSeconds = timeElapsedSeconds,
                 perfectBonus = perfectBonus,
-                completedAtMillis = System.currentTimeMillis()
+                completedAtMillis = System.currentTimeMillis(),
+                difficulty = difficulty.id
             )
         )
     }
@@ -57,11 +63,38 @@ class QuizHistoryRepository @Inject constructor(
     suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore> =
         quizHistoryDao.getAllBestScoresForMode(quizMode)
 
+    /**
+     * Mastery stars (0 to 3) per category of [quizMode], keyed by `"categoryType|categoryValue"`
+     * as recorded in history. Categories never played are absent. Updates when history changes.
+     */
+    fun masteryStarsForMode(quizMode: String): Flow<Map<String, Int>> =
+        quizHistoryDao.observeMasteryRowsForMode(quizMode).map { rows ->
+            rows.groupBy { categoryKey(it.categoryType, it.categoryValue) }
+                .mapValues { (_, categoryRows) ->
+                    MasteryStars.calculate(
+                        categoryRows.map {
+                            MasteryAttempt(
+                                difficulty = Difficulty.fromIdOrDefault(it.difficulty),
+                                correct = it.correctAnswers,
+                                total = it.totalQuestions
+                            )
+                        }
+                    )
+                }
+        }
+
+    /** Leaderboard total over Normal and Hard quizzes; Easy never counts (D16). */
     suspend fun getTotalCorrectAnswersSync(): Long =
         quizHistoryDao.getTotalCorrectAnswersSync()
 
+    /** Leaderboard total for one mode over Normal and Hard quizzes; Easy never counts (D16). */
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long =
         quizHistoryDao.getTotalCorrectAnswersForModeSync(quizMode)
 
     suspend fun clearAllHistory() = quizHistoryDao.deleteAllHistory()
+
+    companion object {
+        /** Key used by [masteryStarsForMode]. */
+        fun categoryKey(categoryType: String, categoryValue: String): String = "$categoryType|$categoryValue"
+    }
 }

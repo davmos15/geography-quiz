@@ -60,7 +60,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.domain.model.QuizMode
+import com.geoquiz.app.R
 import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
@@ -80,7 +82,8 @@ fun QuizScreen(
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
-    val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
+    val timerVisible by viewModel.timerVisible.collectAsStateWithLifecycle()
+    val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
     var showGiveUpDialog by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
 
@@ -148,6 +151,11 @@ fun QuizScreen(
                             style = MaterialTheme.typography.headlineMedium,
                             modifier = Modifier.semantics { heading() }
                         )
+                        // The tier is fixed for the whole quiz, so it is a label, not a control.
+                        DifficultyLabel(
+                            difficulty = difficulty,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
 
                         // Pattern explainer banner
                         val patternDescription = quizState.quiz.category.description
@@ -197,17 +205,18 @@ fun QuizScreen(
                                     liveRegion = LiveRegionMode.Polite
                                 }
                             )
-                            if (showTimer) {
+                            if (timerVisible) {
                                 Spacer(modifier = Modifier.width(12.dp))
                                 TimerDisplay(
                                     elapsedSeconds = timerSeconds,
                                     timerSeconds = null
                                 )
                             }
-                            if (hardMode) {
+                            val strikeLimit = difficulty.strikeLimit
+                            if (strikeLimit != null) {
                                 Spacer(modifier = Modifier.width(12.dp))
-                                val strikesDescription = A11yText.strikes(res, quizState.incorrectGuesses, 3)
-                                val strikesColor = if (quizState.incorrectGuesses >= 2) MaterialTheme.geoColors.wrong
+                                val strikesDescription = A11yText.strikes(res, quizState.incorrectGuesses, strikeLimit)
+                                val strikesColor = if (quizState.incorrectGuesses >= strikeLimit - 1) MaterialTheme.geoColors.wrong
                                     else MaterialTheme.colorScheme.onSurfaceVariant
                                 // Cross icon + count, so strikes never rely on colour alone.
                                 Row(
@@ -223,7 +232,7 @@ fun QuizScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
-                                        text = "${quizState.incorrectGuesses} / 3",
+                                        text = "${quizState.incorrectGuesses} / $strikeLimit",
                                         style = MaterialTheme.typography.titleMedium,
                                         color = strikesColor
                                     )
@@ -394,8 +403,19 @@ fun QuizScreen(
                                 .padding(bottom = 16.dp)
                                 .semantics { heading() }
                         )
-                        SettingsToggleRow("Show Timer", "Display count-up timer during quizzes", showTimer) {
-                            viewModel.toggleShowTimer()
+                        if (difficulty.timerAlwaysShown) {
+                            // Hard always shows the timer (D15), so there is nothing to switch.
+                            SettingsToggleRow(
+                                label = "Show Timer",
+                                description = stringResource(R.string.quiz_timer_always_shown_hard),
+                                checked = true,
+                                enabled = false,
+                                onToggle = {}
+                            )
+                        } else {
+                            SettingsToggleRow("Show Timer", "Display count-up timer during quizzes", showTimer) {
+                                viewModel.toggleShowTimer()
+                            }
                         }
                         SettingsToggleRow("Show Flags", "Show flags next to countries", showFlags) {
                             viewModel.toggleShowFlags()
@@ -404,9 +424,6 @@ fun QuizScreen(
                             SettingsToggleRow("Country Hint", "Show the country name as a clue", showCountryHint) {
                                 viewModel.toggleShowCountryHint()
                             }
-                        }
-                        SettingsToggleRow("Hard Mode", "Only 3 incorrect guesses allowed", hardMode) {
-                            viewModel.toggleHardMode()
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                     }
@@ -450,6 +467,7 @@ private fun SettingsToggleRow(
     label: String,
     description: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onToggle: () -> Unit
 ) {
     Row(
@@ -466,6 +484,6 @@ private fun SettingsToggleRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(checked = checked, onCheckedChange = { onToggle() })
+        Switch(checked = checked, onCheckedChange = { onToggle() }, enabled = enabled)
     }
 }

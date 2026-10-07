@@ -6,6 +6,7 @@ import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.Achievement
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
@@ -52,7 +53,11 @@ class CompleteQuizUseCaseTest {
         incorrectGuessStrings = listOf("Narnia", "Atlantis")
     )
 
-    private fun request(id: String = "result-1", mode: QuizMode = QuizMode.CAPITALS) =
+    private fun request(
+        id: String = "result-1",
+        mode: QuizMode = QuizMode.CAPITALS,
+        difficulty: Difficulty = Difficulty.HARD
+    ) =
         CompleteQuizUseCase.Request(
             resultId = id,
             state = state,
@@ -60,7 +65,7 @@ class CompleteQuizUseCaseTest {
             quizMode = mode,
             routeCategoryType = "startletter",
             routeCategoryValue = "A",
-            hardMode = true,
+            difficulty = difficulty,
             challengeId = "challenge-7"
         )
 
@@ -95,6 +100,8 @@ class CompleteQuizUseCaseTest {
         assertFalse(stored.perfectBonus)
         assertEquals(2, stored.incorrectGuesses)
         assertTrue(stored.hardMode)
+        assertEquals(Difficulty.HARD, stored.difficulty)
+        assertEquals("hard", stored.difficultyId)
         assertEquals("challenge-7", stored.challengeId)
         assertTrue(stored.completedAtMillis > 0)
     }
@@ -127,7 +134,8 @@ class CompleteQuizUseCaseTest {
                 incorrectGuesses = 2,
                 score = any(),
                 timeElapsedSeconds = 75,
-                perfectBonus = false
+                perfectBonus = false,
+                difficulty = Difficulty.HARD
             )
         }
         verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.OVERALL, 120L) }
@@ -145,7 +153,7 @@ class CompleteQuizUseCaseTest {
         assertTrue(second.newAchievements.isEmpty())
         assertEquals(1, completedQuizzes.saveCount)
         coVerify(exactly = 1) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
-        coVerify(exactly = 1) { quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
         verify(exactly = 2) { playGames.submitScore(any(), any()) }
     }
 
@@ -155,7 +163,7 @@ class CompleteQuizUseCaseTest {
         useCase(request(id = "b"))
 
         assertEquals(2, completedQuizzes.saveCount)
-        coVerify(exactly = 2) { quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 2) { quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -172,7 +180,7 @@ class CompleteQuizUseCaseTest {
         assertEquals(listOf("achievements saw result=true"), recorded)
         coVerifyOrder {
             savedQuizRepository.clearSavedQuiz()
-            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -184,5 +192,55 @@ class CompleteQuizUseCaseTest {
 
         verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.OVERALL, 120L) }
         verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.COUNTRIES, 55L) }
+    }
+
+    // Difficulty tiers (3.2a, D16)
+
+    @Test
+    fun `each tier is stored with the completed quiz`() = runTest {
+        for ((index, difficulty) in Difficulty.entries.withIndex()) {
+            val outcome = useCase(request(id = "tier-$index", difficulty = difficulty))
+
+            assertEquals(difficulty, outcome.completedQuiz.difficulty)
+            assertEquals(difficulty.id, outcome.completedQuiz.difficultyId)
+            assertEquals(difficulty == Difficulty.HARD, outcome.completedQuiz.hardMode)
+        }
+    }
+
+    @Test
+    fun `easy is recorded in history but unlocks no achievements and submits no scores`() = runTest {
+        val outcome = useCase(request(difficulty = Difficulty.EASY))
+
+        assertTrue(outcome.newlyRecorded)
+        assertTrue(outcome.newAchievements.isEmpty())
+        assertEquals(Difficulty.EASY, completedQuizzes.get("result-1")?.difficulty)
+        coVerify(exactly = 1) {
+            quizHistoryRepository.recordQuizResult(
+                quizMode = "capitals",
+                categoryType = "startletter",
+                categoryValue = "A",
+                correctAnswers = 2,
+                totalQuestions = 3,
+                incorrectGuesses = 2,
+                score = any(),
+                timeElapsedSeconds = 75,
+                perfectBonus = false,
+                difficulty = Difficulty.EASY
+            )
+        }
+        coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { playGames.unlockAchievement(any()) }
+        verify(exactly = 0) { playGames.submitScore(any(), any()) }
+        coVerify(exactly = 1) { savedQuizRepository.clearSavedQuiz() }
+    }
+
+    @Test
+    fun `normal counts for achievements without hard mode`() = runTest {
+        useCase(request(difficulty = Difficulty.NORMAL))
+
+        coVerify(exactly = 1) {
+            achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), hardMode = false)
+        }
+        verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.OVERALL, 120L) }
     }
 }

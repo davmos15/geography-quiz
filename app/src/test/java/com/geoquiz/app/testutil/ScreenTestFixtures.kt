@@ -15,6 +15,7 @@ import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.Country
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
@@ -86,15 +87,18 @@ object ScreenTestFixtures {
         showTimer: Boolean = true,
         showFlags: Boolean = false,
         showCountryHint: Boolean = false,
-        hardMode: Boolean = false
+        difficulty: Difficulty = Difficulty.NORMAL
     ): SettingsRepository = mockk(relaxed = true) {
         every { this@mockk.showTimer } returns flowOf(showTimer)
         every { this@mockk.showFlags } returns flowOf(showFlags)
         every { this@mockk.showCountryHint } returns flowOf(showCountryHint)
-        every { this@mockk.hardMode } returns flowOf(hardMode)
+        every { this@mockk.difficulty } returns flowOf(difficulty)
     }
 
-    /** A Countries-mode "All Countries" quiz with the real answer checking and completion. */
+    /**
+     * A Countries-mode "All Countries" quiz with the real answer checking and completion.
+     * [hardMode] starts it at Hard through the route, otherwise at Normal.
+     */
     class QuizHarness(
         countries: List<Country> = TestQuizData.THREE,
         hardMode: Boolean = false,
@@ -119,7 +123,12 @@ object ScreenTestFixtures {
 
         val viewModel = QuizViewModel(
             savedStateHandle = SavedStateHandle(
-                mapOf("quizMode" to "countries", "categoryType" to "all", "categoryValue" to "_")
+                mapOf(
+                    "quizMode" to "countries",
+                    "categoryType" to "all",
+                    "categoryValue" to "_",
+                    QuizViewModel.ARG_DIFFICULTY to (if (hardMode) Difficulty.HARD else Difficulty.NORMAL).id
+                )
             ),
             gameModes = gameModes,
             completeQuiz = CompleteQuizUseCase(
@@ -130,7 +139,7 @@ object ScreenTestFixtures {
                 quizHistoryRepository = mockk<QuizHistoryRepository>(relaxed = true),
                 playGamesService = mockk<PlayGamesAchievementService>(relaxed = true)
             ),
-            settingsRepository = settingsRepository(showTimer = showTimer, hardMode = hardMode),
+            settingsRepository = settingsRepository(showTimer = showTimer),
             savedQuizRepository = savedQuizRepository,
             adManager = mockk<AdManager>(relaxed = true),
             clock = FrozenClock
@@ -197,7 +206,7 @@ object ScreenTestFixtures {
             every { privacyOptionsRequired } returns MutableStateFlow(false)
         }
         return SettingsViewModel(
-            settingsRepository = settingsRepository(showTimer = true, hardMode = true),
+            settingsRepository = settingsRepository(showTimer = true, difficulty = Difficulty.HARD),
             billingRepository = billing,
             consentManager = consent,
             resetAllData = mockk<ResetAllDataUseCase>(relaxed = true)

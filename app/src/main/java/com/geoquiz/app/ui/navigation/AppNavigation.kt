@@ -235,9 +235,9 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                 CategoryListScreen(
                     quizMode = quizMode,
                     onNavigateBack = { navController.popBackStack() },
-                    onStartQuiz = { categoryType, categoryValue ->
+                    onStartQuiz = { categoryType, categoryValue, difficulty ->
                         navController.navigate(
-                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue)
+                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue, difficulty = difficulty)
                         )
                     }
                 )
@@ -252,6 +252,11 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                     navArgument("challengeId") {
                         type = NavType.StringType
                         defaultValue = ""
+                        nullable = true
+                    },
+                    navArgument(Screen.Quiz.ARG_DIFFICULTY) {
+                        type = NavType.StringType
+                        defaultValue = null
                         nullable = true
                     }
                 )
@@ -281,9 +286,9 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                 )
             ) {
                 ResultsScreen(
-                    onPlayAgain = { quizMode, categoryType, categoryValue ->
+                    onPlayAgain = { quizMode, categoryType, categoryValue, difficulty ->
                         navController.navigate(
-                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue)
+                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue, difficulty = difficulty)
                         ) {
                             popUpTo(Screen.Results.route) { inclusive = true }
                         }

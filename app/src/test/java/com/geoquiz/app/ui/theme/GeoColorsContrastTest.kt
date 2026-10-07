@@ -73,6 +73,17 @@ class GeoColorsContrastTest {
     }
 
     @Test
+    fun masteryStars_standOutFromSurfaces() {
+        for (t in themes) {
+            // Stars are non-text graphics (WCAG 1.4.11): 3:1 wherever category rows are drawn.
+            assertContrast("${t.name} star on background", t.geo.star, t.scheme.background, 3.0)
+            assertContrast("${t.name} star on surface", t.geo.star, t.scheme.surface, 3.0)
+            assertContrast("${t.name} star on surfaceVariant", t.geo.star, t.scheme.surfaceVariant, 3.0)
+            assertContrast("${t.name} onStar/star", t.geo.onStar, t.geo.star, 4.5)
+        }
+    }
+
+    @Test
     fun mapStateColours_standOutFromLand() {
         for (t in themes) {
             val g = t.geo

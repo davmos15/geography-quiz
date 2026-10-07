@@ -29,17 +29,18 @@ import org.robolectric.ParameterizedRobolectricTestRunner.Parameters
  *
  * Player tables by version: saved_quizzes and challenges from 4, saved_quizzes.quizMode
  * from 6, quiz_history from 7, challenges.quizMode from 8. Up to 10 the same file also
- * held the static content, which version 11 drops.
+ * held the static content, which version 11 drops. Version 12 adds `difficulty` to
+ * quiz_history and saved_quizzes; every older row reads as "normal".
  */
 @RunWith(ParameterizedRobolectricTestRunner::class)
 class AppDatabaseMigrationTest(private val fromVersion: Int) {
 
     companion object {
-        private const val CURRENT_VERSION = 11
+        private const val CURRENT_VERSION = 12
 
         @JvmStatic
         @Parameters(name = "from version {0}")
-        fun versions(): List<Array<Any>> = listOf(1, 4, 5, 6, 7, 8, 9, 10).map { arrayOf(it) }
+        fun versions(): List<Array<Any>> = listOf(1, 4, 5, 6, 7, 8, 9, 10, 11).map { arrayOf(it) }
 
         private val STATIC_TABLES =
             listOf("countries", "aliases", "capital_aliases", "flag_colors", "flag_elements")
@@ -57,7 +58,7 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
     @Before
     fun createOldDatabaseWithData() {
         RoomSchemaFixture.createDatabase(context, AppDatabase.NAME, AppDatabase::class.java.name, fromVersion).apply {
-            insertStaticRows()
+            if (hasStaticTables) insertStaticRows()
             if (hasSavedQuizzesAndChallenges) insertSavedQuizAndChallenges()
             if (hasQuizHistory) insertQuizHistory()
             close()
@@ -90,6 +91,8 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
             execSQL("INSERT INTO flag_elements (countryCca3, element) VALUES ('FRA', 'stripes')")
         }
     }
+
+    private val hasStaticTables get() = fromVersion <= 10
 
     private fun android.database.sqlite.SQLiteDatabase.insertSavedQuizAndChallenges() {
         val savedQuizMode = if (savedQuizHasMode) ", quizMode" to ", 'capitals'" else "" to ""
@@ -159,7 +162,9 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
                 timeElapsedSeconds = 42,
                 savedAtMillis = 1700000000000L,
                 // Rows from before version 6 take the column default.
-                quizMode = if (savedQuizHasMode) "capitals" else "countries"
+                quizMode = if (savedQuizHasMode) "capitals" else "countries",
+                // Every save from before version 12 was played without tiers.
+                difficulty = "normal"
             ),
             saved
         )
@@ -207,17 +212,23 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
                 QuizHistoryEntity(
                     id = 2, quizMode = "flags", categoryType = "flag_color", categoryValue = "red",
                     correctAnswers = 10, totalQuestions = 10, incorrectGuesses = 0, score = 12.0,
-                    timeElapsedSeconds = 60, perfectBonus = true, completedAtMillis = 1700000000003L
+                    timeElapsedSeconds = 60, perfectBonus = true, completedAtMillis = 1700000000003L,
+                    difficulty = "normal"
                 ),
                 QuizHistoryEntity(
                     id = 1, quizMode = "countries", categoryType = "all", categoryValue = "all",
                     correctAnswers = 150, totalQuestions = 197, incorrectGuesses = 12, score = 114.2,
-                    timeElapsedSeconds = 900, perfectBonus = false, completedAtMillis = 1700000000002L
+                    timeElapsedSeconds = 900, perfectBonus = false, completedAtMillis = 1700000000002L,
+                    difficulty = "normal"
                 )
             ),
             history
         )
         assertEquals(150L, database.quizHistoryDao().getTotalCorrectAnswersForModeSync("countries"))
+        // Old rows count as Normal, so they still count for leaderboards.
+        assertEquals(160L, database.quizHistoryDao().getTotalCorrectAnswersSync())
+        val mastery = database.quizHistoryDao().observeMasteryRowsForMode("flags").first()
+        assertEquals(listOf(QuizMasteryRow("flag_color", "red", "normal", 10, 10)), mastery)
     }
 
     @Test
@@ -225,7 +236,8 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
         val history = QuizHistoryEntity(
             quizMode = "capitals", categoryType = "region", categoryValue = "Oceania",
             correctAnswers = 5, totalQuestions = 14, incorrectGuesses = 3, score = 4.5,
-            timeElapsedSeconds = 120, perfectBonus = false, completedAtMillis = 1800000000000L
+            timeElapsedSeconds = 120, perfectBonus = false, completedAtMillis = 1800000000000L,
+            difficulty = "hard"
         )
         database.quizHistoryDao().insertQuizResult(history)
         assertEquals(
@@ -235,9 +247,29 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
 
         val saved = SavedQuizEntity(
             categoryType = "region", categoryValue = "Asia", answeredCountryCodes = "JPN",
-            timeElapsedSeconds = 7, savedAtMillis = 1800000000001L, quizMode = "flags"
+            timeElapsedSeconds = 7, savedAtMillis = 1800000000001L, quizMode = "flags",
+            difficulty = "easy"
         )
         database.savedQuizDao().saveQuiz(saved)
         assertEquals(saved, database.savedQuizDao().getSavedQuiz())
+    }
+
+    @Test
+    fun `easy rows never count towards leaderboard totals`() = runBlocking {
+        val dao = database.quizHistoryDao()
+        val before = dao.getTotalCorrectAnswersSync()
+        val beforeCapitals = dao.getTotalCorrectAnswersForModeSync("capitals")
+        fun row(difficulty: String, correct: Int) = QuizHistoryEntity(
+            quizMode = "capitals", categoryType = "region", categoryValue = "Asia",
+            correctAnswers = correct, totalQuestions = 48, incorrectGuesses = 0, score = 1.0,
+            timeElapsedSeconds = 60, perfectBonus = false, completedAtMillis = 1800000000002L,
+            difficulty = difficulty
+        )
+        dao.insertQuizResult(row("easy", 40))
+        dao.insertQuizResult(row("normal", 7))
+        dao.insertQuizResult(row("hard", 5))
+
+        assertEquals(before + 12, dao.getTotalCorrectAnswersSync())
+        assertEquals(beforeCapitals + 12, dao.getTotalCorrectAnswersForModeSync("capitals"))
     }
 }

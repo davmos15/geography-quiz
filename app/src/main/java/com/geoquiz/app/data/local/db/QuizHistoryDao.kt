@@ -63,17 +63,27 @@ interface QuizHistoryDao {
     """)
     suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore>
 
+    // Mastery stars: every distinct (category, tier, result) for a mode. Duplicate results
+    // collapse, so the list stays small; MasteryStars picks the best per category.
+
+    @Query("""
+        SELECT DISTINCT categoryType, categoryValue, difficulty, correctAnswers, totalQuestions
+        FROM quiz_history
+        WHERE quizMode = :quizMode AND totalQuestions > 0
+    """)
+    fun observeMasteryRowsForMode(quizMode: String): Flow<List<QuizMasteryRow>>
+
     // Recent history
 
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
     fun getRecentQuizzes(limit: Int = 10): Flow<List<QuizHistoryEntity>>
 
-    // Cumulative totals (for leaderboard submission)
+    // Cumulative totals (for leaderboard submission). Easy quizzes never count (D16).
 
-    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history")
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE difficulty != 'easy'")
     suspend fun getTotalCorrectAnswersSync(): Long
 
-    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode")
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode AND difficulty != 'easy'")
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long
 
     // Reset

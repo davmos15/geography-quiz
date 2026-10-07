@@ -1,6 +1,7 @@
 package com.geoquiz.app.ui.quiz
 
 import androidx.lifecycle.SavedStateHandle
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizState
 
@@ -79,7 +80,18 @@ class QuizSavedState(private val handle: SavedStateHandle) {
             handle[KEY_RESULT_ID] = value
         }
 
+    /**
+     * The tier this quiz resolved to (route, resume save or remembered default). Stored on its
+     * own, before any progress, so a recreated screen never re-reads a default that has changed.
+     */
+    var difficulty: Difficulty?
+        get() = Difficulty.fromIdOrNull(handle[KEY_DIFFICULTY])
+        set(value) {
+            handle[KEY_DIFFICULTY] = value?.id
+        }
+
     companion object {
+        const val KEY_DIFFICULTY = "quiz_difficulty"
         const val KEY_ANSWERED = "quiz_answered_codes"
         const val KEY_INCORRECT_COUNT = "quiz_incorrect_count"
         const val KEY_INCORRECT_STRINGS = "quiz_incorrect_strings"

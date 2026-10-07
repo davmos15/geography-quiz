@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.usecase.ResetAllDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -37,8 +38,9 @@ class SettingsViewModel @Inject constructor(
     val showCountryHint: StateFlow<Boolean> = settingsRepository.showCountryHint
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val hardMode: StateFlow<Boolean> = settingsRepository.hardMode
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    /** The remembered default tier (also changed from the category list). */
+    val difficulty: StateFlow<Difficulty> = settingsRepository.difficulty
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Difficulty.DEFAULT)
 
     val adsRemoved: StateFlow<Boolean> = billingRepository.adsRemoved
     val removeAdsPrice: StateFlow<String?> = billingRepository.price
@@ -67,9 +69,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun onToggleHardMode(enabled: Boolean) {
+    fun onDifficultySelected(difficulty: Difficulty) {
         viewModelScope.launch {
-            settingsRepository.setHardMode(enabled)
+            settingsRepository.setDifficulty(difficulty)
         }
     }
 

@@ -59,7 +59,8 @@ import java.util.UUID
 
 @Composable
 fun ResultsScreen(
-    onPlayAgain: (quizMode: String, categoryType: String, categoryValue: String) -> Unit,
+    /** [difficultyId]: the finished quiz's tier, so "Play again" replays at the same tier. */
+    onPlayAgain: (quizMode: String, categoryType: String, categoryValue: String, difficultyId: String) -> Unit,
     onGoHome: (quizMode: String) -> Unit,
     onViewAnswers: (resultId: String) -> Unit,
     viewModel: ResultsViewModel = hiltViewModel()
@@ -81,7 +82,9 @@ fun ResultsScreen(
                 categoryValue = result.categoryValue,
                 quizMode = result.quizModeId,
                 incorrectGuesses = result.incorrectGuesses,
-                onPlayAgain = { onPlayAgain(result.quizModeId, result.categoryType, result.categoryValue) },
+                onPlayAgain = {
+                    onPlayAgain(result.quizModeId, result.categoryType, result.categoryValue, result.difficulty.id)
+                },
                 onGoHome = { onGoHome(result.quizModeId) },
                 onViewAnswers = { onViewAnswers(result.id) },
                 viewModel = viewModel

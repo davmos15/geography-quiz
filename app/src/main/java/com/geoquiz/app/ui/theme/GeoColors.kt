@@ -18,7 +18,8 @@ import androidx.compose.ui.graphics.Color
  * Contrast (checked by `GeoColorsContrastTest`): [correct], [wrong] and [nearMiss] are text
  * colours and reach 4.5:1 on background, surface and surfaceVariant (correct and wrong also on
  * primaryContainer and tertiaryContainer, where results and challenge cards put them). Each
- * `onX` reaches 4.5:1 on its `X`. Map state colours reach 3:1 against [mapLand].
+ * `onX` reaches 4.5:1 on its `X`. [star] reaches 3:1 on background, surface and surfaceVariant.
+ * Map state colours reach 3:1 against [mapLand].
  */
 @Immutable
 data class GeoColors(
@@ -39,6 +40,14 @@ data class GeoColors(
     /** Near miss ("check the spelling"): not a strike, so neither correct nor wrong. */
     val nearMiss: Color,
     val onNearMiss: Color,
+
+    /**
+     * Mastery stars (filled for earned, outlined for not yet earned, so never colour alone).
+     * Non-text graphic: 3:1 on background, surface and surfaceVariant.
+     */
+    val star: Color,
+    /** Content drawn on a solid [star] fill. */
+    val onStar: Color,
 
     // ---- Map (used from Phase 4) ----
     /** Country fill before it is found. */
@@ -74,6 +83,9 @@ internal val LightGeoColors = GeoColors(
     nearMiss = Color(0xFF9A3A78),
     onNearMiss = Color(0xFFFFFFFF),
 
+    star = Color(0xFF8A6100),
+    onStar = Color(0xFFFFFFFF),
+
     mapLand = Color(0xFFF2EEE6),
     mapLandBorder = Color(0xFF8A857A),
     mapWater = Color(0xFFBCD7EA),
@@ -98,6 +110,9 @@ internal val DarkGeoColors = GeoColors(
 
     nearMiss = Color(0xFFF2A7D6),
     onNearMiss = Color(0xFF4A0F38),
+
+    star = Color(0xFFFFCC4D),
+    onStar = Color(0xFF3D2B00),
 
     mapLand = Color(0xFF3B3A36),
     mapLandBorder = Color(0xFF77736A),

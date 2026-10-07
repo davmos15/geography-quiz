@@ -123,7 +123,7 @@ class KeyScreensScreenshotTest {
         val viewModel = ScreenTestFixtures.resultsViewModel()
         return {
             ResultsScreen(
-                onPlayAgain = { _, _, _ -> },
+                onPlayAgain = { _, _, _, _ -> },
                 onGoHome = {},
                 onViewAnswers = {},
                 viewModel = viewModel

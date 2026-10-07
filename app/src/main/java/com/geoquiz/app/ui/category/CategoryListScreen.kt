@@ -50,6 +50,8 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.DifficultySelector
+import com.geoquiz.app.ui.components.MasteryStarsRow
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.share.ShareUtils
@@ -62,10 +64,12 @@ import java.util.UUID
 fun CategoryListScreen(
     quizMode: String = "countries",
     onNavigateBack: () -> Unit,
-    onStartQuiz: (categoryType: String, categoryValue: String) -> Unit,
+    /** [difficultyId] is the selected [com.geoquiz.app.domain.model.Difficulty.id]. */
+    onStartQuiz: (categoryType: String, categoryValue: String, difficultyId: String) -> Unit,
     viewModel: CategoryListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
     val playerName by viewModel.playerName.collectAsStateWithLifecycle(initialValue = "A friend")
     val context = LocalContext.current
 
@@ -122,6 +126,24 @@ fun CategoryListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // The tier for the next quiz, remembered as the default: one tap on a category
+                // then starts at this tier.
+                item(key = "difficulty") {
+                    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                        Text(
+                            text = stringResource(R.string.difficulty_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .semantics { heading() }
+                        )
+                        DifficultySelector(
+                            selected = difficulty,
+                            onSelect = viewModel::onDifficultySelected,
+                            options = viewModel.difficulties
+                        )
+                    }
+                }
                 if (state.groupDescription.isNotBlank()) {
                     item {
                         Text(
@@ -141,7 +163,7 @@ fun CategoryListScreen(
                     QuizOptionCard(
                         option = option,
                         quizMode = QuizMode.fromId(quizMode),
-                        onClick = { onStartQuiz(option.categoryType, option.categoryValue) },
+                        onClick = { onStartQuiz(option.categoryType, option.categoryValue, difficulty.id) },
                         onChallenge = {
                             val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
                             val deepLink = ChallengeDeepLink(
@@ -220,6 +242,10 @@ private fun QuizOptionCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                MasteryStarsRow(
+                    stars = option.masteryStars,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
                 if (option.bestCorrect != null && option.bestTotal != null) {
                     Spacer(modifier = Modifier.height(2.dp))
                     val bestPoints = String.format(Locale.US, "%.0f", option.bestScore)

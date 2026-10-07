@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.geoquiz.app.BuildConfig
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.achievements.AchievementsScreen
@@ -32,6 +33,7 @@ import com.geoquiz.app.ui.capitals.CapitalsHomeScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
 import com.geoquiz.app.ui.challenges.ChallengeAcceptScreen
 import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
+import com.geoquiz.app.ui.debug.DebugMenuScreen
 import com.geoquiz.app.ui.flags.FlagsHomeScreen
 import com.geoquiz.app.ui.home.HomeScreen
 import com.geoquiz.app.ui.quiz.QuizScreen
@@ -171,8 +173,21 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
 
             composable(Screen.Settings.route) {
                 SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenDebugMenu = if (BuildConfig.DEBUG) {
+                        { navController.navigate(Screen.DebugMenu.route) }
+                    } else {
+                        null
+                    }
                 )
+            }
+
+            if (BuildConfig.DEBUG) {
+                composable(Screen.DebugMenu.route) {
+                    DebugMenuScreen(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable(Screen.Achievements.route) {

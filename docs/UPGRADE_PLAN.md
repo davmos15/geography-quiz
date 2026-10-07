@@ -40,8 +40,8 @@ where you stopped, commit, and tell me to start a new session.
 
 | Phase | Name | Status | Branch | PR |
 |---|---|---|---|---|
-| 0 | Recon, baseline and agent setup | Done – PR open | `upgrade/p0-baseline` | #3 |
-| 1 | Licensing and IP compliance | Not started | `upgrade/p1-licensing` | |
+| 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
+| 1 | Licensing and IP compliance | In progress | `upgrade/p1-licensing` | |
 | 2 | Code and architecture | Not started | `upgrade/p2-architecture` | |
 | 3 | Game engine and UX foundation | Not started | `upgrade/p3-ux-engine` | |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 1, task 1.1, once the Phase 0 PR is merged. Before 1.1, ask Dav about D7 (keep emoji flags or switch to flag-icons SVGs) and D1 (audience), since 1.1 and 1.5 depend on them.
+> Phase 1 in progress (session 2).
 
 ---
 
@@ -130,11 +130,11 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Play Console: create a dedicated support email and replace the current one.
 - [ ] Play Console: decide whether the public developer address can be a business or PO box address.
 - [ ] Play Console: update Data safety form (deletion route added in Phase 1).
-- [ ] Play Console: confirm target audience (13+ vs mixed with children) – see decision D1.
+- [ ] Play Console: set target audience to mixed (includes children under 13) per D1, and complete the Families policy declarations.
 - [ ] Decide on a distinctive app name or subtitle before paid marketing (many apps are called GeoQuiz).
 - [ ] Privacy policy: add a contact email (currently "open an issue on GitHub" with no link), mention Play Billing, and fix "suitable for all ages" vs personalised ads once D1 is decided (Phase 1 drafts the text).
 - [ ] App Links (task 2.7): provide the SHA-256 fingerprints of the new upload key and the Play app-signing key so `assetlinks.json` can be hosted on geoquiz-app.netlify.app.
-- [ ] Merge the Phase 0 PR after checking the debug build on a device.
+- [x] Merge the Phase 0 PR after checking the debug build on a device.
 
 ---
 
@@ -399,13 +399,14 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 
 | ID | Decision | Status |
 |---|---|---|
-| D1 | Target audience: 13+ only, or mixed audience including children? Affects ad tagging and Families policy. | Ask Dav (default until answered: treat as mixed audience) |
+| D1 | Target audience: mixed audience including children (Dav, 2026-10-07). | Decided |
 | D2 | Licence for app code: All rights reserved (Dav, 2026-10-07) | Decided |
 | D3 | Map asset format and size budget | Phase 4 decides |
 | D4 | Daily challenge seed: device local date | Decided |
 | D5 | Feature flags: enum `FeatureFlag` + DataStore "feature_flags". Overrides are honoured only in debug builds (`BuildConfig.DEBUG`); release always uses each flag's default. Debug menu opens by tapping the Settings title 7 times (debug builds only). Phase 9 flips approved defaults to on. | Decided (Phase 0) |
 | D6 | `.gitignore` ignores `.claude/*` except `.claude/agents/`, so project agents are versioned but personal settings are not. | Decided (Phase 0) |
-| D7 | Flags are Unicode emoji from `countries.json`, not images. L4 becomes "document the source and decide whether to keep emoji or switch to flag-icons (MIT) SVGs". Emoji glyphs come from each device's font, so they look different across OEMs and cannot be shown as large images for flag-first modes (e.g. 7.3). Ask Dav in Phase 1 whether to switch. | Open |
+| D7 | Flags switch from Unicode emoji to flag-icons (lipis, MIT) SVG images bundled in the APK (Dav, 2026-10-07). Emoji glyphs varied by OEM and could not be shown large. | Decided |
+| D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
 
 ---
 

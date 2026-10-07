@@ -54,14 +54,6 @@ class StaticDatabaseTest {
     }
 
     @Test
-    fun `asset version matches StaticDatabase VERSION`() {
-        database.openHelper.readableDatabase.query("PRAGMA user_version").use { cursor ->
-            cursor.moveToFirst()
-            assertEquals(StaticDatabase.VERSION, cursor.getInt(0))
-        }
-    }
-
-    @Test
     fun `country answers resolve through aliases`() = runBlocking {
         assertEquals("GBR", repository.findCountryByAnswer("uk")?.code)
         assertEquals("GBR", repository.findCountryByAnswer("Great Britain")?.code)

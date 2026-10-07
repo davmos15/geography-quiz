@@ -3,7 +3,7 @@
 An Android geography quiz app that challenges players to name countries, capitals and flags across dozens of quiz categories. Built with Kotlin and Jetpack Compose.
 
 **Platform:** Android (Kotlin + Jetpack Compose)
-**Current Version:** 2.7.0
+**Current Version:** 2.7.2 (versionCode 17)
 
 ---
 
@@ -64,7 +64,7 @@ An Android geography quiz app that challenges players to name countries, capital
 - Reset statistics option
 
 ### Achievements
-- 30+ achievements across completion, speed, accuracy and category milestones
+- 38 achievements across completion, speed, accuracy and category milestones
 - Synced with **Google Play Games Services**
 
 ### Challenges
@@ -75,6 +75,8 @@ An Android geography quiz app that challenges players to name countries, capital
 ### Ads
 - Banner ads on home screen
 - Interstitial ads between quizzes
+- Ads are non-personalised and child-directed for every user, with consent requested where required by law
+- One-off "Remove ads" purchase via Google Play Billing
 - Debug builds use Google test ad IDs
 
 ---
@@ -92,11 +94,13 @@ An Android geography quiz app that challenges players to name countries, capital
 | Async | Kotlin Coroutines + Flow |
 | Navigation | Jetpack Navigation (Compose) |
 | Auth/Social | Google Play Games Services |
-| Ads | Google AdMob |
+| Ads | Google AdMob + User Messaging Platform (consent) |
+| Purchases | Google Play Billing |
+| Images | Coil 3 (bundled SVG flags) |
 | Build | Gradle Kotlin DSL + Version Catalogs |
 | Testing | JUnit + MockK |
 | Min SDK | API 26 (Android 8.0) |
-| Target SDK | API 35 (Android 15) |
+| Target SDK | API 36 (Android 16) |
 
 ### Project Structure
 
@@ -128,12 +132,12 @@ app/src/main/java/com/geoquiz/app/
 
 ### Data Sources
 
-| Source | Usage |
-|--------|-------|
-| [mledoze/countries](https://github.com/mledoze/countries) | Primary country data (names, aliases, codes) |
-| [UN M49 Standard](https://unstats.un.org/unsd/methodology/m49/) | Regional classifications |
+| Source | Usage | Licence |
+|--------|-------|---------|
+| [mledoze/countries](https://github.com/mledoze/countries) | Country names, official names, alternative spellings, capitals, regions and subregions | ODbL 1.0 |
+| [flag-icons](https://github.com/lipis/flag-icons) 7.5.0 | Flag images (SVG, bundled) | MIT |
 
-Country data is bundled as JSON in app assets and seeded into Room on first launch. A curated alias table handles answer validation with ~2000+ accepted name variants.
+Country data is bundled as JSON in app assets and seeded into Room on first launch. Flag colour and flag element data (`flag_colors.json`, `flag_elements.json`) were curated for GeoQuiz. A curated alias table handles answer validation with about 900 accepted name variants (704 country names and 204 capital names); it is published as [`data/aliases.json`](data/aliases.json) under ODbL 1.0.
 
 ---
 
@@ -166,6 +170,18 @@ Privacy policy: https://geoquiz-app.netlify.app/privacy-policy.html
 
 ---
 
+## Data and licences
+
+- **In the app:** Settings → Credits and licences shows the data and flag credits (including the ODbL notice for mledoze/countries) and links to the Open-source licences screen for every library.
+- [`data/SOURCES.md`](data/SOURCES.md): every bundled data and asset file, with source, version, licence and the script that produces it.
+- [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md): third-party data, assets and libraries with versions and required notices.
+- [`data/aliases.json`](data/aliases.json): the answer alias table, a derivative database of mledoze/countries published under ODbL 1.0 (see [`data/README.md`](data/README.md)).
+- [`LICENSE`](LICENSE): licence for this repository.
+
+---
+
 ## Licence
 
-Country data sourced from mledoze/countries under ODbL-1.0. The curated alias table is a derivative database.
+Copyright (c) 2026 davmos15. All rights reserved. The app code and original assets are proprietary; see [`LICENSE`](LICENSE).
+
+Third-party components keep their own licences (see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)). Country data contains information from [mledoze/countries](https://github.com/mledoze/countries), made available under the Open Database License (ODbL) v1.0. Flag images are from [flag-icons](https://github.com/lipis/flag-icons) (MIT). The derived alias table [`data/aliases.json`](data/aliases.json) is available under ODbL 1.0.

@@ -57,9 +57,9 @@
     <string name="credits_country_data_body">Contains information from mledoze/countries, made available under the Open Database License (ODbL) v1.0.</string>
     <string name="credits_link_mledoze">mledoze/countries on GitHub</string>
     <string name="credits_link_odbl">Open Database License (ODbL) v1.0</string>
-    <string name="credits_aliases_heading">Answer aliases</string>
-    <string name="credits_aliases_body">The table of alternative answer spellings this app accepts is published under the Open Database License (ODbL) v1.0.</string>
-    <string name="credits_link_aliases">Published alias table on GitHub</string>
+    <string name="credits_aliases_heading">Built-in country data</string>
+    <string name="credits_aliases_body">The app\'s built-in country database, including the table of accepted answer spellings and the flag colour and element data, is published under the Open Database License (ODbL) v1.0.</string>
+    <string name="credits_link_aliases">Published country data on GitHub</string>
     <string name="credits_flags_heading">Flags</string>
     <string name="credits_flags_body">Flag images from flag-icons by Panayiotis Lipiridis and contributors, MIT licence.</string>
     <string name="credits_link_flag_icons">flag-icons on GitHub</string>
@@ -75,7 +75,7 @@
     <string name="credits_open_source_licences_summary">Libraries used to build this app and their licences</string>
     <string translatable="false" name="credits_url_mledoze">https://github.com/mledoze/countries</string>
     <string translatable="false" name="credits_url_odbl">https://opendatacommons.org/licenses/odbl/1-0/</string>
-    <string translatable="false" name="credits_url_aliases">https://github.com/davmos15/geography-quiz/blob/main/data/aliases.json</string>
+    <string translatable="false" name="credits_url_aliases">https://github.com/davmos15/geography-quiz/blob/main/data/README.md</string>
     <string translatable="false" name="credits_url_flag_icons">https://github.com/lipis/flag-icons</string>
 
     <!-- Open-source licences -->

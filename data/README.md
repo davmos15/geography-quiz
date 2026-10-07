@@ -1,4 +1,32 @@
-# GeoQuiz data exports
+# GeoQuiz data
+
+Two databases in this repository are made available under the
+[Open Database License (ODbL) v1.0](https://opendatacommons.org/licenses/odbl/1-0/):
+the country database the app ships (`static.db`) and the published alias table
+(`aliases.json`). Both are Derivative Databases of
+[mledoze/countries](https://github.com/mledoze/countries).
+
+## `static.db` (the app's built-in country database)
+
+`app/src/main/assets/databases/static.db` is the read-only SQLite database
+bundled in the app. Tables:
+
+| Table | Contents |
+| --- | --- |
+| `countries` | The 197 countries in the app: cca3, common and official name, region, subregion, name length, capital. |
+| `aliases`, `capital_aliases` | Accepted country and capital answers, with their normalised form (the same rows as `aliases.json`). |
+| `flag_colors`, `flag_elements` | Colours and elements on each country's flag, authored for GeoQuiz (`data/source/flag_colors.json`, `data/source/flag_elements.json`). |
+| `room_master_table` | Schema hash used by the app's database library. |
+
+Attribution: Contains information from mledoze/countries (https://github.com/mledoze/countries), made available under the Open Database License (ODbL) v1.0.
+
+The whole file, including the flag colour and element tables, is made
+available under the ODbL v1.0 (full text in [`LICENSE-ODbL.txt`](LICENSE-ODbL.txt)).
+Get it from this repository at the path above, or rebuild it from
+`data/source/` with `python tools/data/build_static_db.py` (see
+"Regenerating" below). If you use or adapt it publicly, keep the attribution
+and offer your adapted database under the ODbL. The app code is not covered.
+
 
 ## `aliases.json`
 

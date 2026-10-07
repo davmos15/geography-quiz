@@ -21,8 +21,8 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `app/src/main/assets/databases/static.db` | derived from `data/source/*.json` + GeoQuiz rules | regenerated per change (`StaticDatabase.VERSION`) | ODbL 1.0 | `tools/data/build_static_db.py` |
 | `data/source/countries.json` (not shipped) | mledoze/countries | not recorded | ODbL 1.0 | none |
 | `data/source/alias_overrides.json` (not shipped) | authored for GeoQuiz | moved from `CountryRepositoryImpl.kt` in Phase 2 | ODbL 1.0 as part of the derived database | none |
-| `data/source/flag_colors.json` (not shipped) | authored for GeoQuiz (owner to confirm) | added `994ec27` | All rights reserved (see `LICENSE`) | none |
-| `data/source/flag_elements.json` (not shipped) | authored for GeoQuiz (owner to confirm) | added `23c81ba` | All rights reserved (see `LICENSE`) | none |
+| `data/source/flag_colors.json` (not shipped) | authored for GeoQuiz (owner to confirm) | added `994ec27` | ODbL 1.0 (released as part of `static.db`, D13) | none |
+| `data/source/flag_elements.json` (not shipped) | authored for GeoQuiz (owner to confirm) | added `23c81ba` | ODbL 1.0 (released as part of `static.db`, D13) | none |
 | `app/src/main/assets/flags/*.svg`, `flags/LICENSE` | flag-icons (lipis) | 7.5.0 | MIT | `tools/flags/fetch_flags.py` |
 | `data/aliases.json` | derived from `data/source/countries.json` + `alias_overrides.json` | regenerated per change | ODbL 1.0 | `tools/data/export_aliases.py` |
 | `tools/fonts/Lato-*.ttf`, `OFL.txt` | Google Fonts (google/fonts) | `5d3b761` | SIL OFL 1.1 | `tools/fonts/fetch_fonts.py` |
@@ -38,7 +38,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 |---|---|
 | Source | Derived from `data/source/countries.json` (mledoze/countries, ODbL 1.0), `data/source/alias_overrides.json`, `data/source/flag_colors.json` and `data/source/flag_elements.json` |
 | Version | `StaticDatabase.VERSION` (stored as SQLite `user_version`); bump it whenever the content changes so installed copies are replaced |
-| Licence | ODbL 1.0 (Derivative Database of mledoze/countries). Full text: [`LICENSE-ODbL.txt`](LICENSE-ODbL.txt). The flag colour and element facts inside it are GeoQuiz's own (see their entries below). |
+| Licence | ODbL 1.0 as a whole (Derivative Database of mledoze/countries), including the `flag_colors` and `flag_elements` tables (decision D13). Full text: [`LICENSE-ODbL.txt`](LICENSE-ODbL.txt). Offered and documented in [`README.md`](README.md). |
 | Transformation | `tools/data/build_static_db.py`: keeps UN members plus `extraCountries` (197 of 250 entries), builds the `countries`, `aliases`, `capital_aliases`, `flag_colors` and `flag_elements` tables with the schema Room exports (`app/schemas/com.geoquiz.app.data.local.db.StaticDatabase/`). Alias rules are shared with `tools/data/export_aliases.py`. `--check` mode (run in CI) detects drift. |
 | Notes | About 210 KB; 197 countries, 704 country aliases, 204 capital aliases, 628 flag colour rows, 136 flag element rows. Opened read-only by the app with Room `createFromAsset()`; replaces the first-launch JSON seeding used up to v2.7.x. The emoji `flag` field of `countries.json` is not included. The alias table is also published as `data/aliases.json`. |
 
@@ -70,7 +70,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Source | Authored for GeoQuiz; owner to confirm. No third-party source is documented. |
 | Version / commit | Added in `994ec27` (2026-02-12) |
 | Size / SHA-256 | 11,844 bytes, `3faaa0945acbc4109e983f652ceac0e0ec4acb85e373173afd5724f1fbbc6cba` |
-| Licence | All rights reserved (see [`LICENSE`](../LICENSE)), pending owner confirmation of authorship |
+| Licence | ODbL 1.0, released as part of `static.db` (decision D13); authorship still to be confirmed by the owner |
 | Transformation | None to the file. `tools/data/build_static_db.py` copies it into the `flag_colors` table of `static.db` (looked up by cca3, then cca2). Not shipped. |
 | Notes | Maps each of the 197 countries (by cca3) to the colours on its flag (for example `"AFG": ["black", "green", "red", "white"]`). These are facts about flags, not copied artwork. Used by the Flags mode colour categories. |
 
@@ -81,7 +81,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Source | Authored for GeoQuiz; owner to confirm. No third-party source is documented. |
 | Version / commit | Added in `23c81ba` (2026-02-25, v2.7.0) |
 | Size / SHA-256 | 4,153 bytes, `418eb0478e2e3092ef2c0709d5999a78c626d94143e1c3e36553e2bea3b68758` |
-| Licence | All rights reserved (see [`LICENSE`](../LICENSE)), pending owner confirmation of authorship |
+| Licence | ODbL 1.0, released as part of `static.db` (decision D13); authorship still to be confirmed by the owner |
 | Transformation | None to the file. `tools/data/build_static_db.py` copies it into the `flag_elements` table of `static.db`. Not shipped. |
 | Notes | Maps 196 countries to the elements on their flag (`plant`, `animal`, `sun`, `union_jack`, `coat_of_arms`, `text` and so on). Facts about flags. Used by the Flags mode "Shapes and objects" categories. |
 

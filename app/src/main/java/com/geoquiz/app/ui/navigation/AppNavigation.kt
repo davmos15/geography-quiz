@@ -33,6 +33,8 @@ import com.geoquiz.app.ui.capitals.CapitalsHomeScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
 import com.geoquiz.app.ui.challenges.ChallengeAcceptScreen
 import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
+import com.geoquiz.app.ui.credits.CreditsScreen
+import com.geoquiz.app.ui.credits.OpenSourceLicencesScreen
 import com.geoquiz.app.ui.debug.DebugMenuScreen
 import com.geoquiz.app.ui.flags.FlagsHomeScreen
 import com.geoquiz.app.ui.home.HomeScreen
@@ -174,11 +176,25 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     onNavigateBack = { navController.popBackStack() },
+                    onOpenCredits = { navController.navigate(Screen.Credits.route) },
                     onOpenDebugMenu = if (BuildConfig.DEBUG) {
                         { navController.navigate(Screen.DebugMenu.route) }
                     } else {
                         null
                     }
+                )
+            }
+
+            composable(Screen.Credits.route) {
+                CreditsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenSourceLicences = { navController.navigate(Screen.OpenSourceLicences.route) }
+                )
+            }
+
+            composable(Screen.OpenSourceLicences.route) {
+                OpenSourceLicencesScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

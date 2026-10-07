@@ -1,0 +1,5623 @@
+{
+  "licence": "ODbL-1.0",
+  "licenceUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "attribution": "Contains information from mledoze/countries (https://github.com/mledoze/countries), made available under the Open Database License (ODbL) v1.0.",
+  "source": {
+    "name": "mledoze/countries",
+    "url": "https://github.com/mledoze/countries",
+    "licence": "ODbL-1.0",
+    "file": "app/src/main/assets/countries.json"
+  },
+  "generatedBy": "tools/data/export_aliases.py",
+  "rulesFrom": [
+    "app/src/main/java/com/geoquiz/app/data/repository/CountryRepositoryImpl.kt",
+    "app/src/main/java/com/geoquiz/app/domain/usecase/NormalizeInputUseCase.kt"
+  ],
+  "countryCount": 197,
+  "aliasCount": 704,
+  "capitalAliasCount": 204,
+  "countries": [
+    {
+      "cca3": "AFG",
+      "name": "Afghanistan",
+      "officialName": "Islamic Republic of Afghanistan",
+      "capital": "Kabul",
+      "aliases": [
+        {
+          "alias": "Afġānistān",
+          "normalized": "afganistan"
+        },
+        {
+          "alias": "Afghanistan",
+          "normalized": "afghanistan"
+        },
+        {
+          "alias": "Islamic Republic of Afghanistan",
+          "normalized": "islamic republic of afghanistan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kabul",
+          "normalized": "kabul"
+        }
+      ]
+    },
+    {
+      "cca3": "AGO",
+      "name": "Angola",
+      "officialName": "Republic of Angola",
+      "capital": "Luanda",
+      "aliases": [
+        {
+          "alias": "Angola",
+          "normalized": "angola"
+        },
+        {
+          "alias": "Republic of Angola",
+          "normalized": "republic of angola"
+        },
+        {
+          "alias": "República de Angola",
+          "normalized": "republica de angola"
+        },
+        {
+          "alias": "ʁɛpublika de an'ɡɔla",
+          "normalized": "ʁɛpublika de anɡɔla"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Luanda",
+          "normalized": "luanda"
+        }
+      ]
+    },
+    {
+      "cca3": "ALB",
+      "name": "Albania",
+      "officialName": "Republic of Albania",
+      "capital": "Tirana",
+      "aliases": [
+        {
+          "alias": "Albania",
+          "normalized": "albania"
+        },
+        {
+          "alias": "Republic of Albania",
+          "normalized": "republic of albania"
+        },
+        {
+          "alias": "Shqipëri",
+          "normalized": "shqiperi"
+        },
+        {
+          "alias": "Shqipëria",
+          "normalized": "shqiperia"
+        },
+        {
+          "alias": "Shqipnia",
+          "normalized": "shqipnia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tirana",
+          "normalized": "tirana"
+        }
+      ]
+    },
+    {
+      "cca3": "AND",
+      "name": "Andorra",
+      "officialName": "Principality of Andorra",
+      "capital": "Andorra la Vella",
+      "aliases": [
+        {
+          "alias": "Andorra",
+          "normalized": "andorra"
+        },
+        {
+          "alias": "Principality of Andorra",
+          "normalized": "principality of andorra"
+        },
+        {
+          "alias": "Principat d'Andorra",
+          "normalized": "principat dandorra"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Andorra la Vella",
+          "normalized": "andorra la vella"
+        }
+      ]
+    },
+    {
+      "cca3": "ARE",
+      "name": "United Arab Emirates",
+      "officialName": "United Arab Emirates",
+      "capital": "Abu Dhabi",
+      "aliases": [
+        {
+          "alias": "Emirates",
+          "normalized": "emirates"
+        },
+        {
+          "alias": "UAE",
+          "normalized": "uae"
+        },
+        {
+          "alias": "United Arab Emirates",
+          "normalized": "united arab emirates"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Abu Dhabi",
+          "normalized": "abu dhabi"
+        }
+      ]
+    },
+    {
+      "cca3": "ARG",
+      "name": "Argentina",
+      "officialName": "Argentine Republic",
+      "capital": "Buenos Aires",
+      "aliases": [
+        {
+          "alias": "Argentina",
+          "normalized": "argentina"
+        },
+        {
+          "alias": "Argentine Republic",
+          "normalized": "argentine republic"
+        },
+        {
+          "alias": "República Argentina",
+          "normalized": "republica argentina"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Buenos Aires",
+          "normalized": "buenos aires"
+        }
+      ]
+    },
+    {
+      "cca3": "ARM",
+      "name": "Armenia",
+      "officialName": "Republic of Armenia",
+      "capital": "Yerevan",
+      "aliases": [
+        {
+          "alias": "Armenia",
+          "normalized": "armenia"
+        },
+        {
+          "alias": "Hayastan",
+          "normalized": "hayastan"
+        },
+        {
+          "alias": "Republic of Armenia",
+          "normalized": "republic of armenia"
+        },
+        {
+          "alias": "Հայաստանի Հանրապետություն",
+          "normalized": "հայաստանի հանրապետություն"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Yerevan",
+          "normalized": "yerevan"
+        }
+      ]
+    },
+    {
+      "cca3": "ATG",
+      "name": "Antigua and Barbuda",
+      "officialName": "Antigua and Barbuda",
+      "capital": "Saint John's",
+      "aliases": [
+        {
+          "alias": "Antigua",
+          "normalized": "antigua"
+        },
+        {
+          "alias": "Antigua and Barbuda",
+          "normalized": "antigua and barbuda"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Saint John's",
+          "normalized": "saint johns"
+        }
+      ]
+    },
+    {
+      "cca3": "AUS",
+      "name": "Australia",
+      "officialName": "Commonwealth of Australia",
+      "capital": "Canberra",
+      "aliases": [
+        {
+          "alias": "Australia",
+          "normalized": "australia"
+        },
+        {
+          "alias": "Commonwealth of Australia",
+          "normalized": "commonwealth of australia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Canberra",
+          "normalized": "canberra"
+        }
+      ]
+    },
+    {
+      "cca3": "AUT",
+      "name": "Austria",
+      "officialName": "Republic of Austria",
+      "capital": "Vienna",
+      "aliases": [
+        {
+          "alias": "Austria",
+          "normalized": "austria"
+        },
+        {
+          "alias": "Oesterreich",
+          "normalized": "oesterreich"
+        },
+        {
+          "alias": "Osterreich",
+          "normalized": "osterreich"
+        },
+        {
+          "alias": "Republic of Austria",
+          "normalized": "republic of austria"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Vienna",
+          "normalized": "vienna"
+        }
+      ]
+    },
+    {
+      "cca3": "AZE",
+      "name": "Azerbaijan",
+      "officialName": "Republic of Azerbaijan",
+      "capital": "Baku",
+      "aliases": [
+        {
+          "alias": "Azerbaijan",
+          "normalized": "azerbaijan"
+        },
+        {
+          "alias": "Azərbaycan Respublikası",
+          "normalized": "azərbaycan respublikası"
+        },
+        {
+          "alias": "Republic of Azerbaijan",
+          "normalized": "republic of azerbaijan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Baku",
+          "normalized": "baku"
+        }
+      ]
+    },
+    {
+      "cca3": "BDI",
+      "name": "Burundi",
+      "officialName": "Republic of Burundi",
+      "capital": "Gitega",
+      "aliases": [
+        {
+          "alias": "Burundi",
+          "normalized": "burundi"
+        },
+        {
+          "alias": "Republic of Burundi",
+          "normalized": "republic of burundi"
+        },
+        {
+          "alias": "Republika y'Uburundi",
+          "normalized": "republika yuburundi"
+        },
+        {
+          "alias": "République du Burundi",
+          "normalized": "republique du burundi"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Gitega",
+          "normalized": "gitega"
+        }
+      ]
+    },
+    {
+      "cca3": "BEL",
+      "name": "Belgium",
+      "officialName": "Kingdom of Belgium",
+      "capital": "Brussels",
+      "aliases": [
+        {
+          "alias": "Belgie",
+          "normalized": "belgie"
+        },
+        {
+          "alias": "België",
+          "normalized": "belgie"
+        },
+        {
+          "alias": "Belgien",
+          "normalized": "belgien"
+        },
+        {
+          "alias": "Belgique",
+          "normalized": "belgique"
+        },
+        {
+          "alias": "Belgium",
+          "normalized": "belgium"
+        },
+        {
+          "alias": "Kingdom of Belgium",
+          "normalized": "kingdom of belgium"
+        },
+        {
+          "alias": "Königreich Belgien",
+          "normalized": "konigreich belgien"
+        },
+        {
+          "alias": "Koninkrijk België",
+          "normalized": "koninkrijk belgie"
+        },
+        {
+          "alias": "Royaume de Belgique",
+          "normalized": "royaume de belgique"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Brussels",
+          "normalized": "brussels"
+        }
+      ]
+    },
+    {
+      "cca3": "BEN",
+      "name": "Benin",
+      "officialName": "Republic of Benin",
+      "capital": "Porto-Novo",
+      "aliases": [
+        {
+          "alias": "Benin",
+          "normalized": "benin"
+        },
+        {
+          "alias": "Republic of Benin",
+          "normalized": "republic of benin"
+        },
+        {
+          "alias": "République du Bénin",
+          "normalized": "republique du benin"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Porto-Novo",
+          "normalized": "porto novo"
+        }
+      ]
+    },
+    {
+      "cca3": "BFA",
+      "name": "Burkina Faso",
+      "officialName": "Burkina Faso",
+      "capital": "Ouagadougou",
+      "aliases": [
+        {
+          "alias": "Burkina Faso",
+          "normalized": "burkina faso"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ouagadougou",
+          "normalized": "ouagadougou"
+        }
+      ]
+    },
+    {
+      "cca3": "BGD",
+      "name": "Bangladesh",
+      "officialName": "People's Republic of Bangladesh",
+      "capital": "Dhaka",
+      "aliases": [
+        {
+          "alias": "Bangladesh",
+          "normalized": "bangladesh"
+        },
+        {
+          "alias": "Gônôprôjatôntri Bangladesh",
+          "normalized": "gonoprojatontri bangladesh"
+        },
+        {
+          "alias": "People's Republic of Bangladesh",
+          "normalized": "peoples republic of bangladesh"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Dhaka",
+          "normalized": "dhaka"
+        }
+      ]
+    },
+    {
+      "cca3": "BGR",
+      "name": "Bulgaria",
+      "officialName": "Republic of Bulgaria",
+      "capital": "Sofia",
+      "aliases": [
+        {
+          "alias": "Bulgaria",
+          "normalized": "bulgaria"
+        },
+        {
+          "alias": "Republic of Bulgaria",
+          "normalized": "republic of bulgaria"
+        },
+        {
+          "alias": "Република България",
+          "normalized": "република българия"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Sofia",
+          "normalized": "sofia"
+        }
+      ]
+    },
+    {
+      "cca3": "BHR",
+      "name": "Bahrain",
+      "officialName": "Kingdom of Bahrain",
+      "capital": "Manama",
+      "aliases": [
+        {
+          "alias": "Bahrain",
+          "normalized": "bahrain"
+        },
+        {
+          "alias": "Kingdom of Bahrain",
+          "normalized": "kingdom of bahrain"
+        },
+        {
+          "alias": "Mamlakat al-Baḥrayn",
+          "normalized": "mamlakat al bahrayn"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Manama",
+          "normalized": "manama"
+        }
+      ]
+    },
+    {
+      "cca3": "BHS",
+      "name": "Bahamas",
+      "officialName": "Commonwealth of the Bahamas",
+      "capital": "Nassau",
+      "aliases": [
+        {
+          "alias": "Bahamas",
+          "normalized": "bahamas"
+        },
+        {
+          "alias": "Commonwealth of the Bahamas",
+          "normalized": "commonwealth of the bahamas"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Nassau",
+          "normalized": "nassau"
+        }
+      ]
+    },
+    {
+      "cca3": "BIH",
+      "name": "Bosnia and Herzegovina",
+      "officialName": "Bosnia and Herzegovina",
+      "capital": "Sarajevo",
+      "aliases": [
+        {
+          "alias": "Bosnia",
+          "normalized": "bosnia"
+        },
+        {
+          "alias": "Bosnia and Herzegovina",
+          "normalized": "bosnia and herzegovina"
+        },
+        {
+          "alias": "Bosnia-Herzegovina",
+          "normalized": "bosnia herzegovina"
+        },
+        {
+          "alias": "Босна и Херцеговина",
+          "normalized": "босна и херцеговина"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Sarajevo",
+          "normalized": "sarajevo"
+        }
+      ]
+    },
+    {
+      "cca3": "BLR",
+      "name": "Belarus",
+      "officialName": "Republic of Belarus",
+      "capital": "Minsk",
+      "aliases": [
+        {
+          "alias": "Belarus",
+          "normalized": "belarus"
+        },
+        {
+          "alias": "Bielaruś",
+          "normalized": "bielarus"
+        },
+        {
+          "alias": "Republic of Belarus",
+          "normalized": "republic of belarus"
+        },
+        {
+          "alias": "Белоруссия",
+          "normalized": "белоруссия"
+        },
+        {
+          "alias": "Республика Белоруссия",
+          "normalized": "республика белоруссия"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Minsk",
+          "normalized": "minsk"
+        }
+      ]
+    },
+    {
+      "cca3": "BLZ",
+      "name": "Belize",
+      "officialName": "Belize",
+      "capital": "Belmopan",
+      "aliases": [
+        {
+          "alias": "Belize",
+          "normalized": "belize"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Belmopan",
+          "normalized": "belmopan"
+        }
+      ]
+    },
+    {
+      "cca3": "BOL",
+      "name": "Bolivia",
+      "officialName": "Plurinational State of Bolivia",
+      "capital": "Sucre",
+      "aliases": [
+        {
+          "alias": "Bolivia",
+          "normalized": "bolivia"
+        },
+        {
+          "alias": "Bolivia, Plurinational State of",
+          "normalized": "bolivia, plurinational state of"
+        },
+        {
+          "alias": "Buliwya",
+          "normalized": "buliwya"
+        },
+        {
+          "alias": "Buliwya Mamallaqta",
+          "normalized": "buliwya mamallaqta"
+        },
+        {
+          "alias": "Estado Plurinacional de Bolivia",
+          "normalized": "estado plurinacional de bolivia"
+        },
+        {
+          "alias": "Plurinational State of Bolivia",
+          "normalized": "plurinational state of bolivia"
+        },
+        {
+          "alias": "Tetã Volívia",
+          "normalized": "teta volivia"
+        },
+        {
+          "alias": "Wuliwya",
+          "normalized": "wuliwya"
+        },
+        {
+          "alias": "Wuliwya Suyu",
+          "normalized": "wuliwya suyu"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Sucre",
+          "normalized": "sucre"
+        }
+      ]
+    },
+    {
+      "cca3": "BRA",
+      "name": "Brazil",
+      "officialName": "Federative Republic of Brazil",
+      "capital": "Brasília",
+      "aliases": [
+        {
+          "alias": "Brasil",
+          "normalized": "brasil"
+        },
+        {
+          "alias": "Brazil",
+          "normalized": "brazil"
+        },
+        {
+          "alias": "Federative Republic of Brazil",
+          "normalized": "federative republic of brazil"
+        },
+        {
+          "alias": "República Federativa do Brasil",
+          "normalized": "republica federativa do brasil"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Brasília",
+          "normalized": "brasilia"
+        }
+      ]
+    },
+    {
+      "cca3": "BRB",
+      "name": "Barbados",
+      "officialName": "Barbados",
+      "capital": "Bridgetown",
+      "aliases": [
+        {
+          "alias": "Barbados",
+          "normalized": "barbados"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bridgetown",
+          "normalized": "bridgetown"
+        }
+      ]
+    },
+    {
+      "cca3": "BRN",
+      "name": "Brunei",
+      "officialName": "Nation of Brunei, Abode of Peace",
+      "capital": "Bandar Seri Begawan",
+      "aliases": [
+        {
+          "alias": "Brunei",
+          "normalized": "brunei"
+        },
+        {
+          "alias": "Brunei Darussalam",
+          "normalized": "brunei darussalam"
+        },
+        {
+          "alias": "Nation of Brunei",
+          "normalized": "nation of brunei"
+        },
+        {
+          "alias": "Nation of Brunei, Abode of Peace",
+          "normalized": "nation of brunei, abode of peace"
+        },
+        {
+          "alias": "the Abode of Peace",
+          "normalized": "the abode of peace"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bandar Seri Begawan",
+          "normalized": "bandar seri begawan"
+        }
+      ]
+    },
+    {
+      "cca3": "BTN",
+      "name": "Bhutan",
+      "officialName": "Kingdom of Bhutan",
+      "capital": "Thimphu",
+      "aliases": [
+        {
+          "alias": "Bhutan",
+          "normalized": "bhutan"
+        },
+        {
+          "alias": "Kingdom of Bhutan",
+          "normalized": "kingdom of bhutan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Thimphu",
+          "normalized": "thimphu"
+        }
+      ]
+    },
+    {
+      "cca3": "BWA",
+      "name": "Botswana",
+      "officialName": "Republic of Botswana",
+      "capital": "Gaborone",
+      "aliases": [
+        {
+          "alias": "Botswana",
+          "normalized": "botswana"
+        },
+        {
+          "alias": "Lefatshe la Botswana",
+          "normalized": "lefatshe la botswana"
+        },
+        {
+          "alias": "Republic of Botswana",
+          "normalized": "republic of botswana"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Gaborone",
+          "normalized": "gaborone"
+        }
+      ]
+    },
+    {
+      "cca3": "CAF",
+      "name": "Central African Republic",
+      "officialName": "Central African Republic",
+      "capital": "Bangui",
+      "aliases": [
+        {
+          "alias": "Central African Republic",
+          "normalized": "central african republic"
+        },
+        {
+          "alias": "République centrafricaine",
+          "normalized": "republique centrafricaine"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bangui",
+          "normalized": "bangui"
+        }
+      ]
+    },
+    {
+      "cca3": "CAN",
+      "name": "Canada",
+      "officialName": "Canada",
+      "capital": "Ottawa",
+      "aliases": [
+        {
+          "alias": "Canada",
+          "normalized": "canada"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ottawa",
+          "normalized": "ottawa"
+        }
+      ]
+    },
+    {
+      "cca3": "CHE",
+      "name": "Switzerland",
+      "officialName": "Swiss Confederation",
+      "capital": "Bern",
+      "aliases": [
+        {
+          "alias": "Schweiz",
+          "normalized": "schweiz"
+        },
+        {
+          "alias": "Suisse",
+          "normalized": "suisse"
+        },
+        {
+          "alias": "Svizra",
+          "normalized": "svizra"
+        },
+        {
+          "alias": "Svizzera",
+          "normalized": "svizzera"
+        },
+        {
+          "alias": "Swiss Confederation",
+          "normalized": "swiss confederation"
+        },
+        {
+          "alias": "Switzerland",
+          "normalized": "switzerland"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bern",
+          "normalized": "bern"
+        }
+      ]
+    },
+    {
+      "cca3": "CHL",
+      "name": "Chile",
+      "officialName": "Republic of Chile",
+      "capital": "Santiago",
+      "aliases": [
+        {
+          "alias": "Chile",
+          "normalized": "chile"
+        },
+        {
+          "alias": "Republic of Chile",
+          "normalized": "republic of chile"
+        },
+        {
+          "alias": "República de Chile",
+          "normalized": "republica de chile"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Santiago",
+          "normalized": "santiago"
+        }
+      ]
+    },
+    {
+      "cca3": "CHN",
+      "name": "China",
+      "officialName": "People's Republic of China",
+      "capital": "Beijing",
+      "aliases": [
+        {
+          "alias": "China",
+          "normalized": "china"
+        },
+        {
+          "alias": "People's Republic of China",
+          "normalized": "peoples republic of china"
+        },
+        {
+          "alias": "Zhongguo",
+          "normalized": "zhongguo"
+        },
+        {
+          "alias": "Zhōngguó",
+          "normalized": "zhongguo"
+        },
+        {
+          "alias": "Zhonghua",
+          "normalized": "zhonghua"
+        },
+        {
+          "alias": "Zhōnghuá Rénmín Gònghéguó",
+          "normalized": "zhonghua renmin gongheguo"
+        },
+        {
+          "alias": "中华人民共和国",
+          "normalized": "中华人民共和国"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Beijing",
+          "normalized": "beijing"
+        }
+      ]
+    },
+    {
+      "cca3": "CIV",
+      "name": "Ivory Coast",
+      "officialName": "Republic of Côte d'Ivoire",
+      "capital": "Yamoussoukro",
+      "aliases": [
+        {
+          "alias": "Cote d'Ivoire",
+          "normalized": "cote divoire"
+        },
+        {
+          "alias": "Côte d'Ivoire",
+          "normalized": "cote divoire"
+        },
+        {
+          "alias": "Ivory Coast",
+          "normalized": "ivory coast"
+        },
+        {
+          "alias": "Republic of Côte d'Ivoire",
+          "normalized": "republic of cote divoire"
+        },
+        {
+          "alias": "République de Côte d'Ivoire",
+          "normalized": "republique de cote divoire"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Yamoussoukro",
+          "normalized": "yamoussoukro"
+        }
+      ]
+    },
+    {
+      "cca3": "CMR",
+      "name": "Cameroon",
+      "officialName": "Republic of Cameroon",
+      "capital": "Yaoundé",
+      "aliases": [
+        {
+          "alias": "Cameroon",
+          "normalized": "cameroon"
+        },
+        {
+          "alias": "Republic of Cameroon",
+          "normalized": "republic of cameroon"
+        },
+        {
+          "alias": "République du Cameroun",
+          "normalized": "republique du cameroun"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Yaoundé",
+          "normalized": "yaounde"
+        }
+      ]
+    },
+    {
+      "cca3": "COD",
+      "name": "DR Congo",
+      "officialName": "Democratic Republic of the Congo",
+      "capital": "Kinshasa",
+      "aliases": [
+        {
+          "alias": "Congo Kinshasa",
+          "normalized": "congo kinshasa"
+        },
+        {
+          "alias": "Congo-Kinshasa",
+          "normalized": "congo kinshasa"
+        },
+        {
+          "alias": "Congo, the Democratic Republic of the",
+          "normalized": "congo, the democratic republic of the"
+        },
+        {
+          "alias": "Democratic Republic of Congo",
+          "normalized": "democratic republic of congo"
+        },
+        {
+          "alias": "Democratic Republic of the Congo",
+          "normalized": "democratic republic of the congo"
+        },
+        {
+          "alias": "DR Congo",
+          "normalized": "dr congo"
+        },
+        {
+          "alias": "DRC",
+          "normalized": "drc"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kinshasa",
+          "normalized": "kinshasa"
+        }
+      ]
+    },
+    {
+      "cca3": "COG",
+      "name": "Congo",
+      "officialName": "Republic of the Congo",
+      "capital": "Brazzaville",
+      "aliases": [
+        {
+          "alias": "Congo",
+          "normalized": "congo"
+        },
+        {
+          "alias": "Congo Brazzaville",
+          "normalized": "congo brazzaville"
+        },
+        {
+          "alias": "Congo-Brazzaville",
+          "normalized": "congo brazzaville"
+        },
+        {
+          "alias": "Republic of Congo",
+          "normalized": "republic of congo"
+        },
+        {
+          "alias": "Republic of the Congo",
+          "normalized": "republic of the congo"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Brazzaville",
+          "normalized": "brazzaville"
+        }
+      ]
+    },
+    {
+      "cca3": "COL",
+      "name": "Colombia",
+      "officialName": "Republic of Colombia",
+      "capital": "Bogotá",
+      "aliases": [
+        {
+          "alias": "Colombia",
+          "normalized": "colombia"
+        },
+        {
+          "alias": "Republic of Colombia",
+          "normalized": "republic of colombia"
+        },
+        {
+          "alias": "República de Colombia",
+          "normalized": "republica de colombia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bogotá",
+          "normalized": "bogota"
+        }
+      ]
+    },
+    {
+      "cca3": "COM",
+      "name": "Comoros",
+      "officialName": "Union of the Comoros",
+      "capital": "Moroni",
+      "aliases": [
+        {
+          "alias": "al-Ittiḥād al-Qumurī",
+          "normalized": "al ittihad al qumuri"
+        },
+        {
+          "alias": "Comoros",
+          "normalized": "comoros"
+        },
+        {
+          "alias": "Udzima wa Komori",
+          "normalized": "udzima wa komori"
+        },
+        {
+          "alias": "Union des Comores",
+          "normalized": "union des comores"
+        },
+        {
+          "alias": "Union of the Comoros",
+          "normalized": "union of the comoros"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Moroni",
+          "normalized": "moroni"
+        }
+      ]
+    },
+    {
+      "cca3": "CPV",
+      "name": "Cape Verde",
+      "officialName": "Republic of Cabo Verde",
+      "capital": "Praia",
+      "aliases": [
+        {
+          "alias": "Cape Verde",
+          "normalized": "cape verde"
+        },
+        {
+          "alias": "Republic of Cabo Verde",
+          "normalized": "republic of cabo verde"
+        },
+        {
+          "alias": "República de Cabo Verde",
+          "normalized": "republica de cabo verde"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Praia",
+          "normalized": "praia"
+        }
+      ]
+    },
+    {
+      "cca3": "CRI",
+      "name": "Costa Rica",
+      "officialName": "Republic of Costa Rica",
+      "capital": "San José",
+      "aliases": [
+        {
+          "alias": "Costa Rica",
+          "normalized": "costa rica"
+        },
+        {
+          "alias": "Republic of Costa Rica",
+          "normalized": "republic of costa rica"
+        },
+        {
+          "alias": "República de Costa Rica",
+          "normalized": "republica de costa rica"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "San José",
+          "normalized": "san jose"
+        }
+      ]
+    },
+    {
+      "cca3": "CUB",
+      "name": "Cuba",
+      "officialName": "Republic of Cuba",
+      "capital": "Havana",
+      "aliases": [
+        {
+          "alias": "Cuba",
+          "normalized": "cuba"
+        },
+        {
+          "alias": "Republic of Cuba",
+          "normalized": "republic of cuba"
+        },
+        {
+          "alias": "República de Cuba",
+          "normalized": "republica de cuba"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Havana",
+          "normalized": "havana"
+        }
+      ]
+    },
+    {
+      "cca3": "CYP",
+      "name": "Cyprus",
+      "officialName": "Republic of Cyprus",
+      "capital": "Nicosia",
+      "aliases": [
+        {
+          "alias": "Cyprus",
+          "normalized": "cyprus"
+        },
+        {
+          "alias": "Kýpros",
+          "normalized": "kypros"
+        },
+        {
+          "alias": "Kıbrıs",
+          "normalized": "kıbrıs"
+        },
+        {
+          "alias": "Kıbrıs Cumhuriyeti",
+          "normalized": "kıbrıs cumhuriyeti"
+        },
+        {
+          "alias": "Republic of Cyprus",
+          "normalized": "republic of cyprus"
+        },
+        {
+          "alias": "Κυπριακή Δημοκρατία",
+          "normalized": "κυπριακη δημοκρατια"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Nicosia",
+          "normalized": "nicosia"
+        }
+      ]
+    },
+    {
+      "cca3": "CZE",
+      "name": "Czechia",
+      "officialName": "Czech Republic",
+      "capital": "Prague",
+      "aliases": [
+        {
+          "alias": "Česká republika",
+          "normalized": "ceska republika"
+        },
+        {
+          "alias": "Česko",
+          "normalized": "cesko"
+        },
+        {
+          "alias": "Czech Republic",
+          "normalized": "czech republic"
+        },
+        {
+          "alias": "Czechia",
+          "normalized": "czechia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Prague",
+          "normalized": "prague"
+        }
+      ]
+    },
+    {
+      "cca3": "DEU",
+      "name": "Germany",
+      "officialName": "Federal Republic of Germany",
+      "capital": "Berlin",
+      "aliases": [
+        {
+          "alias": "Bundesrepublik Deutschland",
+          "normalized": "bundesrepublik deutschland"
+        },
+        {
+          "alias": "Federal Republic of Germany",
+          "normalized": "federal republic of germany"
+        },
+        {
+          "alias": "Germany",
+          "normalized": "germany"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Berlin",
+          "normalized": "berlin"
+        }
+      ]
+    },
+    {
+      "cca3": "DJI",
+      "name": "Djibouti",
+      "officialName": "Republic of Djibouti",
+      "capital": "Djibouti",
+      "aliases": [
+        {
+          "alias": "Djibouti",
+          "normalized": "djibouti"
+        },
+        {
+          "alias": "Gabuuti",
+          "normalized": "gabuuti"
+        },
+        {
+          "alias": "Gabuutih Ummuuno",
+          "normalized": "gabuutih ummuuno"
+        },
+        {
+          "alias": "Jabuuti",
+          "normalized": "jabuuti"
+        },
+        {
+          "alias": "Jamhuuriyadda Jabuuti",
+          "normalized": "jamhuuriyadda jabuuti"
+        },
+        {
+          "alias": "Republic of Djibouti",
+          "normalized": "republic of djibouti"
+        },
+        {
+          "alias": "République de Djibouti",
+          "normalized": "republique de djibouti"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Djibouti",
+          "normalized": "djibouti"
+        }
+      ]
+    },
+    {
+      "cca3": "DMA",
+      "name": "Dominica",
+      "officialName": "Commonwealth of Dominica",
+      "capital": "Roseau",
+      "aliases": [
+        {
+          "alias": "Commonwealth of Dominica",
+          "normalized": "commonwealth of dominica"
+        },
+        {
+          "alias": "Dominica",
+          "normalized": "dominica"
+        },
+        {
+          "alias": "Dominique",
+          "normalized": "dominique"
+        },
+        {
+          "alias": "Wai‘tu kubuli",
+          "normalized": "waitu kubuli"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Roseau",
+          "normalized": "roseau"
+        }
+      ]
+    },
+    {
+      "cca3": "DNK",
+      "name": "Denmark",
+      "officialName": "Kingdom of Denmark",
+      "capital": "Copenhagen",
+      "aliases": [
+        {
+          "alias": "Danmark",
+          "normalized": "danmark"
+        },
+        {
+          "alias": "Denmark",
+          "normalized": "denmark"
+        },
+        {
+          "alias": "Kingdom of Denmark",
+          "normalized": "kingdom of denmark"
+        },
+        {
+          "alias": "Kongeriget Danmark",
+          "normalized": "kongeriget danmark"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Copenhagen",
+          "normalized": "copenhagen"
+        }
+      ]
+    },
+    {
+      "cca3": "DOM",
+      "name": "Dominican Republic",
+      "officialName": "Dominican Republic",
+      "capital": "Santo Domingo",
+      "aliases": [
+        {
+          "alias": "Dominican Republic",
+          "normalized": "dominican republic"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Santo Domingo",
+          "normalized": "santo domingo"
+        }
+      ]
+    },
+    {
+      "cca3": "DZA",
+      "name": "Algeria",
+      "officialName": "People's Democratic Republic of Algeria",
+      "capital": "Algiers",
+      "aliases": [
+        {
+          "alias": "Algeria",
+          "normalized": "algeria"
+        },
+        {
+          "alias": "Algérie",
+          "normalized": "algerie"
+        },
+        {
+          "alias": "Dzayer",
+          "normalized": "dzayer"
+        },
+        {
+          "alias": "People's Democratic Republic of Algeria",
+          "normalized": "peoples democratic republic of algeria"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Algiers",
+          "normalized": "algiers"
+        }
+      ]
+    },
+    {
+      "cca3": "ECU",
+      "name": "Ecuador",
+      "officialName": "Republic of Ecuador",
+      "capital": "Quito",
+      "aliases": [
+        {
+          "alias": "Ecuador",
+          "normalized": "ecuador"
+        },
+        {
+          "alias": "Republic of Ecuador",
+          "normalized": "republic of ecuador"
+        },
+        {
+          "alias": "República del Ecuador",
+          "normalized": "republica del ecuador"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Quito",
+          "normalized": "quito"
+        }
+      ]
+    },
+    {
+      "cca3": "EGY",
+      "name": "Egypt",
+      "officialName": "Arab Republic of Egypt",
+      "capital": "Cairo",
+      "aliases": [
+        {
+          "alias": "Arab Republic of Egypt",
+          "normalized": "arab republic of egypt"
+        },
+        {
+          "alias": "Egypt",
+          "normalized": "egypt"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Cairo",
+          "normalized": "cairo"
+        }
+      ]
+    },
+    {
+      "cca3": "ERI",
+      "name": "Eritrea",
+      "officialName": "State of Eritrea",
+      "capital": "Asmara",
+      "aliases": [
+        {
+          "alias": "Dawlat Iritriyá",
+          "normalized": "dawlat iritriya"
+        },
+        {
+          "alias": "Eritrea",
+          "normalized": "eritrea"
+        },
+        {
+          "alias": "Iritriyā",
+          "normalized": "iritriya"
+        },
+        {
+          "alias": "State of Eritrea",
+          "normalized": "state of eritrea"
+        },
+        {
+          "alias": "ʾErtrā",
+          "normalized": "ʾertra"
+        },
+        {
+          "alias": "ሃገረ ኤርትራ",
+          "normalized": "ሃገረ ኤርትራ"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Asmara",
+          "normalized": "asmara"
+        }
+      ]
+    },
+    {
+      "cca3": "ESP",
+      "name": "Spain",
+      "officialName": "Kingdom of Spain",
+      "capital": "Madrid",
+      "aliases": [
+        {
+          "alias": "Kingdom of Spain",
+          "normalized": "kingdom of spain"
+        },
+        {
+          "alias": "Reino de España",
+          "normalized": "reino de espana"
+        },
+        {
+          "alias": "Spain",
+          "normalized": "spain"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Madrid",
+          "normalized": "madrid"
+        }
+      ]
+    },
+    {
+      "cca3": "EST",
+      "name": "Estonia",
+      "officialName": "Republic of Estonia",
+      "capital": "Tallinn",
+      "aliases": [
+        {
+          "alias": "Eesti",
+          "normalized": "eesti"
+        },
+        {
+          "alias": "Eesti Vabariik",
+          "normalized": "eesti vabariik"
+        },
+        {
+          "alias": "Estonia",
+          "normalized": "estonia"
+        },
+        {
+          "alias": "Republic of Estonia",
+          "normalized": "republic of estonia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tallinn",
+          "normalized": "tallinn"
+        }
+      ]
+    },
+    {
+      "cca3": "ETH",
+      "name": "Ethiopia",
+      "officialName": "Federal Democratic Republic of Ethiopia",
+      "capital": "Addis Ababa",
+      "aliases": [
+        {
+          "alias": "Ethiopia",
+          "normalized": "ethiopia"
+        },
+        {
+          "alias": "Federal Democratic Republic of Ethiopia",
+          "normalized": "federal democratic republic of ethiopia"
+        },
+        {
+          "alias": "ʾĪtyōṗṗyā",
+          "normalized": "ʾityoppya"
+        },
+        {
+          "alias": "የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ",
+          "normalized": "የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Addis Ababa",
+          "normalized": "addis ababa"
+        }
+      ]
+    },
+    {
+      "cca3": "FIN",
+      "name": "Finland",
+      "officialName": "Republic of Finland",
+      "capital": "Helsinki",
+      "aliases": [
+        {
+          "alias": "Finland",
+          "normalized": "finland"
+        },
+        {
+          "alias": "Republic of Finland",
+          "normalized": "republic of finland"
+        },
+        {
+          "alias": "Republiken Finland",
+          "normalized": "republiken finland"
+        },
+        {
+          "alias": "Suomen tasavalta",
+          "normalized": "suomen tasavalta"
+        },
+        {
+          "alias": "Suomi",
+          "normalized": "suomi"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Helsinki",
+          "normalized": "helsinki"
+        }
+      ]
+    },
+    {
+      "cca3": "FJI",
+      "name": "Fiji",
+      "officialName": "Republic of Fiji",
+      "capital": "Suva",
+      "aliases": [
+        {
+          "alias": "Fiji",
+          "normalized": "fiji"
+        },
+        {
+          "alias": "Fijī Gaṇarājya",
+          "normalized": "fiji ganarajya"
+        },
+        {
+          "alias": "Matanitu ko Viti",
+          "normalized": "matanitu ko viti"
+        },
+        {
+          "alias": "Republic of Fiji",
+          "normalized": "republic of fiji"
+        },
+        {
+          "alias": "Viti",
+          "normalized": "viti"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Suva",
+          "normalized": "suva"
+        }
+      ]
+    },
+    {
+      "cca3": "FRA",
+      "name": "France",
+      "officialName": "French Republic",
+      "capital": "Paris",
+      "aliases": [
+        {
+          "alias": "France",
+          "normalized": "france"
+        },
+        {
+          "alias": "French Republic",
+          "normalized": "french republic"
+        },
+        {
+          "alias": "République française",
+          "normalized": "republique francaise"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Paris",
+          "normalized": "paris"
+        }
+      ]
+    },
+    {
+      "cca3": "FSM",
+      "name": "Micronesia",
+      "officialName": "Federated States of Micronesia",
+      "capital": "Palikir",
+      "aliases": [
+        {
+          "alias": "Federated States of Micronesia",
+          "normalized": "federated states of micronesia"
+        },
+        {
+          "alias": "Micronesia",
+          "normalized": "micronesia"
+        },
+        {
+          "alias": "Micronesia, Federated States of",
+          "normalized": "micronesia, federated states of"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Palikir",
+          "normalized": "palikir"
+        }
+      ]
+    },
+    {
+      "cca3": "GAB",
+      "name": "Gabon",
+      "officialName": "Gabonese Republic",
+      "capital": "Libreville",
+      "aliases": [
+        {
+          "alias": "Gabon",
+          "normalized": "gabon"
+        },
+        {
+          "alias": "Gabonese Republic",
+          "normalized": "gabonese republic"
+        },
+        {
+          "alias": "République Gabonaise",
+          "normalized": "republique gabonaise"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Libreville",
+          "normalized": "libreville"
+        }
+      ]
+    },
+    {
+      "cca3": "GBR",
+      "name": "United Kingdom",
+      "officialName": "United Kingdom of Great Britain and Northern Ireland",
+      "capital": "London",
+      "aliases": [
+        {
+          "alias": "Britain",
+          "normalized": "britain"
+        },
+        {
+          "alias": "Great Britain",
+          "normalized": "great britain"
+        },
+        {
+          "alias": "UK",
+          "normalized": "uk"
+        },
+        {
+          "alias": "United Kingdom",
+          "normalized": "united kingdom"
+        },
+        {
+          "alias": "United Kingdom of Great Britain and Northern Ireland",
+          "normalized": "united kingdom of great britain and northern ireland"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "London",
+          "normalized": "london"
+        }
+      ]
+    },
+    {
+      "cca3": "GEO",
+      "name": "Georgia",
+      "officialName": "Georgia",
+      "capital": "Tbilisi",
+      "aliases": [
+        {
+          "alias": "Georgia",
+          "normalized": "georgia"
+        },
+        {
+          "alias": "Sakartvelo",
+          "normalized": "sakartvelo"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tbilisi",
+          "normalized": "tbilisi"
+        }
+      ]
+    },
+    {
+      "cca3": "GHA",
+      "name": "Ghana",
+      "officialName": "Republic of Ghana",
+      "capital": "Accra",
+      "aliases": [
+        {
+          "alias": "Ghana",
+          "normalized": "ghana"
+        },
+        {
+          "alias": "Republic of Ghana",
+          "normalized": "republic of ghana"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Accra",
+          "normalized": "accra"
+        }
+      ]
+    },
+    {
+      "cca3": "GIN",
+      "name": "Guinea",
+      "officialName": "Republic of Guinea",
+      "capital": "Conakry",
+      "aliases": [
+        {
+          "alias": "Guinea",
+          "normalized": "guinea"
+        },
+        {
+          "alias": "Republic of Guinea",
+          "normalized": "republic of guinea"
+        },
+        {
+          "alias": "République de Guinée",
+          "normalized": "republique de guinee"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Conakry",
+          "normalized": "conakry"
+        }
+      ]
+    },
+    {
+      "cca3": "GMB",
+      "name": "Gambia",
+      "officialName": "Republic of the Gambia",
+      "capital": "Banjul",
+      "aliases": [
+        {
+          "alias": "Gambia",
+          "normalized": "gambia"
+        },
+        {
+          "alias": "Republic of the Gambia",
+          "normalized": "republic of the gambia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Banjul",
+          "normalized": "banjul"
+        }
+      ]
+    },
+    {
+      "cca3": "GNB",
+      "name": "Guinea-Bissau",
+      "officialName": "Republic of Guinea-Bissau",
+      "capital": "Bissau",
+      "aliases": [
+        {
+          "alias": "Guinea-Bissau",
+          "normalized": "guinea bissau"
+        },
+        {
+          "alias": "Republic of Guinea-Bissau",
+          "normalized": "republic of guinea bissau"
+        },
+        {
+          "alias": "República da Guiné-Bissau",
+          "normalized": "republica da guine bissau"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bissau",
+          "normalized": "bissau"
+        }
+      ]
+    },
+    {
+      "cca3": "GNQ",
+      "name": "Equatorial Guinea",
+      "officialName": "Republic of Equatorial Guinea",
+      "capital": "Malabo",
+      "aliases": [
+        {
+          "alias": "Equatorial Guinea",
+          "normalized": "equatorial guinea"
+        },
+        {
+          "alias": "Republic of Equatorial Guinea",
+          "normalized": "republic of equatorial guinea"
+        },
+        {
+          "alias": "República da Guiné Equatorial",
+          "normalized": "republica da guine equatorial"
+        },
+        {
+          "alias": "República de Guinea Ecuatorial",
+          "normalized": "republica de guinea ecuatorial"
+        },
+        {
+          "alias": "République de Guinée équatoriale",
+          "normalized": "republique de guinee equatoriale"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Malabo",
+          "normalized": "malabo"
+        }
+      ]
+    },
+    {
+      "cca3": "GRC",
+      "name": "Greece",
+      "officialName": "Hellenic Republic",
+      "capital": "Athens",
+      "aliases": [
+        {
+          "alias": "Elláda",
+          "normalized": "ellada"
+        },
+        {
+          "alias": "Greece",
+          "normalized": "greece"
+        },
+        {
+          "alias": "Hellenic Republic",
+          "normalized": "hellenic republic"
+        },
+        {
+          "alias": "Ελληνική Δημοκρατία",
+          "normalized": "ελληνικη δημοκρατια"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Athens",
+          "normalized": "athens"
+        }
+      ]
+    },
+    {
+      "cca3": "GRD",
+      "name": "Grenada",
+      "officialName": "Grenada",
+      "capital": "St. George's",
+      "aliases": [
+        {
+          "alias": "Grenada",
+          "normalized": "grenada"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "St. George's",
+          "normalized": "st. georges"
+        }
+      ]
+    },
+    {
+      "cca3": "GTM",
+      "name": "Guatemala",
+      "officialName": "Republic of Guatemala",
+      "capital": "Guatemala City",
+      "aliases": [
+        {
+          "alias": "Guatemala",
+          "normalized": "guatemala"
+        },
+        {
+          "alias": "Republic of Guatemala",
+          "normalized": "republic of guatemala"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Guatemala City",
+          "normalized": "guatemala city"
+        }
+      ]
+    },
+    {
+      "cca3": "GUY",
+      "name": "Guyana",
+      "officialName": "Co-operative Republic of Guyana",
+      "capital": "Georgetown",
+      "aliases": [
+        {
+          "alias": "Co-operative Republic of Guyana",
+          "normalized": "co operative republic of guyana"
+        },
+        {
+          "alias": "Guyana",
+          "normalized": "guyana"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Georgetown",
+          "normalized": "georgetown"
+        }
+      ]
+    },
+    {
+      "cca3": "HND",
+      "name": "Honduras",
+      "officialName": "Republic of Honduras",
+      "capital": "Tegucigalpa",
+      "aliases": [
+        {
+          "alias": "Honduras",
+          "normalized": "honduras"
+        },
+        {
+          "alias": "Republic of Honduras",
+          "normalized": "republic of honduras"
+        },
+        {
+          "alias": "República de Honduras",
+          "normalized": "republica de honduras"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tegucigalpa",
+          "normalized": "tegucigalpa"
+        }
+      ]
+    },
+    {
+      "cca3": "HRV",
+      "name": "Croatia",
+      "officialName": "Republic of Croatia",
+      "capital": "Zagreb",
+      "aliases": [
+        {
+          "alias": "Croatia",
+          "normalized": "croatia"
+        },
+        {
+          "alias": "Hrvatska",
+          "normalized": "hrvatska"
+        },
+        {
+          "alias": "Republic of Croatia",
+          "normalized": "republic of croatia"
+        },
+        {
+          "alias": "Republika Hrvatska",
+          "normalized": "republika hrvatska"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Zagreb",
+          "normalized": "zagreb"
+        }
+      ]
+    },
+    {
+      "cca3": "HTI",
+      "name": "Haiti",
+      "officialName": "Republic of Haiti",
+      "capital": "Port-au-Prince",
+      "aliases": [
+        {
+          "alias": "Haiti",
+          "normalized": "haiti"
+        },
+        {
+          "alias": "Repiblik Ayiti",
+          "normalized": "repiblik ayiti"
+        },
+        {
+          "alias": "Republic of Haiti",
+          "normalized": "republic of haiti"
+        },
+        {
+          "alias": "République d'Haïti",
+          "normalized": "republique dhaiti"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Port-au-Prince",
+          "normalized": "port au prince"
+        }
+      ]
+    },
+    {
+      "cca3": "HUN",
+      "name": "Hungary",
+      "officialName": "Hungary",
+      "capital": "Budapest",
+      "aliases": [
+        {
+          "alias": "Hungary",
+          "normalized": "hungary"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Budapest",
+          "normalized": "budapest"
+        }
+      ]
+    },
+    {
+      "cca3": "IDN",
+      "name": "Indonesia",
+      "officialName": "Republic of Indonesia",
+      "capital": "Jakarta",
+      "aliases": [
+        {
+          "alias": "Indonesia",
+          "normalized": "indonesia"
+        },
+        {
+          "alias": "Republic of Indonesia",
+          "normalized": "republic of indonesia"
+        },
+        {
+          "alias": "Republik Indonesia",
+          "normalized": "republik indonesia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Jakarta",
+          "normalized": "jakarta"
+        }
+      ]
+    },
+    {
+      "cca3": "IND",
+      "name": "India",
+      "officialName": "Republic of India",
+      "capital": "New Delhi",
+      "aliases": [
+        {
+          "alias": "Bhārat",
+          "normalized": "bharat"
+        },
+        {
+          "alias": "Bharat Ganrajya",
+          "normalized": "bharat ganrajya"
+        },
+        {
+          "alias": "India",
+          "normalized": "india"
+        },
+        {
+          "alias": "Republic of India",
+          "normalized": "republic of india"
+        },
+        {
+          "alias": "இந்தியா",
+          "normalized": "இந்தியா"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "New Delhi",
+          "normalized": "new delhi"
+        }
+      ]
+    },
+    {
+      "cca3": "IRL",
+      "name": "Ireland",
+      "officialName": "Republic of Ireland",
+      "capital": "Dublin",
+      "aliases": [
+        {
+          "alias": "Éire",
+          "normalized": "eire"
+        },
+        {
+          "alias": "Ireland",
+          "normalized": "ireland"
+        },
+        {
+          "alias": "Poblacht na hÉireann",
+          "normalized": "poblacht na heireann"
+        },
+        {
+          "alias": "Republic of Ireland",
+          "normalized": "republic of ireland"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Dublin",
+          "normalized": "dublin"
+        }
+      ]
+    },
+    {
+      "cca3": "IRN",
+      "name": "Iran",
+      "officialName": "Islamic Republic of Iran",
+      "capital": "Tehran",
+      "aliases": [
+        {
+          "alias": "Iran",
+          "normalized": "iran"
+        },
+        {
+          "alias": "Iran, Islamic Republic of",
+          "normalized": "iran, islamic republic of"
+        },
+        {
+          "alias": "Islamic Republic of Iran",
+          "normalized": "islamic republic of iran"
+        },
+        {
+          "alias": "Jomhuri-ye Eslāmi-ye Irān",
+          "normalized": "jomhuri ye eslami ye iran"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tehran",
+          "normalized": "tehran"
+        }
+      ]
+    },
+    {
+      "cca3": "IRQ",
+      "name": "Iraq",
+      "officialName": "Republic of Iraq",
+      "capital": "Baghdad",
+      "aliases": [
+        {
+          "alias": "Iraq",
+          "normalized": "iraq"
+        },
+        {
+          "alias": "Jumhūriyyat al-‘Irāq",
+          "normalized": "jumhuriyyat al iraq"
+        },
+        {
+          "alias": "Republic of Iraq",
+          "normalized": "republic of iraq"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Baghdad",
+          "normalized": "baghdad"
+        }
+      ]
+    },
+    {
+      "cca3": "ISL",
+      "name": "Iceland",
+      "officialName": "Iceland",
+      "capital": "Reykjavik",
+      "aliases": [
+        {
+          "alias": "Iceland",
+          "normalized": "iceland"
+        },
+        {
+          "alias": "Island",
+          "normalized": "island"
+        },
+        {
+          "alias": "Lýðveldið Ísland",
+          "normalized": "lyðveldið island"
+        },
+        {
+          "alias": "Republic of Iceland",
+          "normalized": "republic of iceland"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Reykjavik",
+          "normalized": "reykjavik"
+        }
+      ]
+    },
+    {
+      "cca3": "ISR",
+      "name": "Israel",
+      "officialName": "State of Israel",
+      "capital": "Jerusalem",
+      "aliases": [
+        {
+          "alias": "Israel",
+          "normalized": "israel"
+        },
+        {
+          "alias": "Medīnat Yisrā'el",
+          "normalized": "medinat yisrael"
+        },
+        {
+          "alias": "State of Israel",
+          "normalized": "state of israel"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Jerusalem",
+          "normalized": "jerusalem"
+        }
+      ]
+    },
+    {
+      "cca3": "ITA",
+      "name": "Italy",
+      "officialName": "Italian Republic",
+      "capital": "Rome",
+      "aliases": [
+        {
+          "alias": "Italian Republic",
+          "normalized": "italian republic"
+        },
+        {
+          "alias": "Italy",
+          "normalized": "italy"
+        },
+        {
+          "alias": "Repubblica italiana",
+          "normalized": "repubblica italiana"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Rome",
+          "normalized": "rome"
+        }
+      ]
+    },
+    {
+      "cca3": "JAM",
+      "name": "Jamaica",
+      "officialName": "Jamaica",
+      "capital": "Kingston",
+      "aliases": [
+        {
+          "alias": "Jamaica",
+          "normalized": "jamaica"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kingston",
+          "normalized": "kingston"
+        }
+      ]
+    },
+    {
+      "cca3": "JOR",
+      "name": "Jordan",
+      "officialName": "Hashemite Kingdom of Jordan",
+      "capital": "Amman",
+      "aliases": [
+        {
+          "alias": "al-Mamlakah al-Urdunīyah al-Hāshimīyah",
+          "normalized": "al mamlakah al urduniyah al hashimiyah"
+        },
+        {
+          "alias": "Hashemite Kingdom of Jordan",
+          "normalized": "hashemite kingdom of jordan"
+        },
+        {
+          "alias": "Jordan",
+          "normalized": "jordan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Amman",
+          "normalized": "amman"
+        }
+      ]
+    },
+    {
+      "cca3": "JPN",
+      "name": "Japan",
+      "officialName": "Japan",
+      "capital": "Tokyo",
+      "aliases": [
+        {
+          "alias": "Japan",
+          "normalized": "japan"
+        },
+        {
+          "alias": "Nihon",
+          "normalized": "nihon"
+        },
+        {
+          "alias": "Nippon",
+          "normalized": "nippon"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tokyo",
+          "normalized": "tokyo"
+        }
+      ]
+    },
+    {
+      "cca3": "KAZ",
+      "name": "Kazakhstan",
+      "officialName": "Republic of Kazakhstan",
+      "capital": "Astana",
+      "aliases": [
+        {
+          "alias": "Kazakhstan",
+          "normalized": "kazakhstan"
+        },
+        {
+          "alias": "Qazaqstan",
+          "normalized": "qazaqstan"
+        },
+        {
+          "alias": "Qazaqstan Respublïkası",
+          "normalized": "qazaqstan respublikası"
+        },
+        {
+          "alias": "Republic of Kazakhstan",
+          "normalized": "republic of kazakhstan"
+        },
+        {
+          "alias": "Respublika Kazakhstan",
+          "normalized": "respublika kazakhstan"
+        },
+        {
+          "alias": "Казахстан",
+          "normalized": "казахстан"
+        },
+        {
+          "alias": "Республика Казахстан",
+          "normalized": "республика казахстан"
+        },
+        {
+          "alias": "Қазақстан Республикасы",
+          "normalized": "қазақстан республикасы"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Astana",
+          "normalized": "astana"
+        }
+      ]
+    },
+    {
+      "cca3": "KEN",
+      "name": "Kenya",
+      "officialName": "Republic of Kenya",
+      "capital": "Nairobi",
+      "aliases": [
+        {
+          "alias": "Jamhuri ya Kenya",
+          "normalized": "jamhuri ya kenya"
+        },
+        {
+          "alias": "Kenya",
+          "normalized": "kenya"
+        },
+        {
+          "alias": "Republic of Kenya",
+          "normalized": "republic of kenya"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Nairobi",
+          "normalized": "nairobi"
+        }
+      ]
+    },
+    {
+      "cca3": "KGZ",
+      "name": "Kyrgyzstan",
+      "officialName": "Kyrgyz Republic",
+      "capital": "Bishkek",
+      "aliases": [
+        {
+          "alias": "Kyrgyz Republic",
+          "normalized": "kyrgyz republic"
+        },
+        {
+          "alias": "Kyrgyz Respublikasy",
+          "normalized": "kyrgyz respublikasy"
+        },
+        {
+          "alias": "Kyrgyzstan",
+          "normalized": "kyrgyzstan"
+        },
+        {
+          "alias": "Киргизия",
+          "normalized": "киргизия"
+        },
+        {
+          "alias": "Кыргыз Республикасы",
+          "normalized": "кыргыз республикасы"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bishkek",
+          "normalized": "bishkek"
+        }
+      ]
+    },
+    {
+      "cca3": "KHM",
+      "name": "Cambodia",
+      "officialName": "Kingdom of Cambodia",
+      "capital": "Phnom Penh",
+      "aliases": [
+        {
+          "alias": "Cambodia",
+          "normalized": "cambodia"
+        },
+        {
+          "alias": "Kingdom of Cambodia",
+          "normalized": "kingdom of cambodia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Phnom Penh",
+          "normalized": "phnom penh"
+        }
+      ]
+    },
+    {
+      "cca3": "KIR",
+      "name": "Kiribati",
+      "officialName": "Independent and Sovereign Republic of Kiribati",
+      "capital": "South Tarawa",
+      "aliases": [
+        {
+          "alias": "Independent and Sovereign Republic of Kiribati",
+          "normalized": "independent and sovereign republic of kiribati"
+        },
+        {
+          "alias": "Kiribati",
+          "normalized": "kiribati"
+        },
+        {
+          "alias": "Republic of Kiribati",
+          "normalized": "republic of kiribati"
+        },
+        {
+          "alias": "Ribaberiki Kiribati",
+          "normalized": "ribaberiki kiribati"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "South Tarawa",
+          "normalized": "south tarawa"
+        }
+      ]
+    },
+    {
+      "cca3": "KNA",
+      "name": "Saint Kitts and Nevis",
+      "officialName": "Federation of Saint Christopher and Nevis",
+      "capital": "Basseterre",
+      "aliases": [
+        {
+          "alias": "Federation of Saint Christopher and Nevis",
+          "normalized": "federation of saint christopher and nevis"
+        },
+        {
+          "alias": "Saint Kitts",
+          "normalized": "saint kitts"
+        },
+        {
+          "alias": "Saint Kitts and Nevis",
+          "normalized": "saint kitts and nevis"
+        },
+        {
+          "alias": "St Kitts",
+          "normalized": "st kitts"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Basseterre",
+          "normalized": "basseterre"
+        }
+      ]
+    },
+    {
+      "cca3": "KOR",
+      "name": "South Korea",
+      "officialName": "Republic of Korea",
+      "capital": "Seoul",
+      "aliases": [
+        {
+          "alias": "Korea, Republic of",
+          "normalized": "korea, republic of"
+        },
+        {
+          "alias": "Republic of Korea",
+          "normalized": "republic of korea"
+        },
+        {
+          "alias": "South Korea",
+          "normalized": "south korea"
+        },
+        {
+          "alias": "남조선",
+          "normalized": "남조선"
+        },
+        {
+          "alias": "남한",
+          "normalized": "남한"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Seoul",
+          "normalized": "seoul"
+        }
+      ]
+    },
+    {
+      "cca3": "KWT",
+      "name": "Kuwait",
+      "officialName": "State of Kuwait",
+      "capital": "Kuwait City",
+      "aliases": [
+        {
+          "alias": "Dawlat al-Kuwait",
+          "normalized": "dawlat al kuwait"
+        },
+        {
+          "alias": "Kuwait",
+          "normalized": "kuwait"
+        },
+        {
+          "alias": "State of Kuwait",
+          "normalized": "state of kuwait"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kuwait City",
+          "normalized": "kuwait city"
+        }
+      ]
+    },
+    {
+      "cca3": "LAO",
+      "name": "Laos",
+      "officialName": "Lao People's Democratic Republic",
+      "capital": "Vientiane",
+      "aliases": [
+        {
+          "alias": "Lao",
+          "normalized": "lao"
+        },
+        {
+          "alias": "Lao People's Democratic Republic",
+          "normalized": "lao peoples democratic republic"
+        },
+        {
+          "alias": "Laos",
+          "normalized": "laos"
+        },
+        {
+          "alias": "Sathalanalat Paxathipatai Paxaxon Lao",
+          "normalized": "sathalanalat paxathipatai paxaxon lao"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Vientiane",
+          "normalized": "vientiane"
+        }
+      ]
+    },
+    {
+      "cca3": "LBN",
+      "name": "Lebanon",
+      "officialName": "Lebanese Republic",
+      "capital": "Beirut",
+      "aliases": [
+        {
+          "alias": "Al-Jumhūrīyah Al-Libnānīyah",
+          "normalized": "al jumhuriyah al libnaniyah"
+        },
+        {
+          "alias": "Lebanese Republic",
+          "normalized": "lebanese republic"
+        },
+        {
+          "alias": "Lebanon",
+          "normalized": "lebanon"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Beirut",
+          "normalized": "beirut"
+        }
+      ]
+    },
+    {
+      "cca3": "LBR",
+      "name": "Liberia",
+      "officialName": "Republic of Liberia",
+      "capital": "Monrovia",
+      "aliases": [
+        {
+          "alias": "Liberia",
+          "normalized": "liberia"
+        },
+        {
+          "alias": "Republic of Liberia",
+          "normalized": "republic of liberia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Monrovia",
+          "normalized": "monrovia"
+        }
+      ]
+    },
+    {
+      "cca3": "LBY",
+      "name": "Libya",
+      "officialName": "State of Libya",
+      "capital": "Tripoli",
+      "aliases": [
+        {
+          "alias": "Dawlat Libya",
+          "normalized": "dawlat libya"
+        },
+        {
+          "alias": "Libya",
+          "normalized": "libya"
+        },
+        {
+          "alias": "State of Libya",
+          "normalized": "state of libya"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tripoli",
+          "normalized": "tripoli"
+        }
+      ]
+    },
+    {
+      "cca3": "LCA",
+      "name": "Saint Lucia",
+      "officialName": "Saint Lucia",
+      "capital": "Castries",
+      "aliases": [
+        {
+          "alias": "Saint Lucia",
+          "normalized": "saint lucia"
+        },
+        {
+          "alias": "St Lucia",
+          "normalized": "st lucia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Castries",
+          "normalized": "castries"
+        }
+      ]
+    },
+    {
+      "cca3": "LIE",
+      "name": "Liechtenstein",
+      "officialName": "Principality of Liechtenstein",
+      "capital": "Vaduz",
+      "aliases": [
+        {
+          "alias": "Fürstentum Liechtenstein",
+          "normalized": "furstentum liechtenstein"
+        },
+        {
+          "alias": "Liechtenstein",
+          "normalized": "liechtenstein"
+        },
+        {
+          "alias": "Principality of Liechtenstein",
+          "normalized": "principality of liechtenstein"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Vaduz",
+          "normalized": "vaduz"
+        }
+      ]
+    },
+    {
+      "cca3": "LKA",
+      "name": "Sri Lanka",
+      "officialName": "Democratic Socialist Republic of Sri Lanka",
+      "capital": "Colombo",
+      "aliases": [
+        {
+          "alias": "Democratic Socialist Republic of Sri Lanka",
+          "normalized": "democratic socialist republic of sri lanka"
+        },
+        {
+          "alias": "ilaṅkai",
+          "normalized": "ilankai"
+        },
+        {
+          "alias": "Sri Lanka",
+          "normalized": "sri lanka"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Colombo",
+          "normalized": "colombo"
+        },
+        {
+          "alias": "Kotte",
+          "normalized": "kotte"
+        },
+        {
+          "alias": "Sri Jayawardenepura Kotte",
+          "normalized": "sri jayawardenepura kotte"
+        }
+      ]
+    },
+    {
+      "cca3": "LSO",
+      "name": "Lesotho",
+      "officialName": "Kingdom of Lesotho",
+      "capital": "Maseru",
+      "aliases": [
+        {
+          "alias": "Kingdom of Lesotho",
+          "normalized": "kingdom of lesotho"
+        },
+        {
+          "alias": "Lesotho",
+          "normalized": "lesotho"
+        },
+        {
+          "alias": "Muso oa Lesotho",
+          "normalized": "muso oa lesotho"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Maseru",
+          "normalized": "maseru"
+        }
+      ]
+    },
+    {
+      "cca3": "LTU",
+      "name": "Lithuania",
+      "officialName": "Republic of Lithuania",
+      "capital": "Vilnius",
+      "aliases": [
+        {
+          "alias": "Lietuvos Respublika",
+          "normalized": "lietuvos respublika"
+        },
+        {
+          "alias": "Lithuania",
+          "normalized": "lithuania"
+        },
+        {
+          "alias": "Republic of Lithuania",
+          "normalized": "republic of lithuania"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Vilnius",
+          "normalized": "vilnius"
+        }
+      ]
+    },
+    {
+      "cca3": "LUX",
+      "name": "Luxembourg",
+      "officialName": "Grand Duchy of Luxembourg",
+      "capital": "Luxembourg",
+      "aliases": [
+        {
+          "alias": "Grand-Duché de Luxembourg",
+          "normalized": "grand duche de luxembourg"
+        },
+        {
+          "alias": "Grand Duchy of Luxembourg",
+          "normalized": "grand duchy of luxembourg"
+        },
+        {
+          "alias": "Groussherzogtum Lëtzebuerg",
+          "normalized": "groussherzogtum letzebuerg"
+        },
+        {
+          "alias": "Großherzogtum Luxemburg",
+          "normalized": "großherzogtum luxemburg"
+        },
+        {
+          "alias": "Luxembourg",
+          "normalized": "luxembourg"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Luxembourg",
+          "normalized": "luxembourg"
+        }
+      ]
+    },
+    {
+      "cca3": "LVA",
+      "name": "Latvia",
+      "officialName": "Republic of Latvia",
+      "capital": "Riga",
+      "aliases": [
+        {
+          "alias": "Latvia",
+          "normalized": "latvia"
+        },
+        {
+          "alias": "Latvijas Republika",
+          "normalized": "latvijas republika"
+        },
+        {
+          "alias": "Republic of Latvia",
+          "normalized": "republic of latvia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Riga",
+          "normalized": "riga"
+        }
+      ]
+    },
+    {
+      "cca3": "MAR",
+      "name": "Morocco",
+      "officialName": "Kingdom of Morocco",
+      "capital": "Rabat",
+      "aliases": [
+        {
+          "alias": "Al-Mamlakah al-Maġribiyah",
+          "normalized": "al mamlakah al magribiyah"
+        },
+        {
+          "alias": "Kingdom of Morocco",
+          "normalized": "kingdom of morocco"
+        },
+        {
+          "alias": "Morocco",
+          "normalized": "morocco"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Rabat",
+          "normalized": "rabat"
+        }
+      ]
+    },
+    {
+      "cca3": "MCO",
+      "name": "Monaco",
+      "officialName": "Principality of Monaco",
+      "capital": "Monaco",
+      "aliases": [
+        {
+          "alias": "Monaco",
+          "normalized": "monaco"
+        },
+        {
+          "alias": "Principality of Monaco",
+          "normalized": "principality of monaco"
+        },
+        {
+          "alias": "Principauté de Monaco",
+          "normalized": "principaute de monaco"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Monaco",
+          "normalized": "monaco"
+        }
+      ]
+    },
+    {
+      "cca3": "MDA",
+      "name": "Moldova",
+      "officialName": "Republic of Moldova",
+      "capital": "Chișinău",
+      "aliases": [
+        {
+          "alias": "Moldova",
+          "normalized": "moldova"
+        },
+        {
+          "alias": "Moldova, Republic of",
+          "normalized": "moldova, republic of"
+        },
+        {
+          "alias": "Republic of Moldova",
+          "normalized": "republic of moldova"
+        },
+        {
+          "alias": "Republica Moldova",
+          "normalized": "republica moldova"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Chișinău",
+          "normalized": "chisinau"
+        }
+      ]
+    },
+    {
+      "cca3": "MDG",
+      "name": "Madagascar",
+      "officialName": "Republic of Madagascar",
+      "capital": "Antananarivo",
+      "aliases": [
+        {
+          "alias": "Madagascar",
+          "normalized": "madagascar"
+        },
+        {
+          "alias": "Repoblikan'i Madagasikara",
+          "normalized": "repoblikani madagasikara"
+        },
+        {
+          "alias": "Republic of Madagascar",
+          "normalized": "republic of madagascar"
+        },
+        {
+          "alias": "République de Madagascar",
+          "normalized": "republique de madagascar"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Antananarivo",
+          "normalized": "antananarivo"
+        }
+      ]
+    },
+    {
+      "cca3": "MDV",
+      "name": "Maldives",
+      "officialName": "Republic of the Maldives",
+      "capital": "Malé",
+      "aliases": [
+        {
+          "alias": "Dhivehi Raajjeyge Jumhooriyya",
+          "normalized": "dhivehi raajjeyge jumhooriyya"
+        },
+        {
+          "alias": "Maldive Islands",
+          "normalized": "maldive islands"
+        },
+        {
+          "alias": "Maldives",
+          "normalized": "maldives"
+        },
+        {
+          "alias": "Republic of the Maldives",
+          "normalized": "republic of the maldives"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Malé",
+          "normalized": "male"
+        }
+      ]
+    },
+    {
+      "cca3": "MEX",
+      "name": "Mexico",
+      "officialName": "United Mexican States",
+      "capital": "Mexico City",
+      "aliases": [
+        {
+          "alias": "Estados Unidos Mexicanos",
+          "normalized": "estados unidos mexicanos"
+        },
+        {
+          "alias": "Mexicanos",
+          "normalized": "mexicanos"
+        },
+        {
+          "alias": "Mexico",
+          "normalized": "mexico"
+        },
+        {
+          "alias": "United Mexican States",
+          "normalized": "united mexican states"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Mexico City",
+          "normalized": "mexico city"
+        }
+      ]
+    },
+    {
+      "cca3": "MHL",
+      "name": "Marshall Islands",
+      "officialName": "Republic of the Marshall Islands",
+      "capital": "Majuro",
+      "aliases": [
+        {
+          "alias": "Aolepān Aorōkin M̧ajeļ",
+          "normalized": "aolepan aorokin majel"
+        },
+        {
+          "alias": "Marshall Islands",
+          "normalized": "marshall islands"
+        },
+        {
+          "alias": "Republic of the Marshall Islands",
+          "normalized": "republic of the marshall islands"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Majuro",
+          "normalized": "majuro"
+        }
+      ]
+    },
+    {
+      "cca3": "MKD",
+      "name": "North Macedonia",
+      "officialName": "Republic of North Macedonia",
+      "capital": "Skopje",
+      "aliases": [
+        {
+          "alias": "Macedonia",
+          "normalized": "macedonia"
+        },
+        {
+          "alias": "Macedonia, The Former Yugoslav Republic of",
+          "normalized": "macedonia, the former yugoslav republic of"
+        },
+        {
+          "alias": "North Macedonia",
+          "normalized": "north macedonia"
+        },
+        {
+          "alias": "Republic of North Macedonia",
+          "normalized": "republic of north macedonia"
+        },
+        {
+          "alias": "The former Yugoslav Republic of Macedonia",
+          "normalized": "the former yugoslav republic of macedonia"
+        },
+        {
+          "alias": "Република Северна Македонија",
+          "normalized": "република северна македонија"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Skopje",
+          "normalized": "skopje"
+        }
+      ]
+    },
+    {
+      "cca3": "MLI",
+      "name": "Mali",
+      "officialName": "Republic of Mali",
+      "capital": "Bamako",
+      "aliases": [
+        {
+          "alias": "Mali",
+          "normalized": "mali"
+        },
+        {
+          "alias": "Republic of Mali",
+          "normalized": "republic of mali"
+        },
+        {
+          "alias": "République du Mali",
+          "normalized": "republique du mali"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bamako",
+          "normalized": "bamako"
+        }
+      ]
+    },
+    {
+      "cca3": "MLT",
+      "name": "Malta",
+      "officialName": "Republic of Malta",
+      "capital": "Valletta",
+      "aliases": [
+        {
+          "alias": "Malta",
+          "normalized": "malta"
+        },
+        {
+          "alias": "Repubblika ta' Malta",
+          "normalized": "repubblika ta malta"
+        },
+        {
+          "alias": "Republic of Malta",
+          "normalized": "republic of malta"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Valletta",
+          "normalized": "valletta"
+        }
+      ]
+    },
+    {
+      "cca3": "MMR",
+      "name": "Myanmar",
+      "officialName": "Republic of the Union of Myanmar",
+      "capital": "Naypyidaw",
+      "aliases": [
+        {
+          "alias": "Burma",
+          "normalized": "burma"
+        },
+        {
+          "alias": "Myanmar",
+          "normalized": "myanmar"
+        },
+        {
+          "alias": "Pyidaunzu Thanmăda Myăma Nainngandaw",
+          "normalized": "pyidaunzu thanmada myama nainngandaw"
+        },
+        {
+          "alias": "Republic of the Union of Myanmar",
+          "normalized": "republic of the union of myanmar"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Nay Pyi Taw",
+          "normalized": "nay pyi taw"
+        },
+        {
+          "alias": "Naypyidaw",
+          "normalized": "naypyidaw"
+        }
+      ]
+    },
+    {
+      "cca3": "MNE",
+      "name": "Montenegro",
+      "officialName": "Montenegro",
+      "capital": "Podgorica",
+      "aliases": [
+        {
+          "alias": "Crna Gora",
+          "normalized": "crna gora"
+        },
+        {
+          "alias": "Montenegro",
+          "normalized": "montenegro"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Podgorica",
+          "normalized": "podgorica"
+        }
+      ]
+    },
+    {
+      "cca3": "MNG",
+      "name": "Mongolia",
+      "officialName": "Mongolia",
+      "capital": "Ulan Bator",
+      "aliases": [
+        {
+          "alias": "Mongolia",
+          "normalized": "mongolia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ulan Bator",
+          "normalized": "ulan bator"
+        }
+      ]
+    },
+    {
+      "cca3": "MOZ",
+      "name": "Mozambique",
+      "officialName": "Republic of Mozambique",
+      "capital": "Maputo",
+      "aliases": [
+        {
+          "alias": "Mozambique",
+          "normalized": "mozambique"
+        },
+        {
+          "alias": "Republic of Mozambique",
+          "normalized": "republic of mozambique"
+        },
+        {
+          "alias": "República de Moçambique",
+          "normalized": "republica de mocambique"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Maputo",
+          "normalized": "maputo"
+        }
+      ]
+    },
+    {
+      "cca3": "MRT",
+      "name": "Mauritania",
+      "officialName": "Islamic Republic of Mauritania",
+      "capital": "Nouakchott",
+      "aliases": [
+        {
+          "alias": "al-Jumhūriyyah al-ʾIslāmiyyah al-Mūrītāniyyah",
+          "normalized": "al jumhuriyyah al ʾislamiyyah al muritaniyyah"
+        },
+        {
+          "alias": "Islamic Republic of Mauritania",
+          "normalized": "islamic republic of mauritania"
+        },
+        {
+          "alias": "Mauritania",
+          "normalized": "mauritania"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Nouakchott",
+          "normalized": "nouakchott"
+        }
+      ]
+    },
+    {
+      "cca3": "MUS",
+      "name": "Mauritius",
+      "officialName": "Republic of Mauritius",
+      "capital": "Port Louis",
+      "aliases": [
+        {
+          "alias": "Mauritius",
+          "normalized": "mauritius"
+        },
+        {
+          "alias": "Republic of Mauritius",
+          "normalized": "republic of mauritius"
+        },
+        {
+          "alias": "République de Maurice",
+          "normalized": "republique de maurice"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Port Louis",
+          "normalized": "port louis"
+        }
+      ]
+    },
+    {
+      "cca3": "MWI",
+      "name": "Malawi",
+      "officialName": "Republic of Malawi",
+      "capital": "Lilongwe",
+      "aliases": [
+        {
+          "alias": "Malawi",
+          "normalized": "malawi"
+        },
+        {
+          "alias": "Republic of Malawi",
+          "normalized": "republic of malawi"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Lilongwe",
+          "normalized": "lilongwe"
+        }
+      ]
+    },
+    {
+      "cca3": "MYS",
+      "name": "Malaysia",
+      "officialName": "Malaysia",
+      "capital": "Kuala Lumpur",
+      "aliases": [
+        {
+          "alias": "Malaysia",
+          "normalized": "malaysia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "KL",
+          "normalized": "kl"
+        },
+        {
+          "alias": "Kuala Lumpur",
+          "normalized": "kuala lumpur"
+        }
+      ]
+    },
+    {
+      "cca3": "NAM",
+      "name": "Namibia",
+      "officialName": "Republic of Namibia",
+      "capital": "Windhoek",
+      "aliases": [
+        {
+          "alias": "Namibia",
+          "normalized": "namibia"
+        },
+        {
+          "alias": "Namibië",
+          "normalized": "namibie"
+        },
+        {
+          "alias": "Republic of Namibia",
+          "normalized": "republic of namibia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Windhoek",
+          "normalized": "windhoek"
+        }
+      ]
+    },
+    {
+      "cca3": "NER",
+      "name": "Niger",
+      "officialName": "Republic of Niger",
+      "capital": "Niamey",
+      "aliases": [
+        {
+          "alias": "Niger",
+          "normalized": "niger"
+        },
+        {
+          "alias": "Nijar",
+          "normalized": "nijar"
+        },
+        {
+          "alias": "Republic of Niger",
+          "normalized": "republic of niger"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Niamey",
+          "normalized": "niamey"
+        }
+      ]
+    },
+    {
+      "cca3": "NGA",
+      "name": "Nigeria",
+      "officialName": "Federal Republic of Nigeria",
+      "capital": "Abuja",
+      "aliases": [
+        {
+          "alias": "Federal Republic of Nigeria",
+          "normalized": "federal republic of nigeria"
+        },
+        {
+          "alias": "Naíjíríà",
+          "normalized": "naijiria"
+        },
+        {
+          "alias": "Nigeria",
+          "normalized": "nigeria"
+        },
+        {
+          "alias": "Nijeriya",
+          "normalized": "nijeriya"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Abuja",
+          "normalized": "abuja"
+        }
+      ]
+    },
+    {
+      "cca3": "NIC",
+      "name": "Nicaragua",
+      "officialName": "Republic of Nicaragua",
+      "capital": "Managua",
+      "aliases": [
+        {
+          "alias": "Nicaragua",
+          "normalized": "nicaragua"
+        },
+        {
+          "alias": "Republic of Nicaragua",
+          "normalized": "republic of nicaragua"
+        },
+        {
+          "alias": "República de Nicaragua",
+          "normalized": "republica de nicaragua"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Managua",
+          "normalized": "managua"
+        }
+      ]
+    },
+    {
+      "cca3": "NLD",
+      "name": "Netherlands",
+      "officialName": "Kingdom of the Netherlands",
+      "capital": "Amsterdam",
+      "aliases": [
+        {
+          "alias": "Holland",
+          "normalized": "holland"
+        },
+        {
+          "alias": "Kingdom of the Netherlands",
+          "normalized": "kingdom of the netherlands"
+        },
+        {
+          "alias": "Nederland",
+          "normalized": "nederland"
+        },
+        {
+          "alias": "Netherlands",
+          "normalized": "netherlands"
+        },
+        {
+          "alias": "The Netherlands",
+          "normalized": "the netherlands"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Amsterdam",
+          "normalized": "amsterdam"
+        }
+      ]
+    },
+    {
+      "cca3": "NOR",
+      "name": "Norway",
+      "officialName": "Kingdom of Norway",
+      "capital": "Oslo",
+      "aliases": [
+        {
+          "alias": "Kingdom of Norway",
+          "normalized": "kingdom of norway"
+        },
+        {
+          "alias": "Kongeriket Noreg",
+          "normalized": "kongeriket noreg"
+        },
+        {
+          "alias": "Kongeriket Norge",
+          "normalized": "kongeriket norge"
+        },
+        {
+          "alias": "Noreg",
+          "normalized": "noreg"
+        },
+        {
+          "alias": "Norge",
+          "normalized": "norge"
+        },
+        {
+          "alias": "Norway",
+          "normalized": "norway"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Oslo",
+          "normalized": "oslo"
+        }
+      ]
+    },
+    {
+      "cca3": "NPL",
+      "name": "Nepal",
+      "officialName": "Federal Democratic Republic of Nepal",
+      "capital": "Kathmandu",
+      "aliases": [
+        {
+          "alias": "Federal Democratic Republic of Nepal",
+          "normalized": "federal democratic republic of nepal"
+        },
+        {
+          "alias": "Loktāntrik Ganatantra Nepāl",
+          "normalized": "loktantrik ganatantra nepal"
+        },
+        {
+          "alias": "Nepal",
+          "normalized": "nepal"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kathmandu",
+          "normalized": "kathmandu"
+        }
+      ]
+    },
+    {
+      "cca3": "NRU",
+      "name": "Nauru",
+      "officialName": "Republic of Nauru",
+      "capital": "Yaren",
+      "aliases": [
+        {
+          "alias": "Naoero",
+          "normalized": "naoero"
+        },
+        {
+          "alias": "Nauru",
+          "normalized": "nauru"
+        },
+        {
+          "alias": "Pleasant Island",
+          "normalized": "pleasant island"
+        },
+        {
+          "alias": "Republic of Nauru",
+          "normalized": "republic of nauru"
+        },
+        {
+          "alias": "Ripublik Naoero",
+          "normalized": "ripublik naoero"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Yaren",
+          "normalized": "yaren"
+        }
+      ]
+    },
+    {
+      "cca3": "NZL",
+      "name": "New Zealand",
+      "officialName": "New Zealand",
+      "capital": "Wellington",
+      "aliases": [
+        {
+          "alias": "Aotearoa",
+          "normalized": "aotearoa"
+        },
+        {
+          "alias": "New Zealand",
+          "normalized": "new zealand"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Wellington",
+          "normalized": "wellington"
+        }
+      ]
+    },
+    {
+      "cca3": "OMN",
+      "name": "Oman",
+      "officialName": "Sultanate of Oman",
+      "capital": "Muscat",
+      "aliases": [
+        {
+          "alias": "Oman",
+          "normalized": "oman"
+        },
+        {
+          "alias": "Salṭanat ʻUmān",
+          "normalized": "saltanat ʻuman"
+        },
+        {
+          "alias": "Sultanate of Oman",
+          "normalized": "sultanate of oman"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Muscat",
+          "normalized": "muscat"
+        }
+      ]
+    },
+    {
+      "cca3": "PAK",
+      "name": "Pakistan",
+      "officialName": "Islamic Republic of Pakistan",
+      "capital": "Islamabad",
+      "aliases": [
+        {
+          "alias": "Islāmī Jumhūriya'eh Pākistān",
+          "normalized": "islami jumhuriyaeh pakistan"
+        },
+        {
+          "alias": "Islamic Republic of Pakistan",
+          "normalized": "islamic republic of pakistan"
+        },
+        {
+          "alias": "Pakistan",
+          "normalized": "pakistan"
+        },
+        {
+          "alias": "Pākistān",
+          "normalized": "pakistan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Islamabad",
+          "normalized": "islamabad"
+        }
+      ]
+    },
+    {
+      "cca3": "PAN",
+      "name": "Panama",
+      "officialName": "Republic of Panama",
+      "capital": "Panama City",
+      "aliases": [
+        {
+          "alias": "Panama",
+          "normalized": "panama"
+        },
+        {
+          "alias": "Republic of Panama",
+          "normalized": "republic of panama"
+        },
+        {
+          "alias": "República de Panamá",
+          "normalized": "republica de panama"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Panama City",
+          "normalized": "panama city"
+        }
+      ]
+    },
+    {
+      "cca3": "PER",
+      "name": "Peru",
+      "officialName": "Republic of Peru",
+      "capital": "Lima",
+      "aliases": [
+        {
+          "alias": "Peru",
+          "normalized": "peru"
+        },
+        {
+          "alias": "Republic of Peru",
+          "normalized": "republic of peru"
+        },
+        {
+          "alias": "República del Perú",
+          "normalized": "republica del peru"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Lima",
+          "normalized": "lima"
+        }
+      ]
+    },
+    {
+      "cca3": "PHL",
+      "name": "Philippines",
+      "officialName": "Republic of the Philippines",
+      "capital": "Manila",
+      "aliases": [
+        {
+          "alias": "Philippines",
+          "normalized": "philippines"
+        },
+        {
+          "alias": "Republic of the Philippines",
+          "normalized": "republic of the philippines"
+        },
+        {
+          "alias": "Repúblika ng Pilipinas",
+          "normalized": "republika ng pilipinas"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Manila",
+          "normalized": "manila"
+        }
+      ]
+    },
+    {
+      "cca3": "PLW",
+      "name": "Palau",
+      "officialName": "Republic of Palau",
+      "capital": "Ngerulmud",
+      "aliases": [
+        {
+          "alias": "Beluu er a Belau",
+          "normalized": "beluu er a belau"
+        },
+        {
+          "alias": "Palau",
+          "normalized": "palau"
+        },
+        {
+          "alias": "Republic of Palau",
+          "normalized": "republic of palau"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ngerulmud",
+          "normalized": "ngerulmud"
+        }
+      ]
+    },
+    {
+      "cca3": "PNG",
+      "name": "Papua New Guinea",
+      "officialName": "Independent State of Papua New Guinea",
+      "capital": "Port Moresby",
+      "aliases": [
+        {
+          "alias": "Independen Stet bilong Papua Niugini",
+          "normalized": "independen stet bilong papua niugini"
+        },
+        {
+          "alias": "Independent State of Papua New Guinea",
+          "normalized": "independent state of papua new guinea"
+        },
+        {
+          "alias": "Papua New Guinea",
+          "normalized": "papua new guinea"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Port Moresby",
+          "normalized": "port moresby"
+        }
+      ]
+    },
+    {
+      "cca3": "POL",
+      "name": "Poland",
+      "officialName": "Republic of Poland",
+      "capital": "Warsaw",
+      "aliases": [
+        {
+          "alias": "Poland",
+          "normalized": "poland"
+        },
+        {
+          "alias": "Republic of Poland",
+          "normalized": "republic of poland"
+        },
+        {
+          "alias": "Rzeczpospolita Polska",
+          "normalized": "rzeczpospolita polska"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Warsaw",
+          "normalized": "warsaw"
+        }
+      ]
+    },
+    {
+      "cca3": "PRK",
+      "name": "North Korea",
+      "officialName": "Democratic People's Republic of Korea",
+      "capital": "Pyongyang",
+      "aliases": [
+        {
+          "alias": "Chosŏn Minjujuŭi Inmin Konghwaguk",
+          "normalized": "choson minjujuui inmin konghwaguk"
+        },
+        {
+          "alias": "Democratic People's Republic of Korea",
+          "normalized": "democratic peoples republic of korea"
+        },
+        {
+          "alias": "DPRK",
+          "normalized": "dprk"
+        },
+        {
+          "alias": "Korea, Democratic People's Republic of",
+          "normalized": "korea, democratic peoples republic of"
+        },
+        {
+          "alias": "North Korea",
+          "normalized": "north korea"
+        },
+        {
+          "alias": "북조선",
+          "normalized": "북조선"
+        },
+        {
+          "alias": "북한",
+          "normalized": "북한"
+        },
+        {
+          "alias": "조선민주주의인민공화국",
+          "normalized": "조선민주주의인민공화국"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Pyongyang",
+          "normalized": "pyongyang"
+        }
+      ]
+    },
+    {
+      "cca3": "PRT",
+      "name": "Portugal",
+      "officialName": "Portuguese Republic",
+      "capital": "Lisbon",
+      "aliases": [
+        {
+          "alias": "Portugal",
+          "normalized": "portugal"
+        },
+        {
+          "alias": "Portuguesa",
+          "normalized": "portuguesa"
+        },
+        {
+          "alias": "Portuguese Republic",
+          "normalized": "portuguese republic"
+        },
+        {
+          "alias": "República Portuguesa",
+          "normalized": "republica portuguesa"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Lisbon",
+          "normalized": "lisbon"
+        }
+      ]
+    },
+    {
+      "cca3": "PRY",
+      "name": "Paraguay",
+      "officialName": "Republic of Paraguay",
+      "capital": "Asunción",
+      "aliases": [
+        {
+          "alias": "Paraguay",
+          "normalized": "paraguay"
+        },
+        {
+          "alias": "Republic of Paraguay",
+          "normalized": "republic of paraguay"
+        },
+        {
+          "alias": "República del Paraguay",
+          "normalized": "republica del paraguay"
+        },
+        {
+          "alias": "Tetã Paraguái",
+          "normalized": "teta paraguai"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Asunción",
+          "normalized": "asuncion"
+        }
+      ]
+    },
+    {
+      "cca3": "PSE",
+      "name": "Palestine",
+      "officialName": "State of Palestine",
+      "capital": "Ramallah",
+      "aliases": [
+        {
+          "alias": "Dawlat Filasṭin",
+          "normalized": "dawlat filastin"
+        },
+        {
+          "alias": "Palestine",
+          "normalized": "palestine"
+        },
+        {
+          "alias": "Palestine, State of",
+          "normalized": "palestine, state of"
+        },
+        {
+          "alias": "State of Palestine",
+          "normalized": "state of palestine"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ramallah",
+          "normalized": "ramallah"
+        }
+      ]
+    },
+    {
+      "cca3": "QAT",
+      "name": "Qatar",
+      "officialName": "State of Qatar",
+      "capital": "Doha",
+      "aliases": [
+        {
+          "alias": "Dawlat Qaṭar",
+          "normalized": "dawlat qatar"
+        },
+        {
+          "alias": "Qatar",
+          "normalized": "qatar"
+        },
+        {
+          "alias": "State of Qatar",
+          "normalized": "state of qatar"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Doha",
+          "normalized": "doha"
+        }
+      ]
+    },
+    {
+      "cca3": "ROU",
+      "name": "Romania",
+      "officialName": "Romania",
+      "capital": "Bucharest",
+      "aliases": [
+        {
+          "alias": "Romania",
+          "normalized": "romania"
+        },
+        {
+          "alias": "România",
+          "normalized": "romania"
+        },
+        {
+          "alias": "Roumania",
+          "normalized": "roumania"
+        },
+        {
+          "alias": "Rumania",
+          "normalized": "rumania"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bucharest",
+          "normalized": "bucharest"
+        }
+      ]
+    },
+    {
+      "cca3": "RUS",
+      "name": "Russia",
+      "officialName": "Russian Federation",
+      "capital": "Moscow",
+      "aliases": [
+        {
+          "alias": "Russia",
+          "normalized": "russia"
+        },
+        {
+          "alias": "Russian Federation",
+          "normalized": "russian federation"
+        },
+        {
+          "alias": "Российская Федерация",
+          "normalized": "россииская федерация"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Moscow",
+          "normalized": "moscow"
+        }
+      ]
+    },
+    {
+      "cca3": "RWA",
+      "name": "Rwanda",
+      "officialName": "Republic of Rwanda",
+      "capital": "Kigali",
+      "aliases": [
+        {
+          "alias": "Republic of Rwanda",
+          "normalized": "republic of rwanda"
+        },
+        {
+          "alias": "République du Rwanda",
+          "normalized": "republique du rwanda"
+        },
+        {
+          "alias": "Repubulika y'u Rwanda",
+          "normalized": "repubulika yu rwanda"
+        },
+        {
+          "alias": "Rwanda",
+          "normalized": "rwanda"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kigali",
+          "normalized": "kigali"
+        }
+      ]
+    },
+    {
+      "cca3": "SAU",
+      "name": "Saudi Arabia",
+      "officialName": "Kingdom of Saudi Arabia",
+      "capital": "Riyadh",
+      "aliases": [
+        {
+          "alias": "Al-Mamlakah al-‘Arabiyyah as-Su‘ūdiyyah",
+          "normalized": "al mamlakah al arabiyyah as suudiyyah"
+        },
+        {
+          "alias": "Kingdom of Saudi Arabia",
+          "normalized": "kingdom of saudi arabia"
+        },
+        {
+          "alias": "Saudi",
+          "normalized": "saudi"
+        },
+        {
+          "alias": "Saudi Arabia",
+          "normalized": "saudi arabia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Riyadh",
+          "normalized": "riyadh"
+        }
+      ]
+    },
+    {
+      "cca3": "SDN",
+      "name": "Sudan",
+      "officialName": "Republic of the Sudan",
+      "capital": "Khartoum",
+      "aliases": [
+        {
+          "alias": "Jumhūrīyat as-Sūdān",
+          "normalized": "jumhuriyat as sudan"
+        },
+        {
+          "alias": "Republic of the Sudan",
+          "normalized": "republic of the sudan"
+        },
+        {
+          "alias": "Sudan",
+          "normalized": "sudan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Khartoum",
+          "normalized": "khartoum"
+        }
+      ]
+    },
+    {
+      "cca3": "SEN",
+      "name": "Senegal",
+      "officialName": "Republic of Senegal",
+      "capital": "Dakar",
+      "aliases": [
+        {
+          "alias": "Republic of Senegal",
+          "normalized": "republic of senegal"
+        },
+        {
+          "alias": "République du Sénégal",
+          "normalized": "republique du senegal"
+        },
+        {
+          "alias": "Senegal",
+          "normalized": "senegal"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Dakar",
+          "normalized": "dakar"
+        }
+      ]
+    },
+    {
+      "cca3": "SGP",
+      "name": "Singapore",
+      "officialName": "Republic of Singapore",
+      "capital": "Singapore",
+      "aliases": [
+        {
+          "alias": "Republic of Singapore",
+          "normalized": "republic of singapore"
+        },
+        {
+          "alias": "Republik Singapura",
+          "normalized": "republik singapura"
+        },
+        {
+          "alias": "Singapore",
+          "normalized": "singapore"
+        },
+        {
+          "alias": "Singapura",
+          "normalized": "singapura"
+        },
+        {
+          "alias": "新加坡共和国",
+          "normalized": "新加坡共和国"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Singapore",
+          "normalized": "singapore"
+        }
+      ]
+    },
+    {
+      "cca3": "SLB",
+      "name": "Solomon Islands",
+      "officialName": "Solomon Islands",
+      "capital": "Honiara",
+      "aliases": [
+        {
+          "alias": "Solomon Islands",
+          "normalized": "solomon islands"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Honiara",
+          "normalized": "honiara"
+        }
+      ]
+    },
+    {
+      "cca3": "SLE",
+      "name": "Sierra Leone",
+      "officialName": "Republic of Sierra Leone",
+      "capital": "Freetown",
+      "aliases": [
+        {
+          "alias": "Republic of Sierra Leone",
+          "normalized": "republic of sierra leone"
+        },
+        {
+          "alias": "Sierra Leone",
+          "normalized": "sierra leone"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Freetown",
+          "normalized": "freetown"
+        }
+      ]
+    },
+    {
+      "cca3": "SLV",
+      "name": "El Salvador",
+      "officialName": "Republic of El Salvador",
+      "capital": "San Salvador",
+      "aliases": [
+        {
+          "alias": "El Salvador",
+          "normalized": "el salvador"
+        },
+        {
+          "alias": "Republic of El Salvador",
+          "normalized": "republic of el salvador"
+        },
+        {
+          "alias": "República de El Salvador",
+          "normalized": "republica de el salvador"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "San Salvador",
+          "normalized": "san salvador"
+        }
+      ]
+    },
+    {
+      "cca3": "SMR",
+      "name": "San Marino",
+      "officialName": "Most Serene Republic of San Marino",
+      "capital": "City of San Marino",
+      "aliases": [
+        {
+          "alias": "Most Serene Republic of San Marino",
+          "normalized": "most serene republic of san marino"
+        },
+        {
+          "alias": "Repubblica di San Marino",
+          "normalized": "repubblica di san marino"
+        },
+        {
+          "alias": "Republic of San Marino",
+          "normalized": "republic of san marino"
+        },
+        {
+          "alias": "San Marino",
+          "normalized": "san marino"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "City of San Marino",
+          "normalized": "city of san marino"
+        }
+      ]
+    },
+    {
+      "cca3": "SOM",
+      "name": "Somalia",
+      "officialName": "Federal Republic of Somalia",
+      "capital": "Mogadishu",
+      "aliases": [
+        {
+          "alias": "aṣ-Ṣūmāl",
+          "normalized": "as sumal"
+        },
+        {
+          "alias": "Federal Republic of Somalia",
+          "normalized": "federal republic of somalia"
+        },
+        {
+          "alias": "Jamhuuriyadda Federaalka Soomaaliya",
+          "normalized": "jamhuuriyadda federaalka soomaaliya"
+        },
+        {
+          "alias": "Jumhūriyyat aṣ-Ṣūmāl al-Fiderāliyya",
+          "normalized": "jumhuriyyat as sumal al fideraliyya"
+        },
+        {
+          "alias": "Somalia",
+          "normalized": "somalia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Mogadishu",
+          "normalized": "mogadishu"
+        }
+      ]
+    },
+    {
+      "cca3": "SRB",
+      "name": "Serbia",
+      "officialName": "Republic of Serbia",
+      "capital": "Belgrade",
+      "aliases": [
+        {
+          "alias": "Republic of Serbia",
+          "normalized": "republic of serbia"
+        },
+        {
+          "alias": "Republika Srbija",
+          "normalized": "republika srbija"
+        },
+        {
+          "alias": "Serbia",
+          "normalized": "serbia"
+        },
+        {
+          "alias": "Srbija",
+          "normalized": "srbija"
+        },
+        {
+          "alias": "Република Србија",
+          "normalized": "република србија"
+        },
+        {
+          "alias": "Србија",
+          "normalized": "србија"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Belgrade",
+          "normalized": "belgrade"
+        }
+      ]
+    },
+    {
+      "cca3": "SSD",
+      "name": "South Sudan",
+      "officialName": "Republic of South Sudan",
+      "capital": "Juba",
+      "aliases": [
+        {
+          "alias": "Republic of South Sudan",
+          "normalized": "republic of south sudan"
+        },
+        {
+          "alias": "South Sudan",
+          "normalized": "south sudan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Juba",
+          "normalized": "juba"
+        }
+      ]
+    },
+    {
+      "cca3": "STP",
+      "name": "São Tomé and Príncipe",
+      "officialName": "Democratic Republic of São Tomé and Príncipe",
+      "capital": "São Tomé",
+      "aliases": [
+        {
+          "alias": "Democratic Republic of São Tomé and Príncipe",
+          "normalized": "democratic republic of sao tome and principe"
+        },
+        {
+          "alias": "República Democrática de São Tomé e Príncipe",
+          "normalized": "republica democratica de sao tome e principe"
+        },
+        {
+          "alias": "Sao Tome",
+          "normalized": "sao tome"
+        },
+        {
+          "alias": "Sao Tome and Principe",
+          "normalized": "sao tome and principe"
+        },
+        {
+          "alias": "São Tomé and Príncipe",
+          "normalized": "sao tome and principe"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "São Tomé",
+          "normalized": "sao tome"
+        }
+      ]
+    },
+    {
+      "cca3": "SUR",
+      "name": "Suriname",
+      "officialName": "Republic of Suriname",
+      "capital": "Paramaribo",
+      "aliases": [
+        {
+          "alias": "Republic of Suriname",
+          "normalized": "republic of suriname"
+        },
+        {
+          "alias": "Republiek Suriname",
+          "normalized": "republiek suriname"
+        },
+        {
+          "alias": "Sarnam",
+          "normalized": "sarnam"
+        },
+        {
+          "alias": "Sranangron",
+          "normalized": "sranangron"
+        },
+        {
+          "alias": "Suriname",
+          "normalized": "suriname"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Paramaribo",
+          "normalized": "paramaribo"
+        }
+      ]
+    },
+    {
+      "cca3": "SVK",
+      "name": "Slovakia",
+      "officialName": "Slovak Republic",
+      "capital": "Bratislava",
+      "aliases": [
+        {
+          "alias": "Slovak Republic",
+          "normalized": "slovak republic"
+        },
+        {
+          "alias": "Slovakia",
+          "normalized": "slovakia"
+        },
+        {
+          "alias": "Slovenská republika",
+          "normalized": "slovenska republika"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bratislava",
+          "normalized": "bratislava"
+        }
+      ]
+    },
+    {
+      "cca3": "SVN",
+      "name": "Slovenia",
+      "officialName": "Republic of Slovenia",
+      "capital": "Ljubljana",
+      "aliases": [
+        {
+          "alias": "Republic of Slovenia",
+          "normalized": "republic of slovenia"
+        },
+        {
+          "alias": "Republika Slovenija",
+          "normalized": "republika slovenija"
+        },
+        {
+          "alias": "Slovenia",
+          "normalized": "slovenia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ljubljana",
+          "normalized": "ljubljana"
+        }
+      ]
+    },
+    {
+      "cca3": "SWE",
+      "name": "Sweden",
+      "officialName": "Kingdom of Sweden",
+      "capital": "Stockholm",
+      "aliases": [
+        {
+          "alias": "Kingdom of Sweden",
+          "normalized": "kingdom of sweden"
+        },
+        {
+          "alias": "Konungariket Sverige",
+          "normalized": "konungariket sverige"
+        },
+        {
+          "alias": "Sweden",
+          "normalized": "sweden"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Stockholm",
+          "normalized": "stockholm"
+        }
+      ]
+    },
+    {
+      "cca3": "SWZ",
+      "name": "Eswatini",
+      "officialName": "Kingdom of Eswatini",
+      "capital": "Lobamba",
+      "aliases": [
+        {
+          "alias": "Eswatini",
+          "normalized": "eswatini"
+        },
+        {
+          "alias": "Kingdom of Eswatini",
+          "normalized": "kingdom of eswatini"
+        },
+        {
+          "alias": "Ngwane",
+          "normalized": "ngwane"
+        },
+        {
+          "alias": "Swatini",
+          "normalized": "swatini"
+        },
+        {
+          "alias": "Swaziland",
+          "normalized": "swaziland"
+        },
+        {
+          "alias": "Umbuso weSwatini",
+          "normalized": "umbuso weswatini"
+        },
+        {
+          "alias": "weSwatini",
+          "normalized": "weswatini"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Lobamba",
+          "normalized": "lobamba"
+        },
+        {
+          "alias": "Mbabane",
+          "normalized": "mbabane"
+        }
+      ]
+    },
+    {
+      "cca3": "SYC",
+      "name": "Seychelles",
+      "officialName": "Republic of Seychelles",
+      "capital": "Victoria",
+      "aliases": [
+        {
+          "alias": "Repiblik Sesel",
+          "normalized": "repiblik sesel"
+        },
+        {
+          "alias": "Republic of Seychelles",
+          "normalized": "republic of seychelles"
+        },
+        {
+          "alias": "République des Seychelles",
+          "normalized": "republique des seychelles"
+        },
+        {
+          "alias": "Seychelles",
+          "normalized": "seychelles"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Victoria",
+          "normalized": "victoria"
+        }
+      ]
+    },
+    {
+      "cca3": "SYR",
+      "name": "Syria",
+      "officialName": "Syrian Arab Republic",
+      "capital": "Damascus",
+      "aliases": [
+        {
+          "alias": "Al-Jumhūrīyah Al-ʻArabīyah As-Sūrīyah",
+          "normalized": "al jumhuriyah al ʻarabiyah as suriyah"
+        },
+        {
+          "alias": "Syria",
+          "normalized": "syria"
+        },
+        {
+          "alias": "Syrian Arab Republic",
+          "normalized": "syrian arab republic"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Damascus",
+          "normalized": "damascus"
+        }
+      ]
+    },
+    {
+      "cca3": "TCD",
+      "name": "Chad",
+      "officialName": "Republic of Chad",
+      "capital": "N'Djamena",
+      "aliases": [
+        {
+          "alias": "Chad",
+          "normalized": "chad"
+        },
+        {
+          "alias": "Republic of Chad",
+          "normalized": "republic of chad"
+        },
+        {
+          "alias": "République du Tchad",
+          "normalized": "republique du tchad"
+        },
+        {
+          "alias": "Tchad",
+          "normalized": "tchad"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "N'Djamena",
+          "normalized": "ndjamena"
+        }
+      ]
+    },
+    {
+      "cca3": "TGO",
+      "name": "Togo",
+      "officialName": "Togolese Republic",
+      "capital": "Lomé",
+      "aliases": [
+        {
+          "alias": "République Togolaise",
+          "normalized": "republique togolaise"
+        },
+        {
+          "alias": "Togo",
+          "normalized": "togo"
+        },
+        {
+          "alias": "Togolese",
+          "normalized": "togolese"
+        },
+        {
+          "alias": "Togolese Republic",
+          "normalized": "togolese republic"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Lomé",
+          "normalized": "lome"
+        }
+      ]
+    },
+    {
+      "cca3": "THA",
+      "name": "Thailand",
+      "officialName": "Kingdom of Thailand",
+      "capital": "Bangkok",
+      "aliases": [
+        {
+          "alias": "Kingdom of Thailand",
+          "normalized": "kingdom of thailand"
+        },
+        {
+          "alias": "Prathet",
+          "normalized": "prathet"
+        },
+        {
+          "alias": "Ratcha Anachak Thai",
+          "normalized": "ratcha anachak thai"
+        },
+        {
+          "alias": "Thai",
+          "normalized": "thai"
+        },
+        {
+          "alias": "Thailand",
+          "normalized": "thailand"
+        },
+        {
+          "alias": "ราชอาณาจักรไทย",
+          "normalized": "ราชอาณาจักรไทย"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bangkok",
+          "normalized": "bangkok"
+        }
+      ]
+    },
+    {
+      "cca3": "TJK",
+      "name": "Tajikistan",
+      "officialName": "Republic of Tajikistan",
+      "capital": "Dushanbe",
+      "aliases": [
+        {
+          "alias": "Çumhuriyi Toçikiston",
+          "normalized": "cumhuriyi tocikiston"
+        },
+        {
+          "alias": "Republic of Tajikistan",
+          "normalized": "republic of tajikistan"
+        },
+        {
+          "alias": "Tajikistan",
+          "normalized": "tajikistan"
+        },
+        {
+          "alias": "Toçikiston",
+          "normalized": "tocikiston"
+        },
+        {
+          "alias": "Ҷумҳурии Тоҷикистон",
+          "normalized": "ҷумҳурии тоҷикистон"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Dushanbe",
+          "normalized": "dushanbe"
+        }
+      ]
+    },
+    {
+      "cca3": "TKM",
+      "name": "Turkmenistan",
+      "officialName": "Turkmenistan",
+      "capital": "Ashgabat",
+      "aliases": [
+        {
+          "alias": "Turkmenistan",
+          "normalized": "turkmenistan"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ashgabat",
+          "normalized": "ashgabat"
+        }
+      ]
+    },
+    {
+      "cca3": "TLS",
+      "name": "Timor-Leste",
+      "officialName": "Democratic Republic of Timor-Leste",
+      "capital": "Dili",
+      "aliases": [
+        {
+          "alias": "Democratic Republic of Timor-Leste",
+          "normalized": "democratic republic of timor leste"
+        },
+        {
+          "alias": "East Timor",
+          "normalized": "east timor"
+        },
+        {
+          "alias": "República Democrática de Timor-Leste",
+          "normalized": "republica democratica de timor leste"
+        },
+        {
+          "alias": "Repúblika Demokrátika Timór-Leste",
+          "normalized": "republika demokratika timor leste"
+        },
+        {
+          "alias": "Timor",
+          "normalized": "timor"
+        },
+        {
+          "alias": "Timor-Leste",
+          "normalized": "timor leste"
+        },
+        {
+          "alias": "Timor Lorosae",
+          "normalized": "timor lorosae"
+        },
+        {
+          "alias": "Timór Lorosa'e",
+          "normalized": "timor lorosae"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Dili",
+          "normalized": "dili"
+        }
+      ]
+    },
+    {
+      "cca3": "TON",
+      "name": "Tonga",
+      "officialName": "Kingdom of Tonga",
+      "capital": "Nuku'alofa",
+      "aliases": [
+        {
+          "alias": "Kingdom of Tonga",
+          "normalized": "kingdom of tonga"
+        },
+        {
+          "alias": "Tonga",
+          "normalized": "tonga"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Nuku'alofa",
+          "normalized": "nukualofa"
+        }
+      ]
+    },
+    {
+      "cca3": "TTO",
+      "name": "Trinidad and Tobago",
+      "officialName": "Republic of Trinidad and Tobago",
+      "capital": "Port of Spain",
+      "aliases": [
+        {
+          "alias": "Republic of Trinidad and Tobago",
+          "normalized": "republic of trinidad and tobago"
+        },
+        {
+          "alias": "Trinidad",
+          "normalized": "trinidad"
+        },
+        {
+          "alias": "Trinidad and Tobago",
+          "normalized": "trinidad and tobago"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Port of Spain",
+          "normalized": "port of spain"
+        }
+      ]
+    },
+    {
+      "cca3": "TUN",
+      "name": "Tunisia",
+      "officialName": "Tunisian Republic",
+      "capital": "Tunis",
+      "aliases": [
+        {
+          "alias": "al-Jumhūriyyah at-Tūnisiyyah",
+          "normalized": "al jumhuriyyah at tunisiyyah"
+        },
+        {
+          "alias": "Republic of Tunisia",
+          "normalized": "republic of tunisia"
+        },
+        {
+          "alias": "Tunisia",
+          "normalized": "tunisia"
+        },
+        {
+          "alias": "Tunisian Republic",
+          "normalized": "tunisian republic"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tunis",
+          "normalized": "tunis"
+        }
+      ]
+    },
+    {
+      "cca3": "TUR",
+      "name": "Türkiye",
+      "officialName": "Republic of Türkiye",
+      "capital": "Ankara",
+      "aliases": [
+        {
+          "alias": "Republic of Turkey",
+          "normalized": "republic of turkey"
+        },
+        {
+          "alias": "Republic of Türkiye",
+          "normalized": "republic of turkiye"
+        },
+        {
+          "alias": "Turkiye",
+          "normalized": "turkiye"
+        },
+        {
+          "alias": "Türkiye",
+          "normalized": "turkiye"
+        },
+        {
+          "alias": "Türkiye Cumhuriyeti",
+          "normalized": "turkiye cumhuriyeti"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Ankara",
+          "normalized": "ankara"
+        }
+      ]
+    },
+    {
+      "cca3": "TUV",
+      "name": "Tuvalu",
+      "officialName": "Tuvalu",
+      "capital": "Funafuti",
+      "aliases": [
+        {
+          "alias": "Tuvalu",
+          "normalized": "tuvalu"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Funafuti",
+          "normalized": "funafuti"
+        }
+      ]
+    },
+    {
+      "cca3": "TWN",
+      "name": "Taiwan",
+      "officialName": "Republic of China (Taiwan)",
+      "capital": "Taipei",
+      "aliases": [
+        {
+          "alias": "Chinese Taipei",
+          "normalized": "chinese taipei"
+        },
+        {
+          "alias": "Republic of China",
+          "normalized": "republic of china"
+        },
+        {
+          "alias": "Republic of China (Taiwan)",
+          "normalized": "republic of china (taiwan)"
+        },
+        {
+          "alias": "Taiwan",
+          "normalized": "taiwan"
+        },
+        {
+          "alias": "Táiwān",
+          "normalized": "taiwan"
+        },
+        {
+          "alias": "Zhōnghuá Mínguó",
+          "normalized": "zhonghua minguo"
+        },
+        {
+          "alias": "中華民國",
+          "normalized": "中華民國"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Taipei",
+          "normalized": "taipei"
+        }
+      ]
+    },
+    {
+      "cca3": "TZA",
+      "name": "Tanzania",
+      "officialName": "United Republic of Tanzania",
+      "capital": "Dodoma",
+      "aliases": [
+        {
+          "alias": "Jamhuri ya Muungano wa Tanzania",
+          "normalized": "jamhuri ya muungano wa tanzania"
+        },
+        {
+          "alias": "Tanzania",
+          "normalized": "tanzania"
+        },
+        {
+          "alias": "Tanzania, United Republic of",
+          "normalized": "tanzania, united republic of"
+        },
+        {
+          "alias": "United Republic of Tanzania",
+          "normalized": "united republic of tanzania"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Dodoma",
+          "normalized": "dodoma"
+        }
+      ]
+    },
+    {
+      "cca3": "UGA",
+      "name": "Uganda",
+      "officialName": "Republic of Uganda",
+      "capital": "Kampala",
+      "aliases": [
+        {
+          "alias": "Jamhuri ya Uganda",
+          "normalized": "jamhuri ya uganda"
+        },
+        {
+          "alias": "Republic of Uganda",
+          "normalized": "republic of uganda"
+        },
+        {
+          "alias": "Uganda",
+          "normalized": "uganda"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kampala",
+          "normalized": "kampala"
+        }
+      ]
+    },
+    {
+      "cca3": "UKR",
+      "name": "Ukraine",
+      "officialName": "Ukraine",
+      "capital": "Kyiv",
+      "aliases": [
+        {
+          "alias": "Ukraine",
+          "normalized": "ukraine"
+        },
+        {
+          "alias": "Ukrayina",
+          "normalized": "ukrayina"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kyiv",
+          "normalized": "kyiv"
+        }
+      ]
+    },
+    {
+      "cca3": "UNK",
+      "name": "Kosovo",
+      "officialName": "Republic of Kosovo",
+      "capital": "Pristina",
+      "aliases": [
+        {
+          "alias": "Kosovo",
+          "normalized": "kosovo"
+        },
+        {
+          "alias": "Republic of Kosovo",
+          "normalized": "republic of kosovo"
+        },
+        {
+          "alias": "Република Косово",
+          "normalized": "република косово"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Pristina",
+          "normalized": "pristina"
+        }
+      ]
+    },
+    {
+      "cca3": "URY",
+      "name": "Uruguay",
+      "officialName": "Oriental Republic of Uruguay",
+      "capital": "Montevideo",
+      "aliases": [
+        {
+          "alias": "Oriental Republic of Uruguay",
+          "normalized": "oriental republic of uruguay"
+        },
+        {
+          "alias": "República Oriental del Uruguay",
+          "normalized": "republica oriental del uruguay"
+        },
+        {
+          "alias": "Uruguay",
+          "normalized": "uruguay"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Montevideo",
+          "normalized": "montevideo"
+        }
+      ]
+    },
+    {
+      "cca3": "USA",
+      "name": "United States",
+      "officialName": "United States of America",
+      "capital": "Washington D.C.",
+      "aliases": [
+        {
+          "alias": "America",
+          "normalized": "america"
+        },
+        {
+          "alias": "United States",
+          "normalized": "united states"
+        },
+        {
+          "alias": "United States of America",
+          "normalized": "united states of america"
+        },
+        {
+          "alias": "US",
+          "normalized": "us"
+        },
+        {
+          "alias": "USA",
+          "normalized": "usa"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Washington D.C.",
+          "normalized": "washington d.c."
+        }
+      ]
+    },
+    {
+      "cca3": "UZB",
+      "name": "Uzbekistan",
+      "officialName": "Republic of Uzbekistan",
+      "capital": "Tashkent",
+      "aliases": [
+        {
+          "alias": "O‘zbekiston Respublikasi",
+          "normalized": "ozbekiston respublikasi"
+        },
+        {
+          "alias": "Republic of Uzbekistan",
+          "normalized": "republic of uzbekistan"
+        },
+        {
+          "alias": "Uzbekistan",
+          "normalized": "uzbekistan"
+        },
+        {
+          "alias": "Ўзбекистон Республикаси",
+          "normalized": "узбекистон республикаси"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Tashkent",
+          "normalized": "tashkent"
+        }
+      ]
+    },
+    {
+      "cca3": "VAT",
+      "name": "Vatican City",
+      "officialName": "Vatican City State",
+      "capital": "Vatican City",
+      "aliases": [
+        {
+          "alias": "Holy See",
+          "normalized": "holy see"
+        },
+        {
+          "alias": "Holy See (Vatican City State)",
+          "normalized": "holy see (vatican city state)"
+        },
+        {
+          "alias": "Stato della Città del Vaticano",
+          "normalized": "stato della citta del vaticano"
+        },
+        {
+          "alias": "Vatican",
+          "normalized": "vatican"
+        },
+        {
+          "alias": "Vatican City",
+          "normalized": "vatican city"
+        },
+        {
+          "alias": "Vatican City State",
+          "normalized": "vatican city state"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Vatican City",
+          "normalized": "vatican city"
+        }
+      ]
+    },
+    {
+      "cca3": "VCT",
+      "name": "Saint Vincent and the Grenadines",
+      "officialName": "Saint Vincent and the Grenadines",
+      "capital": "Kingstown",
+      "aliases": [
+        {
+          "alias": "Saint Vincent",
+          "normalized": "saint vincent"
+        },
+        {
+          "alias": "Saint Vincent and the Grenadines",
+          "normalized": "saint vincent and the grenadines"
+        },
+        {
+          "alias": "St Vincent",
+          "normalized": "st vincent"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Kingstown",
+          "normalized": "kingstown"
+        }
+      ]
+    },
+    {
+      "cca3": "VEN",
+      "name": "Venezuela",
+      "officialName": "Bolivarian Republic of Venezuela",
+      "capital": "Caracas",
+      "aliases": [
+        {
+          "alias": "Bolivarian Republic of Venezuela",
+          "normalized": "bolivarian republic of venezuela"
+        },
+        {
+          "alias": "República Bolivariana de Venezuela",
+          "normalized": "republica bolivariana de venezuela"
+        },
+        {
+          "alias": "Venezuela",
+          "normalized": "venezuela"
+        },
+        {
+          "alias": "Venezuela, Bolivarian Republic of",
+          "normalized": "venezuela, bolivarian republic of"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Caracas",
+          "normalized": "caracas"
+        }
+      ]
+    },
+    {
+      "cca3": "VNM",
+      "name": "Vietnam",
+      "officialName": "Socialist Republic of Vietnam",
+      "capital": "Hanoi",
+      "aliases": [
+        {
+          "alias": "Cộng hòa Xã hội chủ nghĩa Việt Nam",
+          "normalized": "cong hoa xa hoi chu nghia viet nam"
+        },
+        {
+          "alias": "Socialist Republic of Vietnam",
+          "normalized": "socialist republic of vietnam"
+        },
+        {
+          "alias": "Viet Nam",
+          "normalized": "viet nam"
+        },
+        {
+          "alias": "Vietnam",
+          "normalized": "vietnam"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Hanoi",
+          "normalized": "hanoi"
+        }
+      ]
+    },
+    {
+      "cca3": "VUT",
+      "name": "Vanuatu",
+      "officialName": "Republic of Vanuatu",
+      "capital": "Port Vila",
+      "aliases": [
+        {
+          "alias": "Republic of Vanuatu",
+          "normalized": "republic of vanuatu"
+        },
+        {
+          "alias": "République de Vanuatu",
+          "normalized": "republique de vanuatu"
+        },
+        {
+          "alias": "Ripablik blong Vanuatu",
+          "normalized": "ripablik blong vanuatu"
+        },
+        {
+          "alias": "Vanuatu",
+          "normalized": "vanuatu"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Port Vila",
+          "normalized": "port vila"
+        }
+      ]
+    },
+    {
+      "cca3": "WSM",
+      "name": "Samoa",
+      "officialName": "Independent State of Samoa",
+      "capital": "Apia",
+      "aliases": [
+        {
+          "alias": "Independent State of Samoa",
+          "normalized": "independent state of samoa"
+        },
+        {
+          "alias": "Malo Saʻoloto Tutoʻatasi o Sāmoa",
+          "normalized": "malo saʻoloto tutoʻatasi o samoa"
+        },
+        {
+          "alias": "Samoa",
+          "normalized": "samoa"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Apia",
+          "normalized": "apia"
+        }
+      ]
+    },
+    {
+      "cca3": "YEM",
+      "name": "Yemen",
+      "officialName": "Republic of Yemen",
+      "capital": "Sana'a",
+      "aliases": [
+        {
+          "alias": "al-Jumhūriyyah al-Yamaniyyah",
+          "normalized": "al jumhuriyyah al yamaniyyah"
+        },
+        {
+          "alias": "Republic of Yemen",
+          "normalized": "republic of yemen"
+        },
+        {
+          "alias": "Yemen",
+          "normalized": "yemen"
+        },
+        {
+          "alias": "Yemeni Republic",
+          "normalized": "yemeni republic"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Sana'a",
+          "normalized": "sanaa"
+        }
+      ]
+    },
+    {
+      "cca3": "ZAF",
+      "name": "South Africa",
+      "officialName": "Republic of South Africa",
+      "capital": "Pretoria",
+      "aliases": [
+        {
+          "alias": "Republic of South Africa",
+          "normalized": "republic of south africa"
+        },
+        {
+          "alias": "South Africa",
+          "normalized": "south africa"
+        },
+        {
+          "alias": "Suid-Afrika",
+          "normalized": "suid afrika"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Bloemfontein",
+          "normalized": "bloemfontein"
+        },
+        {
+          "alias": "Cape Town",
+          "normalized": "cape town"
+        },
+        {
+          "alias": "Pretoria",
+          "normalized": "pretoria"
+        }
+      ]
+    },
+    {
+      "cca3": "ZMB",
+      "name": "Zambia",
+      "officialName": "Republic of Zambia",
+      "capital": "Lusaka",
+      "aliases": [
+        {
+          "alias": "Republic of Zambia",
+          "normalized": "republic of zambia"
+        },
+        {
+          "alias": "Zambia",
+          "normalized": "zambia"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Lusaka",
+          "normalized": "lusaka"
+        }
+      ]
+    },
+    {
+      "cca3": "ZWE",
+      "name": "Zimbabwe",
+      "officialName": "Republic of Zimbabwe",
+      "capital": "Harare",
+      "aliases": [
+        {
+          "alias": "Republic of Zimbabwe",
+          "normalized": "republic of zimbabwe"
+        },
+        {
+          "alias": "Zimbabwe",
+          "normalized": "zimbabwe"
+        }
+      ],
+      "capitalAliases": [
+        {
+          "alias": "Harare",
+          "normalized": "harare"
+        }
+      ]
+    }
+  ]
+}

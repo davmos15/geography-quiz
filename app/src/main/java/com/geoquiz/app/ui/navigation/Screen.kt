@@ -11,6 +11,10 @@ sealed class Screen(val route: String) {
 
     data object DebugMenu : Screen("debug_menu")
 
+    data object Credits : Screen("credits")
+
+    data object OpenSourceLicences : Screen("open_source_licences")
+
     data object Achievements : Screen("achievements")
 
     data object Stats : Screen("stats")

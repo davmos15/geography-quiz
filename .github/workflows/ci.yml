@@ -21,6 +21,9 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Check published alias table is up to date
+        run: python3 tools/data/export_aliases.py --check
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build, unit test and lint

@@ -40,8 +40,8 @@ where you stopped, commit, and tell me to start a new session.
 
 | Phase | Name | Status | Branch | PR |
 |---|---|---|---|---|
-| 0 | Recon, baseline and agent setup | Done – PR open | `upgrade/p0-baseline` | #3 |
-| 1 | Licensing and IP compliance | Not started | `upgrade/p1-licensing` | |
+| 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
+| 1 | Licensing and IP compliance | Done – PR open | `upgrade/p1-licensing` | #4 |
 | 2 | Code and architecture | Not started | `upgrade/p2-architecture` | |
 | 3 | Game engine and UX foundation | Not started | `upgrade/p3-ux-engine` | |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 1, task 1.1, once the Phase 0 PR is merged. Before 1.1, ask Dav about D7 (keep emoji flags or switch to flag-icons SVGs) and D1 (audience), since 1.1 and 1.5 depend on them.
+> Phase 2, task 2.1, once the Phase 1 PR is merged. Read the Phase 1 session log first (owner actions and the UMP debug note).
 
 ---
 
@@ -130,11 +130,18 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Play Console: create a dedicated support email and replace the current one.
 - [ ] Play Console: decide whether the public developer address can be a business or PO box address.
 - [ ] Play Console: update Data safety form (deletion route added in Phase 1).
-- [ ] Play Console: confirm target audience (13+ vs mixed with children) – see decision D1.
+- [ ] Play Console: set target audience to mixed (includes children under 13) per D1, and complete the Families policy declarations.
 - [ ] Decide on a distinctive app name or subtitle before paid marketing (many apps are called GeoQuiz).
-- [ ] Privacy policy: add a contact email (currently "open an issue on GitHub" with no link), mention Play Billing, and fix "suitable for all ages" vs personalised ads once D1 is decided (Phase 1 drafts the text).
+- [ ] Privacy policy: Phase 1 rewrote it (child-directed ads, UMP, Billing, Reset all data). Replace the GitHub issues contact with the support email (`<!-- TODO(owner) -->` in `docs/privacy-policy.html`). It goes live on geoquiz-app.netlify.app when the Phase 1 PR merges.
+- [ ] Confirm `flag_colors.json` and `flag_elements.json` were authored for GeoQuiz, not copied from another quiz or site; then drop "owner to confirm" in `data/SOURCES.md`.
+- [ ] Record which mledoze/countries release or commit `countries.json` came from (SHA-256 is in `data/SOURCES.md`), or pin it on the next refresh.
+- [ ] AdMob console: publish a GDPR/EEA consent message (Privacy & messaging) so UMP can show a form. Then check on a device with UMP debug geography = EEA whether the Settings "Privacy options" row appears with the under-age tag on.
+- [ ] Play Console: confirm Play Games Services sign-in is acceptable for a mixed-audience app under the Families policy.
+- [ ] Play Games bulk import: check whether it expects `AchievementsIconMappings.csv` or `AchievementsIconsMappings.csv` (byte-identical copies in `store_assets/achievements/`); keep one.
+- [ ] Phase 9: regenerate store images with the Lato scripts and re-upload to Play.
+- [ ] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
 - [ ] App Links (task 2.7): provide the SHA-256 fingerprints of the new upload key and the Play app-signing key so `assetlinks.json` can be hosted on geoquiz-app.netlify.app.
-- [ ] Merge the Phase 0 PR after checking the debug build on a device.
+- [x] Merge the Phase 0 PR after checking the debug build on a device.
 
 ---
 
@@ -190,10 +197,12 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Matching: `NormalizeInputUseCase` (NFD, strip diacritics, lowercase, `-`→space, drop apostrophes, collapse whitespace), then exact SQL match (`CountryDao.kt:24-32`). No fuzzy matching.
 
 **Flags**
-- Emoji only, from `countries.json` `flag` (Unicode regional indicators drawn by the system font). Rendered as `Text` in `J/ui/quiz/components/CountryList.kt:50,77,123` and `J/ui/results/AnswerReviewScreen.kt:183`, only when `show_flags` is on (default off). No image files, no contentDescription.
+- Since Phase 1 (D7): flag-icons 7.5.0 (MIT) SVGs in `app/src/main/assets/flags/<cca3 lower>.svg` (197 + LICENSE, ~1.3 MB raw, ~420 KB in APK), fetched by `tools/flags/fetch_flags.py` (pinned tarball SHA-256). Rendered by `J/ui/components/FlagImage.kt` (Coil 3.1.0 + coil-svg, 4:3, hairline `outlineVariant` border) in `CountryList` and `AnswerReviewScreen`, only when `show_flags` is on. Description is "Flag" for unanswered rows, "Flag of X" once answered. The emoji `flag` column still exists in Room but is not displayed (Phase 2 can drop it).
+- `FlagAssetsPresentTest` hard-codes the 197 filter (also in `fetch_flags.py` and `tools/data/export_aliases.py`); keep them in sync if the country list changes.
 
 **Ads, billing, Play Games**
-- `MobileAds.initialize` in `GeographyQuizApplication.onCreate` with no consent step. No UMP dependency, no `RequestConfiguration`, no child-directed or under-age tags, no max ad content rating. Manifest declares `AD_ID`.
+- Since Phase 1 (D8): `J/data/service/ConsentManager.kt` runs UMP 3.2.0 (`gatherConsent` from `MainActivity.onCreate`, under-age tag) and initialises the Mobile Ads SDK once, after `AdTagging.requestConfiguration()` (TFCD + TFUA + rating G). SDK calls sit behind `ConsentGateway` / `InterstitialAdLoader` (bound in `J/di/AdsModule.kt`) so they are unit-tested. `BannerAd` (Hilt `@EntryPoint`) and `AdManager.preloadInterstitial` wait for `canRequestAds`. The manifest removes `AD_ID` and the three `ACCESS_ADSERVICES_*` permissions (`tools:node="remove"`). UMP 4.0.0 exists; we stayed on 3.x.
+- UMP testing: no debug geography is wired up. To see the form, add `ConsentDebugSettings` (EEA + test device hash from logcat) in `GoogleConsentGateway.requestConsent` behind `BuildConfig.DEBUG`, or add a debug-menu action.
 - `AdManager`: an interstitial is preloaded in `QuizViewModel.init` and shown on every quiz completion, including give-up. No frequency cap. Skipped if `ads_removed`. Banners on the three home screens.
 - Billing: one INAPP product `remove_ads`; restore on resume and from Settings.
 - Achievements: **38** in the `Achievement` enum (`J/domain/model/Achievement.kt`), mapped to IDs in `PlayGamesAchievementIds.kt`. The same list is duplicated in `generate_achievements_zip.py:25-71`. The README says "30+". Local DataStore is the source of truth; `MainActivity` (lines 50-68) re-syncs all unlocks and leaderboard totals once Play Games sign-in succeeds.
@@ -209,20 +218,24 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Existing UI hard-codes English strings. `strings.xml` held only IDs until Phase 0. New UI uses `strings.xml`.
 
 **Settings**
-- 4 switches (timer, flags, country hint, hard mode), Remove Ads / Restore Purchases. No reset data, credits, licences, privacy policy link or consent entry. The quiz screen has its own settings sheet with the same toggles (`QuizScreen.kt:349`).
+- 4 switches (timer, flags, country hint, hard mode), Remove Ads / Restore Purchases. The quiz screen has its own settings sheet with the same toggles (`QuizScreen.kt:349`). The Settings column now scrolls.
+- Since Phase 1: "Data" section with Reset all data (`J/domain/usecase/ResetAllDataUseCase.kt`: Room user tables in one transaction via `TransactionRunner`, achievements DataStore, settings DataStore except `ads_removed`, flag overrides; DataStores provided with `@SettingsStore`/`@AchievementStore` in `J/di/UserDataModule.kt`). "About" section: Credits and licences (`J/ui/credits/CreditsScreen.kt`, route `credits`), Privacy policy (browser), Privacy options (only when UMP requires it). Open-source licences: `J/ui/credits/OpenSourceLicencesScreen.kt` (route `open_source_licences`), AboutLibraries 11.6.3 reading `R.raw.aboutlibraries` generated by the plugin.
 - Debug builds: tap the Settings title 7 times to open the debug menu (feature-flag overrides).
 
 **Tests**
-- `app/src/test`: `CalculateScoreUseCaseTest`, `NormalizeInputUseCaseTest`, `ValidateAnswerUseCaseTest`, `PurchaseActionTest`, `FeatureFlagRepositoryTest`. No `androidTest`, no Room migration, ViewModel or UI tests.
+- `app/src/test`: `CalculateScoreUseCaseTest`, `NormalizeInputUseCaseTest`, `ValidateAnswerUseCaseTest`, `PurchaseActionTest`, `FeatureFlagRepositoryTest`; Phase 1 added `FlagAssetPathTest`, `FlagAssetsPresentTest`, `ConsentManagerTest` (with a reusable `FakeConsentGateway`), `AdManagerTest`, `AdTaggingTest`, `ResetAllDataUseCaseTest`, `SettingsViewModelTest` (64 tests total). No `androidTest`, no Room migration or UI tests.
+- Local builds are slow on this machine (R8 release about 20 min). Sub-agents run `assembleDebug testDebugUnitTest`; the lead runs lint and release once per wave. Running `lintDebug assembleRelease` together once crashed a lint detector; run separately, both pass.
+- `core.autocrlf=true` locally: Git warns LF to CRLF on new files. `tools/fonts/.gitattributes` keeps the font files and OFL byte-exact.
 
 **Licensing recon (0.2)**
-- Flag source: emoji (Unicode), not images. So L4 is about documenting the source, not replacing image files. Glyph rendering is the device's system font.
-- No credits or licences screen, no AboutLibraries/oss-licenses, no in-app ODbL notice. Attribution exists only in `README.md` (Data Sources lines ~129-137, Licence lines 169-171). Natural Earth not used yet.
+- Flag source was emoji (Unicode) until Phase 1; now flag-icons SVGs (see Flags).
+- Phase 1 added the Credits and Open-source licences screens with the in-app ODbL notice. Natural Earth and UN M49 are not used yet; the Credits screen leaves out a maps section until Phase 4 (code comment in `CreditsScreen.kt`).
 - `countries.json` (1.29 MB, 250 entries) matches the mledoze v3-era schema. Version/commit not recorded; it arrived in initial commit `40a5fd3`. `flag_colors.json` and `flag_elements.json` look hand-curated, source undocumented.
 - `generate_store_assets.py` and `generate_achievements_zip.py` use Pillow with system Arial / Arial Bold (Microsoft, proprietary) via `ImageFont.truetype("arialbd.ttf")`. No downloads or external images; all artwork is drawn in code. `store_assets/achievements/` has 38 PNGs plus CSVs; `AchievementsIconMappings.csv` and `AchievementsIconsMappings.csv` both exist (likely a stale duplicate). Launcher icon origin undocumented.
 - Privacy policy (`docs/privacy-policy.html`): says personalised ads via advertising ID, "suitable for all ages" (conflicts with personalised ads and no child tags), deletion = clear data/uninstall, contact = "open an issue on GitHub" (no email, no link). Billing not mentioned. Last updated 17 Feb 2026.
-- No `LICENSE`, `THIRD_PARTY_NOTICES.md` or `SOURCES.md`.
-- README is stale: says version 2.7.0, target API 35, "30+ achievements". No "Data and licences" section.
+- Phase 1 added `LICENSE` (All rights reserved), `THIRD_PARTY_NOTICES.md`, `data/SOURCES.md`, `data/aliases.json` (ODbL, `tools/data/export_aliases.py`, `--check` in CI), `data/README.md`, `data/LICENSE-ODbL.txt`. Every new bundled file needs a `data/SOURCES.md` row and, for dependencies, a `THIRD_PARTY_NOTICES.md` row.
+- Store asset scripts use Lato (OFL, `tools/fonts/`, pinned google/fonts commit 5d3b761); committed PNGs still have Arial text until regenerated in Phase 9. The launcher icon is an original adaptive vector; `mipmap-*dpi` PNGs are 1x1 placeholders.
+- README updated in Phase 1 (2.7.2, API 36, 38 achievements, "Data and licences" section).
 - No "-dle" names or other games' names found in code, strings or store text.
 
 ---
@@ -293,6 +306,8 @@ Status: all tasks 0.1–0.7 done in session 1 (2026-10-07).
 | 1.8 | `licence-auditor` full pass; fix or log every finding | last |
 
 AC: auditor reports no unresolved required items; Credits screen readable with TalkBack and at 200% font; owner actions listed.
+
+Status: 1.1–1.8 done in session 2 (2026-10-07). The auditor's one Required item (AboutLibraries version placeholder) is fixed. TalkBack and 200% font on the new screens still need Dav's device check.
 
 ### Phase 2 – Code and architecture (all items)
 
@@ -399,13 +414,16 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 
 | ID | Decision | Status |
 |---|---|---|
-| D1 | Target audience: 13+ only, or mixed audience including children? Affects ad tagging and Families policy. | Ask Dav (default until answered: treat as mixed audience) |
+| D1 | Target audience: mixed audience including children (Dav, 2026-10-07). | Decided |
 | D2 | Licence for app code: All rights reserved (Dav, 2026-10-07) | Decided |
 | D3 | Map asset format and size budget | Phase 4 decides |
 | D4 | Daily challenge seed: device local date | Decided |
 | D5 | Feature flags: enum `FeatureFlag` + DataStore "feature_flags". Overrides are honoured only in debug builds (`BuildConfig.DEBUG`); release always uses each flag's default. Debug menu opens by tapping the Settings title 7 times (debug builds only). Phase 9 flips approved defaults to on. | Decided (Phase 0) |
 | D6 | `.gitignore` ignores `.claude/*` except `.claude/agents/`, so project agents are versioned but personal settings are not. | Decided (Phase 0) |
-| D7 | Flags are Unicode emoji from `countries.json`, not images. L4 becomes "document the source and decide whether to keep emoji or switch to flag-icons (MIT) SVGs". Emoji glyphs come from each device's font, so they look different across OEMs and cannot be shown as large images for flag-first modes (e.g. 7.3). Ask Dav in Phase 1 whether to switch. | Open |
+| D7 | Flags switch from Unicode emoji to flag-icons (lipis, MIT) SVG images bundled in the APK (Dav, 2026-10-07). Emoji glyphs varied by OEM and could not be shown large. | Decided |
+| D9 | Flag images rendered with Coil 3 (coil-compose + coil-svg, Apache 2.0) from `assets/flags/<cca3>.svg`; files named by cca3 so no Room schema change was needed. Open-source licences via AboutLibraries 11.6.3 (Apache 2.0). Store asset font: Lato (OFL 1.1), because Noto Sans and Inter are variable-only in google/fonts. | Decided (Phase 1) |
+| D10 | Reset all data keeps `ads_removed` (so a paying user doesn't see ads before Play restores the purchase) and the static content tables; everything else the player created is cleared. | Decided (Phase 1) |
+| D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
 
 ---
 
@@ -437,3 +455,20 @@ Each session appends one entry:
   4. TalkBack on, in the Debug menu: each flag row is read as one switch with its label and state.
   5. (Optional) A release build shows no change on the Settings screen when the title is tapped.
 - Next session starts at: Phase 1, task 1.1 (after the Phase 0 PR is merged).
+
+### Session 2 – 2026-10-07 – Phase 1
+- Done: 1.1 (flag-icons SVGs), 1.2 (alias table under ODbL), 1.3 (LICENSE, THIRD_PARTY_NOTICES, data/SOURCES.md, README, privacy policy), 1.4 (Credits + Open-source licences), 1.5 (UMP + child-directed tagging; AD_ID and Privacy Sandbox permissions removed), 1.6 (Reset all data), 1.7 (store scripts on Lato), 1.8 (licence audit; Required item fixed, recommendations applied to docs).
+- Not done / carried over: none in scope. UMP debug geography is not wired (see Codebase facts, Ads). Frequency cap stays in 2.4.
+- Decisions: D1 decided (mixed audience), D7 decided (flag-icons), D8 (treat everyone as child-directed), D9 (Coil, AboutLibraries, Lato), D10 (reset keeps the purchase flag).
+- Owner actions added: support email in the privacy policy; confirm flag_colors/flag_elements authorship; record the mledoze version; AdMob EEA consent message and Privacy options check; Play Games in a Families app; achievements mappings CSV name; regenerate store images in Phase 9; Play Console audience, Families and Data safety updates.
+- Verification: `assembleDebug testDebugUnitTest` (64 tests, 0 failures), `lintDebug` (0 errors, 76 warnings; the new ones are all "newer version available") and `assembleRelease` (R8) passed locally. The `clean` gate was not run locally (about 20 min per R8 build on this machine); CI on the PR is the clean run. Expect lower ad revenue from D8.
+- Manual test checklist (debug build on a device):
+  1. Play one Countries, one Capitals and one Flags quiz end to end, including a letter/word-pattern category. Behaviour matches v2.7.2.
+  2. Settings: turn on "Show flags". In a quiz every row shows a crisp flag image with a thin border, in light and dark theme. With TalkBack, an unanswered row's flag reads "Flag" and an answered one "Flag of <country>". Answer review shows flags too.
+  3. Fresh install, online: banners appear on the home screens once consent completes (G-rated, not personalised). Airplane mode: the app works fully with no banners and no crash.
+  4. Settings, About, Credits and licences: country data (ODbL) with working links, aliases link, flags (MIT) with the "View flag licence" dialog, fonts, artwork. Open-source licences lists the libraries. Check with TalkBack and at 200% font size: everything is readable and scrolls, no clipped text.
+  5. Settings, About, Privacy policy opens the web page (the new text is live only after merge).
+  6. Settings, Data, Reset all data: Cancel does nothing. Reset clears stats, history, challenges, the saved quiz, achievements and settings (timer back on, flags off), shows "All data reset", and Remove Ads stays removed if purchased.
+  7. Tapping the Settings title 7 times still opens the debug menu.
+  8. (Optional) A release build runs a quiz and opens the Open-source licences screen without crashing.
+- Next session starts at: Phase 2, task 2.1 (after the Phase 1 PR is merged).

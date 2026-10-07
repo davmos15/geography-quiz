@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.aboutlibraries)
 }
 
 import java.io.FileInputStream
@@ -99,6 +100,13 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
+    // Coil (flag SVGs from assets)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
+
+    // AboutLibraries (open-source licences screen; the Gradle plugin generates the library list)
+    implementation(libs.aboutlibraries.compose.m3)
+
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
@@ -124,6 +132,9 @@ dependencies {
 
     // Google Mobile Ads
     implementation(libs.play.services.ads)
+
+    // Google User Messaging Platform (consent form, privacy options)
+    implementation(libs.user.messaging.platform)
 
     // Play Games Services
     implementation(libs.play.services.games.v2)

@@ -19,4 +19,9 @@ interface ChallengeDao {
 
     @Query("UPDATE challenges SET myScore = :score, myTotal = :total, myTime = :time, status = 'completed' WHERE id = :id")
     suspend fun updateMyResult(id: String, score: Int, total: Int, time: Int)
+
+    // Reset
+
+    @Query("DELETE FROM challenges")
+    suspend fun deleteAllChallenges()
 }

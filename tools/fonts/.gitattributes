@@ -1,0 +1,4 @@
+# Keep the font files and licence byte-identical to upstream so the
+# SHA-256 checksums in README.md and fetch_fonts.py stay valid on every OS.
+*.ttf binary
+OFL.txt -text

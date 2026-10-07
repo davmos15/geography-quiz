@@ -346,7 +346,7 @@ fun QuizScreen(
                         SettingsToggleRow("Show Timer", "Display count-up timer during quizzes", showTimer) {
                             viewModel.toggleShowTimer()
                         }
-                        SettingsToggleRow("Show Flags", "Show flag emojis next to countries", showFlags) {
+                        SettingsToggleRow("Show Flags", "Show flags next to countries", showFlags) {
                             viewModel.toggleShowFlags()
                         }
                         if (viewModel.quizMode == QuizMode.CAPITALS) {

@@ -71,3 +71,6 @@ nul
 
 # Local Netlify folder
 .netlify
+
+# Kotlin 2 compiler caches
+.kotlin/

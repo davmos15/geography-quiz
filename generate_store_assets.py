@@ -1,11 +1,27 @@
 """Generate Google Play Store assets: icon (512x512) and feature graphic (1024x500)."""
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 import math
 import os
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "store_assets")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Bundled OFL font (see tools/fonts/README.md). No fallback to system fonts.
+FONT_DIR = Path(__file__).resolve().parent / "tools" / "fonts"
+FONT_REGULAR = FONT_DIR / "Lato-Regular.ttf"
+FONT_BOLD = FONT_DIR / "Lato-Bold.ttf"
+
+
+def load_font(path, size):
+    """Load a bundled TrueType font, failing clearly if it is missing."""
+    if not path.is_file():
+        raise SystemExit(
+            f"Font not found: {path}. "
+            "Run `python tools/fonts/fetch_fonts.py` to restore the bundled fonts."
+        )
+    return ImageFont.truetype(str(path), int(size))
 
 # Colors from the app theme
 TEAL = "#00796B"
@@ -67,13 +83,7 @@ def draw_globe(draw, cx, cy, radius, outline_color, fill_color, line_width=2.5):
 
 def draw_question_mark(draw, cx, cy, size, color):
     """Draw a bold question mark centered at (cx, cy)."""
-    try:
-        font = ImageFont.truetype("arialbd.ttf", int(size))
-    except OSError:
-        try:
-            font = ImageFont.truetype("arial.ttf", int(size))
-        except OSError:
-            font = ImageFont.load_default()
+    font = load_font(FONT_BOLD, size)
 
     text = "?"
     bbox = draw.textbbox((0, 0), text, font=font)
@@ -165,15 +175,8 @@ def create_feature_graphic(width=1024, height=500):
     draw_question_mark(draw, globe_cx + int(h * 0.01), globe_cy, h * 0.28, ORANGE)
 
     # App title text
-    try:
-        title_font = ImageFont.truetype("arialbd.ttf", int(h * 0.16))
-    except OSError:
-        title_font = ImageFont.truetype("arial.ttf", int(h * 0.16))
-
-    try:
-        subtitle_font = ImageFont.truetype("arial.ttf", int(h * 0.055))
-    except OSError:
-        subtitle_font = ImageFont.load_default()
+    title_font = load_font(FONT_BOLD, h * 0.16)
+    subtitle_font = load_font(FONT_REGULAR, h * 0.055)
 
     title_x = int(w * 0.42)
 

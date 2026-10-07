@@ -1,6 +1,10 @@
 package com.geoquiz.app.domain.model
 
 import android.net.Uri
+import com.geoquiz.app.domain.challenge.ChallengeLinkInput
+import com.geoquiz.app.domain.challenge.ChallengeLinkParseResult
+import com.geoquiz.app.domain.challenge.ChallengeLinkParser
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 
 data class ChallengeDeepLink(
     val challengeId: String,
@@ -12,65 +16,51 @@ data class ChallengeDeepLink(
     val challengerTime: Int?,
     val quizMode: String = "countries"
 ) {
-    /** Deep link URI for the app's intent filter (geoquiz://challenge) */
-    fun toUri(): Uri {
-        return Uri.Builder()
-            .scheme("geoquiz")
-            .authority("challenge")
-            .appendQueryParameter("id", challengeId)
-            .appendQueryParameter("ct", categoryType)
-            .appendQueryParameter("cv", categoryValue)
-            .appendQueryParameter("name", challengerName)
-            .appendQueryParameter("mode", quizMode)
-            .apply {
-                challengerScore?.let { appendQueryParameter("score", it.toString()) }
-                challengerTotal?.let { appendQueryParameter("total", it.toString()) }
-                challengerTime?.let { appendQueryParameter("time", it.toString()) }
-            }
+    /** Signed deep link URI for the app's intent filter (geoquiz://challenge) */
+    fun toUri(signer: ChallengeLinkSigner = ChallengeLinkSigner.default): Uri =
+        Uri.Builder()
+            .scheme(ChallengeLinkParser.CUSTOM_SCHEME)
+            .authority(ChallengeLinkParser.CUSTOM_HOST)
+            .appendParams(signer)
             .build()
-    }
 
-    /** HTTPS URL for sharing via messaging apps (redirects to the app) */
-    fun toShareUrl(): Uri {
-        return Uri.Builder()
-            .scheme("https")
-            .authority("geoquiz-app.netlify.app")
-            .path("/challenge.html")
-            .appendQueryParameter("id", challengeId)
-            .appendQueryParameter("ct", categoryType)
-            .appendQueryParameter("cv", categoryValue)
-            .appendQueryParameter("name", challengerName)
-            .appendQueryParameter("mode", quizMode)
-            .apply {
-                challengerScore?.let { appendQueryParameter("score", it.toString()) }
-                challengerTotal?.let { appendQueryParameter("total", it.toString()) }
-                challengerTime?.let { appendQueryParameter("time", it.toString()) }
-            }
+    /**
+     * Signed HTTPS URL for sharing via messaging apps. It opens the app directly through a
+     * verified App Link, or the web page that hands over to the app.
+     */
+    fun toShareUrl(signer: ChallengeLinkSigner = ChallengeLinkSigner.default): Uri =
+        Uri.Builder()
+            .scheme(ChallengeLinkParser.HTTPS)
+            .authority(ChallengeLinkParser.WEB_HOST)
+            .path(ChallengeLinkParser.WEB_SHARE_PATH)
+            .appendParams(signer)
             .build()
+
+    private fun Uri.Builder.appendParams(signer: ChallengeLinkSigner): Uri.Builder = apply {
+        ChallengeLinkParser(signer).encode(this@ChallengeDeepLink).forEach { (key, value) ->
+            appendQueryParameter(key, value)
+        }
     }
 
     companion object {
-        fun fromUri(uri: Uri): ChallengeDeepLink? {
-            // Accept both geoquiz://challenge and https://geoquiz-app.netlify.app/challenge.html
-            val isCustomScheme = uri.scheme == "geoquiz" && uri.host == "challenge"
-            val isHttpsScheme = uri.scheme == "https" && uri.host == "geoquiz-app.netlify.app"
-            if (!isCustomScheme && !isHttpsScheme) return null
+        /** Validates an incoming link; never throws. */
+        fun parse(
+            uri: Uri,
+            signer: ChallengeLinkSigner = ChallengeLinkSigner.default
+        ): ChallengeLinkParseResult = ChallengeLinkParser(signer).parse(uri.toChallengeLinkInput())
 
-            val id = uri.getQueryParameter("id") ?: return null
-            val ct = uri.getQueryParameter("ct") ?: return null
-            val cv = uri.getQueryParameter("cv") ?: return null
-            val name = uri.getQueryParameter("name") ?: "Someone"
-
-            return ChallengeDeepLink(
-                challengeId = id,
-                categoryType = ct,
-                categoryValue = cv,
-                challengerName = name,
-                challengerScore = uri.getQueryParameter("score")?.toIntOrNull(),
-                challengerTotal = uri.getQueryParameter("total")?.toIntOrNull(),
-                challengerTime = uri.getQueryParameter("time")?.toIntOrNull(),
-                quizMode = uri.getQueryParameter("mode") ?: "countries"
-            )
+        /** The first value of each query parameter (later duplicates are ignored). */
+        private fun Uri.toChallengeLinkInput(): ChallengeLinkInput {
+            val query = try {
+                buildMap {
+                    for (name in queryParameterNames) {
+                        getQueryParameter(name)?.let { put(name, it) }
+                    }
+                }
+            } catch (_: RuntimeException) {
+                emptyMap() // opaque or malformed URI: the parser reports it as invalid
+            }
+            return ChallengeLinkInput(scheme = scheme, host = host, path = path, query = query)
         }
     }
 }

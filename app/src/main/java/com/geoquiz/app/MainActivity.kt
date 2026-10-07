@@ -3,6 +3,8 @@ package com.geoquiz.app
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,13 +12,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.geoquiz.app.data.PlayGamesLeaderboardIds
 import com.geoquiz.app.data.local.preferences.AchievementRepository
-import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.model.ChallengeDeepLink
-import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.ui.challenges.IncomingChallengeHandler
+import com.geoquiz.app.ui.challenges.IncomingChallengeOutcome
 import com.geoquiz.app.ui.navigation.AppNavigation
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var playGamesService: PlayGamesAchievementService
     @Inject lateinit var achievementRepository: AchievementRepository
-    @Inject lateinit var challengeRepository: ChallengeRepository
+    @Inject lateinit var incomingChallengeHandler: IncomingChallengeHandler
     @Inject lateinit var quizHistoryRepository: QuizHistoryRepository
     @Inject lateinit var billingRepository: BillingRepository
     @Inject lateinit var consentManager: ConsentManager
@@ -43,7 +45,9 @@ class MainActivity : ComponentActivity() {
         billingRepository.connect()
         // Ads stay off until UMP consent allows them (D8 tagging is applied at initialisation)
         consentManager.gatherConsent(this)
-        handleDeepLink(intent?.data)
+        // Only for a fresh launch: after rotation or process death the challenge is already saved
+        // and the back stack restored, so re-handling would navigate (or warn) a second time.
+        if (savedInstanceState == null) handleDeepLink(intent?.data)
         setContent {
             GeographyQuizTheme {
                 AppNavigation(challengeDeepLink = deepLinkChallenge.value)
@@ -91,23 +95,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleDeepLink(uri: Uri?) {
-        val challenge = uri?.let { ChallengeDeepLink.fromUri(it) } ?: return
+        if (uri == null) return
+        val parsed = ChallengeDeepLink.parse(uri)
         lifecycleScope.launch {
-            val displayName = QuizCategory.fromRoute(
-                challenge.categoryType, challenge.categoryValue
-            ).displayName
-            challengeRepository.createIncomingChallenge(
-                id = challenge.challengeId,
-                categoryType = challenge.categoryType,
-                categoryValue = challenge.categoryValue,
-                categoryDisplayName = displayName,
-                quizMode = challenge.quizMode,
-                challengerName = challenge.challengerName,
-                challengerScore = challenge.challengerScore,
-                challengerTotal = challenge.challengerTotal,
-                challengerTime = challenge.challengerTime
-            )
-            deepLinkChallenge.value = challenge
+            when (val outcome = incomingChallengeHandler.handle(parsed)) {
+                is IncomingChallengeOutcome.Accepted -> deepLinkChallenge.value = outcome.link
+                is IncomingChallengeOutcome.Rejected -> {
+                    Log.w(TAG, "Challenge link rejected: ${outcome.reason}")
+                    Toast.makeText(
+                        this@MainActivity, R.string.challenge_link_invalid, Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
         }
+    }
+
+    private companion object {
+        const val TAG = "MainActivity"
     }
 }

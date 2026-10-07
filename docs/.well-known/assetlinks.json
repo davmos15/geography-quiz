@@ -1,0 +1,22 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.geoquiz.app",
+      "sha256_cert_fingerprints": [
+        "05:DE:14:73:C0:B2:17:4A:AE:6C:EF:5F:57:95:CD:B5:AC:0A:3E:28:9B:4B:71:08:8F:ED:24:E5:1D:F1:30:5D"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.geoquiz.app.debug",
+      "sha256_cert_fingerprints": [
+        "CD:0C:E5:E7:D9:72:D6:70:9A:4B:6A:8B:7A:56:16:9C:30:39:DB:36:78:BF:EC:DC:8E:7B:76:60:60:32:96:45"
+      ]
+    }
+  }
+]

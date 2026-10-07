@@ -9,6 +9,7 @@ plugins {
 }
 
 import java.io.FileInputStream
+import java.util.Base64
 import java.util.Properties
 
 val signingPropsFile = rootProject.file("signing.properties")
@@ -16,6 +17,23 @@ val signingProps = Properties()
 if (signingPropsFile.exists()) {
     signingProps.load(FileInputStream(signingPropsFile))
 }
+
+// HMAC key for signed challenge links (base64url). From signing.properties `challengeHmacKey`,
+// else the CHALLENGE_HMAC_KEY environment variable. Debug builds and CI fall back to a fixed
+// dev key; release builds refuse to build without a real one (see the check below).
+val challengeHmacKey: String? =
+    (signingProps.getProperty("challengeHmacKey") ?: System.getenv("CHALLENGE_HMAC_KEY"))
+        ?.trim()?.takeIf { it.isNotEmpty() }
+        ?.also { key ->
+            val bytes = try {
+                Base64.getUrlDecoder().decode(key)
+            } catch (e: IllegalArgumentException) {
+                throw GradleException("challengeHmacKey is not valid base64url: ${e.message}")
+            }
+            if (bytes.size < 16) throw GradleException("challengeHmacKey must decode to at least 16 bytes")
+        }
+// base64url of "geoquiz-DEV-ONLY-challenge-hmac-key-NOT-FOR-RELEASE"
+val devChallengeHmacKey = "Z2VvcXVpei1ERVYtT05MWS1jaGFsbGVuZ2UtaG1hYy1rZXktTk9ULUZPUi1SRUxFQVNF"
 
 android {
     namespace = "com.geoquiz.app"
@@ -40,6 +58,10 @@ android {
         versionName = "2.7.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String", "CHALLENGE_HMAC_KEY", "\"${challengeHmacKey ?: devChallengeHmacKey}\""
+        )
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -97,6 +119,21 @@ android {
                 "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
                 "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
                 "--add-opens=java.base/java.io=ALL-UNNAMED"
+            )
+        }
+    }
+}
+
+// A release build must not ship the dev challenge key. Checked when a release task actually
+// runs, so debug-only builds and CI work without the key.
+val requireChallengeKeyForRelease = challengeHmacKey == null
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    doFirst {
+        if (requireChallengeKeyForRelease) {
+            throw GradleException(
+                "No challenge link HMAC key configured for the release build. Add " +
+                    "challengeHmacKey=<base64url key> to signing.properties or set the " +
+                    "CHALLENGE_HMAC_KEY environment variable."
             )
         }
     }

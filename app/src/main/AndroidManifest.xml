@@ -53,6 +53,17 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="geoquiz" android:host="challenge" />
             </intent-filter>
+            <!-- Verified App Link for shared challenge URLs (/challenge.html and /challenge).
+                 Verification needs docs/.well-known/assetlinks.json on the host to list this
+                 package's signing certificate. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="geoquiz-app.netlify.app" />
+                <data android:pathPrefix="/challenge" />
+            </intent-filter>
         </activity>
     </application>
 

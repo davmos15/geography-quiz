@@ -191,5 +191,96 @@ sealed class QuizCategory {
         } catch (_: Exception) {
             AllCountries
         }
+
+        private val LETTER_VALUE = Regex("[A-Z]")
+        private val PLACE_VALUE = Regex("[A-Za-z][A-Za-z .,'&-]{0,39}")
+        private val WORD_VALUE = Regex("[A-Za-z]{1,20}")
+        private val LENGTH_RANGE_VALUE = Regex("(\\d{1,2})-(\\d{1,2})")
+        private val WORD_COUNT_VALUE = Regex("-?[1-9]")
+        private val COLOUR_VALUE = Regex("[a-z]{1,20}")
+        private val ELEMENT_VALUE = Regex("[a-z_]{1,30}")
+        private const val NO_VALUE = "_"
+        private const val MAX_NAME_LENGTH = 60
+        private const val MAX_FLAG_COLOURS = 12
+
+        /**
+         * Strict counterpart of [fromRoute] for untrusted input such as challenge links:
+         * returns null instead of falling back to [AllCountries] when [type] is unknown or
+         * [value] is not in the shape the app itself produces. It checks the shape only;
+         * whether a region or flag colour exists in the data is up to the caller.
+         */
+        fun fromRouteOrNull(type: String, value: String): QuizCategory? {
+            fun noValue(category: QuizCategory) = if (value == NO_VALUE) category else null
+            return when (type) {
+                "all" -> noValue(AllCountries)
+                "startletter" -> if (LETTER_VALUE.matches(value)) StartingWithLetter(value[0]) else null
+                "endletter" -> if (LETTER_VALUE.matches(value)) EndingWithLetter(value[0]) else null
+                "containletter" -> if (LETTER_VALUE.matches(value)) ContainingLetter(value[0]) else null
+                "region" -> if (PLACE_VALUE.matches(value)) ByRegion(value) else null
+                "subregion" -> if (PLACE_VALUE.matches(value)) BySubregion(value) else null
+                "lengthrange" -> LENGTH_RANGE_VALUE.matchEntire(value)?.let { match ->
+                    val min = match.groupValues[1].toInt()
+                    val max = match.groupValues[2].toInt()
+                    if (min in 1..max && max <= MAX_NAME_LENGTH) {
+                        ByNameLengthRange(min, max, lengthRangeLabel(min, max))
+                    } else null
+                }
+                "wordcount" -> if (WORD_COUNT_VALUE.matches(value)) {
+                    val count = value.toInt()
+                    ByWordCount(count, wordCountLabel(count))
+                } else null
+                "endsuffix" -> if (WORD_VALUE.matches(value)) EndingWithSuffix(value) else null
+                "containword" -> if (WORD_VALUE.matches(value)) ContainingWord(value) else null
+                "doubleletter" -> noValue(DoubleLetter)
+                "consonantcluster" -> noValue(ConsonantCluster)
+                "repeatedletter3" -> noValue(RepeatedLetter3)
+                "repeatedletter4" -> noValue(RepeatedLetter4)
+                "startsendssame" -> noValue(StartsEndsSame)
+                "allvowels" -> noValue(AllVowelsPresent)
+                "island" -> noValue(IslandCountries)
+                "uniqueletters" -> noValue(UniqueLetters)
+                "cardinal" -> noValue(CardinalDirection)
+                "capitalmatches" -> noValue(CapitalMatchesCountry)
+                "endvowel" -> noValue(EndingInVowel)
+                "singlevowel" -> noValue(SingleVowelType)
+                "flagcolor" -> if (COLOUR_VALUE.matches(value)) FlagSingleColor(value) else null
+                "flagcombo" -> {
+                    val colours = value.split("+")
+                    val wellFormed = colours.size in 2..3 &&
+                        colours.all { COLOUR_VALUE.matches(it) } &&
+                        colours.distinct().size == colours.size &&
+                        colours == colours.sorted()
+                    if (wellFormed) FlagColorCombo(colours) else null
+                }
+                "flagcount" -> value.takeIf { it.length <= 2 }?.toIntOrNull()
+                    ?.takeIf { it in 1..MAX_FLAG_COLOURS }
+                    ?.let { FlagColorCount(it) }
+                "flagelement" -> if (ELEMENT_VALUE.matches(value)) FlagElement(value) else null
+                else -> null
+            }
+        }
+
+        /** Labels as the category list shows them, so a challenge never has a blank title. */
+        private fun lengthRangeLabel(min: Int, max: Int): String =
+            if (min == max) "$min letters" else "$min–$max letters"
+
+        private fun wordCountLabel(count: Int): String = when {
+            count == 1 -> "One-Word Names"
+            count == 2 -> "Two-Word Names"
+            count == -2 -> "Multi-Word Names"
+            count < 0 -> "${-count}+ Words"
+            else -> "$count Words"
+        }
+    }
+
+    val isFlagCategory: Boolean
+        get() = this is FlagSingleColor || this is FlagColorCombo ||
+            this is FlagColorCount || this is FlagElement
+
+    /** Whether the app offers this category in [mode]; challenge links must match. */
+    fun isOfferedIn(mode: QuizMode): Boolean = when {
+        isFlagCategory -> mode == QuizMode.FLAGS
+        this is CapitalMatchesCountry -> mode == QuizMode.CAPITALS
+        else -> mode == QuizMode.COUNTRIES || mode == QuizMode.CAPITALS
     }
 }

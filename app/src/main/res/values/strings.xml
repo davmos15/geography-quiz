@@ -86,4 +86,5 @@
     <string name="result_missing_title">This result is no longer available</string>
     <string name="result_missing_body">It may have been replaced by a newer quiz or cleared when your data was reset.</string>
     <string name="action_go_home">Go home</string>
+    <string name="challenge_link_invalid">This challenge link isn\'t valid. Ask your friend to share it again.</string>
 </resources>

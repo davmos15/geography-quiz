@@ -100,9 +100,15 @@
             + '&cv=' + encodeURIComponent(cv)
             + '&name=' + encodeURIComponent(name)
             + '&mode=' + encodeURIComponent(mode);
-        if (score) deepLink += '&score=' + score;
-        if (total) deepLink += '&total=' + total;
-        if (time) deepLink += '&time=' + time;
+        if (score) deepLink += '&score=' + encodeURIComponent(score);
+        if (total) deepLink += '&total=' + encodeURIComponent(total);
+        if (time) deepLink += '&time=' + encodeURIComponent(time);
+        // Signed links: pass the version and signature through unchanged. The app checks the
+        // signature over the fields above, so they must stay byte-for-byte as received.
+        const v = params.get('v');
+        const sig = params.get('sig');
+        if (v) deepLink += '&v=' + encodeURIComponent(v);
+        if (sig) deepLink += '&sig=' + encodeURIComponent(sig);
 
         // Display challenge info
         if (score && total) {

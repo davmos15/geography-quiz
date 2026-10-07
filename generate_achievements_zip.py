@@ -14,11 +14,25 @@ import io
 import math
 import os
 import zipfile
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "store_assets", "achievements")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Bundled OFL font (see tools/fonts/README.md). No fallback to system fonts.
+FONT_BOLD = Path(__file__).resolve().parent / "tools" / "fonts" / "Lato-Bold.ttf"
+
+
+def load_bold_font(size):
+    """Load the bundled bold font, failing clearly if it is missing."""
+    if not FONT_BOLD.is_file():
+        raise SystemExit(
+            f"Font not found: {FONT_BOLD}. "
+            "Run `python tools/fonts/fetch_fonts.py` to restore the bundled fonts."
+        )
+    return ImageFont.truetype(str(FONT_BOLD), int(size))
 
 # ── Achievement data (matches Achievement.kt) ──────────────────────────────
 
@@ -310,10 +324,7 @@ def draw_island_symbol(draw, cx, cy, size, color):
 
 def draw_letter_symbol(draw, cx, cy, size, color):
     """Draw ABC letters."""
-    try:
-        font = ImageFont.truetype("arialbd.ttf", int(size * 0.55))
-    except OSError:
-        font = ImageFont.truetype("arial.ttf", int(size * 0.55))
+    font = load_bold_font(size * 0.55)
     text = "Aa"
     bbox = draw.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
@@ -341,10 +352,7 @@ def draw_pattern_symbol(draw, cx, cy, size, color):
 
 def draw_hundred_symbol(draw, cx, cy, size, color):
     """Draw '100' text."""
-    try:
-        font = ImageFont.truetype("arialbd.ttf", int(size * 0.5))
-    except OSError:
-        font = ImageFont.truetype("arial.ttf", int(size * 0.5))
+    font = load_bold_font(size * 0.5)
     text = "100"
     bbox = draw.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
@@ -467,10 +475,7 @@ def create_achievement_icon(achievement_id, title, tier, theme, size=512):
     draw_fn(draw, cx, symbol_cy, symbol_size, symbol_color)
 
     # Tier label at the bottom
-    try:
-        tier_font = ImageFont.truetype("arialbd.ttf", int(s * 0.055))
-    except OSError:
-        tier_font = ImageFont.truetype("arial.ttf", int(s * 0.055))
+    tier_font = load_bold_font(s * 0.055)
 
     tier_text = tier
     bbox = draw.textbbox((0, 0), tier_text, font=tier_font)

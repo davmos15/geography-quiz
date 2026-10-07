@@ -9,6 +9,7 @@ import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.domain.repository.CompletedQuizRepository
@@ -18,10 +19,13 @@ import javax.inject.Inject
 
 /**
  * Finishes a quiz: scores it with its mode's scoring rule, saves the [CompletedQuiz] that Results and Answer review read,
- * clears the "Resume quiz" save, and records achievements, history and leaderboard scores.
+ * clears the "Resume quiz" save (except after a practice quiz), and records achievements,
+ * history and leaderboard scores.
  *
  * Easy quizzes are recorded in history (so they show in stats and mastery stars) but unlock no
  * achievements and submit no leaderboard scores (D16, [Difficulty.countsForAchievements]).
+ * Practice quizzes ([QuizCategory.Practice]) record nothing beyond the result and leave any
+ * "Resume quiz" save alone (D21, [QuizCategory.isRecorded]).
  *
  * Achievements the quiz unlocks are stored with the result ([CompletedQuiz.newAchievementIds]) so
  * Results can show them.
@@ -99,6 +103,12 @@ class CompleteQuizUseCase @Inject constructor(
             val existing = completedQuizRepository.get(request.resultId) ?: completed
             return@withContext Outcome(existing, emptyList(), newlyRecorded = false)
         }
+
+        // D21: a practice quiz ("Practise the ones you missed") keeps its result for Results and
+        // Answer review only: no achievements, Play Games, history, stats, mastery or leaderboards.
+        // It never writes a "Resume quiz" save, so it leaves any save (from another quiz) alone.
+        if (!category.isRecorded) return@withContext Outcome(completed, emptyList(), newlyRecorded = true)
+
         savedQuizRepository.clearSavedQuiz()
 
         val counts = request.difficulty.countsForAchievements

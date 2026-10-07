@@ -109,7 +109,8 @@ private const val DISTRACTOR_COUNT = CHOICE_OPTION_COUNT - 1
  * Countries Easy, "spot the member": the target plus three countries not in the set, from the
  * target's region where possible. When fewer than three outsiders exist (All countries, or a
  * near-complete set), shows the target's flag instead, with other set members as distractors
- * (topped up with outsiders if the set is tiny).
+ * (topped up with outsiders if the set is tiny). A practice set ([QuizCategory.Practice], 3.5c)
+ * always uses the flag prompt: "which of these did you miss" would test memory, not geography.
  */
 object CountriesChoiceGenerator : ChoiceQuestionGenerator {
     override fun question(
@@ -121,7 +122,7 @@ object CountriesChoiceGenerator : ChoiceQuestionGenerator {
     ): ChoiceQuestion {
         val setCodes = quizSet.mapTo(HashSet()) { it.code }
         val outsiders = allCountries.filter { it.code !in setCodes }.distinctBy { it.code }
-        if (outsiders.size >= DISTRACTOR_COUNT) {
+        if (category !is QuizCategory.Practice && outsiders.size >= DISTRACTOR_COUNT) {
             val distractors = pickSameRegionFirst(target, outsiders, DISTRACTOR_COUNT, random)
             return buildQuestion(target, distractors, ChoicePrompt.InSet(category.displayName), random) { it.name }
         }

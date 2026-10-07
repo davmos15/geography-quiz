@@ -372,8 +372,12 @@ class QuizViewModel @Inject constructor(
      * Saves the "Resume quiz" record in Room: answered codes, time and tier only. At Easy the
      * missed items and question order are not kept, so a resumed Easy quiz asks the missed items
      * again (see [prepareChoices]).
+     *
+     * A practice quiz is never saved here (D21), so "Resume quiz" never shows one; the
+     * SavedStateHandle still keeps its progress across process death.
      */
     private fun saveQuizState() {
+        if (!category.isRecorded) return
         val current = _uiState.value
         if (current is QuizUiState.Active && !current.state.isComplete && current.state.answeredCountries.isNotEmpty()) {
             viewModelScope.launch {

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,6 +67,11 @@ fun ResultsScreen(
     onPlayAgain: (quizMode: String, categoryType: String, categoryValue: String, difficultyId: String) -> Unit,
     onGoHome: (quizMode: String) -> Unit,
     onViewAnswers: (resultId: String) -> Unit,
+    /**
+     * "Practise the ones you missed" (3.5c): a quiz of the same mode and tier with exactly the
+     * missed items, as a [com.geoquiz.app.domain.model.QuizCategory.Practice] route.
+     */
+    onPractiseMissed: (quizMode: String, categoryType: String, categoryValue: String, difficultyId: String) -> Unit,
     viewModel: ResultsViewModel = hiltViewModel()
 ) {
     when (val state = viewModel.uiState.collectAsStateWithLifecycle().value) {
@@ -73,6 +79,7 @@ fun ResultsScreen(
         ResultsUiState.Missing -> ResultMissing(onGoHome = { onGoHome(QuizMode.COUNTRIES.id) })
         is ResultsUiState.Loaded -> {
             val result = state.result
+            val practice = result.practiceCategoryOrNull()
             InterstitialAfterFirstFrame(viewModel)
             ResultsContent(
                 score = result.score,
@@ -80,12 +87,26 @@ fun ResultsScreen(
                 totalCountries = result.total,
                 timeElapsedSeconds = result.timeSeconds,
                 perfectBonus = result.perfectBonus,
-                categoryName = result.categoryName,
+                // A practice quiz shows its title from strings.xml (D21: it is not shared either).
+                categoryName = if (result.isPractice) {
+                    stringResource(R.string.practice_quiz_title)
+                } else {
+                    result.categoryName
+                },
                 categoryType = result.categoryType,
                 categoryValue = result.categoryValue,
                 quizMode = result.quizModeId,
                 incorrectGuesses = result.incorrectGuesses,
                 newAchievements = result.newAchievements,
+                isPractice = result.isPractice,
+                missedCount = practice?.codes?.size ?: 0,
+                onPractiseMissed = {
+                    if (practice != null) {
+                        onPractiseMissed(
+                            result.quizModeId, practice.typeKey, practice.valueKey, result.difficulty.id
+                        )
+                    }
+                },
                 onPlayAgain = {
                     onPlayAgain(result.quizModeId, result.categoryType, result.categoryValue, result.difficulty.id)
                 },
@@ -127,6 +148,9 @@ private fun ResultsContent(
     quizMode: String,
     incorrectGuesses: Int,
     newAchievements: List<Achievement>,
+    isPractice: Boolean,
+    missedCount: Int,
+    onPractiseMissed: () -> Unit,
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
     onViewAnswers: () -> Unit,
@@ -260,8 +284,16 @@ private fun ResultsContent(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Share buttons
-            Row(
+            // D21: a practice quiz is not recorded, so it is not shared or sent as a challenge.
+            if (isPractice) {
+                Text(
+                    text = stringResource(R.string.results_practice_not_recorded),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
+            } else Row(
                 modifier = Modifier.fillMaxWidth(0.8f),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -325,6 +357,11 @@ private fun ResultsContent(
                 Text("Play Again")
             }
 
+            if (missedCount > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                PractiseMissedButton(missedCount = missedCount, onClick = onPractiseMissed)
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
@@ -334,6 +371,29 @@ private fun ResultsContent(
                 Text("Home")
             }
         }
+    }
+}
+
+/**
+ * "Practise the ones you missed (3)": starts a quiz of exactly the missed items. No fixed height,
+ * so the label wraps at large font sizes; Material buttons keep the 48 dp touch target.
+ */
+@Composable
+private fun PractiseMissedButton(missedCount: Int, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(0.8f)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Replay,
+            // Decorative: the label says it.
+            contentDescription = null,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+        Text(
+            text = pluralStringResource(R.plurals.results_practise_missed, missedCount, missedCount),
+            textAlign = TextAlign.Center
+        )
     }
 }
 

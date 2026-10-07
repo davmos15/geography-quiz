@@ -275,4 +275,43 @@ class CompleteQuizUseCaseTest {
         }
         verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.OVERALL, 120L) }
     }
+
+    // Practise the ones you missed (3.5c, D21)
+
+    @Test
+    fun `a practice quiz saves its result but records nothing else and keeps the resume save, at every tier`() = runTest {
+        val practice = QuizCategory.Practice(listOf("FRA", "DEU", "AUT"))
+        for ((index, difficulty) in Difficulty.entries.withIndex()) {
+            val practiceRequest = request(id = "practice-$index", difficulty = difficulty).copy(
+                state = state.copy(quiz = Quiz(category = practice, countries = TestQuizData.THREE)),
+                routeCategoryType = practice.typeKey,
+                routeCategoryValue = practice.valueKey,
+                challengeId = null
+            )
+
+            val outcome = useCase(practiceRequest)
+
+            assertTrue(outcome.newlyRecorded)
+            assertTrue(outcome.newAchievements.isEmpty())
+            val stored = completedQuizzes.get("practice-$index")!!
+            assertEquals(outcome.completedQuiz, stored)
+            assertEquals("practice", stored.categoryType)
+            assertEquals("FRA+DEU+AUT", stored.categoryValue)
+            assertTrue(stored.isPractice)
+            assertEquals(difficulty, stored.difficulty)
+            assertEquals(listOf("FRA", "AUT"), stored.answeredCodes)
+            assertEquals(listOf("DEU"), stored.missedCodes())
+            assertTrue(stored.newAchievementIds.isEmpty())
+        }
+
+        coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) {
+            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        }
+        coVerify(exactly = 0) { quizHistoryRepository.getTotalCorrectAnswersSync() }
+        verify(exactly = 0) { playGames.unlockAchievement(any()) }
+        verify(exactly = 0) { playGames.submitScore(any(), any()) }
+        // A practice quiz never writes a resume save, so one that exists belongs to another quiz.
+        coVerify(exactly = 0) { savedQuizRepository.clearSavedQuiz() }
+    }
 }

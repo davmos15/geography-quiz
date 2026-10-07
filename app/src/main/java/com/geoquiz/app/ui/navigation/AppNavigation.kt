@@ -298,6 +298,14 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                     },
                     onViewAnswers = { resultId ->
                         navController.navigate(Screen.AnswerReview.createRoute(resultId))
+                    },
+                    // 3.5c: same back stack behaviour as Play Again.
+                    onPractiseMissed = { quizMode, categoryType, categoryValue, difficulty ->
+                        navController.navigate(
+                            Screen.Quiz.createRoute(quizMode, categoryType, categoryValue, difficulty = difficulty)
+                        ) {
+                            popUpTo(Screen.Results.route) { inclusive = true }
+                        }
                     }
                 )
             }

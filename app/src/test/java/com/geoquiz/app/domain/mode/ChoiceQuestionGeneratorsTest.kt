@@ -72,6 +72,22 @@ class ChoiceQuestionGeneratorsTest {
     }
 
     @Test
+    fun `countries practice always uses the flag prompt even with outsiders`() {
+        // 3.5c: "which of these did you miss" would test memory, not geography.
+        val practice = QuizCategory.Practice(europeSet.map { it.code })
+        val setCodes = europeSet.map { it.code }.toSet()
+        for (seed in seeds) {
+            val question = CountriesChoiceGenerator.question(france, europeSet, all, practice, Random(seed))
+
+            assertWellFormed(question, france)
+            assertEquals(ChoicePrompt.FlagOf("FRA"), question.prompt)
+            assertEquals("France", question.correctOption.label)
+            // The other practice items come first, topped up with an outsider.
+            assertTrue(question.codes().containsAll(setCodes))
+        }
+    }
+
+    @Test
     fun `countries falls back to a flag prompt with set members when there are no outsiders`() {
         val allCategory = QuizCategory.AllCountries
         for (seed in seeds) {

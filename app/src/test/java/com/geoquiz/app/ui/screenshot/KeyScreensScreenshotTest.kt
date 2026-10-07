@@ -126,6 +126,7 @@ class KeyScreensScreenshotTest {
                 onPlayAgain = { _, _, _, _ -> },
                 onGoHome = {},
                 onViewAnswers = {},
+                onPractiseMissed = { _, _, _, _ -> },
                 viewModel = viewModel
             )
         }

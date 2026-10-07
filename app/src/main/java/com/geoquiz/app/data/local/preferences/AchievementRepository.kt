@@ -94,6 +94,8 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.FlagColorCombo -> "flagcombo"
                 is QuizCategory.FlagColorCount -> "flagcount"
                 is QuizCategory.FlagElement -> "flagelement"
+                // Never reached: practice quizzes record no achievements (D21, CompleteQuizUseCase).
+                is QuizCategory.Practice -> "practice"
             }
             val groups = (prefs[CATEGORY_GROUPS_KEY] ?: "").let {
                 if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()

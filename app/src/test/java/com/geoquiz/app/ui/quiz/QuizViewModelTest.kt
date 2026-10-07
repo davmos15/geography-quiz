@@ -919,4 +919,80 @@ class QuizViewModelTest {
 
         assertEquals(listOf("FRA", "AUT"), second.quizState().recentCorrect)
     }
+
+    // Practise the ones you missed (3.5c, D21)
+
+    /** Austria then France: a practice set in quiz order (not the repository's order). */
+    private val practice = QuizCategory.Practice(listOf("AUT", "FRA"))
+    private val practiceItems = listOf(TestQuizData.AUSTRIA, TestQuizData.FRANCE)
+
+    private fun practiceHandle(quizMode: String = "countries", difficulty: Difficulty? = Difficulty.HARD) =
+        routeHandle(
+            quizMode = quizMode,
+            categoryType = practice.typeKey,
+            categoryValue = practice.valueKey,
+            difficulty = difficulty
+        )
+
+    @Test
+    fun `a practice route loads exactly its items at the given tier in every mode`() {
+        coEvery { getCountriesForQuiz(practice) } returns practiceItems
+        coEvery { getCountriesForCapitalQuiz(practice) } returns practiceItems
+        defaultDifficulty(Difficulty.NORMAL)
+
+        for (mode in listOf("countries", "capitals", "flags")) {
+            for (difficulty in Difficulty.entries) {
+                val vm = viewModel(practiceHandle(quizMode = mode, difficulty = difficulty))
+
+                assertEquals("$mode $difficulty", practice, vm.category)
+                assertEquals("$mode $difficulty", difficulty, vm.difficulty.value)
+                assertEquals("$mode $difficulty", practiceItems, vm.quizState().quiz.countries)
+                if (difficulty == Difficulty.EASY) {
+                    assertTrue(vm.quizState().choice!!.targetCode in practice.codes)
+                }
+            }
+        }
+        coVerify(atLeast = 1) { getCountriesForCapitalQuiz(practice) }
+        coVerify(exactly = 0) { getCountriesForFlagQuiz(any()) }
+    }
+
+    @Test
+    fun `a practice quiz writes no resume save but survives process death`() {
+        coEvery { getCountriesForQuiz(practice) } returns practiceItems
+        val handle = practiceHandle()
+        val first = viewModel(handle)
+        first.answer("France")
+
+        first.onBackgrounded()
+        runCurrent()
+
+        coVerify(exactly = 0) { savedQuizRepository.saveQuizState(any(), any(), any(), any(), any(), any()) }
+        val second = viewModel(afterProcessDeath(handle))
+        assertEquals(practice, second.category)
+        assertEquals(Difficulty.HARD, second.difficulty.value)
+        assertEquals(setOf("FRA"), second.quizState().answeredCountries)
+        assertTrue(second.quizState().isPaused)
+    }
+
+    @Test
+    fun `finishing a practice quiz keeps the result but records no history or achievements`() {
+        coEvery { getCountriesForQuiz(practice) } returns practiceItems
+        val vm = viewModel(practiceHandle(difficulty = Difficulty.NORMAL))
+        vm.answer("Austria")
+
+        vm.onGiveUp()
+        runCurrent()
+
+        val stored = completedQuizzes.stored!!
+        assertEquals(QuizCompletion.Step.NAVIGATE, vm.completion.value?.step)
+        assertTrue(stored.isPractice)
+        assertEquals(Difficulty.NORMAL, stored.difficulty)
+        assertEquals(listOf("AUT", "FRA"), stored.countryCodes)
+        assertEquals(listOf("FRA"), stored.missedCodes())
+        coVerify(exactly = 0) {
+            quizHistoryRepository.recordQuizResult(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        }
+        coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { playGames.submitScore(any(), any()) }
+    }
 }

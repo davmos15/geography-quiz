@@ -229,4 +229,14 @@
         <item quantity="one">New achievement</item>
         <item quantity="other">New achievements</item>
     </plurals>
+    <!-- Practise the ones you missed (3.5c). "Practise" is the verb (Australian spelling). -->
+    <!-- Title of a quiz made of the items missed in the previous quiz; keep in step with QuizCategory.Practice.displayName -->
+    <string name="practice_quiz_title">Practise your misses</string>
+    <!-- Results button; %1$d is the number of missed items, e.g. "Practise the ones you missed (3)" -->
+    <plurals name="results_practise_missed">
+        <item quantity="one">Practise the one you missed</item>
+        <item quantity="other">Practise the ones you missed (%1$d)</item>
+    </plurals>
+    <!-- Results, shown for a practice quiz instead of Share and Challenge -->
+    <string name="results_practice_not_recorded">Practice quizzes don’t count towards your stats or achievements.</string>
 </resources>

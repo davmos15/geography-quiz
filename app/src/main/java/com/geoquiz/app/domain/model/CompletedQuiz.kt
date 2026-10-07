@@ -56,4 +56,22 @@ data class CompletedQuiz(
 
     val category: QuizCategory
         get() = QuizCategory.fromRoute(categoryType, categoryValue)
+
+    /** True for a "Practise the ones you missed" quiz (3.5c), which is not recorded (D21). */
+    val isPractice: Boolean
+        get() = categoryType == QuizCategory.Practice.TYPE_KEY
+
+    /**
+     * Every item not answered correctly, in quiz order: typed answers never given (including
+     * leftovers after giving up or striking out) and Easy items picked wrongly. Empty for a
+     * perfect quiz.
+     */
+    fun missedCodes(): List<String> {
+        val answered = answeredCodes.toSet()
+        return countryCodes.filter { it !in answered }.distinct()
+    }
+
+    /** A practice quiz of exactly the [missedCodes], or null when nothing was missed. */
+    fun practiceCategoryOrNull(): QuizCategory.Practice? =
+        missedCodes().takeIf { it.isNotEmpty() }?.let { QuizCategory.Practice(it) }
 }

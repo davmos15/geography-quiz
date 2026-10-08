@@ -68,7 +68,7 @@ private const val DEBUG_MENU_TAPS = 7
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onOpenCredits: () -> Unit = {},
     onOpenDebugMenu: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel()
@@ -137,11 +137,14 @@ fun SettingsScreen(
                     } else {
                         Modifier
                     }
-                    Text("Settings", modifier = titleModifier.semantics { heading() })
+                    Text(stringResource(R.string.nav_settings), modifier = titleModifier.semantics { heading() })
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    // No back arrow when shown as a bottom navigation tab
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        }
                     }
                 }
             )

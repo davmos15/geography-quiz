@@ -1,24 +1,16 @@
 package com.geoquiz.app.ui.navigation
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,48 +19,53 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.geoquiz.app.BuildConfig
 import com.geoquiz.app.domain.model.ChallengeDeepLink
-import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.achievements.AchievementsScreen
-import com.geoquiz.app.ui.capitals.CapitalsHomeScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
 import com.geoquiz.app.ui.challenges.ChallengeAcceptScreen
 import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
 import com.geoquiz.app.ui.credits.CreditsScreen
 import com.geoquiz.app.ui.credits.OpenSourceLicencesScreen
 import com.geoquiz.app.ui.debug.DebugMenuScreen
-import com.geoquiz.app.ui.flags.FlagsHomeScreen
-import com.geoquiz.app.ui.home.HomeScreen
+import com.geoquiz.app.ui.play.PlayScreen
+import com.geoquiz.app.ui.play.PlayViewModel
 import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
 import com.geoquiz.app.ui.stats.StatsScreen
 
-private data class BottomNavItem(
-    val label: String,
-    val icon: ImageVector,
-    val route: String
-)
+/** Switches to a top-level tab, keeping each tab's own back stack and state. */
+private fun NavHostController.navigateToTab(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
 
-private val bottomNavItems = listOf(
-    BottomNavItem("Countries", Icons.Default.Public, Screen.CountriesHome.route),
-    BottomNavItem("Capitals", Icons.Default.AccountBalance, Screen.CapitalsHome.route),
-    BottomNavItem("Flags", Icons.Default.Flag, Screen.FlagsHome.route)
-)
-
-private val homeRoutes = setOf(
-    Screen.CountriesHome.route,
-    Screen.CapitalsHome.route,
-    Screen.FlagsHome.route
-)
+/**
+ * Returns to Play (always at the bottom of the back stack), showing [quizMode]'s groups when it
+ * is given. The mode is handed to Play through its back stack entry's `savedStateHandle`.
+ */
+private fun NavHostController.returnToPlay(quizMode: String? = null) {
+    if (quizMode != null) {
+        runCatching { getBackStackEntry(Screen.Play.route) }.getOrNull()
+            ?.savedStateHandle?.set(Screen.Play.RESULT_SHOW_MODE, quizMode)
+    }
+    if (!popBackStack(Screen.Play.route, inclusive = false)) {
+        navigateToTab(Screen.Play.route)
+    }
+}
 
 @Composable
 fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
     val navController = rememberNavController()
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
 
     // Handle deep links for challenges
     LaunchedEffect(challengeDeepLink) {
@@ -76,106 +73,57 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
         try {
             val route = Screen.ChallengeAccept.createRoute(deepLink.challengeId)
             navController.navigate(route) {
-                popUpTo(Screen.CountriesHome.route)
+                popUpTo(Screen.Play.route)
             }
         } catch (_: Exception) {
-            // Malformed deep link — silently ignore
+            // Malformed deep link, silently ignore
         }
     }
 
     Scaffold(
         bottomBar = {
-            if (currentRoute in homeRoutes || currentRoute == null) {
-                NavigationBar {
-                    bottomNavItems.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            icon = { Icon(item.icon, contentDescription = item.label) },
-                            label = { Text(item.label) },
-                            selected = selectedTab == index,
-                            onClick = {
-                                if (selectedTab != index) {
-                                    selectedTab = index
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
+            if (currentRoute in topLevelRoutes || currentRoute == null) {
+                AppBottomBar(
+                    isSelected = { route -> currentDestination?.hierarchy?.any { it.route == route } == true },
+                    onSelect = { route -> navController.navigateToTab(route) }
+                )
             }
         }
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.CountriesHome.route,
+            startDestination = Screen.Play.route,
             modifier = Modifier.padding(padding)
         ) {
-            composable(Screen.CountriesHome.route) {
-                HomeScreen(
-                    quizMode = QuizMode.COUNTRIES,
-                    onNavigateToCategory = { groupId ->
-                        navController.navigate(Screen.CategoryList.createRoute("countries", groupId))
-                    },
-                    onNavigateToSettings = {
-                        navController.navigate(Screen.Settings.route)
-                    },
-                    onNavigateToStats = {
-                        navController.navigate(Screen.Stats.route)
-                    },
-                    onStartQuiz = { categoryType, categoryValue ->
-                        navController.navigate(
-                            Screen.Quiz.createRoute("countries", categoryType, categoryValue)
-                        )
+            composable(Screen.Play.route) { entry ->
+                val playViewModel: PlayViewModel = hiltViewModel()
+                // A mode handed back by returnToPlay (e.g. "Home" on Results)
+                val requestedMode by entry.savedStateHandle
+                    .getStateFlow<String?>(Screen.Play.RESULT_SHOW_MODE, null)
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(requestedMode) {
+                    requestedMode?.let { mode ->
+                        playViewModel.selectMode(mode)
+                        entry.savedStateHandle.remove<String>(Screen.Play.RESULT_SHOW_MODE)
                     }
-                )
-            }
-
-            composable(Screen.CapitalsHome.route) {
-                CapitalsHomeScreen(
-                    onNavigateToCategory = { groupId ->
-                        navController.navigate(Screen.CategoryList.createRoute("capitals", groupId))
+                }
+                PlayScreen(
+                    onOpenCategory = { modeId, groupId ->
+                        navController.navigate(Screen.CategoryList.createRoute(modeId, groupId))
                     },
-                    onNavigateToSettings = {
-                        navController.navigate(Screen.Settings.route)
+                    onStartQuiz = { modeId, categoryType, categoryValue ->
+                        navController.navigate(Screen.Quiz.createRoute(modeId, categoryType, categoryValue))
                     },
-                    onNavigateToStats = {
-                        navController.navigate(Screen.Stats.route)
+                    onOpenMode = { _ ->
+                        // Phase 5 adds each new mode's entry route here. No non-classic mode is
+                        // registered yet, so the "New modes" grid is never shown.
                     },
-                    onStartQuiz = { categoryType, categoryValue ->
-                        navController.navigate(
-                            Screen.Quiz.createRoute("capitals", categoryType, categoryValue)
-                        )
-                    }
-                )
-            }
-
-            composable(Screen.FlagsHome.route) {
-                FlagsHomeScreen(
-                    onNavigateToCategory = { groupId ->
-                        navController.navigate(Screen.CategoryList.createRoute("flags", groupId))
-                    },
-                    onNavigateToSettings = {
-                        navController.navigate(Screen.Settings.route)
-                    },
-                    onNavigateToStats = {
-                        navController.navigate(Screen.Stats.route)
-                    },
-                    onStartQuiz = { categoryType, categoryValue ->
-                        navController.navigate(
-                            Screen.Quiz.createRoute("flags", categoryType, categoryValue)
-                        )
-                    }
+                    viewModel = playViewModel
                 )
             }
 
             composable(Screen.Settings.route) {
                 SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() },
                     onOpenCredits = { navController.navigate(Screen.Credits.route) },
                     onOpenDebugMenu = if (BuildConfig.DEBUG) {
                         { navController.navigate(Screen.DebugMenu.route) }
@@ -207,16 +155,14 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             }
 
             composable(Screen.Achievements.route) {
-                AchievementsScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                )
+                AchievementsScreen()
             }
 
             composable(Screen.Stats.route) {
                 StatsScreen(
-                    onNavigateBack = { navController.popBackStack() },
+                    // Achievements is a tab, so the link switches to it rather than stacking it.
                     onNavigateToAchievements = {
-                        navController.navigate(Screen.Achievements.route)
+                        navController.navigateToTab(Screen.Achievements.route)
                     },
                     onNavigateToChallenges = {
                         navController.navigate(Screen.Challenges.route)
@@ -268,14 +214,7 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             popUpTo(Screen.Quiz.route) { inclusive = true }
                         }
                     },
-                    onNavigateHome = {
-                        val homeRoute = when (quizMode) {
-                            "capitals" -> Screen.CapitalsHome.route
-                            "flags" -> Screen.FlagsHome.route
-                            else -> Screen.CountriesHome.route
-                        }
-                        navController.popBackStack(homeRoute, inclusive = false)
-                    }
+                    onNavigateHome = { navController.returnToPlay(quizMode) }
                 )
             }
 
@@ -293,9 +232,7 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             popUpTo(Screen.Results.route) { inclusive = true }
                         }
                     },
-                    onGoHome = { quizMode ->
-                        navController.popBackStack(homeRouteFor(quizMode), inclusive = false)
-                    },
+                    onGoHome = { quizMode -> navController.returnToPlay(quizMode) },
                     onViewAnswers = { resultId ->
                         navController.navigate(Screen.AnswerReview.createRoute(resultId))
                     },
@@ -318,9 +255,7 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             ) {
                 AnswerReviewScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onGoHome = {
-                        navController.popBackStack(Screen.CountriesHome.route, inclusive = false)
-                    }
+                    onGoHome = { navController.returnToPlay() }
                 )
             }
 
@@ -338,9 +273,7 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             popUpTo(Screen.ChallengeAccept.route) { inclusive = true }
                         }
                     },
-                    onDecline = {
-                        navController.popBackStack(Screen.CountriesHome.route, inclusive = false)
-                    }
+                    onDecline = { navController.returnToPlay() }
                 )
             }
 
@@ -351,11 +284,4 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
             }
         }
     }
-}
-
-/** The home tab for a quiz mode id ("countries", "capitals" or "flags"). */
-private fun homeRouteFor(quizMode: String): String = when (quizMode) {
-    "capitals" -> Screen.CapitalsHome.route
-    "flags" -> Screen.FlagsHome.route
-    else -> Screen.CountriesHome.route
 }

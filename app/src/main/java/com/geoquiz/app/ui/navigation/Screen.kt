@@ -3,9 +3,14 @@ package com.geoquiz.app.ui.navigation
 import android.net.Uri
 
 sealed class Screen(val route: String) {
-    data object CountriesHome : Screen("countries_home")
-    data object CapitalsHome : Screen("capitals_home")
-    data object FlagsHome : Screen("flags_home")
+    /** The Play tab (start destination): classic-mode switch, category groups and new modes. */
+    data object Play : Screen("play") {
+        /**
+         * Key in Play's back stack entry `savedStateHandle` holding a classic mode id to show
+         * when the player returns to Play (e.g. "Home" on Results).
+         */
+        const val RESULT_SHOW_MODE = "play_show_mode"
+    }
 
     data object Settings : Screen("settings")
 

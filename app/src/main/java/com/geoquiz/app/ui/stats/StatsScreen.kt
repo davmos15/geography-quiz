@@ -1,5 +1,7 @@
 package com.geoquiz.app.ui.stats
 
+import androidx.compose.ui.res.stringResource
+import com.geoquiz.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -44,7 +46,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onNavigateToAchievements: () -> Unit,
     onNavigateToChallenges: () -> Unit,
     viewModel: StatsViewModel = hiltViewModel()
@@ -55,10 +57,13 @@ fun StatsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Stats") },
+                title = { Text(stringResource(R.string.nav_stats)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    // No back arrow when shown as a bottom navigation tab
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        }
                     }
                 }
             )

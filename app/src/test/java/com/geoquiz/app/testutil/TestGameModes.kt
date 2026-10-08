@@ -1,12 +1,20 @@
 package com.geoquiz.app.testutil
 
+import com.geoquiz.app.domain.mode.AnswerValidator
+import com.geoquiz.app.domain.mode.ChoiceQuestionGenerator
+import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.mode.ModeIcon
+import com.geoquiz.app.domain.mode.QuestionGenerator
+import com.geoquiz.app.domain.mode.ScoringRule
 import com.geoquiz.app.domain.mode.classic.CapitalsGameMode
 import com.geoquiz.app.domain.mode.classic.CapitalsQuestionGenerator
 import com.geoquiz.app.domain.mode.classic.CountriesGameMode
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
 import com.geoquiz.app.domain.mode.classic.FlagsGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsQuestionGenerator
+import com.geoquiz.app.domain.model.FeatureFlag
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
@@ -27,9 +35,10 @@ object TestGameModes {
         getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase = mockk(),
         validateAnswer: ValidateAnswerUseCase = mockk(),
         validateCapitalAnswer: ValidateCapitalAnswerUseCase = mockk(),
-        calculateScore: CalculateScoreUseCase = CalculateScoreUseCase()
+        calculateScore: CalculateScoreUseCase = CalculateScoreUseCase(),
+        extraModes: Set<GameMode> = emptySet()
     ): GameModeRegistry = GameModeRegistry(
-        setOf(
+        extraModes + setOf(
             CountriesGameMode(
                 CountriesQuestionGenerator(getCountriesForQuiz, getCountriesForFlagQuiz),
                 validateAnswer,
@@ -47,4 +56,26 @@ object TestGameModes {
             )
         )
     )
+
+    /**
+     * A non-classic mode behind [featureFlag] for registry and Play tests. Only its spec is
+     * real; its labels are borrowed from Countries.
+     */
+    fun flaggedMode(
+        id: String,
+        featureFlag: FeatureFlag?,
+        sortOrder: Int,
+        icon: ModeIcon = ModeIcon.GLOBE
+    ): GameMode = object : GameMode {
+        override val spec = QuizMode.COUNTRIES.spec.copy(
+            id = id,
+            icon = icon,
+            featureFlag = featureFlag,
+            sortOrder = sortOrder
+        )
+        override val generator = mockk<QuestionGenerator>()
+        override val validator = mockk<AnswerValidator>()
+        override val scoring = mockk<ScoringRule>()
+        override val choiceGenerator = mockk<ChoiceQuestionGenerator>()
+    }
 }

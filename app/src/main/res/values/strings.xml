@@ -239,4 +239,35 @@
     </plurals>
     <!-- Results, shown for a practice quiz instead of Share and Challenge -->
     <string name="results_practice_not_recorded">Practice quizzes don’t count towards your stats or achievements.</string>
+
+    <!-- Bottom navigation (ui/navigation/AppNavigation.kt) -->
+    <string name="nav_play">Play</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_achievements">Achievements</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Play tab (ui/play/PlayScreen.kt) -->
+    <string name="play_loading">Loading quizzes…</string>
+    <!-- Spoken name of the Countries / Capitals / Flags switch -->
+    <string name="play_mode_switch_description">Quiz type</string>
+    <string name="play_categories_heading">Categories</string>
+    <string name="play_new_modes_heading">New modes</string>
+    <string name="play_all_countries">All countries</string>
+    <string name="play_all_capitals">All capitals</string>
+    <plurals name="play_all_countries_count">
+        <item quantity="one">%d country</item>
+        <item quantity="other">%d countries</item>
+    </plurals>
+    <plurals name="play_all_capitals_count">
+        <item quantity="one">%d capital</item>
+        <item quantity="other">%d capitals</item>
+    </plurals>
+    <plurals name="play_group_quiz_count">
+        <item quantity="one">%d quiz</item>
+        <item quantity="other">%d quizzes</item>
+    </plurals>
+    <!-- Resume card: mode name, category name, number answered -->
+    <string name="play_resume_detail">%1$s: %2$s, %3$d answered</string>
+    <string name="play_resume_dismiss">Dismiss saved quiz</string>
+    <string name="action_open_mode">Open mode</string>
 </resources>

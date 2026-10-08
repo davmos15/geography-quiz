@@ -7,7 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
-import com.geoquiz.app.ui.home.HomeScreen
+import com.geoquiz.app.ui.play.PlayScreen
 import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
@@ -84,7 +84,7 @@ class KeyScreensScreenshotTest {
     @Test @Config(fontScale = 2f)
     fun answerReview_font200() = capture("answer_review_font200", answerReview())
 
-    // ---- Countries home (with a "Resume quiz" card) ----
+    // ---- Play tab, Countries selected (with a "Resume quiz" card); golden names kept from the old home ----
 
     @Test fun home_light() = capture("home_countries_light", countriesHome())
 
@@ -138,14 +138,13 @@ class KeyScreensScreenshotTest {
     }
 
     private fun countriesHome(): @Composable () -> Unit {
-        val viewModel = ScreenTestFixtures.homeViewModel()
+        val viewModel = ScreenTestFixtures.playViewModel()
         return {
             CompositionLocalProvider(LocalInspectionMode provides true) {
-                HomeScreen(
-                    onNavigateToCategory = {},
-                    onNavigateToSettings = {},
-                    onNavigateToStats = {},
-                    onStartQuiz = { _, _ -> },
+                PlayScreen(
+                    onOpenCategory = { _, _ -> },
+                    onStartQuiz = { _, _, _ -> },
+                    onOpenMode = {},
                     viewModel = viewModel
                 )
             }
@@ -154,7 +153,7 @@ class KeyScreensScreenshotTest {
 
     private fun settings(): @Composable () -> Unit {
         val viewModel = ScreenTestFixtures.settingsViewModel()
-        return { SettingsScreen(onNavigateBack = {}, viewModel = viewModel) }
+        return { SettingsScreen(viewModel = viewModel) }
     }
 
     /**

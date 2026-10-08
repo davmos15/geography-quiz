@@ -1,8 +1,13 @@
 package com.geoquiz.app.testutil
 
 import androidx.lifecycle.SavedStateHandle
+import com.geoquiz.app.data.local.db.FlagColorDao
+import com.geoquiz.app.data.local.db.FlagColorEntity
+import com.geoquiz.app.data.local.db.FlagElementDao
+import com.geoquiz.app.data.local.db.FlagElementEntity
 import com.geoquiz.app.data.local.db.SavedQuizEntity
 import com.geoquiz.app.data.local.preferences.AchievementRepository
+import com.geoquiz.app.data.local.preferences.FeatureFlagRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
@@ -17,6 +22,9 @@ import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.model.FeatureFlag
+import com.geoquiz.app.domain.model.FeatureFlagState
+import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
@@ -26,7 +34,8 @@ import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
 import com.geoquiz.app.domain.usecase.ResetAllDataUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
-import com.geoquiz.app.ui.home.HomeViewModel
+import com.geoquiz.app.ui.play.PlayCategoryGroups
+import com.geoquiz.app.ui.play.PlayViewModel
 import com.geoquiz.app.ui.navigation.Screen
 import com.geoquiz.app.ui.quiz.QuizViewModel
 import com.geoquiz.app.ui.results.AnswerReviewViewModel
@@ -36,6 +45,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -190,21 +200,62 @@ object ScreenTestFixtures {
         settingsRepository = settingsRepository()
     )
 
-    /** Countries home with a "Resume quiz" card for a two-answer quiz. */
-    fun homeViewModel(countries: List<Country> = EIGHT): HomeViewModel {
-        val saved = SavedQuizEntity(
-            categoryType = "startletter",
-            categoryValue = "A",
-            answeredCountryCodes = "[\"AUT\",\"FRA\"]",
-            timeElapsedSeconds = 75,
-            savedAtMillis = 1_700_000_000_000L
-        )
-        val savedQuizRepository = mockk<SavedQuizRepository>(relaxed = true) {
-            every { savedQuiz } returns flowOf(saved)
-            every { parseAnsweredCodes(any()) } returns setOf("AUT", "FRA")
+    /** Flag colours and elements for [EIGHT]-style Play tests: 3 colours, 1 element. */
+    val FLAG_COLOURS: List<FlagColorEntity> = listOf(
+        FlagColorEntity("FRA", "blue"), FlagColorEntity("FRA", "white"), FlagColorEntity("FRA", "red"),
+        FlagColorEntity("AUT", "white"), FlagColorEntity("AUT", "red"),
+        FlagColorEntity("PER", "white"), FlagColorEntity("PER", "red")
+    )
+    val FLAG_ELEMENTS: List<FlagElementEntity> = listOf(FlagElementEntity("BRA", "star"))
+
+    /** A saved Countries quiz for the "Resume quiz" card: starting letter A, two answered. */
+    val SAVED_QUIZ = SavedQuizEntity(
+        categoryType = "startletter",
+        categoryValue = "A",
+        answeredCountryCodes = "[\"AUT\",\"FRA\"]",
+        timeElapsedSeconds = 75,
+        savedAtMillis = 1_700_000_000_000L
+    )
+
+    /**
+     * The Play tab over [countries], with [savedQuiz] on the "Resume quiz" card, feature flags
+     * from [flagStates] (all defaults, so all off, unless given) and the classic registry plus
+     * [extraModes].
+     */
+    fun playViewModel(
+        countries: List<Country> = EIGHT,
+        savedQuiz: SavedQuizEntity? = SAVED_QUIZ,
+        flagStates: Flow<List<FeatureFlagState>> = flowOf(defaultFlagStates()),
+        extraModes: Set<GameMode> = emptySet(),
+        savedStateHandle: SavedStateHandle = SavedStateHandle(),
+        savedQuizRepository: SavedQuizRepository = savedQuizRepository(savedQuiz)
+    ): PlayViewModel {
+        val flags = mockk<FeatureFlagRepository> {
+            every { states } returns flagStates
         }
-        return HomeViewModel(countryRepository(countries), savedQuizRepository)
+        val flagColorDao = mockk<FlagColorDao> { coEvery { getAllMappings() } returns FLAG_COLOURS }
+        val flagElementDao = mockk<FlagElementDao> { coEvery { getAllMappings() } returns FLAG_ELEMENTS }
+        return PlayViewModel(
+            savedStateHandle = savedStateHandle,
+            registry = TestGameModes.registry(extraModes = extraModes),
+            featureFlagRepository = flags,
+            countryRepository = countryRepository(countries),
+            savedQuizRepository = savedQuizRepository,
+            categoryGroups = PlayCategoryGroups(flagColorDao, flagElementDao)
+        )
     }
+
+    /** A relaxed saved-quiz repository holding [savedQuiz]; answered codes are parsed from the JSON. */
+    fun savedQuizRepository(savedQuiz: SavedQuizEntity? = SAVED_QUIZ): SavedQuizRepository =
+        mockk(relaxed = true) {
+            every { this@mockk.savedQuiz } returns flowOf(savedQuiz)
+            every { parseAnsweredCodes(any()) } answers {
+                Regex("[A-Z]{3}").findAll(firstArg<String>()).map { it.value }.toSet()
+            }
+        }
+
+    fun defaultFlagStates(): List<FeatureFlagState> =
+        FeatureFlag.entries.map { FeatureFlagState(it, enabled = it.defaultEnabled, overridden = false) }
 
     fun settingsViewModel(): SettingsViewModel {
         val billing = mockk<BillingRepository>(relaxed = true) {

@@ -100,11 +100,11 @@ in by Coil) are covered by the in-app Open-source licences screen.
 | AndroidX Activity Compose | `androidx.activity:activity-compose` | 1.9.3 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/activity |
 | Jetpack Compose (ui, ui-graphics, ui-tooling-preview, material3, material-icons-extended) | `androidx.compose:compose-bom` | BOM 2024.12.01 | Apache 2.0 | https://developer.android.com/jetpack/compose |
 | Navigation Compose | `androidx.navigation:navigation-compose` | 2.8.5 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/navigation |
-| Hilt / Dagger | `com.google.dagger:hilt-android` | 2.54 | Apache 2.0 | https://github.com/google/dagger |
+| Hilt / Dagger | `com.google.dagger:hilt-android` | 2.57.2 | Apache 2.0 | https://github.com/google/dagger |
 | Hilt Navigation Compose | `androidx.hilt:hilt-navigation-compose` | 1.2.0 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/hilt |
-| Room (runtime, ktx) | `androidx.room:*` | 2.6.1 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/room |
+| Room (runtime, ktx) | `androidx.room:*` | 2.7.2 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/room |
 | DataStore Preferences | `androidx.datastore:datastore-preferences` | 1.1.1 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/datastore |
-| Kotlin standard library | `org.jetbrains.kotlin:kotlin-stdlib` | 2.1.0 | Apache 2.0 | https://kotlinlang.org |
+| Kotlin standard library | `org.jetbrains.kotlin:kotlin-stdlib` | 2.2.21 | Apache 2.0 | https://kotlinlang.org |
 | kotlinx.coroutines (core, android) | `org.jetbrains.kotlinx:kotlinx-coroutines-*` | 1.10.1 | Apache 2.0 | https://github.com/Kotlin/kotlinx.coroutines |
 | kotlinx.serialization JSON | `org.jetbrains.kotlinx:kotlinx-serialization-json` | 1.7.3 | Apache 2.0 | https://github.com/Kotlin/kotlinx.serialization |
 | Coil (coil-compose, coil-svg) | `io.coil-kt.coil3:*` | 3.1.0 | Apache 2.0 | https://github.com/coil-kt/coil |
@@ -119,16 +119,21 @@ in by Coil) are covered by the in-app Open-source licences screen.
 
 | Tool | Version | Licence | URL |
 |---|---|---|---|
-| Android Gradle Plugin | 8.9.3 | Apache 2.0 | https://developer.android.com/build |
-| Kotlin Gradle plugins (android, compose, serialization) | 2.1.0 | Apache 2.0 | https://kotlinlang.org |
+| Android Gradle Plugin | 8.13.2 | Apache 2.0 | https://developer.android.com/build |
+| Kotlin Gradle plugins (android, compose, serialization) | 2.2.21 | Apache 2.0 | https://kotlinlang.org |
 | AboutLibraries Gradle plugin | 11.6.3 | Apache 2.0 | https://github.com/mikepenz/AboutLibraries |
-| KSP | 2.1.0-1.0.29 | Apache 2.0 | https://github.com/google/ksp |
-| Hilt compiler / Room compiler | 2.54 / 2.6.1 | Apache 2.0 | see above |
+| KSP | 2.2.21-2.0.5 | Apache 2.0 | https://github.com/google/ksp |
+| Hilt compiler / Room compiler | 2.57.2 / 2.7.2 | Apache 2.0 | see above |
 | Compose UI Tooling (debug builds only) | BOM 2024.12.01 | Apache 2.0 | https://developer.android.com/jetpack/compose |
 | JUnit | 4.13.2 | Eclipse Public License 1.0 | https://junit.org/junit4/ |
 | MockK | 1.13.14 | Apache 2.0 | https://mockk.io |
 | Turbine | 1.2.0 | Apache 2.0 | https://github.com/cashapp/turbine |
 | kotlinx-coroutines-test | 1.10.1 | Apache 2.0 | https://github.com/Kotlin/kotlinx.coroutines |
+| Robolectric | 4.17 | MIT | https://robolectric.org |
+| Roborazzi (screenshot tests) | 1.76.0 | Apache 2.0 | https://github.com/takahirom/roborazzi |
+| AndroidX Test core | 1.7.0 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/test |
+| Compose UI test (ui-test-junit4, ui-test-manifest) | BOM 2024.12.01 | Apache 2.0 | https://developer.android.com/jetpack/compose |
+| Gradle wrapper | 8.14.5 | Apache 2.0 | https://gradle.org |
 | Pillow (store asset scripts) | not pinned | MIT-CMU (HPND) | https://python-pillow.org |
 
 ### Apache License 2.0 notice

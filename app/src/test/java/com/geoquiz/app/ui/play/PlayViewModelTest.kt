@@ -7,6 +7,7 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.ModeIcon
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
+import com.geoquiz.app.domain.model.PinnedCategory
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
@@ -373,6 +374,77 @@ class PlayViewModelTest {
             assertEquals("flagcolor", flags.categoryType)
             assertEquals("white", flags.categoryValue)
             assertEquals(R.string.mode_flags_name, flags.modeLabel)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // Pinned (3.4c, D23). Over EIGHT: regions Africa, Americas, Asia, Europe; flag colours red, white, blue.
+
+    @Test
+    fun `pinned categories of every mode are listed in pin order with mode and category`() = runTest {
+        val pins = MutableStateFlow(
+            listOf(
+                PinnedCategory("flags", "flagcolor", "red"),
+                PinnedCategory("countries", "region", "Africa"),
+                PinnedCategory("capitals", "region", "Americas")
+            )
+        )
+        val viewModel = ScreenTestFixtures.playViewModel(pins = pins)
+
+        viewModel.uiState.test {
+            val state = awaitUntil { it.pinned.isNotEmpty() }
+            val pinned = state.pinned
+            assertEquals(
+                listOf(
+                    PinnedQuiz("flags", R.string.mode_flags_name, ModeIcon.FLAG, "flagcolor", "red", "Red"),
+                    PinnedQuiz("countries", R.string.mode_countries_name, ModeIcon.GLOBE, "region", "Africa", "Africa"),
+                    PinnedQuiz("capitals", R.string.mode_capitals_name, ModeIcon.LANDMARK, "region", "Americas", "Americas")
+                ),
+                pinned
+            )
+            // Not limited to the selected mode
+            assertEquals("countries", state.selectedModeId)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `pins follow the store live and none means an empty list`() = runTest {
+        val pins = MutableStateFlow<List<PinnedCategory>>(emptyList())
+        val viewModel = ScreenTestFixtures.playViewModel(pins = pins)
+
+        viewModel.uiState.test {
+            assertEquals(emptyList<PinnedQuiz>(), awaitLoaded().pinned)
+
+            pins.value = listOf(PinnedCategory("countries", "region", "Asia"))
+            assertEquals(listOf("Asia"), awaitUntil { it.pinned.isNotEmpty() }.pinned.map { it.categoryValue })
+
+            pins.value = listOf(PinnedCategory("countries", "region", "Asia"), PinnedCategory("capitals", "region", "Asia"))
+            assertEquals(
+                listOf("countries", "capitals"),
+                awaitUntil { it.pinned.size == 2 }.pinned.map { it.quizModeId }
+            )
+
+            pins.value = emptyList()
+            assertEquals(emptyList<PinnedQuiz>(), awaitUntil { it.pinned.isEmpty() }.pinned)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `pins whose category the mode no longer lists are hidden`() = runTest {
+        val pins = MutableStateFlow(
+            listOf(
+                PinnedCategory("countries", "region", "Oceania"), // no country in the data
+                PinnedCategory("flags", "flagcolor", "green"), // no flag with green
+                PinnedCategory("countries", "region", "Europe")
+            )
+        )
+        val viewModel = ScreenTestFixtures.playViewModel(pins = pins)
+
+        viewModel.uiState.test {
+            val pinned = awaitUntil { it.pinned.isNotEmpty() }.pinned
+            assertEquals(listOf("Europe"), pinned.map { it.categoryValue })
             cancelAndIgnoreRemainingEvents()
         }
     }

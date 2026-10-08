@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.db.SavedQuizEntity
 import com.geoquiz.app.data.local.preferences.FeatureFlagRepository
+import com.geoquiz.app.data.local.preferences.PinnedCategoriesRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.domain.mode.GameMode
@@ -65,6 +66,16 @@ data class RecommendedQuiz(
     val stars: Int
 )
 
+/** A "Pinned" row ([PinnedCategoriesRepository]); one tap starts this quiz in its mode. */
+data class PinnedQuiz(
+    val quizModeId: String,
+    @StringRes val modeLabel: Int,
+    val modeIcon: ModeIcon,
+    val categoryType: String,
+    val categoryValue: String,
+    val categoryDisplayName: String
+)
+
 /** A concrete category option of a classic mode, in Play display order. */
 data class CategoryCandidate(
     val groupId: String,
@@ -86,7 +97,9 @@ data class PlayUiState(
     /** The "Today's challenge" placeholder card; only while [FeatureFlag.DAILY_CHALLENGE] is on (D24). */
     val showTodayChallenge: Boolean = false,
     /** "Recommended next" for [selectedModeId]; null hides the card. */
-    val recommended: RecommendedQuiz? = null
+    val recommended: RecommendedQuiz? = null,
+    /** Pinned categories of every available mode, oldest pin first; empty hides the section. */
+    val pinned: List<PinnedQuiz> = emptyList()
 ) {
     val isLoading: Boolean get() = modeContent == null
 
@@ -96,7 +109,7 @@ data class PlayUiState(
 
 /**
  * The Play tab: the "Today's challenge" placeholder (feature-flagged), "Continue" and
- * "Recommended next" cards, a classic-mode switch, that mode's category groups and the
+ * "Recommended next" cards, the "Pinned" categories of every mode, a classic-mode switch, that mode's category groups and the
  * "New modes" grid, all built from the [GameModeRegistry] and the feature flags. The selected
  * mode is kept in the [SavedStateHandle], so it survives rotation and process death.
  */
@@ -111,7 +124,8 @@ class PlayViewModel @Inject constructor(
     private val categoryGroups: PlayCategoryGroups,
     private val optionsBuilder: CategoryOptionsBuilder,
     private val quizHistoryRepository: QuizHistoryRepository,
-    private val recommendNext: RecommendNextCategoryUseCase
+    private val recommendNext: RecommendNextCategoryUseCase,
+    pinnedCategoriesRepository: PinnedCategoriesRepository
 ) : ViewModel() {
 
     private val classicIds: Set<String> = QuizMode.entries.map { it.id }.toSet()
@@ -170,13 +184,42 @@ class PlayViewModel @Inject constructor(
         }
     }.distinctUntilChanged()
 
+    /**
+     * Pins of every available mode whose category the mode still lists (so a pin for a category
+     * that has gone from the data is hidden). Empty until the category options are built.
+     */
+    private val pinned: Flow<List<PinnedQuiz>> = combine(
+        pinnedCategoriesRepository.pinnedCategories,
+        candidates,
+        modeOptions
+    ) { pins, all, (classic, newModes) ->
+        if (all == null) return@combine emptyList()
+        val availableIds = (classic + newModes).map { it.id }.toSet()
+        pins.filter { pin ->
+            pin.modeId in availableIds &&
+                all[pin.modeId].orEmpty().any {
+                    it.categoryType == pin.categoryType && it.categoryValue == pin.categoryValue
+                }
+        }.map { pin ->
+            val spec = registry.findOrDefault(pin.modeId).spec
+            PinnedQuiz(
+                quizModeId = pin.modeId,
+                modeLabel = spec.labels.name,
+                modeIcon = spec.icon,
+                categoryType = pin.categoryType,
+                categoryValue = pin.categoryValue,
+                categoryDisplayName = QuizCategory.fromRoute(pin.categoryType, pin.categoryValue).displayName
+            )
+        }
+    }.distinctUntilChanged()
+
     val uiState: StateFlow<PlayUiState> = combine(
         selectedModeId,
         modeOptions,
         modeContent,
         savedQuiz,
-        combine(showTodayChallenge, recommended, ::Pair)
-    ) { selected, (classic, newModes), content, saved, (today, recommendation) ->
+        combine(showTodayChallenge, recommended, pinned, ::Triple)
+    ) { selected, (classic, newModes), content, saved, (today, recommendation, pins) ->
         PlayUiState(
             selectedModeId = selected,
             classicModes = classic,
@@ -184,7 +227,8 @@ class PlayViewModel @Inject constructor(
             modeContent = content,
             savedQuiz = saved,
             showTodayChallenge = today,
-            recommended = recommendation
+            recommended = recommendation,
+            pinned = pins
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlayUiState())
 

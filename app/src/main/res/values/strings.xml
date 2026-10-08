@@ -279,4 +279,18 @@
     <string name="play_today_title">Today’s challenge</string>
     <string name="play_today_body">A new set of questions every day. Coming soon.</string>
     <string name="action_open_mode">Open mode</string>
+    <!-- Pinned categories (3.4c): pinned from a category row; one tap starts the quiz -->
+    <string name="play_pinned_heading">Pinned</string>
+
+    <!-- Category list (ui/category/CategoryListScreen.kt) -->
+    <string name="category_show_all">Show all</string>
+    <string name="category_hide_done">Hide done</string>
+    <string name="category_show_all_description">Show all quizzes</string>
+    <string name="category_hide_completed_description">Hide completed quizzes</string>
+    <string name="category_challenge_friend">Challenge a friend</string>
+    <!-- %1$d correct of %2$d, %3$s points (rounded, locale digits), e.g. "Best: 12/15 (10 pts)" -->
+    <string name="category_best_score">Best: %1$d/%2$d (%3$s pts)</string>
+    <!-- Pin toggle on a category row; %1$s = category name -->
+    <string name="category_pin">Pin %1$s</string>
+    <string name="category_unpin">Unpin %1$s</string>
 </resources>

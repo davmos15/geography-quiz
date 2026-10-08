@@ -45,7 +45,8 @@ interface QuizHistoryDao {
     @Query("SELECT COUNT(*) FROM quiz_history WHERE quizMode = :quizMode")
     fun getQuizzesCompletedForMode(quizMode: String): Flow<Int>
 
-    // Batch best scores for a quiz mode
+    // Best result per category of a quiz mode (highest score); follows history, so category rows
+    // update when the player comes back from a quiz
 
     @Query("""
         SELECT qh.categoryType, qh.categoryValue, qh.score, qh.correctAnswers, qh.totalQuestions
@@ -61,7 +62,7 @@ interface QuizHistoryDao {
         WHERE qh.quizMode = :quizMode
         GROUP BY qh.categoryType, qh.categoryValue
     """)
-    suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore>
+    fun observeBestScoresForMode(quizMode: String): Flow<List<QuizBestScore>>
 
     // Mastery stars: every distinct (category, tier, result) for a mode. Duplicate results
     // collapse, so the list stays small; MasteryStars picks the best per category.

@@ -8,6 +8,7 @@ import com.geoquiz.app.data.local.db.FlagElementEntity
 import com.geoquiz.app.data.local.db.SavedQuizEntity
 import com.geoquiz.app.data.local.preferences.AchievementRepository
 import com.geoquiz.app.data.local.preferences.FeatureFlagRepository
+import com.geoquiz.app.data.local.preferences.PinnedCategoriesRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
@@ -24,6 +25,7 @@ import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
+import com.geoquiz.app.domain.model.PinnedCategory
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.repository.CountryRepository
@@ -222,7 +224,8 @@ object ScreenTestFixtures {
     /**
      * The Play tab over [countries], with [savedQuiz] on the "Continue" card, feature flags
      * from [flagStates] (all defaults, so all off, unless given), the classic registry plus
-     * [extraModes], and history (stars, recency) from [history] (empty unless given).
+     * [extraModes], history (stars, recency) from [history] (empty unless given) and pinned
+     * categories from [pins] (none unless given).
      */
     fun playViewModel(
         countries: List<Country> = EIGHT,
@@ -231,7 +234,8 @@ object ScreenTestFixtures {
         extraModes: Set<GameMode> = emptySet(),
         savedStateHandle: SavedStateHandle = SavedStateHandle(),
         savedQuizRepository: SavedQuizRepository = savedQuizRepository(savedQuiz),
-        history: QuizHistoryRepository = quizHistoryRepository()
+        history: QuizHistoryRepository = quizHistoryRepository(),
+        pins: Flow<List<PinnedCategory>> = flowOf(emptyList())
     ): PlayViewModel {
         val flags = mockk<FeatureFlagRepository> {
             every { states } returns flagStates
@@ -247,8 +251,16 @@ object ScreenTestFixtures {
             categoryGroups = PlayCategoryGroups(flagColorDao, flagElementDao),
             optionsBuilder = CategoryOptionsBuilder(flagColorDao, flagElementDao),
             quizHistoryRepository = history,
-            recommendNext = RecommendNextCategoryUseCase()
+            recommendNext = RecommendNextCategoryUseCase(),
+            pinnedCategoriesRepository = pinnedCategoriesRepository(pins)
         )
+    }
+
+    /** Pinned categories from [pins]; `setPinned` calls are accepted and ignored. */
+    fun pinnedCategoriesRepository(
+        pins: Flow<List<PinnedCategory>> = flowOf(emptyList())
+    ): PinnedCategoriesRepository = mockk(relaxUnitFun = true) {
+        every { pinnedCategories } returns pins
     }
 
     /**

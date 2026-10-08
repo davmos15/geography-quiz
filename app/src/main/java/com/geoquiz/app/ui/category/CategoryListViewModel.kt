@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geoquiz.app.data.local.preferences.PinnedCategoriesRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.mode.GameModeRegistry
@@ -22,6 +23,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -48,7 +52,9 @@ data class QuizOptionInfo(
     val bestCorrect: Int? = null,
     val bestTotal: Int? = null,
     /** Mastery stars, 0 to 3 ([com.geoquiz.app.domain.usecase.MasteryStars]). */
-    val masteryStars: Int = 0
+    val masteryStars: Int = 0,
+    /** Pinned in this mode (shown on the Play tab). */
+    val isPinned: Boolean = false
 )
 
 @HiltViewModel
@@ -60,6 +66,7 @@ class CategoryListViewModel @Inject constructor(
     private val challengeRepository: ChallengeRepository,
     private val playGamesService: PlayGamesAchievementService,
     private val settingsRepository: SettingsRepository,
+    private val pinnedCategoriesRepository: PinnedCategoriesRepository,
     private val challengeLinkSigner: ChallengeLinkSigner,
     gameModes: GameModeRegistry
 ) : ViewModel() {
@@ -88,6 +95,9 @@ class CategoryListViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
     }
 
+    /** This group's options before history and pins are applied; null while loading. */
+    private val baseOptions = MutableStateFlow<List<QuizOptionInfo>?>(null)
+
     init {
         viewModelScope.launch {
             val allCountries = optionsBuilder.countriesFor(quizMode, repository.getAllCountries().first())
@@ -98,45 +108,55 @@ class CategoryListViewModel @Inject constructor(
 
             val options = optionsBuilder.build(quizMode, groupId, allCountries)
 
-            val groupName = group?.displayName ?: flagGroup?.displayName ?: "Unknown"
-            val groupDescription = group?.description ?: flagGroup?.description ?: ""
+            _uiState.update {
+                it.copy(
+                    groupName = group?.displayName ?: flagGroup?.displayName ?: "Unknown",
+                    groupDescription = group?.description ?: flagGroup?.description ?: ""
+                )
+            }
+            baseOptions.value = options
+        }
 
-            // Enrich with best scores from history
-            val bestScores = quizHistoryRepository.getAllBestScoresForMode(quizModeId)
-            val scoreMap = bestScores.associateBy { "${it.categoryType}|${it.categoryValue}" }
-            val enrichedOptions = options.map { option ->
-                val key = "${option.categoryType}|${option.categoryValue}"
-                val best = scoreMap[key]
-                if (best != null) {
+        // Best scores, stars and pins follow their stores, so the rows are up to date when the
+        // player comes back from a quiz or pins a category.
+        viewModelScope.launch {
+            combine(
+                baseOptions.filterNotNull(),
+                quizHistoryRepository.bestScoresForMode(quizModeId),
+                quizHistoryRepository.masteryStarsForMode(quizModeId),
+                pinnedCategoriesRepository.pinnedCategories.map { pins ->
+                    pins.filter { it.modeId == quizModeId }
+                        .map { QuizHistoryRepository.categoryKey(it.categoryType, it.categoryValue) }
+                        .toSet()
+                }
+            ) { options, bestScores, starsByCategory, pinnedKeys ->
+                options.map { option ->
+                    val key = QuizHistoryRepository.categoryKey(option.categoryType, option.categoryValue)
+                    val best = bestScores[key]
                     option.copy(
-                        isCompleted = true,
-                        bestScore = best.score,
-                        bestCorrect = best.correctAnswers,
-                        bestTotal = best.totalQuestions
+                        isCompleted = best != null,
+                        bestScore = best?.score,
+                        bestCorrect = best?.correctAnswers,
+                        bestTotal = best?.totalQuestions,
+                        masteryStars = starsByCategory[key] ?: 0,
+                        isPinned = key in pinnedKeys
                     )
-                } else {
-                    option
                 }
+            }.collect { options ->
+                _uiState.update { it.copy(isLoading = false, quizOptions = options) }
             }
+        }
+    }
 
-            _uiState.value = CategoryListUiState(
-                isLoading = false,
-                groupName = groupName,
-                groupDescription = groupDescription,
-                quizOptions = enrichedOptions
+    /** Pins [option] (shown on the Play tab, newest last) or unpins it, for this mode. */
+    fun onTogglePin(option: QuizOptionInfo) {
+        viewModelScope.launch {
+            pinnedCategoriesRepository.setPinned(
+                modeId = quizModeId,
+                categoryType = option.categoryType,
+                categoryValue = option.categoryValue,
+                pinned = !option.isPinned
             )
-
-            // Stars follow history, so they are up to date when the player comes back from a quiz.
-            quizHistoryRepository.masteryStarsForMode(quizModeId).collect { starsByCategory ->
-                _uiState.update { state ->
-                    state.copy(
-                        quizOptions = state.quizOptions.map { option ->
-                            val key = QuizHistoryRepository.categoryKey(option.categoryType, option.categoryValue)
-                            option.copy(masteryStars = starsByCategory[key] ?: 0)
-                        }
-                    )
-                }
-            }
         }
     }
 

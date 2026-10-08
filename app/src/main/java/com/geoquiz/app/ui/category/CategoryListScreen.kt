@@ -18,15 +18,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,7 +58,8 @@ import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
-import java.util.Locale
+import java.text.NumberFormat
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +80,7 @@ fun CategoryListScreen(
                 title = { Text(state.groupName, modifier = Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
@@ -85,7 +89,9 @@ fun CategoryListScreen(
                         modifier = Modifier.padding(end = 4.dp)
                     ) {
                         Text(
-                            text = if (state.hideCompleted) "Show all" else "Hide done",
+                            text = stringResource(
+                                if (state.hideCompleted) R.string.category_show_all else R.string.category_hide_done
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -95,10 +101,10 @@ fun CategoryListScreen(
                                     Icons.Default.VisibilityOff
                                 else
                                     Icons.Default.Visibility,
-                                contentDescription = if (state.hideCompleted)
-                                    "Show all quizzes"
-                                else
-                                    "Hide completed quizzes"
+                                contentDescription = stringResource(
+                                    if (state.hideCompleted) R.string.category_show_all_description
+                                    else R.string.category_hide_completed_description
+                                )
                             )
                         }
                     }
@@ -161,6 +167,7 @@ fun CategoryListScreen(
                         option = option,
                         quizMode = QuizMode.fromId(quizMode),
                         onClick = { onStartQuiz(option.categoryType, option.categoryValue, difficulty.id) },
+                        onTogglePin = { viewModel.onTogglePin(option) },
                         onChallenge = {
                             val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
                             ShareUtils.shareChallenge(
@@ -181,11 +188,12 @@ private fun QuizOptionCard(
     option: QuizOptionInfo,
     quizMode: QuizMode,
     onClick: () -> Unit,
+    onTogglePin: () -> Unit,
     onChallenge: () -> Unit
 ) {
     val res = a11yResources()
     // The card merges its texts into one TalkBack item ("Completed, Africa, 54 countries,
-    // double-tap to start quiz"); the share button stays a separate item.
+    // double-tap to start quiz"); the pin toggle and the share button stay separate items.
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -234,12 +242,14 @@ private fun QuizOptionCard(
                 )
                 if (option.bestCorrect != null && option.bestTotal != null) {
                     Spacer(modifier = Modifier.height(2.dp))
-                    val bestPoints = String.format(Locale.US, "%.0f", option.bestScore)
+                    val bestPoints = formatBestPoints(option.bestScore ?: 0.0)
                     val bestDescription = stringResource(
                         R.string.a11y_best_score, option.bestCorrect, option.bestTotal, bestPoints
                     )
                     Text(
-                        text = "Best: ${option.bestCorrect}/${option.bestTotal} (${bestPoints}pts)",
+                        text = stringResource(
+                            R.string.category_best_score, option.bestCorrect, option.bestTotal, bestPoints
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clearAndSetSemantics { contentDescription = bestDescription }
@@ -255,13 +265,33 @@ private fun QuizOptionCard(
                     .padding(horizontal = 8.dp)
                     .clearAndSetSemantics { contentDescription = countDescription }
             )
+            // A checkbox-style toggle: TalkBack reads "Pin Africa, not checked" / "Unpin Africa, checked".
+            IconToggleButton(
+                checked = option.isPinned,
+                onCheckedChange = { onTogglePin() },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = if (option.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                    contentDescription = stringResource(
+                        if (option.isPinned) R.string.category_unpin else R.string.category_pin,
+                        option.name
+                    ),
+                    tint = if (option.isPinned) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             IconButton(
                 onClick = onChallenge,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(48.dp)
             ) {
                 Icon(
                     Icons.Default.Share,
-                    contentDescription = "Challenge a friend",
+                    contentDescription = stringResource(R.string.category_challenge_friend),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
@@ -269,3 +299,7 @@ private fun QuizOptionCard(
         }
     }
 }
+
+/** Best points, rounded to a whole number (half up) in the device locale's digits. */
+internal fun formatBestPoints(score: Double): String =
+    NumberFormat.getIntegerInstance().format(score.roundToInt())

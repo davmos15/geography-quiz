@@ -67,7 +67,7 @@ import java.util.Locale
 
 /**
  * The Play tab. Top to bottom: "Today's challenge" (placeholder, only behind its feature flag),
- * "Continue" (the saved quiz), "Recommended next" (for the selected mode), the 3.4c slot, the
+ * "Continue" (the saved quiz), "Recommended next" (for the selected mode), "Pinned" (every mode), the
  * classic-mode switch, that mode's "All" tile and category groups, and the "New modes" grid
  * (hidden while no new mode is available).
  */
@@ -141,7 +141,19 @@ fun PlayScreen(
                 }
             }
 
-            // Slot (3.4c): "Pinned" cards go here.
+            if (state.pinned.isNotEmpty()) {
+                fullWidth { SectionHeading(stringResource(R.string.play_pinned_heading)) }
+                items(
+                    state.pinned,
+                    key = { "pin/${it.quizModeId}/${it.categoryType}/${it.categoryValue}" },
+                    span = { GridItemSpan(maxLineSpan) }
+                ) { pin ->
+                    PinnedRow(
+                        pin = pin,
+                        onStart = { onStartQuiz(pin.quizModeId, pin.categoryType, pin.categoryValue) }
+                    )
+                }
+            }
 
             if (state.classicModes.isNotEmpty()) {
                 fullWidth {
@@ -415,6 +427,47 @@ private fun RecommendedCard(
                 style = MaterialTheme.typography.bodySmall
             )
             MasteryStarsRow(stars = recommended.stars, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+/**
+ * A pinned category as a compact full-width row (never a tile grid): mode icon, category name
+ * and mode name. One tap starts it in its mode; read as one button.
+ */
+@Composable
+private fun PinnedRow(pin: PinnedQuiz, onStart: () -> Unit) {
+    Card(
+        onClick = onStart,
+        modifier = Modifier
+            .fillMaxWidth()
+            .buttonSemantics(stringResource(R.string.action_start_quiz), onStart),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(pin.modeIcon.imageVector, contentDescription = null, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = pin.categoryDisplayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(pin.modeLabel),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }

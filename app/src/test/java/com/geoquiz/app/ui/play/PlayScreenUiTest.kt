@@ -21,6 +21,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
+import com.geoquiz.app.domain.model.PinnedCategory
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
@@ -246,6 +247,54 @@ class PlayScreenUiTest {
             .assertIsDisplayed()
             .assert(hasText("A new set of questions every day. Coming soon."))
             .assertHasNoClickAction()
+    }
+
+    // Pinned (3.4c)
+
+    @Test
+    fun `Pinned is hidden when nothing is pinned`() {
+        launch(ScreenTestFixtures.playViewModel(savedQuiz = null))
+
+        compose.onNode(hasText("Pinned")).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a Pinned row shows category and mode and starts that quiz in its mode in one tap`() {
+        val pins = flowOf(
+            listOf(PinnedCategory("flags", "flagcolor", "red"), PinnedCategory("capitals", "region", "Asia"))
+        )
+        launch(ScreenTestFixtures.playViewModel(savedQuiz = null, pins = pins))
+
+        grid.performScrollToNode(hasText("Pinned"))
+        compose.onNodeWithText("Pinned").assertIsDisplayed()
+        grid.performScrollToNode(hasText("Red"))
+        compose.onNode(hasText("Red").and(hasText("Flags")))
+            .assertIsDisplayed()
+            .assert(hasClickLabel("Start quiz"))
+        grid.performScrollToNode(hasText("Asia"))
+        compose.onNode(hasText("Asia").and(hasText("Capitals")))
+            .assertIsDisplayed()
+            .performClick()
+
+        assertEquals(listOf(Triple("capitals", "region", "Asia")), quizzes)
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun `at 200 percent text a Pinned row shows in full and works`() {
+        launch(
+            ScreenTestFixtures.playViewModel(
+                savedQuiz = null,
+                pins = flowOf(listOf(PinnedCategory("countries", "region", "Europe")))
+            )
+        )
+
+        grid.performScrollToNode(hasText("Europe").and(hasText("Countries")))
+        compose.onNode(hasText("Europe").and(hasText("Countries")))
+            .assertIsDisplayed()
+            .performClick()
+
+        assertEquals(listOf(Triple("countries", "region", "Europe")), quizzes)
     }
 
     private val tapTheMap = TestGameModes.flaggedMode("tap_the_map", FeatureFlag.TAP_THE_MAP, sortOrder = 10)

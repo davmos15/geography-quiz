@@ -60,8 +60,14 @@ class QuizHistoryRepository @Inject constructor(
     fun quizzesCompletedForMode(quizMode: String): Flow<Int> =
         quizHistoryDao.getQuizzesCompletedForMode(quizMode)
 
-    suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore> =
-        quizHistoryDao.getAllBestScoresForMode(quizMode)
+    /**
+     * The best result (highest score) per category of [quizMode], keyed by [categoryKey].
+     * Categories never played are absent. Updates when history changes.
+     */
+    fun bestScoresForMode(quizMode: String): Flow<Map<String, QuizBestScore>> =
+        quizHistoryDao.observeBestScoresForMode(quizMode).map { rows ->
+            rows.associateBy { categoryKey(it.categoryType, it.categoryValue) }
+        }
 
     /**
      * Mastery stars (0 to 3) per category of [quizMode], keyed by `"categoryType|categoryValue"`
@@ -103,7 +109,7 @@ class QuizHistoryRepository @Inject constructor(
     suspend fun clearAllHistory() = quizHistoryDao.deleteAllHistory()
 
     companion object {
-        /** Key used by [masteryStarsForMode]. */
+        /** Key used by [masteryStarsForMode] and [bestScoresForMode]. */
         fun categoryKey(categoryType: String, categoryValue: String): String = "$categoryType|$categoryValue"
     }
 }

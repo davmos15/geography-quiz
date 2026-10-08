@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -54,13 +58,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.ui.ads.BannerAd
+import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.MasteryStarsRow
+import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.mode.imageVector
+import java.util.Locale
 
 /**
- * The Play tab. Top to bottom: the cards of tasks 3.4b/3.4c (see the slot comments), the
- * "Resume quiz" card, the classic-mode switch, that mode's "All" tile and category groups, and
- * the "New modes" grid (hidden while no new mode is available).
+ * The Play tab. Top to bottom: "Today's challenge" (placeholder, only behind its feature flag),
+ * "Continue" (the saved quiz), "Recommended next" (for the selected mode), the 3.4c slot, the
+ * classic-mode switch, that mode's "All" tile and category groups, and the "New modes" grid
+ * (hidden while no new mode is available).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,19 +116,32 @@ fun PlayScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Slot (3.4b): "Today's challenge" card goes here.
+            if (state.showTodayChallenge) {
+                fullWidth { TodayChallengeCard() }
+            }
 
-            // Slot (3.4c): "Continue", "Recommended next" and "Pinned" cards go here; until then
-            // the "Resume quiz" card stands in for "Continue".
             state.savedQuiz?.let { saved ->
                 fullWidth {
-                    ResumeCard(
+                    ContinueCard(
                         saved = saved,
                         onResume = { onStartQuiz(saved.quizModeId, saved.categoryType, saved.categoryValue) },
                         onDismiss = viewModel::dismissSavedQuiz
                     )
                 }
             }
+
+            state.recommended?.let { recommended ->
+                fullWidth {
+                    RecommendedCard(
+                        recommended = recommended,
+                        onStart = {
+                            onStartQuiz(recommended.quizModeId, recommended.categoryType, recommended.categoryValue)
+                        }
+                    )
+                }
+            }
+
+            // Slot (3.4c): "Pinned" cards go here.
 
             if (state.classicModes.isNotEmpty()) {
                 fullWidth {
@@ -271,12 +293,55 @@ private fun ModeSwitch(
 /** Horizontal padding, icon and gap inside a segment, around its label. */
 private val SEGMENT_CHROME = 12.dp * 2 + 18.dp + 8.dp + 4.dp
 
+/**
+ * Placeholder for the daily challenge (D24): shown only while its feature flag is on, not
+ * clickable and with no made-up content. Phase 8 wires it up. Read as one item.
+ */
 @Composable
-private fun ResumeCard(
+private fun TodayChallengeCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {},
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        CardRow(icon = { Icon(Icons.Default.Today, contentDescription = null, modifier = Modifier.size(32.dp)) }) {
+            Text(
+                text = stringResource(R.string.play_today_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = stringResource(R.string.play_today_body),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+/**
+ * The quiz saved part-way through: mode, category, answered count and time played. One tap
+ * resumes it in its own mode; the cross dismisses it (a separate 48 dp button).
+ */
+@Composable
+private fun ContinueCard(
     saved: SavedQuizInfo,
     onResume: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val res = a11yResources()
+    val minutes = saved.timeElapsedSeconds.coerceAtLeast(0) / 60
+    val seconds = saved.timeElapsedSeconds.coerceAtLeast(0) % 60
+    val shownTime = String.format(Locale.ROOT, "%02d:%02d", minutes, seconds)
+    val spokenProgress = stringResource(
+        R.string.play_continue_progress,
+        saved.answeredCount,
+        A11yText.duration(res, saved.timeElapsedSeconds)
+    )
     Card(
         onClick = onResume,
         modifier = Modifier
@@ -288,34 +353,95 @@ private fun ResumeCard(
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         )
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+        CardRow(
+            icon = { Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(32.dp)) },
+            trailing = {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.play_resume_dismiss))
+                }
+            }
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(32.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
-                Text(
-                    text = stringResource(R.string.action_resume_quiz),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = stringResource(
-                        R.string.play_resume_detail,
-                        stringResource(saved.modeLabel),
-                        saved.categoryDisplayName,
-                        saved.answeredCount
-                    ),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.play_resume_dismiss))
-            }
+            Text(
+                text = stringResource(R.string.play_continue_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = stringResource(
+                    R.string.play_card_mode_category,
+                    stringResource(saved.modeLabel),
+                    saved.categoryDisplayName
+                ),
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = stringResource(R.string.play_continue_progress, saved.answeredCount, shownTime),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = spokenProgress }
+            )
         }
+    }
+}
+
+/** "Recommended next" for the selected mode, with its mastery stars; one tap starts it. */
+@Composable
+private fun RecommendedCard(
+    recommended: RecommendedQuiz,
+    onStart: () -> Unit
+) {
+    Card(
+        onClick = onStart,
+        modifier = Modifier
+            .fillMaxWidth()
+            .buttonSemantics(stringResource(R.string.action_start_quiz), onStart),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    ) {
+        CardRow(icon = { Icon(Icons.Default.Lightbulb, contentDescription = null, modifier = Modifier.size(32.dp)) }) {
+            Text(
+                text = stringResource(R.string.play_recommended_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = stringResource(
+                    R.string.play_card_mode_category,
+                    stringResource(recommended.modeLabel),
+                    recommended.categoryDisplayName
+                ),
+                style = MaterialTheme.typography.bodySmall
+            )
+            MasteryStarsRow(stars = recommended.stars, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+/** Icon, text column and optional trailing button of the cards above the mode switch. */
+@Composable
+private fun CardRow(
+    icon: @Composable () -> Unit,
+    trailing: (@Composable () -> Unit)? = null,
+    text: @Composable () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = if (trailing == null) 16.dp else 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        icon()
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 8.dp)
+        ) {
+            text()
+        }
+        trailing?.invoke()
     }
 }
 

@@ -73,6 +73,17 @@ interface QuizHistoryDao {
     """)
     fun observeMasteryRowsForMode(quizMode: String): Flow<List<QuizMasteryRow>>
 
+    // Categories of a mode, most recently finished first (one row each), for "Recommended next"
+
+    @Query("""
+        SELECT categoryType, categoryValue
+        FROM quiz_history
+        WHERE quizMode = :quizMode
+        GROUP BY categoryType, categoryValue
+        ORDER BY MAX(completedAtMillis) DESC, MAX(id) DESC
+    """)
+    fun observeCategoriesByRecencyForMode(quizMode: String): Flow<List<QuizCategoryRef>>
+
     // Recent history
 
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
@@ -91,3 +102,9 @@ interface QuizHistoryDao {
     @Query("DELETE FROM quiz_history")
     suspend fun deleteAllHistory()
 }
+
+/** A recorded category of a mode, as returned by [QuizHistoryDao.observeCategoriesByRecencyForMode]. */
+data class QuizCategoryRef(
+    val categoryType: String,
+    val categoryValue: String
+)

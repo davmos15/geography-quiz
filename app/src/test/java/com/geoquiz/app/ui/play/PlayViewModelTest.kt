@@ -12,8 +12,10 @@ import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
 import io.mockk.coVerify
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -35,6 +37,14 @@ class PlayViewModelTest {
         while (true) {
             val state = awaitItem()
             if (!state.isLoading && state.classicModes.isNotEmpty()) return state
+        }
+    }
+
+    /** Skips states until [predicate] holds. */
+    private suspend fun ReceiveTurbine<PlayUiState>.awaitUntil(predicate: (PlayUiState) -> Boolean): PlayUiState {
+        while (true) {
+            val state = awaitItem()
+            if (predicate(state)) return state
         }
     }
 
@@ -214,5 +224,156 @@ class PlayViewModelTest {
         viewModel.dismissSavedQuiz()
 
         coVerify(exactly = 1) { repository.clearSavedQuiz() }
+    }
+
+    @Test
+    fun `the continue card carries the time played`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = ScreenTestFixtures.SAVED_QUIZ)
+
+        viewModel.uiState.test {
+            val info = awaitUntil { it.savedQuiz != null }.savedQuiz!!
+            assertEquals(75, info.timeElapsedSeconds)
+            assertEquals("Starting with 'A'", info.categoryDisplayName)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // Today's challenge (D24)
+
+    @Test
+    fun `the Today's challenge card follows the daily challenge flag`() = runTest {
+        val flags = MutableStateFlow(flagStates())
+        val viewModel = ScreenTestFixtures.playViewModel(flagStates = flags)
+
+        viewModel.uiState.test {
+            assertFalse(awaitLoaded().showTodayChallenge)
+
+            flags.value = flagStates(FeatureFlag.DAILY_CHALLENGE)
+            assertTrue(awaitUntil { it.showTodayChallenge }.showTodayChallenge)
+
+            flags.value = flagStates(FeatureFlag.TAP_THE_MAP)
+            assertFalse(awaitUntil { !it.showTodayChallenge }.showTodayChallenge)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the Today's challenge card is off by default`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel()
+
+        viewModel.uiState.test {
+            assertFalse(awaitLoaded().showTodayChallenge)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // Recommended next (D25). Countries over EIGHT: regions Africa, Americas, Asia, Europe come first.
+
+    @Test
+    fun `with no history the first category of the mode is recommended`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null)
+
+        viewModel.uiState.test {
+            val recommended = awaitUntil { it.recommended != null }.recommended!!
+            assertEquals(
+                RecommendedQuiz("countries", R.string.mode_countries_name, "region", "Africa", "Africa", stars = 0),
+                recommended
+            )
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the recommendation follows history live`() = runTest {
+        val stars = MutableStateFlow<Map<String, Int>>(emptyMap())
+        val recent = MutableStateFlow<List<String>>(emptyList())
+        val history = ScreenTestFixtures.quizHistoryRepository(
+            stars = { if (it == "countries") stars else flowOf(emptyMap()) },
+            recentKeys = { if (it == "countries") recent else flowOf(emptyList()) }
+        )
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null, history = history)
+
+        viewModel.uiState.test {
+            assertEquals("Africa", awaitUntil { it.recommended != null }.recommended!!.categoryValue)
+
+            // Africa played (1 star): next in its group
+            stars.value = mapOf("region|Africa" to 1)
+            recent.value = listOf("region|Africa")
+            assertEquals("Americas", awaitUntil { it.recommended?.categoryValue != "Africa" }.recommended!!.categoryValue)
+
+            // Americas played last: Asia, the next with fewer than 2 stars, with its star
+            stars.value = mapOf("region|Africa" to 1, "region|Americas" to 2, "region|Asia" to 1)
+            recent.value = listOf("region|Americas", "region|Africa")
+            val asia = awaitUntil { it.recommended?.categoryValue == "Asia" }.recommended!!
+            assertEquals(1, asia.stars)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `when the rest of the last group is mastered the first unplayed category is recommended`() = runTest {
+        // Every region has 2 or 3 stars and Africa was last: (a) finds nothing, (b) gives the
+        // first unplayed category after the regions.
+        val stars = mapOf("region|Africa" to 2, "region|Americas" to 3, "region|Asia" to 3, "region|Europe" to 3)
+        val history = ScreenTestFixtures.quizHistoryRepository(
+            stars = { flowOf(stars) },
+            recentKeys = { flowOf(listOf("region|Africa")) }
+        )
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null, history = history)
+
+        viewModel.uiState.test {
+            val recommended = awaitUntil { it.recommended != null }.recommended!!
+            assertEquals("subregion", recommended.categoryType)
+            assertEquals(0, recommended.stars)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the Continue category is never recommended`() = runTest {
+        val saved = ScreenTestFixtures.SAVED_QUIZ.copy(categoryType = "region", categoryValue = "Africa")
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = saved)
+
+        viewModel.uiState.test {
+            val state = awaitUntil { it.recommended != null && it.savedQuiz != null }
+            assertEquals("Americas", state.recommended!!.categoryValue)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a saved quiz in another mode does not change the recommendation`() = runTest {
+        val saved = ScreenTestFixtures.SAVED_QUIZ.copy(quizMode = "capitals", categoryType = "region", categoryValue = "Africa")
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = saved)
+
+        viewModel.uiState.test {
+            val state = awaitUntil { it.recommended != null && it.savedQuiz != null }
+            assertEquals("Africa", state.recommended!!.categoryValue)
+
+            viewModel.selectMode("capitals")
+            val capitals = awaitUntil { it.recommended?.quizModeId == "capitals" }.recommended!!
+            assertEquals(R.string.mode_capitals_name, capitals.modeLabel)
+            assertEquals("Americas", capitals.categoryValue)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the recommendation follows the selected mode and its own history`() = runTest {
+        val history = ScreenTestFixtures.quizHistoryRepository(
+            stars = { mode -> flowOf(if (mode == "flags") mapOf("flagcolor|red" to 1) else emptyMap()) }
+        )
+        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null, history = history)
+
+        viewModel.uiState.test {
+            awaitUntil { it.recommended?.quizModeId == "countries" }
+            viewModel.selectMode("flags")
+            val flags = awaitUntil { it.recommended?.quizModeId == "flags" }.recommended!!
+            // By colour, most countries first: red (3), white (3), blue (1); red already has a star.
+            assertEquals("flagcolor", flags.categoryType)
+            assertEquals("white", flags.categoryValue)
+            assertEquals(R.string.mode_flags_name, flags.modeLabel)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

@@ -32,8 +32,10 @@ import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
+import com.geoquiz.app.domain.usecase.RecommendNextCategoryUseCase
 import com.geoquiz.app.domain.usecase.ResetAllDataUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
+import com.geoquiz.app.ui.category.CategoryOptionsBuilder
 import com.geoquiz.app.ui.play.PlayCategoryGroups
 import com.geoquiz.app.ui.play.PlayViewModel
 import com.geoquiz.app.ui.navigation.Screen
@@ -218,9 +220,9 @@ object ScreenTestFixtures {
     )
 
     /**
-     * The Play tab over [countries], with [savedQuiz] on the "Resume quiz" card, feature flags
-     * from [flagStates] (all defaults, so all off, unless given) and the classic registry plus
-     * [extraModes].
+     * The Play tab over [countries], with [savedQuiz] on the "Continue" card, feature flags
+     * from [flagStates] (all defaults, so all off, unless given), the classic registry plus
+     * [extraModes], and history (stars, recency) from [history] (empty unless given).
      */
     fun playViewModel(
         countries: List<Country> = EIGHT,
@@ -228,7 +230,8 @@ object ScreenTestFixtures {
         flagStates: Flow<List<FeatureFlagState>> = flowOf(defaultFlagStates()),
         extraModes: Set<GameMode> = emptySet(),
         savedStateHandle: SavedStateHandle = SavedStateHandle(),
-        savedQuizRepository: SavedQuizRepository = savedQuizRepository(savedQuiz)
+        savedQuizRepository: SavedQuizRepository = savedQuizRepository(savedQuiz),
+        history: QuizHistoryRepository = quizHistoryRepository()
     ): PlayViewModel {
         val flags = mockk<FeatureFlagRepository> {
             every { states } returns flagStates
@@ -241,8 +244,23 @@ object ScreenTestFixtures {
             featureFlagRepository = flags,
             countryRepository = countryRepository(countries),
             savedQuizRepository = savedQuizRepository,
-            categoryGroups = PlayCategoryGroups(flagColorDao, flagElementDao)
+            categoryGroups = PlayCategoryGroups(flagColorDao, flagElementDao),
+            optionsBuilder = CategoryOptionsBuilder(flagColorDao, flagElementDao),
+            quizHistoryRepository = history,
+            recommendNext = RecommendNextCategoryUseCase()
         )
+    }
+
+    /**
+     * History for the Play tab: mastery stars and recently played category keys
+     * (`"type|value"`, most recent first) per mode id. Empty by default.
+     */
+    fun quizHistoryRepository(
+        stars: (modeId: String) -> Flow<Map<String, Int>> = { flowOf(emptyMap()) },
+        recentKeys: (modeId: String) -> Flow<List<String>> = { flowOf(emptyList()) }
+    ): QuizHistoryRepository = mockk(relaxed = true) {
+        every { masteryStarsForMode(any()) } answers { stars(firstArg()) }
+        every { categoryKeysByRecencyForMode(any()) } answers { recentKeys(firstArg()) }
     }
 
     /** A relaxed saved-quiz repository holding [savedQuiz]; answered codes are parsed from the JSON. */

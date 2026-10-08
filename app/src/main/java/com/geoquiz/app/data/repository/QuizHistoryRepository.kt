@@ -83,6 +83,15 @@ class QuizHistoryRepository @Inject constructor(
                 }
         }
 
+    /**
+     * The categories of [quizMode] that have a recorded quiz, as [categoryKey]s, most recently
+     * finished first (each once). Updates when history changes.
+     */
+    fun categoryKeysByRecencyForMode(quizMode: String): Flow<List<String>> =
+        quizHistoryDao.observeCategoriesByRecencyForMode(quizMode).map { rows ->
+            rows.map { categoryKey(it.categoryType, it.categoryValue) }
+        }
+
     /** Leaderboard total over Normal and Hard quizzes; Easy never counts (D16). */
     suspend fun getTotalCorrectAnswersSync(): Long =
         quizHistoryDao.getTotalCorrectAnswersSync()

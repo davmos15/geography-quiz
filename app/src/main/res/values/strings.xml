@@ -266,8 +266,17 @@
         <item quantity="one">%d quiz</item>
         <item quantity="other">%d quizzes</item>
     </plurals>
-    <!-- Resume card: mode name, category name, number answered -->
-    <string name="play_resume_detail">%1$s: %2$s, %3$d answered</string>
+    <!-- Continue card (the quiz saved part-way through) -->
+    <string name="play_continue_title">Continue</string>
+    <!-- %1$s = mode name, %2$s = category name, e.g. "Countries: Starting with 'A'" -->
+    <string name="play_card_mode_category">%1$s: %2$s</string>
+    <!-- %1$d = number answered, %2$s = time played: "01:15" on screen, "1 minute 15 seconds" for screen readers -->
+    <string name="play_continue_progress">%1$d answered in %2$s</string>
     <string name="play_resume_dismiss">Dismiss saved quiz</string>
+    <!-- Recommended next card: one tap starts the suggested category -->
+    <string name="play_recommended_title">Recommended next</string>
+    <!-- Today's challenge placeholder, shown only behind the daily challenge feature flag -->
+    <string name="play_today_title">Today’s challenge</string>
+    <string name="play_today_body">A new set of questions every day. Coming soon.</string>
     <string name="action_open_mode">Open mode</string>
 </resources>

@@ -2,8 +2,6 @@ package com.geoquiz.app.ui.category
 
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
-import com.geoquiz.app.data.local.db.FlagColorDao
-import com.geoquiz.app.data.local.db.FlagElementDao
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
@@ -11,7 +9,10 @@ import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.challenge.ChallengeLinkParseResult
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.model.ChallengeDeepLink
+import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.model.FlagCategoryGroup
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.testutil.TestGameModes
 import io.mockk.coEvery
@@ -36,7 +37,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** Challenge links from the category list: signed with the injected signer and saved. */
+/**
+ * Challenge links from the category list (signed with the injected signer and saved), and the
+ * options it lists, which must be unchanged by the 3.4b extraction into [CategoryOptionsBuilder].
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class CategoryListViewModelTest {
@@ -68,11 +72,10 @@ class CategoryListViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(quizMode: String) = CategoryListViewModel(
-        savedStateHandle = SavedStateHandle(mapOf("quizMode" to quizMode, "groupId" to "")),
+    private fun viewModel(quizMode: String, groupId: String = "") = CategoryListViewModel(
+        savedStateHandle = SavedStateHandle(mapOf("quizMode" to quizMode, "groupId" to groupId)),
         repository = countries,
-        flagColorDao = mockk<FlagColorDao>(relaxed = true),
-        flagElementDao = mockk<FlagElementDao>(relaxed = true),
+        optionsBuilder = CategoryOptionsFixture.builder(),
         quizHistoryRepository = history,
         challengeRepository = challengeRepository,
         playGamesService = playGames,
@@ -131,5 +134,37 @@ class CategoryListViewModelTest {
         val result = ChallengeDeepLink.parse(Uri.parse(url.toString()), other)
         result as ChallengeLinkParseResult.Valid
         assertFalse(result.scoreVerified)
+    }
+
+    /** The options the category list shows for [groupId], over [CategoryOptionsFixture]. */
+    private fun listed(quizMode: String, groupId: String): List<QuizOptionInfo> {
+        every { countries.getAllCountries() } returns flowOf(CategoryOptionsFixture.COUNTRIES)
+        val vm = viewModel(quizMode, groupId)
+        dispatcher.scheduler.advanceUntilIdle()
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        return state.quizOptions
+    }
+
+    private fun legacy(mode: QuizMode, groupId: String) =
+        LegacyCategoryOptions(mode, CategoryOptionsFixture.FLAG_COLOURS, CategoryOptionsFixture.FLAG_ELEMENTS)
+            .options(groupId, CategoryOptionsFixture.COUNTRIES)
+
+    @Test
+    fun `category list options are unchanged for countries, capitals and flags`() {
+        val cases = CategoryGroup.entries.flatMap { listOf(QuizMode.COUNTRIES to it.id, QuizMode.CAPITALS to it.id) } +
+            FlagCategoryGroup.entries.map { QuizMode.FLAGS to it.id }
+        for ((mode, groupId) in cases) {
+            assertEquals("$mode/$groupId", legacy(mode, groupId), listed(mode.id, groupId))
+        }
+    }
+
+    @Test
+    fun `group name and description still come from the group`() {
+        listed("countries", CategoryGroup.LETTER_PATTERNS.id)
+        val vm = viewModel("flags", FlagCategoryGroup.FLAG_ELEMENTS.id)
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(FlagCategoryGroup.FLAG_ELEMENTS.displayName, vm.uiState.value.groupName)
+        assertEquals(FlagCategoryGroup.FLAG_ELEMENTS.description, vm.uiState.value.groupDescription)
     }
 }

@@ -115,14 +115,21 @@ object ScreenTestFixtures {
     }
 
     /**
-     * A Countries-mode "All Countries" quiz with the real answer checking and completion.
-     * [hardMode] starts it at Hard through the route, otherwise at Normal.
+     * A Countries-mode quiz with the real answer checking and completion; "All Countries" over
+     * [countries] unless [categoryType] and [categoryValue] name another category.
+     * [hardMode] starts it at Hard through the route, otherwise at Normal; [difficulty], when
+     * given, wins over [hardMode] (e.g. Easy). [allCountries] is every country the app knows,
+     * where Easy draws its distractors from (by default just the quiz set).
      */
     class QuizHarness(
         countries: List<Country> = TestQuizData.THREE,
         hardMode: Boolean = false,
         showTimer: Boolean = true,
-        vibration: Boolean = true
+        vibration: Boolean = true,
+        difficulty: Difficulty? = null,
+        allCountries: List<Country> = countries,
+        categoryType: String = "all",
+        categoryValue: String = "_"
     ) {
         val completedQuizzes = FakeCompletedQuizRepository()
 
@@ -138,16 +145,17 @@ object ScreenTestFixtures {
 
         private val gameModes = TestGameModes.registry(
             getCountriesForQuiz = getCountriesForQuiz,
-            validateAnswer = ValidateAnswerUseCase(countryRepository(countries), NormalizeInputUseCase())
+            validateAnswer = ValidateAnswerUseCase(countryRepository(allCountries), NormalizeInputUseCase())
         )
 
         val viewModel = QuizViewModel(
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     "quizMode" to "countries",
-                    "categoryType" to "all",
-                    "categoryValue" to "_",
-                    QuizViewModel.ARG_DIFFICULTY to (if (hardMode) Difficulty.HARD else Difficulty.NORMAL).id
+                    "categoryType" to categoryType,
+                    "categoryValue" to categoryValue,
+                    QuizViewModel.ARG_DIFFICULTY to
+                        (difficulty ?: if (hardMode) Difficulty.HARD else Difficulty.NORMAL).id
                 )
             ),
             gameModes = gameModes,
@@ -163,7 +171,7 @@ object ScreenTestFixtures {
             savedQuizRepository = savedQuizRepository,
             adManager = mockk<AdManager>(relaxed = true),
             clock = FrozenClock,
-            countryRepository = countryRepository(countries),
+            countryRepository = countryRepository(allCountries),
             quizRandom = QuizRandom(Random(42))
         )
     }

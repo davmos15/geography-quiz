@@ -514,14 +514,19 @@ fun QuizScreen(
                                 }
                             } else {
                                 // Phones in portrait. On short screens (keyboard open, large text)
-                                // the title scrolls away with the list, so the rows keep their space.
+                                // the title scrolls away, so the rows keep their space: with the
+                                // list in the typed tiers, and at the top of the options panel in
+                                // Easy, so it is still read and seen before the question.
+                                val isEasy = difficulty == Difficulty.EASY
+                                val titleInList = space.titleScrollsWithList && !isEasy
+                                val titleInPanel = space.titleScrollsWithList && isEasy
                                 val listHeader: (@Composable () -> Unit)? =
-                                    if (space.titleScrollsWithList) ({ titleBlock(Modifier) }) else null
+                                    if (titleInList) ({ titleBlock(Modifier) }) else null
                                 // When the title moves into the list of a list still at the top
                                 // (the keyboard opens), show it rather than the first row. A list
                                 // the player has scrolled stays where it is.
-                                LaunchedEffect(space.titleScrollsWithList) {
-                                    if (space.titleScrollsWithList &&
+                                LaunchedEffect(titleInList) {
+                                    if (titleInList &&
                                         listState.firstVisibleItemIndex <= 1 &&
                                         listState.firstVisibleItemScrollOffset == 0
                                     ) {
@@ -537,15 +542,20 @@ fun QuizScreen(
                                 ) {
                                     if (!space.titleScrollsWithList) titleBlock(Modifier.traversalOrder(TITLE_ORDER))
                                     statusBlock(Modifier.traversalOrder(STATUS_ORDER))
-                                    if (difficulty == Difficulty.EASY) {
+                                    if (isEasy) {
                                         // The options get the space they need, but never so much that
                                         // the list disappears: at large font scales or on short
-                                        // screens they scroll (3.6).
+                                        // screens they scroll (3.6). A title that scrolls is the
+                                        // panel's first item, above the prompt, so each question
+                                        // scrolls back to it.
                                         PanelAboveList(
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .fillMaxWidth(),
-                                            panel = { choicePanel() },
+                                            panel = {
+                                                if (titleInPanel) titleBlock(Modifier)
+                                                choicePanel()
+                                            },
                                             list = { listModifier -> countryList(listModifier, listHeader) },
                                             scrollKey = quizState.choice?.targetCode
                                         )

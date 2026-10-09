@@ -19,9 +19,11 @@ internal val RECENT_ANSWERS_MIN_HEIGHT: Dp = 300.dp
 /**
  * What the quiz shows where, for the space it has.
  *
- * @property titleScrollsWithList the title, tier label and pattern banner are the list's first
- *   item instead of pinned above it, so the rows keep usable space (short phones, keyboard open,
- *   large text). The count, timer, strikes, settings and pause stay pinned.
+ * @property titleScrollsWithList the title, tier label and pattern banner scroll instead of being
+ *   pinned at the top, so the rows keep usable space (short phones, keyboard open, large text):
+ *   they are the list's first item in the typed tiers, and the first item of the scrolling
+ *   options panel (above the prompt) in Easy. The count, timer, strikes, settings and pause stay
+ *   pinned.
  * @property showRecentAnswers the last three correct answers above the field (typed tiers). They
  *   repeat what the list shows, so they are the first thing left out when space is very short.
  */

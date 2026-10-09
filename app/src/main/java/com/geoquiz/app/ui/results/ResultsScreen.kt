@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -282,8 +283,9 @@ private fun ResultsContent(
         }
     }
 
-    // ...and what to do next (the other pane on wide screens).
-    val actions: @Composable ColumnScope.() -> Unit = {
+    // ...and what to do next (the other pane on wide screens). [widthFraction]: the share of the
+    // pane's width the buttons take (see resultsActionsWidthFraction).
+    val actions: @Composable ColumnScope.(widthFraction: Float) -> Unit = { widthFraction ->
         // D21: a practice quiz is not recorded, so it is not shared or sent as a challenge.
         if (isPractice) {
             Text(
@@ -291,11 +293,11 @@ private fun ResultsContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(0.8f)
+                modifier = Modifier.fillMaxWidth(widthFraction)
             )
         } else AdaptiveButtonRow(
             // Side by side when both labels fit on one line, otherwise stacked (3.6).
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier.fillMaxWidth(widthFraction)
         ) {
             OutlinedButton(
                 onClick = {
@@ -341,7 +343,7 @@ private fun ResultsContent(
         // View Answers button
         Button(
             onClick = onViewAnswers,
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(widthFraction),
             // Tonal secondary: white on the light amber secondary fill was only 2.3:1.
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -355,26 +357,31 @@ private fun ResultsContent(
 
         Button(
             onClick = onPlayAgain,
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier.fillMaxWidth(widthFraction)
         ) {
             Text("Play Again", textAlign = TextAlign.Center)
         }
 
         if (missedCount > 0) {
             Spacer(modifier = Modifier.height(12.dp))
-            PractiseMissedButton(missedCount = missedCount, onClick = onPractiseMissed)
+            PractiseMissedButton(
+                missedCount = missedCount,
+                onClick = onPractiseMissed,
+                modifier = Modifier.fillMaxWidth(widthFraction)
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
             onClick = onGoHome,
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier.fillMaxWidth(widthFraction)
         ) {
             Text("Home", textAlign = TextAlign.Center)
         }
     }
 
+    val fontScale = LocalDensity.current.fontScale
     Scaffold { padding ->
         // One or two panes from the space this screen has (beside the rail, in multi-window).
         BoxWithConstraints(
@@ -382,7 +389,9 @@ private fun ResultsContent(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (WindowLayout.of(maxWidth, maxHeight).useTwoPanes) {
+            val twoPanes = WindowLayout.of(maxWidth, maxHeight).useTwoPanes
+            val actionsWidth = resultsActionsWidthFraction(twoPanes = twoPanes, fontScale = fontScale)
+            if (twoPanes) {
                 // Tablets and phones in landscape: summary on the start side, actions beside it.
                 // Each pane scrolls on its own.
                 Row(
@@ -393,7 +402,7 @@ private fun ResultsContent(
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     ResultsPane(modifier = Modifier.weight(1f), content = summary)
-                    ResultsPane(modifier = Modifier.weight(1f), content = actions)
+                    ResultsPane(modifier = Modifier.weight(1f)) { actions(actionsWidth) }
                 }
             } else {
                 ResultsPane(
@@ -403,7 +412,7 @@ private fun ResultsContent(
                 ) {
                     summary()
                     Spacer(modifier = Modifier.height(20.dp))
-                    actions()
+                    actions(actionsWidth)
                 }
             }
         }
@@ -425,26 +434,46 @@ private fun ResultsPane(modifier: Modifier, content: @Composable ColumnScope.() 
 
 /**
  * "Practise the ones you missed (3)": starts a quiz of exactly the missed items. No fixed height,
- * so the label wraps at large font sizes; Material buttons keep the 48 dp touch target.
+ * so the label wraps at large font sizes; Material buttons keep the 48 dp touch target. The icon
+ * is Material's button icon size, growing with the text, and is measured before the label, so it
+ * never squeezes it.
  */
 @Composable
-private fun PractiseMissedButton(missedCount: Int, onClick: () -> Unit) {
+private fun PractiseMissedButton(missedCount: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(0.8f)
+        modifier = modifier,
+        // Material's padding for a button with an icon: a little more room for the label.
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
     ) {
         Icon(
             imageVector = Icons.Default.Replay,
             // Decorative: the label says it.
             contentDescription = null,
-            modifier = Modifier.padding(end = 8.dp)
+            modifier = Modifier.size(inlineIconSize(ButtonDefaults.IconSize))
         )
+        Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
         Text(
             text = pluralStringResource(R.plurals.results_practise_missed, missedCount, missedCount),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f, fill = false)
         )
     }
 }
+
+/**
+ * The share of the content width the Results action buttons take: 80% normally, the full width
+ * on one pane at large text ([LARGE_TEXT_FULL_WIDTH_SCALE] and up), so long labels such as
+ * "Practise the ones you missed (3)" are not squeezed into a narrow pill. Two panes keep 80%.
+ */
+internal fun resultsActionsWidthFraction(twoPanes: Boolean, fontScale: Float): Float =
+    if (!twoPanes && fontScale >= LARGE_TEXT_FULL_WIDTH_SCALE) 1f else ACTIONS_WIDTH_FRACTION
+
+/** The usual share of the content width the Results action buttons take. */
+internal const val ACTIONS_WIDTH_FRACTION = 0.8f
+
+/** From this font scale the one-pane Results buttons use the full content width. */
+internal const val LARGE_TEXT_FULL_WIDTH_SCALE = 1.5f
 
 /**
  * The achievements this quiz unlocked. A polite live region, so TalkBack reads it once when it

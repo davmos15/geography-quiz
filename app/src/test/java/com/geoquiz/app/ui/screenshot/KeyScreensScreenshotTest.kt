@@ -1,22 +1,12 @@
 package com.geoquiz.app.ui.screenshot
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import com.geoquiz.app.testutil.MainDispatcherRule
-import com.geoquiz.app.testutil.ScreenTestFixtures
-import com.geoquiz.app.ui.play.PlayScreen
-import com.geoquiz.app.ui.quiz.QuizScreen
-import com.geoquiz.app.ui.results.AnswerReviewScreen
-import com.geoquiz.app.ui.results.ResultsScreen
-import com.geoquiz.app.ui.settings.SettingsScreen
-import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
-import com.github.takahirom.roborazzi.RoborazziOptions
-import com.github.takahirom.roborazzi.captureRoboImage
-import com.github.takahirom.roborazzi.roborazziSystemPropertyOutputDirectory
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,11 +15,12 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Screenshot tests for the key screens, each in light, dark (`+night`) and 200% font scale.
+ * Screenshot tests for the key screens on a phone (Pixel 5), each in light, dark (`+night`) and
+ * 200% font scale. Tablet and landscape layouts are in [WideLayoutsScreenshotTest].
  *
  *   Record goldens:  ./gradlew recordRoborazziDebug
  *   Verify:          ./gradlew verifyRoborazziDebug
- *   Only this class: ./gradlew testDebugUnitTest -Proborazzi.test.record=true --tests "*KeyScreensScreenshotTest"
+ *   Only these:      ./gradlew testDebugUnitTest -Proborazzi.test.record=true --tests "com.geoquiz.app.ui.screenshot.*"
  *                    (or -Proborazzi.test.verify=true to verify)
  *   Diff images:     app/build/outputs/roborazzi/ (*_actual.png, *_compare.png after a failed verify)
  *
@@ -37,11 +28,10 @@ import org.robolectric.annotation.GraphicsMode
  * app/build.gradle.kts) and are committed. A plain `testDebugUnitTest` renders these screens but
  * neither records nor compares.
  *
- * Determinism: real screen ViewModels over fixed fakes ([ScreenTestFixtures]); coroutines run on
+ * Determinism: real screen ViewModels over fixed fakes ([ScreenshotScreens]); coroutines run on
  * an unconfined test dispatcher whose virtual time never advances, and the quiz clock is frozen,
- * so the timer always shows 00:00. No network, ads, Play Games or database. The home banner ad
- * stays out because [LocalInspectionMode] is set, which is how `BannerAd` skips itself in
- * previews.
+ * so the timer always shows 00:00. No network, ads, Play Games or database. The Play banner ad
+ * stays out because inspection mode is set, which is how `BannerAd` skips itself in previews.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -54,135 +44,106 @@ class KeyScreensScreenshotTest {
     @get:Rule(order = 1)
     val compose = createComposeRule()
 
+    private fun capture(
+        name: String,
+        content: @Composable () -> Unit,
+        prepare: ComposeContentTestRule.() -> Unit = {}
+    ) = compose.captureScreen(name, content, prepare)
+
     // ---- Quiz: in progress, hard mode, three named, one strike, near-miss feedback ----
 
-    @Test fun quiz_light() = capture("quiz_light", quizInProgress())
+    @Test fun quiz_light() = capture("quiz_light", ScreenshotScreens.quizInProgress())
 
     @Test @Config(qualifiers = "+night")
-    fun quiz_dark() = capture("quiz_dark", quizInProgress())
+    fun quiz_dark() = capture("quiz_dark", ScreenshotScreens.quizInProgress())
 
     @Test @Config(fontScale = 2f)
-    fun quiz_font200() = capture("quiz_font200", quizInProgress())
+    fun quiz_font200() = capture("quiz_font200", ScreenshotScreens.quizInProgress())
+
+    // ---- Quiz, Easy tier: options panel above the list, after a wrong pick ----
+
+    @Test fun quizEasy_light() = capture("quiz_easy_light", ScreenshotScreens.quizEasy())
+
+    @Test @Config(qualifiers = "+night")
+    fun quizEasy_dark() = capture("quiz_easy_dark", ScreenshotScreens.quizEasy())
+
+    @Test @Config(fontScale = 2f)
+    fun quizEasy_font200() = capture("quiz_easy_font200", ScreenshotScreens.quizEasy())
 
     // ---- Results (loaded) ----
 
-    @Test fun results_light() = capture("results_light", results())
+    @Test fun results_light() = capture("results_light", ScreenshotScreens.results())
 
     @Test @Config(qualifiers = "+night")
-    fun results_dark() = capture("results_dark", results())
+    fun results_dark() = capture("results_dark", ScreenshotScreens.results())
 
     @Test @Config(fontScale = 2f)
-    fun results_font200() = capture("results_font200", results())
+    fun results_font200() = capture("results_font200", ScreenshotScreens.results())
+
+    // ---- Results with the new achievements card, scrolled to the practise button ----
+
+    private fun resultsWithAchievements(name: String) = capture(
+        name,
+        ScreenshotScreens.results(ScreenshotScreens.RESULT_WITH_ACHIEVEMENTS)
+    ) {
+        onNodeWithText("Practise the ones you missed (3)").performScrollTo()
+    }
+
+    @Test fun resultsAchievements_light() = resultsWithAchievements("results_achievements_light")
+
+    @Test @Config(qualifiers = "+night")
+    fun resultsAchievements_dark() = resultsWithAchievements("results_achievements_dark")
+
+    @Test @Config(fontScale = 2f)
+    fun resultsAchievements_font200() = resultsWithAchievements("results_achievements_font200")
 
     // ---- Answer review ----
 
-    @Test fun answerReview_light() = capture("answer_review_light", answerReview())
+    @Test fun answerReview_light() = capture("answer_review_light", ScreenshotScreens.answerReview())
 
     @Test @Config(qualifiers = "+night")
-    fun answerReview_dark() = capture("answer_review_dark", answerReview())
+    fun answerReview_dark() = capture("answer_review_dark", ScreenshotScreens.answerReview())
 
     @Test @Config(fontScale = 2f)
-    fun answerReview_font200() = capture("answer_review_font200", answerReview())
+    fun answerReview_font200() = capture("answer_review_font200", ScreenshotScreens.answerReview())
 
-    // ---- Play tab, Countries selected (with a "Resume quiz" card); golden names kept from the old home ----
+    // ---- Play tab, Countries: Today's challenge, Continue, Recommended next, Pinned ----
 
-    @Test fun home_light() = capture("home_countries_light", countriesHome())
+    @Test fun play_light() = capture("play_light", ScreenshotScreens.play())
 
     @Test @Config(qualifiers = "+night")
-    fun home_dark() = capture("home_countries_dark", countriesHome())
+    fun play_dark() = capture("play_dark", ScreenshotScreens.play())
 
     @Test @Config(fontScale = 2f)
-    fun home_font200() = capture("home_countries_font200", countriesHome())
+    fun play_font200() = capture("play_font200", ScreenshotScreens.play())
+
+    // ---- Category list: difficulty selector, a row with stars, Best and pinned, rows without ----
+
+    @Test fun categoryList_light() = capture("category_list_light", ScreenshotScreens.categoryList())
+
+    @Test @Config(qualifiers = "+night")
+    fun categoryList_dark() = capture("category_list_dark", ScreenshotScreens.categoryList())
+
+    @Test @Config(fontScale = 2f)
+    fun categoryList_font200() = capture("category_list_font200", ScreenshotScreens.categoryList())
+
+    // ---- Achievements: gold, silver and bronze unlocked, two locked ----
+
+    @Test fun achievements_light() = capture("achievements_light", ScreenshotScreens.achievements())
+
+    @Test @Config(qualifiers = "+night")
+    fun achievements_dark() = capture("achievements_dark", ScreenshotScreens.achievements())
+
+    @Test @Config(fontScale = 2f)
+    fun achievements_font200() = capture("achievements_font200", ScreenshotScreens.achievements())
 
     // ---- Settings ----
 
-    @Test fun settings_light() = capture("settings_light", settings())
+    @Test fun settings_light() = capture("settings_light", ScreenshotScreens.settings())
 
     @Test @Config(qualifiers = "+night")
-    fun settings_dark() = capture("settings_dark", settings())
+    fun settings_dark() = capture("settings_dark", ScreenshotScreens.settings())
 
     @Test @Config(fontScale = 2f)
-    fun settings_font200() = capture("settings_font200", settings())
-
-    // ---- Screens: ViewModels are built here, once per test, outside composition ----
-
-    private fun quizInProgress(): @Composable () -> Unit {
-        val viewModel = ScreenTestFixtures.QuizHarness(
-            countries = ScreenTestFixtures.EIGHT,
-            hardMode = true
-        ).viewModel
-        // Three named, one strike, then a typo, which hard mode answers with "check the spelling".
-        listOf("France", "Peru", "Japan", "Narnia", "Germnay").forEach {
-            viewModel.onInputChange(it)
-            viewModel.onSubmitAnswer()
-        }
-        return { QuizScreen(onQuizComplete = {}, onNavigateHome = {}, viewModel = viewModel) }
-    }
-
-    private fun results(): @Composable () -> Unit {
-        val viewModel = ScreenTestFixtures.resultsViewModel()
-        return {
-            ResultsScreen(
-                onPlayAgain = { _, _, _, _ -> },
-                onGoHome = {},
-                onViewAnswers = {},
-                onPractiseMissed = { _, _, _, _ -> },
-                viewModel = viewModel
-            )
-        }
-    }
-
-    private fun answerReview(): @Composable () -> Unit {
-        val viewModel = ScreenTestFixtures.answerReviewViewModel()
-        return { AnswerReviewScreen(onNavigateBack = {}, onGoHome = {}, viewModel = viewModel) }
-    }
-
-    private fun countriesHome(): @Composable () -> Unit {
-        val viewModel = ScreenTestFixtures.playViewModel()
-        return {
-            CompositionLocalProvider(LocalInspectionMode provides true) {
-                PlayScreen(
-                    onOpenCategory = { _, _ -> },
-                    onStartQuiz = { _, _, _ -> },
-                    onOpenMode = {},
-                    viewModel = viewModel
-                )
-            }
-        }
-    }
-
-    private fun settings(): @Composable () -> Unit {
-        val viewModel = ScreenTestFixtures.settingsViewModel()
-        return { SettingsScreen(viewModel = viewModel) }
-    }
-
-    /**
-     * Renders [content] in the app theme (light or dark from the `+night` qualifier, text size
-     * from the configuration's font scale) and captures the whole window.
-     */
-    private fun capture(name: String, content: @Composable () -> Unit) {
-        compose.setContent { GeographyQuizTheme { content() } }
-        compose.waitForIdle()
-        compose.onRoot().captureRoboImage(
-            filePath = "${roborazziSystemPropertyOutputDirectory()}/$name.png",
-            roborazziOptions = OPTIONS
-        )
-    }
-
-    companion object {
-        /**
-         * Up to 1% of pixels may differ before a comparison fails. Goldens are recorded on
-         * Windows and verified on Linux in CI; Robolectric's native graphics bundle the same
-         * fonts on both, but anti-aliasing at glyph edges can differ slightly. Layout, colour,
-         * theme and font-scale regressions change far more than 1% of the image; a change of a
-         * few characters may not, so these tests guard the look of a screen and the Compose UI
-         * tests guard its content.
-         * Images are stored at half size, which keeps the repository small and also evens out
-         * edge anti-aliasing.
-         */
-        val OPTIONS = RoborazziOptions(
-            compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01F),
-            recordOptions = RoborazziOptions.RecordOptions(resizeScale = 0.5)
-        )
-    }
+    fun settings_font200() = capture("settings_font200", ScreenshotScreens.settings())
 }

@@ -8,6 +8,8 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasParent
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasSetTextAction
@@ -17,7 +19,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.testutil.MainDispatcherRule
+import com.geoquiz.app.testutil.ScreenTestFixtures
+import com.geoquiz.app.testutil.TestQuizData
 import com.geoquiz.app.testutil.ScreenTestFixtures.QuizHarness
 import com.geoquiz.app.ui.assertIsBelow
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
@@ -30,7 +35,8 @@ import org.robolectric.annotation.Config
 
 /**
  * The quiz layout on phones, short windows, landscape phones and tablets (3.7), on the real
- * [QuizScreen] and [QuizViewModel]. The quiz lists Austria, France and Germany (rows 1 to 3).
+ * [QuizScreen] and [QuizViewModel]. The quiz lists Austria, France and Germany (rows 1 to 3);
+ * the Easy quiz lists Brazil, Chile and Peru.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "w411dp-h891dp")
@@ -42,8 +48,19 @@ class QuizAdaptiveLayoutUiTest {
     @get:Rule(order = 1)
     val compose = createComposeRule()
 
-    private fun launch() {
-        val harness = QuizHarness()
+    private fun launch(easy: Boolean = false) {
+        // Easy needs outsiders for the wrong options: a quiz of the Americas among EIGHT.
+        val harness = if (easy) {
+            QuizHarness(
+                countries = listOf(TestQuizData.PERU, ScreenTestFixtures.BRAZIL, ScreenTestFixtures.CHILE),
+                allCountries = ScreenTestFixtures.EIGHT,
+                difficulty = Difficulty.EASY,
+                categoryType = "region",
+                categoryValue = "Americas"
+            )
+        } else {
+            QuizHarness()
+        }
         compose.setContent {
             GeographyQuizTheme(darkTheme = false) {
                 QuizScreen(
@@ -58,7 +75,10 @@ class QuizAdaptiveLayoutUiTest {
     }
 
     private val field get() = compose.onNode(hasSetTextAction())
-    private val title get() = compose.onNode(isHeading())
+    /** The Easy prompt card's heading, "Which of these fits ...?". */
+    private val promptMatcher = isHeading() and hasText("Which of these fits", substring = true)
+    private val title get() = compose.onNode(isHeading() and !promptMatcher)
+    private val prompt get() = compose.onNode(promptMatcher)
     private val count get() = compose.onNodeWithContentDescription("0 of 3 countries named")
     private fun row(n: Int) = compose.onNodeWithContentDescription("Row $n, not yet answered")
 
@@ -102,6 +122,29 @@ class QuizAdaptiveLayoutUiTest {
         title.assertIsDisplayed().assertIsBelow(count)
         row(1).assertIsBelow(title)
         field.assertIsDisplayed()
+    }
+
+    @Test
+    fun `in Easy on a phone the title stays pinned above the status and the question`() {
+        launch(easy = true)
+
+        title.assertIsDisplayed().assert(!hasAnyAncestor(hasScrollAction()))
+        count.assertIsBelow(title)
+        prompt.assertIsDisplayed().assertIsBelow(count)
+    }
+
+    @Test
+    @Config(qualifiers = "w360dp-h500dp")
+    fun `in Easy on a short window the title scrolls at the top of the options, not in the list`() {
+        launch(easy = true)
+
+        // Under the pinned count, above the prompt: the order it is seen and read in.
+        title.assertIsDisplayed().assertIsBelow(count)
+        prompt.assertIsBelow(title)
+        // It is the options panel's first item, not a row of the country list.
+        title.assert(!hasAnyAncestor(hasScrollToIndexAction()))
+            .assert(hasAnyAncestor(hasScrollAction() and hasAnyDescendant(promptMatcher)))
+        row(1).assertIsBelow(prompt)
     }
 
     @Test

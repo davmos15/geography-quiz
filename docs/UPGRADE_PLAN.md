@@ -43,7 +43,7 @@ where you stopped, commit, and tell me to start a new session.
 | 0 | Recon, baseline and agent setup | Done (merged) | `upgrade/p0-baseline` | #3 |
 | 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
 | 2 | Code and architecture | Done (merged) | `upgrade/p2-architecture` | #5 |
-| 3 | Game engine and UX foundation | Done – PR open | `upgrade/p3-ux-engine` | (see PR) |
+| 3 | Game engine and UX foundation | Done – PR open | `upgrade/p3-ux-engine` | #6 |
 | 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Not started | `upgrade/p6-modes-b` | |
@@ -593,7 +593,7 @@ Each session appends one entry:
   - From session 5, still open: Play group tiles count two-colour combos by overlap (existing behaviour); Phase 5 must wire `onOpenMode` and move `PinnedCategory.validOrNull`, `ChallengeLinkParser` and `QuizCategory.isOfferedIn` to registry ids.
 - Decisions: D26 (toolchain), D27 (pinned input, Dav), D28 (wide layouts; pane order Dav), D29 (large-text stacking and title scroll).
 - Owner actions added: none.
-- Verification: gate `./gradlew clean assembleDebug testDebugUnitTest lintDebug` passed (682 tests, 0 failures; lint 0 errors). After the gate fixes, `recordRoborazziDebug` once more and `verifyRoborazziDebug` passed (686 tests, 0 failures). `assembleRelease` run separately as the last step (first attempt stopped by the machine for low memory): RELEASE_RESULT. Reviews: code-reviewer on 3.6b and 3.7 (two blocking 3.7 findings fixed: TalkBack order and scroll state across layouts), licence-auditor on the toolchain bump (no required items; test-tool and Gradle wrapper rows added to `THIRD_PARTY_NOTICES.md`), lead review of 3.8 and of every golden.
+- Verification: gate `./gradlew clean assembleDebug testDebugUnitTest lintDebug` passed (682 tests, 0 failures; lint 0 errors). After the gate fixes, `recordRoborazziDebug` once more and `verifyRoborazziDebug` passed (686 tests, 0 failures). `assembleRelease` run separately as the last step (first attempt stopped by the machine for low memory; retried alone): passed, R8-minified, signed, 4.7 MB APK. Reviews: code-reviewer on 3.6b and 3.7 (two blocking 3.7 findings fixed: TalkBack order and scroll state across layouts), licence-auditor on the toolchain bump (no required items; test-tool and Gradle wrapper rows added to `THIRD_PARTY_NOTICES.md`), lead review of 3.8 and of every golden.
 - Manual test checklist for Phase 3 (debug build "GeoQuiz Debug" on a phone; a tablet or emulator for 13–15):
   1. Regression: play a Countries, a Capitals and a Flags quiz end to end at Normal, including a letter/word-pattern category. Typos ("Austrailia") are still accepted in Normal; Hard says "Close – check the spelling" with no strike.
   2. Difficulty: switch Easy / Normal / Hard on a category list. Easy: 4 options; a wrong pick shows the correct option blue with a tick and yours orange with a cross, then the next question about a second later; every item is asked once. Hard: the timer is always on and can't be hidden; 3 wrong guesses end the quiz. Settings → Default difficulty changes the starting tier.

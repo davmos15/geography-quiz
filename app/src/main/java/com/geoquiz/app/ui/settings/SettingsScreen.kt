@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.settings
 
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -39,7 +40,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -119,30 +119,29 @@ fun SettingsScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    // Debug builds only: tap the title 7 times to open the hidden debug menu
-                    val titleModifier = if (onOpenDebugMenu != null) {
-                        Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            debugTapCount++
-                            if (debugTapCount >= DEBUG_MENU_TAPS) {
-                                debugTapCount = 0
-                                Toast.makeText(context, debugMenuOpenedMessage, Toast.LENGTH_SHORT).show()
-                                onOpenDebugMenu()
-                            }
-                        }
-                    } else {
-                        Modifier
+            // Debug builds only: tap the title 7 times to open the hidden debug menu
+            val titleModifier = if (onOpenDebugMenu != null) {
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    debugTapCount++
+                    if (debugTapCount >= DEBUG_MENU_TAPS) {
+                        debugTapCount = 0
+                        Toast.makeText(context, debugMenuOpenedMessage, Toast.LENGTH_SHORT).show()
+                        onOpenDebugMenu()
                     }
-                    Text(stringResource(R.string.nav_settings), modifier = titleModifier.semantics { heading() })
-                },
-                navigationIcon = {
-                    // No back arrow when shown as a bottom navigation tab
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
+                }
+            } else {
+                Modifier
+            }
+            WrappingTopAppBar(
+                title = stringResource(R.string.nav_settings),
+                titleModifier = titleModifier,
+                // No back arrow when shown as a bottom navigation tab
+                navigationIcon = onNavigateBack?.let { back ->
+                    @Composable {
+                        IconButton(onClick = back) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     }

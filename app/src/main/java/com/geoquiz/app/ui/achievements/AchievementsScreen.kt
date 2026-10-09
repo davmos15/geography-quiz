@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.achievements
 
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import androidx.compose.ui.res.stringResource
 import com.geoquiz.app.R
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,12 +51,12 @@ fun AchievementsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.nav_achievements)) },
-                navigationIcon = {
-                    // No back arrow when shown as a bottom navigation tab
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
+            WrappingTopAppBar(
+                title = stringResource(R.string.nav_achievements),
+                // No back arrow when shown as a bottom navigation tab
+                navigationIcon = onNavigateBack?.let { back ->
+                    @Composable {
+                        IconButton(onClick = back) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     }

@@ -236,9 +236,13 @@ private fun ResultIcon(icon: ImageVector, description: String, tint: Color) {
         imageVector = icon,
         contentDescription = description,
         tint = tint,
-        modifier = Modifier.size(24.dp)
+        // Scales with the option text (3.6).
+        modifier = Modifier.size(inlineIconSize(RESULT_ICON_SIZE))
     )
 }
+
+/** Result icon size at 100% font; scaled with the text by [inlineIconSize]. */
+private val RESULT_ICON_SIZE = 24.dp
 
 /** Feedback icon size at 100% font; scaled with the text by [inlineIconSize]. */
 private val FEEDBACK_ICON_SIZE = 18.dp

@@ -3,6 +3,8 @@ package com.geoquiz.app.ui.quiz
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -80,10 +82,11 @@ import com.geoquiz.app.ui.quiz.feedback.rememberHapticFeedbackPlayer
 import com.geoquiz.app.ui.quiz.components.AnswerInput
 import com.geoquiz.app.ui.quiz.components.CountryList
 import com.geoquiz.app.ui.quiz.components.MultipleChoicePanel
+import com.geoquiz.app.ui.quiz.components.PanelAboveList
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.theme.geoColors
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun QuizScreen(
     onQuizComplete: (resultId: String) -> Unit,
@@ -242,76 +245,80 @@ fun QuizScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Header row with progress, optional timer, incorrect count, and pause button
+                        // Header row with progress, optional timer, incorrect count, and pause button.
+                        // The stats wrap onto a second line at large text sizes, so the settings and
+                        // pause buttons always keep their 48 dp (3.6).
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Polite live region: announced when the count changes (a correct
-                            // answer), e.g. "12 of 197 countries named". Not tied to the timer.
-                            Text(
-                                text = stringResource(R.string.quiz_count_of, answeredCount, totalCount),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.clearAndSetSemantics {
-                                    contentDescription = progressDescription
-                                    liveRegion = LiveRegionMode.Polite
-                                }
-                            )
-                            if (timerVisible) {
-                                Spacer(modifier = Modifier.width(12.dp))
-                                TimerDisplay(
-                                    elapsedSeconds = timerSeconds,
-                                    timerSeconds = null
+                            FlowRow(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                // Polite live region: announced when the count changes (a correct
+                                // answer), e.g. "12 of 197 countries named". Not tied to the timer.
+                                Text(
+                                    text = stringResource(R.string.quiz_count_of, answeredCount, totalCount),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.clearAndSetSemantics {
+                                        contentDescription = progressDescription
+                                        liveRegion = LiveRegionMode.Polite
+                                    }
                                 )
-                            }
-                            val strikeLimit = difficulty.strikeLimit
-                            if (strikeLimit != null) {
-                                Spacer(modifier = Modifier.width(12.dp))
-                                val strikesDescription = A11yText.strikes(res, quizState.incorrectGuesses, strikeLimit)
-                                val strikesColor = if (quizState.incorrectGuesses >= strikeLimit - 1) MaterialTheme.geoColors.wrong
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                // Cross icon + count, so strikes never rely on colour alone.
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clearAndSetSemantics {
-                                        contentDescription = strikesDescription
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = null,
-                                        tint = strikesColor,
-                                        modifier = Modifier.size(inlineIconSize(18.dp))
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.quiz_count_of, quizState.incorrectGuesses, strikeLimit),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = strikesColor
+                                if (timerVisible) {
+                                    TimerDisplay(
+                                        elapsedSeconds = timerSeconds,
+                                        timerSeconds = null
                                     )
                                 }
-                            } else if (quizState.incorrectGuesses > 0) {
-                                Spacer(modifier = Modifier.width(12.dp))
-                                val incorrectDescription = A11yText.incorrectGuesses(res, quizState.incorrectGuesses)
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clearAndSetSemantics {
-                                        contentDescription = incorrectDescription
+                                val strikeLimit = difficulty.strikeLimit
+                                if (strikeLimit != null) {
+                                    val strikesDescription = A11yText.strikes(res, quizState.incorrectGuesses, strikeLimit)
+                                    val strikesColor = if (quizState.incorrectGuesses >= strikeLimit - 1) MaterialTheme.geoColors.wrong
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    // Cross icon + count, so strikes never rely on colour alone.
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.clearAndSetSemantics {
+                                            contentDescription = strikesDescription
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = null,
+                                            tint = strikesColor,
+                                            modifier = Modifier.size(inlineIconSize(18.dp))
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.quiz_count_of, quizState.incorrectGuesses, strikeLimit),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = strikesColor
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.geoColors.wrong,
-                                        modifier = Modifier.size(inlineIconSize(18.dp))
-                                    )
-                                    Text(
-                                        text = "${quizState.incorrectGuesses}",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.geoColors.wrong
-                                    )
+                                } else if (quizState.incorrectGuesses > 0) {
+                                    val incorrectDescription = A11yText.incorrectGuesses(res, quizState.incorrectGuesses)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.clearAndSetSemantics {
+                                            contentDescription = incorrectDescription
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.geoColors.wrong,
+                                            modifier = Modifier.size(inlineIconSize(18.dp))
+                                        )
+                                        Text(
+                                            text = "${quizState.incorrectGuesses}",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.geoColors.wrong
+                                        )
+                                    }
                                 }
                             }
-                            Spacer(modifier = Modifier.weight(1f))
                             IconButton(onClick = { showSettingsSheet = true }) {
                                 Icon(
                                     Icons.Default.Settings,
@@ -356,23 +363,41 @@ fun QuizScreen(
                             }
                         }
 
+                        val countryList: @Composable (Modifier) -> Unit = { listModifier ->
+                            CountryList(
+                                countries = quizState.quiz.countries,
+                                answeredCodes = quizState.answeredCountries,
+                                quizMode = viewModel.quizMode,
+                                showFlags = showFlags,
+                                showCountryHint = showCountryHint,
+                                modifier = listModifier
+                            )
+                        }
+
                         if (difficulty == Difficulty.EASY) {
-                            // Easy: pick from 4 options (D14). Not weighted, so the options get
-                            // the space they need first; they scroll if they don't fit (large
-                            // font scales), and the list below takes what is left.
-                            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                                val choice = quizState.choice
-                                if (choice != null) {
-                                    MultipleChoicePanel(
-                                        question = choice,
-                                        feedback = quizState.choiceFeedback,
-                                        enabled = !quizState.isComplete && !quizState.isPaused,
-                                        onSelect = viewModel::onChoiceSelected,
-                                        motion = feedbackMotion
-                                    )
-                                }
-                                giveUpButton()
-                            }
+                            // Easy: pick from 4 options (D14). The options get the space they
+                            // need, but never so much that the list disappears: at large font
+                            // scales or on short screens they scroll (3.6).
+                            PanelAboveList(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
+                                panel = {
+                                    val choice = quizState.choice
+                                    if (choice != null) {
+                                        MultipleChoicePanel(
+                                            question = choice,
+                                            feedback = quizState.choiceFeedback,
+                                            enabled = !quizState.isComplete && !quizState.isPaused,
+                                            onSelect = viewModel::onChoiceSelected,
+                                            motion = feedbackMotion
+                                        )
+                                    }
+                                    giveUpButton()
+                                },
+                                list = countryList,
+                                scrollKey = quizState.choice?.targetCode
+                            )
                         } else {
                             // The last three correct answers, newest first, just above the
                             // field (and so above the keyboard). Typed tiers only.
@@ -416,19 +441,12 @@ fun QuizScreen(
                                     Text(stringResource(R.string.quiz_submit))
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Country list
+                            countryList(Modifier.weight(1f))
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Country list
-                        CountryList(
-                            countries = quizState.quiz.countries,
-                            answeredCodes = quizState.answeredCountries,
-                            quizMode = viewModel.quizMode,
-                            showFlags = showFlags,
-                            showCountryHint = showCountryHint,
-                            modifier = Modifier.weight(1f)
-                        )
                     }
 
                     // Pause overlay
@@ -440,7 +458,13 @@ fun QuizScreen(
                                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // Scrolls if large text makes it taller than the screen.
+                            Column(
+                                modifier = Modifier
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Icon(
                                     Icons.Default.PauseCircle,
                                     contentDescription = null,
@@ -494,9 +518,11 @@ fun QuizScreen(
                 ModalBottomSheet(
                     onDismissRequest = { showSettingsSheet = false }
                 ) {
+                    // Scrolls when large text makes the switches taller than the sheet.
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
                             .padding(horizontal = 24.dp, vertical = 16.dp)
                     ) {
                         Text(

@@ -17,12 +17,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.FlagImage
+import com.geoquiz.app.ui.components.MainWithCappedTrailing
 import com.geoquiz.app.ui.components.a11yResources
 
 @Composable
@@ -104,20 +106,30 @@ fun CountryList(
                             Spacer(modifier = Modifier.width(12.dp))
                         }
                         if (showCountryHint) {
-                            Text(
-                                text = country.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = if (isAnswered) country.capital else "???",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                                color = if (isAnswered) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            // The capital takes what it needs, up to half the row; the
+                            // country gets the rest. Either wraps only when it must (3.6).
+                            MainWithCappedTrailing(
+                                modifier = Modifier.weight(1f),
+                                main = {
+                                    Text(
+                                        text = country.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                trailing = {
+                                    Text(
+                                        text = if (isAnswered) country.capital else "???",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                        color = if (isAnswered) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                        },
+                                        textAlign = TextAlign.End,
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
                                 }
                             )
                         } else {

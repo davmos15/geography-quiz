@@ -28,6 +28,9 @@ import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
+import com.geoquiz.app.ui.assertIsBelow
+import com.geoquiz.app.ui.assertIsRightOf
+import com.geoquiz.app.ui.assertTextNotClipped
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import io.mockk.coEvery
 import io.mockk.every
@@ -40,6 +43,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** Category rows (3.4c): the pin toggle and the live "Best" score, on the real screen and ViewModel. */
 @RunWith(RobolectricTestRunner::class)
@@ -165,5 +169,26 @@ class CategoryListScreenUiTest {
         compose.waitForIdle()
 
         compose.onNodeWithContentDescription("Unpin Africa").assertIsDisplayed().assertIsOn()
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(fontScale = 2f)
+    fun `at 200 percent text the count and buttons move below the name`() {
+        launch()
+
+        compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("Pin Africa"))
+        val name = compose.onAllNodes(hasText("Africa"), useUnmergedTree = true)[0]
+        name.assertIsDisplayed().assertTextNotClipped()
+        compose.onNodeWithContentDescription("Pin Africa").assertIsBelow(name)
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun `at 100 percent text the pin toggle sits beside the name`() {
+        launch()
+
+        val name = compose.onAllNodes(hasText("Africa"), useUnmergedTree = true)[0]
+        compose.onNodeWithContentDescription("Pin Africa").assertIsRightOf(name)
     }
 }

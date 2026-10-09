@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -53,6 +52,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,6 +60,8 @@ import com.geoquiz.app.R
 import com.geoquiz.app.ui.ads.BannerAd
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.MasteryStarsRow
+import com.geoquiz.app.ui.components.SEGMENT_LABEL_CHROME
+import com.geoquiz.app.ui.components.UpToTwoColumns
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.mode.imageVector
@@ -108,7 +110,8 @@ fun PlayScreen(
         }
     ) { padding ->
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+            // Two columns of tiles; one at large text sizes, so tile titles don't break mid-word.
+            columns = UpToTwoColumns(minCellWidth = MIN_TILE_WIDTH, scaleAbove = TILE_SCALE_ABOVE),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -262,7 +265,7 @@ private fun ModeSwitch(
         )
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val segmentWidth = maxWidth / modes.size
-            val labelRoom = segmentWidth - SEGMENT_CHROME
+            val labelRoom = segmentWidth - SEGMENT_LABEL_CHROME
             val labelsFit = labels.all { label ->
                 val width = measurer.measure(label, labelStyle, maxLines = 1, softWrap = false).size.width
                 with(density) { width.toDp() } <= labelRoom
@@ -302,8 +305,11 @@ private fun ModeSwitch(
     }
 }
 
-/** Horizontal padding, icon and gap inside a segment, around its label. */
-private val SEGMENT_CHROME = 12.dp * 2 + 18.dp + 8.dp + 4.dp
+/** Narrowest group tile before the grid drops to one column... */
+private val MIN_TILE_WIDTH = 120.dp
+
+/** ...scaled with the text only above this font scale, so 100–130% keeps two columns on phones. */
+private const val TILE_SCALE_ABOVE = 1.3f
 
 /**
  * Placeholder for the daily challenge (D24): shown only while its feature flag is on, not
@@ -523,12 +529,14 @@ private fun AllItemsCard(all: AllItemsTile, onClick: () -> Unit) {
             Text(
                 text = stringResource(all.title),
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = pluralStringResource(all.countLabel, all.count, all.count),
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
             )
         }
     }

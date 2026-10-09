@@ -1,5 +1,7 @@
 package com.geoquiz.app.ui.challenges
 
+import com.geoquiz.app.ui.quiz.components.inlineIconSize
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,8 +52,8 @@ fun ChallengeLeaderboardScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Challenges") },
+            WrappingTopAppBar(
+                title = "Challenges",
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -183,14 +184,15 @@ private fun ChallengeCard(challenge: ChallengeEntity) {
                             if (isWin) R.string.a11y_challenge_won else R.string.a11y_challenge_lost
                         ),
                         tint = if (isWin) geoColors.correct else geoColors.wrong,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(inlineIconSize(20.dp))
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(
                     text = challenge.categoryDisplayName,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
@@ -198,7 +200,8 @@ private fun ChallengeCard(challenge: ChallengeEntity) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                // The two sides share the width, so a long opponent name wraps.
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "You",
                         style = MaterialTheme.typography.bodySmall,
@@ -222,13 +225,16 @@ private fun ChallengeCard(challenge: ChallengeEntity) {
                     text = "vs",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(horizontal = 8.dp)
                 )
-                Column(horizontalAlignment = Alignment.End) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                     Text(
                         text = opponentName,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.End
                     )
                     if (opponentScore != null && opponentTotal != null) {
                         Text(

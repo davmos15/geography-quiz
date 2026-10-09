@@ -2,6 +2,8 @@ package com.geoquiz.app.ui.results
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +47,7 @@ import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.FlagImage
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.theme.geoColors
 
@@ -69,7 +70,7 @@ fun AnswerReviewScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun AnswerReviewContent(
     state: AnswerReviewUiState.Loaded,
@@ -90,13 +91,9 @@ private fun AnswerReviewContent(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Answers - $categoryName",
-                        modifier = Modifier.semantics { heading() }
-                    )
-                },
+            // Wraps to two lines at large text sizes; TalkBack reads the full title.
+            WrappingTopAppBar(
+                title = "Answers - $categoryName",
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -125,7 +122,8 @@ private fun AnswerReviewContent(
 
             if (hasIncorrectGuesses) {
                 item {
-                    Row(
+                    // The chips wrap onto a second line when they don't fit side by side.
+                    FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(bottom = 12.dp)
                     ) {

@@ -14,6 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** The four-tab bottom bar (3.4a, D22) at normal and 200% text size. */
 @RunWith(RobolectricTestRunner::class)
@@ -77,5 +78,18 @@ class AppBottomBarUiTest {
 
         tab("Settings").performClick()
         assertEquals(listOf(Screen.Settings.route), selectedRoutes)
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w360dp-h640dp", fontScale = 1.3f)
+    fun `on a narrow phone with larger text the bar drops the labels before they would be cut short`() {
+        launch(selectedRoute = Screen.Play.route)
+
+        names.forEach { name ->
+            compose.onNode(hasContentDescription(name)).assertIsDisplayed()
+            compose.onNode(hasText(name)).assertDoesNotExist()
+        }
+        tab("Play").assertIsSelected()
     }
 }

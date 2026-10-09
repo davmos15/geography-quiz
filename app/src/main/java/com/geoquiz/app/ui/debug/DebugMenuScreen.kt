@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.debug
 
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,8 +43,8 @@ fun DebugMenuScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.debug_menu_title)) },
+            WrappingTopAppBar(
+                title = stringResource(R.string.debug_menu_title),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

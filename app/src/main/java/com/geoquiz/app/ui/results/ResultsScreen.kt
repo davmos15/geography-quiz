@@ -48,7 +48,6 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,7 +55,9 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
+import com.geoquiz.app.ui.components.AdaptiveButtonRow
 import com.geoquiz.app.ui.components.a11yResources
+import com.geoquiz.app.ui.quiz.components.inlineIconSize
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
@@ -293,9 +294,9 @@ private fun ResultsContent(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(0.8f)
                 )
-            } else Row(
-                modifier = Modifier.fillMaxWidth(0.8f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            } else AdaptiveButtonRow(
+                // Side by side when both labels fit on one line, otherwise stacked (3.6).
+                modifier = Modifier.fillMaxWidth(0.8f)
             ) {
                 OutlinedButton(
                     onClick = {
@@ -312,10 +313,11 @@ private fun ResultsContent(
                             )
                         )
                     },
-                    modifier = Modifier.weight(1f)
+                    // Material's padding for a button with an icon: a little more room for the label.
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
                 ) {
                     Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Share", maxLines = 1, softWrap = false)
+                    Text("Share", textAlign = TextAlign.Center)
                 }
                 OutlinedButton(
                     onClick = {
@@ -328,10 +330,10 @@ private fun ResultsContent(
                             )
                         )
                     },
-                    modifier = Modifier.weight(1f)
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
                 ) {
                     Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Challenge", maxLines = 1, softWrap = false)
+                    Text("Challenge", textAlign = TextAlign.Center)
                 }
             }
 
@@ -345,7 +347,7 @@ private fun ResultsContent(
                     containerColor = MaterialTheme.colorScheme.secondary
                 )
             ) {
-                Text("View Answers")
+                Text("View Answers", textAlign = TextAlign.Center)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -354,7 +356,7 @@ private fun ResultsContent(
                 onClick = onPlayAgain,
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
-                Text("Play Again")
+                Text("Play Again", textAlign = TextAlign.Center)
             }
 
             if (missedCount > 0) {
@@ -368,7 +370,7 @@ private fun ResultsContent(
                 onClick = onGoHome,
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
-                Text("Home")
+                Text("Home", textAlign = TextAlign.Center)
             }
         }
     }
@@ -435,7 +437,7 @@ internal fun NewAchievementsCard(achievements: List<Achievement>, modifier: Modi
                         // Decorative: the title says it.
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(inlineIconSize(32.dp))
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -492,7 +494,9 @@ private fun ChallengeResultCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    modifier = Modifier.semantics { heading() }
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .semantics { heading() }
                 )
             }
 
@@ -525,9 +529,8 @@ private fun ChallengeResultCard(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.End,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        // Wraps rather than cutting a long name short.
+                        textAlign = TextAlign.End
                     )
                 }
 
@@ -655,20 +658,27 @@ private fun ResultRow(label: String, value: String, valueDescription: String? = 
             .semantics(mergeDescendants = true) { },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        // The label wraps at large text sizes; the value keeps its own space at the end.
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
-            modifier = if (valueDescription != null) {
-                Modifier.clearAndSetSemantics { contentDescription = valueDescription }
-            } else {
-                Modifier
-            }
+            textAlign = TextAlign.End,
+            modifier = Modifier
+                .padding(start = 12.dp)
+                .then(
+                    if (valueDescription != null) {
+                        Modifier.clearAndSetSemantics { contentDescription = valueDescription }
+                    } else {
+                        Modifier
+                    }
+                )
         )
     }
 }
@@ -691,7 +701,7 @@ private fun OutcomeLine(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(inlineIconSize(20.dp))
             )
             Spacer(modifier = Modifier.width(6.dp))
         }

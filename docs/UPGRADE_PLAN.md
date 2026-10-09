@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 3 is done; PR "Phase 3: Game engine and UX foundation" is open from `upgrade/p3-ux-engine`. Dav: run the manual checklist in the session 6 log on a device, then merge. Next session: Phase 4, task 4.1 (decide D3, the map asset format and size budget, before 4.2), branched from `main` after the Phase 3 merge. Read the session 6 follow-ups first.
+> Phase 4, task 4.1, on a new branch `upgrade/p4-maps` created from `upgrade/p3-ux-engine` (D30: stacked branches; PR #6 is open and not merged, and that's expected). Decide D3 (map asset format and size budget) before 4.2. Read the session 6 log first. Open the Phase 4 PR against `upgrade/p3-ux-engine`.
 
 ---
 
@@ -482,6 +482,7 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 | D27 | Phone quiz: the answer field, recent answers and Give up/Submit sit pinned at the bottom above the keyboard, below the country list (Dav, 2026-10-09). | Decided |
 | D28 | Wide layouts (3.7): no adaptive library; breakpoints Compact < 600 dp, Medium < 840, Expanded; navigation rail from 600 dp; two panes on Expanded, Medium landscape and landscape phones (quiz: controls start, list end – Dav, 2026-10-09; Results: summary | actions; Play: cards | browse); other screens capped at 840 dp. | Decided |
 | D29 | Large text (3.6b): buttons that don't fit side by side stack rather than clip, also at 100% on 360 dp phones (Results Share/Challenge, Stats); title scrolls with the content below 560 dp of space ÷ font scale; when it scrolls, TalkBack reads it in screen order (after the pinned status) (lead, 2026-10-09). | Decided |
+| D30 | Stacked phases (Dav, 2026-10-09): Dav tests on a device and merges only at the end. Until then each phase branches from the previous phase's branch (not `main`), and its PR targets that branch; "Done – PR open" on the previous phase does not block the next one. Device checklists stay in each session log. At the end, merge the PRs in order (#6 first), retargeting each to `main` after the one before it merges. | Decided |
 | D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
 
 ---

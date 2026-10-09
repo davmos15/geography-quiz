@@ -44,7 +44,7 @@ where you stopped, commit, and tell me to start a new session.
 | 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
 | 2 | Code and architecture | Done (merged) | `upgrade/p2-architecture` | #5 |
 | 3 | Game engine and UX foundation | Done – PR open | `upgrade/p3-ux-engine` | #6 |
-| 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
+| 4 | Map engine and geodata pipeline | In progress | `upgrade/p4-maps` | |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Not started | `upgrade/p6-modes-b` | |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Not started | `upgrade/p7-modes-c` | |
@@ -456,7 +456,7 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 |---|---|---|
 | D1 | Target audience: mixed audience including children (Dav, 2026-10-07). | Decided |
 | D2 | Licence for app code: All rights reserved (Dav, 2026-10-07) | Decided |
-| D3 | Map asset format and size budget | Phase 4 decides |
+| D3 | Map assets: compact binary, one file per layer (lon/lat quantised to int16 per layer bounds, delta-encoded, simplified per level), read by a Kotlin reader; all map layers together at most 1.5 MB raw, enforced by the pipeline (Dav, 2026-10-09). | Decided |
 | D4 | Daily challenge seed: device local date | Decided |
 | D5 | Feature flags: enum `FeatureFlag` + DataStore "feature_flags". Overrides are honoured only in debug builds (`BuildConfig.DEBUG`); release always uses each flag's default. Debug menu opens by tapping the Settings title 7 times (debug builds only). Phase 9 flips approved defaults to on. | Decided (Phase 0) |
 | D6 | `.gitignore` ignores `.claude/*` except `.claude/agents/`, so project agents are versioned but personal settings are not. | Decided (Phase 0) |

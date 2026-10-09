@@ -3,9 +3,11 @@ package com.geoquiz.app.ui.debug
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.domain.map.EqualEarthProjection
+import com.geoquiz.app.domain.map.GeoFeature
 import com.geoquiz.app.domain.map.GeoLayer
 import com.geoquiz.app.domain.map.GeoLayerId
 import com.geoquiz.app.domain.map.MapFeatureState
+import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.map.MapProjection
 import com.geoquiz.app.domain.map.MapRepository
 import com.geoquiz.app.domain.map.PlaneRect
@@ -67,6 +69,24 @@ class MapPreviewViewModel @Inject constructor(
         _uiState.update { it.copy(hasTapped = true, lastTapLon = lonLat?.x, lastTapLat = lonLat?.y) }
     }
 
+    /**
+     * A tap resolved to a feature (or null for water): records it and moves it to the next
+     * state (Default, Found, Wrong, Highlighted, Start, End, then back to Default).
+     */
+    fun onFeatureTap(hit: MapHit?) {
+        _uiState.update { state ->
+            if (hit == null) return@update state.copy(lastHit = null, hasHit = true)
+            val current = state.featureStates[hit.featureId] ?: MapFeatureState.Default
+            val next = STATE_CYCLE[(STATE_CYCLE.indexOf(current) + 1) % STATE_CYCLE.size]
+            state.copy(
+                hasHit = true,
+                lastHit = hit,
+                lastHitName = (state.detail ?: state.coarse)?.feature(hit.featureId)?.properties?.stringOrNull(GeoFeature.PROP_NAME),
+                tapStates = state.tapStates + (hit.featureId to next),
+            )
+        }
+    }
+
     /** Plane bounds of mainland Australia (remote islands left out), or null before 50m/110m load. */
     fun australiaBounds(): PlaneRect? {
         val state = _uiState.value
@@ -78,7 +98,12 @@ class MapPreviewViewModel @Inject constructor(
         const val AUSTRALIA = "AUS"
 
         val PREVIEW_LAYERS = listOf(
-            GeoLayerId.ADMIN0_110M, GeoLayerId.ADMIN0_50M, GeoLayerId.LAKES_50M, GeoLayerId.RIVERS_50M,
+            GeoLayerId.ADMIN0_110M, GeoLayerId.TAP_ZONES, GeoLayerId.ADMIN0_50M, GeoLayerId.LAKES_50M, GeoLayerId.RIVERS_50M,
+        )
+
+        val STATE_CYCLE = listOf(
+            MapFeatureState.Default, MapFeatureState.Found, MapFeatureState.Wrong,
+            MapFeatureState.Highlighted, MapFeatureState.Start, MapFeatureState.End,
         )
 
         /** One or two countries per state, spread over the world. */
@@ -102,6 +127,7 @@ data class MapPreviewUiState(
     val detail: GeoLayer? = null,
     val lakes: GeoLayer? = null,
     val rivers: GeoLayer? = null,
+    val tapZones: GeoLayer? = null,
     /** Time to read and decode each layer (first load only; later loads hit the cache). */
     val loadMillis: Map<GeoLayerId, Long> = emptyMap(),
     val error: String? = null,
@@ -114,9 +140,16 @@ data class MapPreviewUiState(
     /** Null after a tap off the edge of the map. */
     val lastTapLon: Double? = null,
     val lastTapLat: Double? = null,
+    /** True once a tap has been resolved (to a feature or water). */
+    val hasHit: Boolean = false,
+    /** Null after a tap on water. */
+    val lastHit: MapHit? = null,
+    val lastHitName: String? = null,
+    /** States set by tapping; they win over the demo states. */
+    val tapStates: Map<String, MapFeatureState> = emptyMap(),
 ) {
     val featureStates: Map<String, MapFeatureState>
-        get() = if (showDemoStates) MapPreviewViewModel.DEMO_STATES else emptyMap()
+        get() = (if (showDemoStates) MapPreviewViewModel.DEMO_STATES else emptyMap()) + tapStates
 
     val isLoading: Boolean get() = coarse == null && error == null
 
@@ -125,6 +158,7 @@ data class MapPreviewUiState(
         GeoLayerId.ADMIN0_50M -> copy(detail = layer)
         GeoLayerId.LAKES_50M -> copy(lakes = layer)
         GeoLayerId.RIVERS_50M -> copy(rivers = layer)
+        GeoLayerId.TAP_ZONES -> copy(tapZones = layer)
         else -> this
     }
 }

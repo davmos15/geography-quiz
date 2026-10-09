@@ -74,6 +74,7 @@ fun MapPreviewScreen(
         detail = state.detail,
         lakes = state.lakes,
         rivers = state.rivers,
+        tapZones = state.tapZones,
     )
 
     Scaffold(
@@ -106,6 +107,7 @@ fun MapPreviewScreen(
                         showLakes = state.showLakes,
                         showRivers = state.showRivers,
                         onTapProjected = viewModel::onTap,
+                        onFeatureTap = viewModel::onFeatureTap,
                     )
                 } else if (state.error == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -176,6 +178,23 @@ fun MapPreviewScreen(
                 val infoStyle = MaterialTheme.typography.bodySmall
                 if (scene != null) ZoomReadout(mapState, scene, state.level)
                 if (state.showFrameRate) FrameRateReadout()
+                if (state.hasHit) {
+                    val hit = state.lastHit
+                    Text(
+                        when {
+                            hit == null -> stringResource(R.string.map_preview_hit_water)
+                            else -> stringResource(
+                                R.string.map_preview_hit,
+                                hit.featureId,
+                                state.lastHitName.orEmpty(),
+                                stringResource(if (hit.isPlayable) R.string.map_preview_hit_playable else R.string.map_preview_hit_not_playable),
+                                stringResource(if (hit.viaTapZone) R.string.map_preview_hit_zone else R.string.map_preview_hit_shape),
+                                (state.featureStates[hit.featureId] ?: com.geoquiz.app.domain.map.MapFeatureState.Default).name,
+                            )
+                        },
+                        style = infoStyle
+                    )
+                }
                 if (state.hasTapped) {
                     val lon = state.lastTapLon
                     val lat = state.lastTapLat

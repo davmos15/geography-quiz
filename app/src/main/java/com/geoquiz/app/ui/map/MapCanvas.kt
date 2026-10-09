@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.semantics
 import com.geoquiz.app.domain.map.MapFeatureState
+import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.ui.components.rememberReducedMotion
 import com.geoquiz.app.ui.theme.GeoColors
 import com.geoquiz.app.ui.theme.geoColors
@@ -57,13 +58,22 @@ import kotlin.math.min
  *
  * Outlines use `onSurface`. Markers sit on the feature's label point at a fixed on-screen size
  * (a `surface` disc with an `onSurface` rim) and are drawn only when the feature is at least
- * [MARKER_MIN_FEATURE_DP] across on screen; tap zones (task 4.3) cover smaller ones.
+ * [MARKER_MIN_FEATURE_DP] across on screen.
+ *
+ * Tap zones (see [com.geoquiz.app.domain.map.TapZones] and [hitTest]): small playable
+ * countries get a dashed `mapTapZoneOutline` circle [TAP_ZONE_DIAMETER_DP] across at a fixed
+ * on-screen size. A zone with a state is tinted with the state colour, carries the state's
+ * marker at its centre (instead of the label point) and, for Highlighted, a thick solid rim.
  *
  * @param featureStates feature id to state; missing ids are [MapFeatureState.Default].
+ * @param showTapZones draw tap zones (and use them for [onFeatureTap]); off for outline views.
+ * @param onFeatureTap called on a single tap with what it hit ([hitTest]: tap zones, then
+ *   polygons), or null for water. Non-playable land is reported with `isPlayable = false`.
  * @param onTapProjected called on a single tap with the tapped point in projected coordinates
  *   (x east, y north, as returned by [com.geoquiz.app.domain.map.MapProjection.project]), so
- *   `scene.projection.inverse(x, y)` gives the longitude and latitude. A single tap is reported
- *   after the double-tap timeout.
+ *   `scene.projection.inverse(x, y)` gives the longitude and latitude.
+ * @param doubleTapToZoom with true (default) a double tap zooms, so single taps are reported
+ *   after the double-tap timeout; with false single taps are reported at once (quiz modes).
  */
 @Composable
 fun MapCanvas(
@@ -74,7 +84,10 @@ fun MapCanvas(
     levelPreference: MapLevelPreference = MapLevelPreference.AUTO,
     showLakes: Boolean = true,
     showRivers: Boolean = true,
+    showTapZones: Boolean = true,
+    onFeatureTap: ((hit: MapHit?) -> Unit)? = null,
     onTapProjected: ((x: Float, y: Float) -> Unit)? = null,
+    doubleTapToZoom: Boolean = true,
 ) {
     val geo = MaterialTheme.geoColors
     val outline = MaterialTheme.colorScheme.onSurface
@@ -83,6 +96,10 @@ fun MapCanvas(
     val reducedMotion = rememberReducedMotion()
     val reducedMotionState = rememberUpdatedState(reducedMotion)
     val tapCallback by rememberUpdatedState(onTapProjected)
+    val featureTapCallback by rememberUpdatedState(onFeatureTap)
+    val currentScene by rememberUpdatedState(scene)
+    val currentLevelPreference by rememberUpdatedState(levelPreference)
+    val currentShowTapZones by rememberUpdatedState(showTapZones)
     val scope = rememberCoroutineScope()
     val cache = remember { MapDrawCache() }
     val stateCount = remember(featureStates) { featureStates.count { it.value != MapFeatureState.Default } }
@@ -100,22 +117,29 @@ fun MapCanvas(
                     state.applyGesture(centroid.x, centroid.y, pan.x, pan.y, zoom)
                 }
             }
-            .pointerInput(state) {
+            .pointerInput(state, doubleTapToZoom) {
+                val onTap: (Offset) -> Unit = { at ->
+                    if (state.isReady) {
+                        tapCallback?.invoke(state.screenToPlaneX(at.x), -state.screenToPlaneY(at.y))
+                        featureTapCallback?.invoke(
+                            currentScene.hitTest(state, at.x, at.y, density, currentLevelPreference, currentShowTapZones)
+                        )
+                    }
+                }
                 detectTapGestures(
-                    onDoubleTap = { at ->
-                        state.cancelAnimation()
-                        scope.launch { state.doubleTapZoom(at.x, at.y, animate = !reducedMotionState.value) }
-                    },
-                    onTap = { at ->
-                        val callback = tapCallback
-                        if (callback != null && state.isReady) {
-                            callback(state.screenToPlaneX(at.x), -state.screenToPlaneY(at.y))
+                    onDoubleTap = if (doubleTapToZoom) {
+                        { at ->
+                            state.cancelAnimation()
+                            scope.launch { state.doubleTapZoom(at.x, at.y, animate = !reducedMotionState.value) }
                         }
+                    } else {
+                        null
                     },
+                    onTap = onTap,
                 )
             }
     ) {
-        drawMap(scene, state, featureStates, levelPreference, showLakes, showRivers, palette, cache)
+        drawMap(scene, state, featureStates, levelPreference, showLakes, showRivers, palette, cache, showTapZones)
     }
 }
 
@@ -136,6 +160,10 @@ internal const val DASH_DP = 6f
 internal const val MARKER_RADIUS_DP = 7f
 private const val MARKER_RIM_DP = 1f
 private const val MARKER_GLYPH_DP = 2f
+private const val TAP_ZONE_STROKE_DP = 1.5f
+private const val TAP_ZONE_DASH_DP = 4f
+/** Alpha of a state colour tinting the inside of a tap zone. */
+internal const val TAP_ZONE_TINT_ALPHA = 0.45f
 
 @Immutable
 internal class MapPalette(
@@ -157,6 +185,8 @@ internal class MapPalette(
     val tick: Color,
     /** Cross glyph (`wrong`, orange). */
     val cross: Color,
+    /** Dashed tap-zone circle (`mapTapZoneOutline`). */
+    val tapZone: Color,
 ) {
     companion object {
         /** Map colours from the theme tokens; [outline] is `onSurface`, [markerBackground] `surface`. */
@@ -175,6 +205,7 @@ internal class MapPalette(
             markerBackground = markerBackground,
             tick = geo.correct,
             cross = geo.wrong,
+            tapZone = geo.mapTapZoneOutline,
         )
     }
 }
@@ -202,6 +233,9 @@ internal class MapDrawCache {
     var markerMinExtent = 0f
     lateinit var markerRimStroke: Stroke
     lateinit var markerRingStroke: Stroke
+    lateinit var zoneStroke: Stroke
+    lateinit var zoneThickStroke: Stroke
+    var zoneRadius = 0f
 
     fun update(scale: Float, density: Float) {
         if (scale == this.scale && density == this.density) return
@@ -228,6 +262,10 @@ internal class MapDrawCache {
             markerDensity = density
             markerRimStroke = Stroke(markerRim)
             markerRingStroke = Stroke(markerGlyph)
+            val dash = TAP_ZONE_DASH_DP * density
+            zoneStroke = Stroke(TAP_ZONE_STROKE_DP * density, pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash)))
+            zoneThickStroke = Stroke(THICK_OUTLINE_DP * density)
+            zoneRadius = TAP_ZONE_DIAMETER_DP / 2 * density
         }
     }
 
@@ -244,6 +282,7 @@ internal fun DrawScope.drawMap(
     showRivers: Boolean,
     palette: MapPalette,
     cache: MapDrawCache,
+    showTapZones: Boolean = true,
 ) {
     drawRect(palette.water)
     if (!state.isReady) return
@@ -256,7 +295,8 @@ internal fun DrawScope.drawMap(
         coarseAvailable = scene.coarse != null,
         detailAvailable = scene.detail != null,
     )
-    val land = (if (level == MapLevel.DETAIL) scene.detail else scene.coarse) ?: return
+    val land = scene.land(level) ?: return
+    val zones = if (showTapZones) scene.zones(level) else null
     cache.update(scale, density)
 
     // Visible plane rectangle, for culling.
@@ -333,19 +373,57 @@ internal fun DrawScope.drawMap(
         }
     }
 
-    // Markers, in screen space at a fixed size.
+    // Tap zones, in screen space at a fixed size.
+    val zr = cache.zoneRadius
+    if (zones != null) {
+        for (z in 0 until zones.size) {
+            if (!zones.visibleAt(z, scale, density)) continue
+            val x = zones.centreX[z] * scale + offsetX
+            val y = zones.centreY[z] * scale + offsetY
+            if (x < -zr || y < -zr || x > size.width + zr || y > size.height + zr) continue
+            val centre = Offset(x, y)
+            val featureState = featureStates[zones.ids[z]] ?: MapFeatureState.Default
+            val tint = palette.fillFor(featureState)
+            if (tint != null) drawCircle(tint, radius = zr, center = centre, alpha = TAP_ZONE_TINT_ALPHA)
+            if (featureState == MapFeatureState.Highlighted) {
+                drawCircle(palette.outline, radius = zr, center = centre, style = cache.zoneThickStroke)
+            } else {
+                drawCircle(palette.tapZone, radius = zr, center = centre, style = cache.zoneStroke)
+            }
+            if (featureState.hasMarker) drawStateMarker(featureState, x, y, palette, cache)
+        }
+    }
+
+    // Markers on label points, for states on countries without a visible zone.
     if (featureStates.isEmpty()) return
     val r = cache.markerRadius
     for (i in 0 until land.size) {
         val featureState = featureStates[land.ids[i]] ?: continue
-        if (featureState == MapFeatureState.Default || featureState == MapFeatureState.Highlighted) continue
+        if (!featureState.hasMarker) continue
         val extent = max(land.maxX[i] - land.minX[i], land.maxY[i] - land.minY[i]) * scale
         if (extent < cache.markerMinExtent) continue
+        if (zones != null) {
+            val z = zones.indexOf(land.ids[i])
+            if (z >= 0 && zones.visibleAt(z, scale, density)) continue
+        }
         val x = land.labelX[i] * scale + offsetX
         val y = land.labelY[i] * scale + offsetY
         if (x < -r || y < -r || x > size.width + r || y > size.height + r) continue
         drawStateMarker(featureState, x, y, palette, cache)
     }
+}
+
+private val MapFeatureState.hasMarker: Boolean
+    get() = this != MapFeatureState.Default && this != MapFeatureState.Highlighted
+
+/** The state fill colour, or null for Default. */
+private fun MapPalette.fillFor(state: MapFeatureState): Color? = when (state) {
+    MapFeatureState.Default -> null
+    MapFeatureState.Found -> found
+    MapFeatureState.Highlighted -> highlighted
+    MapFeatureState.Start -> start
+    MapFeatureState.End -> end
+    MapFeatureState.Wrong -> wrong
 }
 
 /** One marker centred on (x, y) screen pixels. */

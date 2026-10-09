@@ -40,6 +40,13 @@
     <string translatable="false" name="map_preview_timing">%1$s: decode %2$d ms, paths %3$s ms</string>
     <string translatable="false" name="map_preview_last_tap">Last tap: %1$.2f°, %2$.2f°</string>
     <string translatable="false" name="map_preview_last_tap_outside">Last tap: off the map</string>
+    <!-- %1$s id, %2$s name, %3$s playable label, %4$s zone/shape label, %5$s state name -->
+    <string translatable="false" name="map_preview_hit">Hit: %1$s %2$s (%3$s, %4$s), now %5$s</string>
+    <string translatable="false" name="map_preview_hit_water">Hit: water</string>
+    <string translatable="false" name="map_preview_hit_playable">playable</string>
+    <string translatable="false" name="map_preview_hit_not_playable">not playable</string>
+    <string translatable="false" name="map_preview_hit_zone">tap zone</string>
+    <string translatable="false" name="map_preview_hit_shape">shape</string>
     <string translatable="false" name="map_preview_frame_rate">%1$d fps (frames while the map moves)</string>
 
     <!-- Flags -->

@@ -35,6 +35,7 @@ import com.geoquiz.app.domain.map.EqualEarthProjection
 import com.geoquiz.app.domain.map.GeoLayer
 import com.geoquiz.app.domain.map.GeoLayerId
 import com.geoquiz.app.domain.map.MapFeatureState
+import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.ui.theme.DarkGeoColors
 import com.geoquiz.app.ui.theme.GeoColors
 import com.geoquiz.app.ui.theme.LightGeoColors
@@ -73,6 +74,8 @@ class MapCanvasUiTest {
         featureStates: Map<String, MapFeatureState> = emptyMap(),
         darkTheme: Boolean = false,
         onTap: ((Float, Float) -> Unit)? = null,
+        onFeatureTap: ((MapHit?) -> Unit)? = null,
+        doubleTapToZoom: Boolean = true,
     ): GeoColors {
         val layer = coarse
         var colours: GeoColors? = null
@@ -88,6 +91,8 @@ class MapCanvasUiTest {
                             modifier = Modifier.fillMaxSize().testTag(TAG),
                             featureStates = featureStates,
                             onTapProjected = onTap,
+                            onFeatureTap = onFeatureTap,
+                            doubleTapToZoom = doubleTapToZoom,
                         )
                     }
                 }
@@ -139,6 +144,7 @@ class MapCanvasUiTest {
         width: Int = 360,
         height: Int = 200,
         density: Float = 1f,
+        showTapZones: Boolean = false,
     ): Pair<PixelMap, MapViewState> {
         val state = MapViewState().apply {
             updateViewport(width.toFloat(), height.toFloat())
@@ -149,12 +155,18 @@ class MapCanvasUiTest {
             drawMap(
                 scene, state, featureStates, MapLevelPreference.AUTO, showLakes = true, showRivers = true,
                 palette = MapPalette.from(geo, OUTLINE, MARKER_BACKGROUND), cache = MapDrawCache(),
+                showTapZones = showTapZones,
             )
         }
         return bitmap.toPixelMap() to state
     }
 
-    private fun worldScene() = MapScene(EqualEarthProjection, MapLayerPaths.build(coarse, EqualEarthProjection), detail = null)
+    private val tapLayer: GeoLayer by lazy { runBlocking { repository.layer(GeoLayerId.TAP_ZONES) } }
+
+    private fun worldScene(withZones: Boolean = false) = MapScene(
+        EqualEarthProjection, MapLayerPaths.build(coarse, EqualEarthProjection), detail = null,
+        tapZones = if (withZones) MapLayerPaths.build(tapLayer, EqualEarthProjection) else null,
+    )
 
     @Test
     fun `fills follow the state in the light theme`() {
@@ -200,11 +212,15 @@ class MapCanvasUiTest {
      * 200 x 200 px at density 2 (so 1 dp = 2 px) over plane 0..100: the square "BIG" spans
      * screen 50..150 with its label at (100, 100); "TINY" is 8 px (4 dp) across at (174, 174).
      */
-    private fun squareFrame(big: MapFeatureState, tiny: MapFeatureState = MapFeatureState.Default): PixelMap {
+    private fun squareFrame(
+        big: MapFeatureState,
+        tiny: MapFeatureState = MapFeatureState.Default,
+        showTapZones: Boolean = false,
+    ): PixelMap {
         val layer = squareLayer(squareFeature("BIG", 25f, 75f), squareFeature("TINY", 85f, 89f))
         val scene = MapScene(PlateProjection, MapLayerPaths.build(layer, PlateProjection), detail = null,
             bounds = com.geoquiz.app.domain.map.PlaneRect(0f, 0f, 100f, 100f))
-        val (pixels, state) = renderFrame(scene, mapOf("BIG" to big, "TINY" to tiny), LightGeoColors, 200, 200, density = 2f)
+        val (pixels, state) = renderFrame(scene, mapOf("BIG" to big, "TINY" to tiny), LightGeoColors, 200, 200, density = 2f, showTapZones = showTapZones)
         assertEquals(2f, state.scale, 1e-4f)
         return pixels
     }
@@ -270,10 +286,17 @@ class MapCanvasUiTest {
     }
 
     @Test
-    fun `features under 12 dp on screen get no marker`() {
+    fun `features under 12 dp on screen get no label marker, but their zone has one`() {
         val px = squareFrame(MapFeatureState.Default, tiny = MapFeatureState.Found)
         assertColour(LightGeoColors.mapFound, px[174, 174])
         assertTrue(patch(px, Offset(174f, 174f), 3).none { close(it, white) })
+        // With tap zones the 4 dp square gets a zone, and the tick sits on the zone centre.
+        val zoned = squareFrame(MapFeatureState.Default, tiny = MapFeatureState.Found, showTapZones = true)
+        val marker = patch(zoned, Offset(174f, 174f), 14)
+        assertTrue(marker.any { close(it, white) })
+        assertTrue(marker.any { close(it, LightGeoColors.correct.toArgb()) })
+        // The big square (50 dp) has no zone: its centre is still plain fill.
+        assertColour(LightGeoColors.mapLand, zoned[100, 120])
     }
 
     @Test
@@ -288,12 +311,62 @@ class MapCanvasUiTest {
         assertEquals(0f, ((b - a) / spacing) % 1f, 1e-5f)
     }
 
-    private fun close(a: Int, b: Int): Boolean =
-        listOf(16, 8, 0).all { abs(((a shr it) and 0xFF) - ((b shr it) and 0xFF)) <= 3 }
+    private fun close(a: Int, b: Int, tolerance: Int = 3): Boolean =
+        listOf(16, 8, 0).all { abs(((a shr it) and 0xFF) - ((b shr it) and 0xFF)) <= tolerance }
 
     private fun screenOf(state: MapViewState, lon: Double, lat: Double): Offset {
         val p = EqualEarthProjection.project(lon, lat)
         return Offset(state.planeToScreenX(p.x.toFloat()), state.planeToScreenY((-p.y).toFloat()))
+    }
+
+    @Test
+    fun `without double-tap zoom a tap reports the country at once`() {
+        val state = MapViewState()
+        val hits = mutableListOf<MapHit?>()
+        showMap(state, onFeatureTap = { hits += it }, doubleTapToZoom = false)
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithTag(TAG).performTouchInput { click(labelOnScreen(state, "AUS")) }
+        // No double-tap timeout to wait for: one frame is enough.
+        compose.mainClock.advanceTimeByFrame()
+        compose.waitForIdle()
+        assertEquals("AUS", hits.single()?.featureId)
+        compose.onNodeWithTag(TAG).performTouchInput { click(Offset(state.planeToScreenX(-2.0f), state.planeToScreenY(0.9f))) }
+        compose.mainClock.advanceTimeByFrame()
+        compose.waitForIdle()
+        assertEquals(2, hits.size)
+        assertEquals("South Pacific is water", null, hits[1])
+        compose.mainClock.autoAdvance = true
+    }
+
+    @Test
+    fun `tap zones are drawn as dashed circles and take the country state`() {
+        val scene = worldScene(withZones = true)
+        val (pixels, state) = renderFrame(
+            scene, mapOf("MUS" to MapFeatureState.Found), LightGeoColors, width = 720, height = 400, density = 2f,
+            showTapZones = true,
+        )
+        val zones = scene.zones(MapLevel.COARSE)!!
+        fun centreOf(id: String): Offset {
+            val z = zones.indexOf(id)
+            assertTrue("$id has a zone at world fit", zones.visibleAt(z, state.scale, 2f))
+            return Offset(state.planeToScreenX(zones.centreX[z]), state.planeToScreenY(zones.centreY[z]))
+        }
+        // Seychelles (Default): the dashed rim (radius 22 dp = 44 px) uses mapTapZoneOutline, and
+        // only part of the circle is drawn.
+        val syc = centreOf("SYC")
+        val rim = (0 until 72).map { k ->
+            val a = k * Math.PI * 2 / 72
+            pixels[(syc.x + 44 * Math.cos(a)).toInt(), (syc.y + 44 * Math.sin(a)).toInt()].toArgb()
+        }
+        assertTrue("dashes", rim.any { close(it, LightGeoColors.mapTapZoneOutline.toArgb(), 60) })
+        assertTrue("gaps", rim.any { close(it, LightGeoColors.mapWater.toArgb()) })
+        // Mauritius (Found): tick marker at the centre and a found tint inside the circle.
+        val mus = centreOf("MUS")
+        val marker = patch(pixels, mus, 14)
+        assertTrue(marker.any { close(it, LightGeoColors.correct.toArgb()) })
+        assertTrue(marker.any { close(it, MARKER_BACKGROUND.toArgb()) })
+        val tinted = pixels[(mus.x + 30).toInt(), mus.y.toInt()].toArgb()
+        assertTrue("tinted, not plain water", !close(tinted, LightGeoColors.mapWater.toArgb()))
     }
 
     @Test

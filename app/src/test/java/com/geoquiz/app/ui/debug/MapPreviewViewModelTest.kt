@@ -10,6 +10,7 @@ import com.geoquiz.app.domain.map.GeoLayerId
 import com.geoquiz.app.domain.map.GeoPart
 import com.geoquiz.app.domain.map.GeoProperties
 import com.geoquiz.app.domain.map.MapFeatureState
+import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.map.MapRepository
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.ui.map.MapLevelPreference
@@ -20,7 +21,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -84,7 +84,7 @@ class MapPreviewViewModelTest {
         vm.uiState.test {
             val initial = awaitItem()
             assertEquals(MapLevelPreference.AUTO, initial.level)
-            assertSame(MapPreviewViewModel.DEMO_STATES, initial.featureStates)
+            assertEquals(MapPreviewViewModel.DEMO_STATES, initial.featureStates)
 
             vm.onLevelChange(MapLevelPreference.DETAIL)
             assertEquals(MapLevelPreference.DETAIL, awaitItem().level)
@@ -118,6 +118,31 @@ class MapPreviewViewModelTest {
         vm.onTap(2.7f, 1.3f)
         assertTrue(vm.uiState.value.hasTapped)
         assertNull(vm.uiState.value.lastTapLon)
+    }
+
+    @Test
+    fun `tapping a country cycles it through the states`() = runTest {
+        val vm = MapPreviewViewModel(repository())
+        val hit = MapHit("AUS", isPlayable = true, viaTapZone = false)
+        vm.onShowDemoStatesChange(false)
+        val seen = (1..MapPreviewViewModel.STATE_CYCLE.size).map {
+            vm.onFeatureTap(hit)
+            vm.uiState.value.featureStates["AUS"]
+        }
+        assertEquals(MapPreviewViewModel.STATE_CYCLE.drop(1) + MapFeatureState.Default, seen)
+        assertEquals(hit, vm.uiState.value.lastHit)
+        // Tap states win over demo states.
+        vm.onShowDemoStatesChange(true)
+        vm.onFeatureTap(hit)
+        assertEquals(MapFeatureState.Found, vm.uiState.value.featureStates["AUS"])
+    }
+
+    @Test
+    fun `tapping water records a miss`() = runTest {
+        val vm = MapPreviewViewModel(repository())
+        vm.onFeatureTap(null)
+        assertTrue(vm.uiState.value.hasHit)
+        assertNull(vm.uiState.value.lastHit)
     }
 
     @Test

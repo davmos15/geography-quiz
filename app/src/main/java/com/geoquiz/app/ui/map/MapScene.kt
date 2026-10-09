@@ -8,7 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
+import com.geoquiz.app.domain.map.FeatureHitIndex
 import com.geoquiz.app.domain.map.GeoLayer
+import com.geoquiz.app.domain.map.TapZones
 import com.geoquiz.app.domain.map.GeometryKind
 import com.geoquiz.app.domain.map.MapProjection
 import com.geoquiz.app.domain.map.PlaneRect
@@ -30,6 +32,8 @@ class MapLayerPaths(
     val paths: Array<Path>,
     /** Wall-clock time to project the layer and build its paths (debug readout). */
     val buildMillis: Long,
+    /** Point-in-polygon index (polygon layers only), built with the paths. */
+    val hitIndex: FeatureHitIndex? = null,
 ) {
     val size: Int = paths.size
     val ids: Array<String> = Array(size) { projected.features[it].id }
@@ -65,7 +69,8 @@ class MapLayerPaths(
                     }
                 }
             }
-            return MapLayerPaths(projected, paths, (System.nanoTime() - start) / 1_000_000)
+            val hitIndex = if (close) FeatureHitIndex(projected) else null
+            return MapLayerPaths(projected, paths, (System.nanoTime() - start) / 1_000_000, hitIndex)
         }
     }
 }
@@ -85,6 +90,8 @@ class MapScene(
     val rivers: MapLayerPaths? = null,
     /** Extent to clamp the camera to; defaults to the union of the country layers. */
     bounds: PlaneRect? = null,
+    /** `tap_zones` (point layer): tap centres for the small countries that always get a zone. */
+    val tapZones: MapLayerPaths? = null,
 ) {
     init {
         require(coarse != null || detail != null) { "A map scene needs at least one country layer" }
@@ -93,6 +100,16 @@ class MapScene(
     /** The extent the camera is clamped to. */
     val contentBounds: PlaneRect =
         bounds ?: listOfNotNull(coarse?.bounds, detail?.bounds).reduce { a, b -> a.union(b) }
+
+    private val coarseZones: TapZones? by lazy { coarse?.let { TapZones.build(it.projected, tapZones?.projected) } }
+    private val detailZones: TapZones? by lazy { detail?.let { TapZones.build(it.projected, tapZones?.projected) } }
+
+    /** The country layer drawn at [level] (falls back to the other one if missing). */
+    fun land(level: MapLevel): MapLayerPaths? = if (level == MapLevel.DETAIL) detail ?: coarse else coarse ?: detail
+
+    /** Tap zones for the country layer drawn at [level]. */
+    fun zones(level: MapLevel): TapZones? =
+        if (level == MapLevel.DETAIL && detail != null || coarse == null) detailZones else coarseZones
 }
 
 /**
@@ -165,13 +182,15 @@ fun rememberMapScene(
     lakes: GeoLayer? = null,
     rivers: GeoLayer? = null,
     bounds: PlaneRect? = null,
+    tapZones: GeoLayer? = null,
 ): MapScene? {
     val coarsePaths = rememberMapLayerPaths(coarse, projection)
     val detailPaths = rememberMapLayerPaths(detail, projection)
     val lakePaths = rememberMapLayerPaths(lakes, projection)
     val riverPaths = rememberMapLayerPaths(rivers, projection)
-    return remember(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds) {
+    val tapZonePaths = rememberMapLayerPaths(tapZones, projection)
+    return remember(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths) {
         if (coarsePaths == null && detailPaths == null) null
-        else MapScene(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds)
+        else MapScene(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths)
     }
 }

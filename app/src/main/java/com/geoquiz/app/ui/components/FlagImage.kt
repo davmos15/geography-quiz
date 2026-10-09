@@ -18,6 +18,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
+import com.geoquiz.app.ui.theme.geoColors
 
 /** Width / height of the bundled 4x3 flag-icons SVGs. */
 const val FLAG_ASPECT_RATIO = 4f / 3f
@@ -34,8 +35,8 @@ fun flagAssetUri(countryCode: String): String = "file:///android_asset/${flagAss
 /**
  * Renders a country flag from the bundled flag-icons SVGs (MIT, see assets/flags/LICENSE).
  *
- * Keeps a 4:3 aspect ratio and draws a hairline theme-coloured border so light flags stay
- * visible on light surfaces. Shows a neutral surfaceVariant block while loading or if the
+ * Keeps a 4:3 aspect ratio and draws a hairline [com.geoquiz.app.ui.theme.GeoColors.flagBorder]
+ * so white flags stay visible on light surfaces and dark flag edges on dark ones. Shows a neutral surfaceVariant block while loading or if the
  * asset is missing.
  */
 @Composable
@@ -67,6 +68,6 @@ fun FlagImage(
             .height(height)
             .aspectRatio(FLAG_ASPECT_RATIO)
             .clip(shape)
-            .border(Dp.Hairline, MaterialTheme.colorScheme.outlineVariant, shape)
+            .border(Dp.Hairline, MaterialTheme.geoColors.flagBorder, shape)
     )
 }

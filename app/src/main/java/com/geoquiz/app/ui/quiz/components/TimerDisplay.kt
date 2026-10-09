@@ -8,7 +8,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.a11yResources
-import com.geoquiz.app.ui.theme.Red40
 
 @Composable
 fun TimerDisplay(
@@ -32,7 +31,7 @@ fun TimerDisplay(
     Text(
         text = formatted,
         style = MaterialTheme.typography.titleMedium,
-        color = if (isLow) Red40 else MaterialTheme.colorScheme.onSurface,
+        color = if (isLow) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
         // Deliberately not a live region: it changes every second, so TalkBack reads it
         // only when the user moves focus to it ("Time 3 minutes 12 seconds").
         modifier = modifier.clearAndSetSemantics { contentDescription = description }

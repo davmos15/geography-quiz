@@ -217,7 +217,7 @@ private fun ResultsContent(
                 Text(
                     text = "Score",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -342,8 +342,10 @@ private fun ResultsContent(
         Button(
             onClick = onViewAnswers,
             modifier = Modifier.fillMaxWidth(0.8f),
+            // Tonal secondary: white on the light amber secondary fill was only 2.3:1.
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             )
         ) {
             Text("View Answers", textAlign = TextAlign.Center)
@@ -649,7 +651,7 @@ private fun ChallengeResultCard(
                 Text(
                     text = "Share your result so they can compare.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -679,7 +681,7 @@ private fun ComparisonRow(leftValue: String, label: String, rightValue: String) 
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
         )

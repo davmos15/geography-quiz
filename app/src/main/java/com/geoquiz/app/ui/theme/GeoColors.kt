@@ -19,7 +19,10 @@ import androidx.compose.ui.graphics.Color
  * colours and reach 4.5:1 on background, surface and surfaceVariant (correct and wrong also on
  * primaryContainer and tertiaryContainer, where results and challenge cards put them). Each
  * `onX` reaches 4.5:1 on its `X`. [star] reaches 3:1 on background, surface and surfaceVariant.
- * Map state colours reach 3:1 against [mapLand].
+ * Map state colours reach 3:1 against [mapLand]; land and water 1.5:1; borders 3:1 on land.
+ * [flagBorder] reaches 2:1 on every surface a flag sits on and on the flag edge most likely to
+ * merge with it (white in light, black in dark). Achievement tier accents reach 4.5:1 and tier
+ * on-colours 7:1 on their tier container.
  */
 @Immutable
 data class GeoColors(
@@ -48,6 +51,25 @@ data class GeoColors(
     val star: Color,
     /** Content drawn on a solid [star] fill. */
     val onStar: Color,
+
+    /**
+     * Hairline border round every flag image, so white flags stay visible on light surfaces and
+     * dark flag edges on dark surfaces.
+     */
+    val flagBorder: Color,
+
+    // ---- Achievement tiers (unlocked cards; locked cards use surfaceVariant) ----
+    /** Trophy icon and tier label on [tierGoldContainer]. */
+    val tierGold: Color,
+    val tierGoldContainer: Color,
+    /** Title and description text on [tierGoldContainer]. */
+    val onTierGoldContainer: Color,
+    val tierSilver: Color,
+    val tierSilverContainer: Color,
+    val onTierSilverContainer: Color,
+    val tierBronze: Color,
+    val tierBronzeContainer: Color,
+    val onTierBronzeContainer: Color,
 
     // ---- Map (used from Phase 4) ----
     /** Country fill before it is found. */
@@ -86,10 +108,22 @@ internal val LightGeoColors = GeoColors(
     star = Color(0xFF8A6100),
     onStar = Color(0xFFFFFFFF),
 
-    mapLand = Color(0xFFF2EEE6),
+    flagBorder = Color(0xFF9E9E9E),
+
+    tierGold = Color(0xFF7A5600),
+    tierGoldContainer = Color(0xFFFFF4D1),
+    onTierGoldContainer = Color(0xFF2E2100),
+    tierSilver = Color(0xFF4F5B66),
+    tierSilverContainer = Color(0xFFECEFF1),
+    onTierSilverContainer = Color(0xFF1F2328),
+    tierBronze = Color(0xFF8A4B14),
+    tierBronzeContainer = Color(0xFFFBE6D6),
+    onTierBronzeContainer = Color(0xFF3A1E08),
+
+    mapLand = Color(0xFFF5F2EC),
     mapLandBorder = Color(0xFF8A857A),
-    mapWater = Color(0xFFBCD7EA),
-    mapFound = Color(0xFF1F6FB8),
+    mapWater = Color(0xFFA9CBE3),
+    mapFound = Color(0xFF1A65AA),
     mapHighlight = Color(0xFFA8327F),
     mapWrong = Color(0xFFC85200),
     mapStart = Color(0xFF00845F),
@@ -114,9 +148,21 @@ internal val DarkGeoColors = GeoColors(
     star = Color(0xFFFFCC4D),
     onStar = Color(0xFF3D2B00),
 
-    mapLand = Color(0xFF3B3A36),
-    mapLandBorder = Color(0xFF77736A),
-    mapWater = Color(0xFF0E2131),
+    flagBorder = Color(0xFF7A7A7A),
+
+    tierGold = Color(0xFFFFD25C),
+    tierGoldContainer = Color(0xFF3D3000),
+    onTierGoldContainer = Color(0xFFFFEFC2),
+    tierSilver = Color(0xFFCFD8DC),
+    tierSilverContainer = Color(0xFF33393E),
+    onTierSilverContainer = Color(0xFFECEFF1),
+    tierBronze = Color(0xFFF2B98A),
+    tierBronzeContainer = Color(0xFF43281A),
+    onTierBronzeContainer = Color(0xFFFFE3D0),
+
+    mapLand = Color(0xFF403F3A),
+    mapLandBorder = Color(0xFF908B81),
+    mapWater = Color(0xFF0B1926),
     mapFound = Color(0xFF64B0F5),
     mapHighlight = Color(0xFFEA8FCC),
     mapWrong = Color(0xFFFF9A52),

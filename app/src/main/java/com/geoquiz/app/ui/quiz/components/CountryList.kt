@@ -99,7 +99,7 @@ fun CountryList(
                             color = if (isAnswered) {
                                 MaterialTheme.colorScheme.onSurface
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
                     }
@@ -137,7 +137,7 @@ fun CountryList(
                                         color = if (isAnswered) {
                                             MaterialTheme.colorScheme.primary
                                         } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                            MaterialTheme.colorScheme.onSurfaceVariant
                                         },
                                         textAlign = TextAlign.End,
                                         modifier = Modifier.padding(start = 8.dp)
@@ -152,7 +152,7 @@ fun CountryList(
                                 color = if (isAnswered) {
                                     MaterialTheme.colorScheme.onSurface
                                 } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                                 }
                             )
                         }
@@ -178,7 +178,7 @@ fun CountryList(
                             color = if (isAnswered) {
                                 MaterialTheme.colorScheme.onSurface
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
                     }

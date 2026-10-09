@@ -38,8 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.Immutable
 import com.geoquiz.app.domain.model.AchievementTier
-import com.geoquiz.app.ui.theme.*
+import com.geoquiz.app.ui.theme.GeoColors
+import com.geoquiz.app.ui.theme.geoColors
 import com.geoquiz.app.ui.components.ReadableWidthFrame
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +51,20 @@ fun AchievementsScreen(
     viewModel: AchievementsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    AchievementsContent(state = state, onNavigateBack = onNavigateBack)
+}
 
+/**
+ * Stateless Achievements screen: renders [state] only, so previews and screenshot tests can
+ * show locked and unlocked tier cards without a ViewModel. [onNavigateBack] null hides the back
+ * arrow (bottom navigation tab).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AchievementsContent(
+    state: AchievementsUiState,
+    onNavigateBack: (() -> Unit)? = null
+) {
     Scaffold(
         topBar = {
             WrappingTopAppBar(
@@ -93,16 +108,24 @@ fun AchievementsScreen(
     }
 }
 
+/** Colours of an unlocked achievement card for one tier, from [GeoColors]. */
+@Immutable
+internal data class TierCardColours(val container: Color, val accent: Color, val onContainer: Color)
+
+internal fun GeoColors.tierCardColours(tier: AchievementTier): TierCardColours = when (tier) {
+    AchievementTier.GOLD -> TierCardColours(tierGoldContainer, tierGold, onTierGoldContainer)
+    AchievementTier.SILVER -> TierCardColours(tierSilverContainer, tierSilver, onTierSilverContainer)
+    AchievementTier.BRONZE -> TierCardColours(tierBronzeContainer, tierBronze, onTierBronzeContainer)
+}
+
 @Composable
 private fun AchievementCard(info: AchievementDisplayInfo) {
-    val tierColors = when (info.achievement.tier) {
-        AchievementTier.GOLD -> Pair(GoldTint, GoldColor)
-        AchievementTier.SILVER -> Pair(SilverTint, SilverColor)
-        AchievementTier.BRONZE -> Pair(BronzeTint, BronzeColor)
-    }
+    val tierColours = MaterialTheme.geoColors.tierCardColours(info.achievement.tier)
+    // Locked cards: the lock icon marks the state, so text keeps full contrast (no alpha).
+    val lockedContent = MaterialTheme.colorScheme.onSurfaceVariant
 
     val containerColor = if (info.unlocked) {
-        tierColors.first
+        tierColours.container
     } else {
         MaterialTheme.colorScheme.surfaceVariant
     }
@@ -121,7 +144,7 @@ private fun AchievementCard(info: AchievementDisplayInfo) {
             Icon(
                 imageVector = if (info.unlocked) Icons.Default.EmojiEvents else Icons.Default.Lock,
                 contentDescription = null,
-                tint = if (info.unlocked) tierColors.second else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                tint = if (info.unlocked) tierColours.accent else lockedContent,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -130,21 +153,13 @@ private fun AchievementCard(info: AchievementDisplayInfo) {
                     text = info.achievement.title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
-                    color = if (info.unlocked) {
-                        Color(0xFF1C1C1C)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    }
+                    color = if (info.unlocked) tierColours.onContainer else lockedContent
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = info.achievement.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (info.unlocked) {
-                        Color(0xFF616161)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    }
+                    color = if (info.unlocked) tierColours.onContainer else lockedContent
                 )
             }
             if (info.unlocked) {
@@ -152,7 +167,7 @@ private fun AchievementCard(info: AchievementDisplayInfo) {
                     text = info.achievement.tier.name,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = tierColors.second
+                    color = tierColours.accent
                 )
             }
         }

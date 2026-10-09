@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.readableWidth
 
 /** Hidden developer menu, only reachable in debug builds. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +61,7 @@ fun DebugMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .readableWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             item {

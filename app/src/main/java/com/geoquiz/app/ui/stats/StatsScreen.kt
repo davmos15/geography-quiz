@@ -44,6 +44,7 @@ import com.geoquiz.app.ui.components.AdaptiveButtonRow
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 import androidx.compose.ui.text.style.TextAlign
 import java.util.Locale
+import com.geoquiz.app.ui.components.readableWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +77,7 @@ fun StatsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .readableWidth()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

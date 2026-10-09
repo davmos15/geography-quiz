@@ -133,34 +133,43 @@ internal fun trailingFitsBeside(available: Int, trailingWidth: Int, minMainWidth
  * Two columns for a grid of tiles while each tile is at least [minCellWidth] wide; one column
  * otherwise, so tile titles get the full width at large text sizes instead of breaking mid-word.
  * [minCellWidth] scales with the font only above [scaleAbove], so slightly larger text keeps two
- * columns on narrow phones.
+ * columns on narrow phones. On wide screens (3.7) up to [maxColumns] columns, as many as fit.
  */
-data class UpToTwoColumns(val minCellWidth: Dp, val scaleAbove: Float = 1f) : GridCells {
+data class UpToTwoColumns(
+    val minCellWidth: Dp,
+    val scaleAbove: Float = 1f,
+    val maxColumns: Int = 2
+) : GridCells {
     override fun Density.calculateCrossAxisCellSizes(availableSize: Int, spacing: Int): List<Int> {
         val count = gridColumnCount(
             available = availableSize.toFloat(),
             spacing = spacing.toFloat(),
             minCell = minCellWidth.toPx(),
             fontScale = fontScale,
-            scaleAbove = scaleAbove
+            scaleAbove = scaleAbove,
+            maxColumns = maxColumns
         )
         return splitEvenly(availableSize, spacing, count)
     }
 }
 
 /**
- * 2 when two cells, [spacing] apart, of at least [minCell] (scaled by [fontScale] only when it
- * is above [scaleAbove]) fit in [available], else 1. Any one unit (px or dp) for all sizes.
+ * The most columns, up to [maxColumns] (at least 1), whose cells of at least [minCell] (scaled by
+ * [fontScale] only when it is above [scaleAbove]), [spacing] apart, fit in [available]; 1 when
+ * not even two fit. Any one unit (px or dp) for all sizes.
  */
 internal fun gridColumnCount(
     available: Float,
     spacing: Float,
     minCell: Float,
     fontScale: Float = 1f,
-    scaleAbove: Float = 1f
+    scaleAbove: Float = 1f,
+    maxColumns: Int = 2
 ): Int {
     val scaledCell = if (fontScale > scaleAbove) minCell * fontScale else minCell
-    return if (available >= scaledCell * 2 + spacing) 2 else 1
+    var count = 1
+    while (count < maxColumns && available >= scaledCell * (count + 1) + spacing * count) count++
+    return count
 }
 
 /** [count] cell widths filling [available] px with [spacing] px between them; extra px go first. */

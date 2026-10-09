@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.data.local.db.ChallengeEntity
 import com.geoquiz.app.R
 import com.geoquiz.app.ui.theme.geoColors
+import com.geoquiz.app.ui.components.ReadableWidthFrame
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,51 +63,55 @@ fun ChallengeLeaderboardScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
+        ReadableWidthFrame(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Stats bar
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(padding)
+        ) { sideInset ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp + sideInset, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Stats bar
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
                     ) {
-                        StatColumn("Wins", state.wins, MaterialTheme.geoColors.correct)
-                        StatColumn("Losses", state.losses, MaterialTheme.geoColors.wrong)
-                        StatColumn("Ties", state.ties, MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            StatColumn("Wins", state.wins, MaterialTheme.geoColors.correct)
+                            StatColumn("Losses", state.losses, MaterialTheme.geoColors.wrong)
+                            StatColumn("Ties", state.ties, MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
-            }
 
-            if (state.challenges.isEmpty() && !state.isLoading) {
-                item {
-                    Text(
-                        text = "No challenges yet!\nShare a quiz result or challenge a friend to get started.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp)
-                    )
+                if (state.challenges.isEmpty() && !state.isLoading) {
+                    item {
+                        Text(
+                            text = "No challenges yet!\nShare a quiz result or challenge a friend to get started.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp)
+                        )
+                    }
                 }
-            }
 
-            items(state.challenges) { challenge ->
-                ChallengeCard(challenge)
+                items(state.challenges) { challenge ->
+                    ChallengeCard(challenge)
+                }
             }
         }
     }

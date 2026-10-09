@@ -62,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.ui.components.DifficultySelector
+import com.geoquiz.app.ui.components.readableWidth
 
 private const val DEBUG_MENU_TAPS = 7
 
@@ -154,6 +155,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .readableWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             Row(

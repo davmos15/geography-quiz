@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +29,11 @@ import com.geoquiz.app.ui.components.FlagImage
 import com.geoquiz.app.ui.components.MainWithCappedTrailing
 import com.geoquiz.app.ui.components.a11yResources
 
+/**
+ * The quiz's rows, answered or hidden. [header], when given, is the list's first item and scrolls
+ * away with the rows (3.7: the quiz title on short screens, so the rows keep the space). Pass
+ * [state] from the screen so the position survives a change of layout.
+ */
 @Composable
 fun CountryList(
     countries: List<Country>,
@@ -34,7 +41,9 @@ fun CountryList(
     quizMode: QuizMode = QuizMode.COUNTRIES,
     showFlags: Boolean = false,
     showCountryHint: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    header: (@Composable () -> Unit)? = null,
+    state: LazyListState = rememberLazyListState()
 ) {
     val sorted = if (quizMode == QuizMode.CAPITALS) {
         countries.sortedBy { it.capital }
@@ -42,7 +51,10 @@ fun CountryList(
         countries.sortedBy { it.name }
     }
 
-    LazyColumn(modifier = modifier) {
+    LazyColumn(modifier = modifier, state = state) {
+        if (header != null) {
+            item(key = LIST_HEADER_KEY, contentType = LIST_HEADER_KEY) { header() }
+        }
         itemsIndexed(sorted, key = { _, country -> country.code }) { index, country ->
             val isAnswered = country.code in answeredCodes
             // TalkBack reads each row as one item, e.g. "France, answered" or
@@ -176,3 +188,6 @@ fun CountryList(
         }
     }
 }
+
+/** Key of the optional header item; never a country code (those are three capital letters). */
+private const val LIST_HEADER_KEY = "quiz-list-header"

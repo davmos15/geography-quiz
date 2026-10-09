@@ -63,6 +63,7 @@ import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
 import java.text.NumberFormat
 import kotlin.math.roundToInt
+import com.geoquiz.app.ui.components.ReadableWidthFrame
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,61 +131,65 @@ fun CategoryListScreen(
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(
+            ReadableWidthFrame(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // The tier for the next quiz, remembered as the default: one tap on a category
-                // then starts at this tier.
-                item(key = "difficulty") {
-                    Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                        Text(
-                            text = stringResource(R.string.difficulty_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier
-                                .padding(bottom = 8.dp)
-                                .semantics { heading() }
-                        )
-                        DifficultySelector(
-                            selected = difficulty,
-                            onSelect = viewModel::onDifficultySelected,
-                            options = viewModel.difficulties
-                        )
-                    }
-                }
-                if (state.groupDescription.isNotBlank()) {
-                    item {
-                        Text(
-                            text = state.groupDescription,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-                }
-                val displayedOptions = if (state.hideCompleted) {
-                    state.quizOptions.filter { !it.isCompleted }
-                } else {
-                    state.quizOptions
-                }
-                items(displayedOptions) { option ->
-                    QuizOptionCard(
-                        option = option,
-                        quizMode = QuizMode.fromId(quizMode),
-                        onClick = { onStartQuiz(option.categoryType, option.categoryValue, difficulty.id) },
-                        onTogglePin = { viewModel.onTogglePin(option) },
-                        onChallenge = {
-                            val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
-                            ShareUtils.shareChallenge(
-                                context = context,
-                                categoryName = category.displayName,
-                                deepLink = viewModel.createChallengeShareUrl(option.categoryType, option.categoryValue)
+                    .padding(padding)
+            ) { sideInset ->
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp + sideInset, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // The tier for the next quiz, remembered as the default: one tap on a category
+                    // then starts at this tier.
+                    item(key = "difficulty") {
+                        Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                            Text(
+                                text = stringResource(R.string.difficulty_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier
+                                    .padding(bottom = 8.dp)
+                                    .semantics { heading() }
+                            )
+                            DifficultySelector(
+                                selected = difficulty,
+                                onSelect = viewModel::onDifficultySelected,
+                                options = viewModel.difficulties
                             )
                         }
-                    )
+                    }
+                    if (state.groupDescription.isNotBlank()) {
+                        item {
+                            Text(
+                                text = state.groupDescription,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                    }
+                    val displayedOptions = if (state.hideCompleted) {
+                        state.quizOptions.filter { !it.isCompleted }
+                    } else {
+                        state.quizOptions
+                    }
+                    items(displayedOptions) { option ->
+                        QuizOptionCard(
+                            option = option,
+                            quizMode = QuizMode.fromId(quizMode),
+                            onClick = { onStartQuiz(option.categoryType, option.categoryValue, difficulty.id) },
+                            onTogglePin = { viewModel.onTogglePin(option) },
+                            onChallenge = {
+                                val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
+                                ShareUtils.shareChallenge(
+                                    context = context,
+                                    categoryName = category.displayName,
+                                    deepLink = viewModel.createChallengeShareUrl(option.categoryType, option.categoryValue)
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

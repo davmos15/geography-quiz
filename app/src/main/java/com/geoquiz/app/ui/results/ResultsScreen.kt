@@ -2,9 +2,12 @@ package com.geoquiz.app.ui.results
 
 import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,7 +59,10 @@ import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.AdaptiveButtonRow
+import com.geoquiz.app.ui.components.TWO_PANE_MAX_WIDTH
 import com.geoquiz.app.ui.components.a11yResources
+import com.geoquiz.app.ui.components.readableWidth
+import com.geoquiz.app.ui.components.WindowLayout
 import com.geoquiz.app.ui.quiz.components.inlineIconSize
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
@@ -168,212 +174,251 @@ private fun ResultsContent(
     val seconds = timeElapsedSeconds % 60
     val timeFormatted = String.format("%02d:%02d", minutes, seconds)
 
+    // The score, stats and cards (3.7: one pane on wide screens)...
+    val summary: @Composable ColumnScope.() -> Unit = {
+        Text(
+            text = "Quiz Complete!",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() }
+        )
+
+        if (categoryName.isNotBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = categoryName,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .semantics(mergeDescendants = true) { },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = String.format(Locale.US, "%.1f", score),
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Score",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                val resultLabel = stringResource(QuizMode.fromId(quizMode).spec.labels.name)
+                val res = a11yResources()
+                ResultRow(
+                    resultLabel,
+                    "$correctAnswers / $totalCountries",
+                    valueDescription = A11yText.progress(
+                        res, QuizMode.fromId(quizMode), correctAnswers, totalCountries
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                ResultRow("Percentage", String.format(Locale.US, "%.1f%%", percentage))
+                Spacer(modifier = Modifier.height(8.dp))
+                ResultRow("Time", timeFormatted, valueDescription = A11yText.duration(res, timeElapsedSeconds))
+                Spacer(modifier = Modifier.height(8.dp))
+                ResultRow("Incorrect Guesses", incorrectGuesses.toString())
+                if (perfectBonus) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutcomeLine(
+                        text = "Perfect! +20% bonus!",
+                        icon = Icons.Default.Check,
+                        color = MaterialTheme.geoColors.correct,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+
+        if (newAchievements.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            NewAchievementsCard(newAchievements)
+        }
+
+        // Challenge result comparison card
+        val challenge = challengeResult
+        if (challenge != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            ChallengeResultCard(
+                challengerName = challenge.challengerName,
+                challengerScore = challenge.challengerScore,
+                challengerTotal = challenge.challengerTotal,
+                challengerTime = challenge.challengerTime,
+                myScore = correctAnswers,
+                myTotal = totalCountries,
+                myTime = timeElapsedSeconds
+            )
+        }
+    }
+
+    // ...and what to do next (the other pane on wide screens).
+    val actions: @Composable ColumnScope.() -> Unit = {
+        // D21: a practice quiz is not recorded, so it is not shared or sent as a challenge.
+        if (isPractice) {
+            Text(
+                text = stringResource(R.string.results_practice_not_recorded),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+        } else AdaptiveButtonRow(
+            // Side by side when both labels fit on one line, otherwise stacked (3.6).
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    ShareUtils.shareResults(
+                        context = context,
+                        categoryName = categoryName,
+                        quizMode = quizMode,
+                        score = correctAnswers,
+                        total = totalCountries,
+                        time = timeElapsedSeconds,
+                        deepLink = viewModel.createChallengeShareUrl(
+                            categoryType, categoryValue, quizMode,
+                            score = correctAnswers, total = totalCountries, time = timeElapsedSeconds
+                        )
+                    )
+                },
+                // Material's padding for a button with an icon: a little more room for the label.
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+            ) {
+                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
+                Text("Share", textAlign = TextAlign.Center)
+            }
+            OutlinedButton(
+                onClick = {
+                    ShareUtils.shareChallenge(
+                        context = context,
+                        categoryName = categoryName,
+                        deepLink = viewModel.createChallengeShareUrl(
+                            categoryType, categoryValue, quizMode,
+                            score = null, total = null, time = null
+                        )
+                    )
+                },
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+            ) {
+                Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
+                Text("Challenge", textAlign = TextAlign.Center)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // View Answers button
+        Button(
+            onClick = onViewAnswers,
+            modifier = Modifier.fillMaxWidth(0.8f),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary
+            )
+        ) {
+            Text("View Answers", textAlign = TextAlign.Center)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onPlayAgain,
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Play Again", textAlign = TextAlign.Center)
+        }
+
+        if (missedCount > 0) {
+            Spacer(modifier = Modifier.height(12.dp))
+            PractiseMissedButton(missedCount = missedCount, onClick = onPractiseMissed)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onGoHome,
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Home", textAlign = TextAlign.Center)
+        }
+    }
+
     Scaffold { padding ->
-        Column(
+        // One or two panes from the space this screen has (beside the rail, in multi-window).
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "Quiz Complete!",
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { heading() }
-            )
-
-            if (categoryName.isNotBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = categoryName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
+            if (WindowLayout.of(maxWidth, maxHeight).useTwoPanes) {
+                // Tablets and phones in landscape: summary on the start side, actions beside it.
+                // Each pane scrolls on its own.
+                Row(
                     modifier = Modifier
-                        .padding(20.dp)
-                        .semantics(mergeDescendants = true) { },
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxSize()
+                        .readableWidth(TWO_PANE_MAX_WIDTH)
+                        .padding(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    Text(
-                        text = String.format(Locale.US, "%.1f", score),
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Text(
-                        text = "Score",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                    )
+                    ResultsPane(modifier = Modifier.weight(1f), content = summary)
+                    ResultsPane(modifier = Modifier.weight(1f), content = actions)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
+            } else {
+                ResultsPane(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp)
                 ) {
-                    val resultLabel = stringResource(QuizMode.fromId(quizMode).spec.labels.name)
-                    val res = a11yResources()
-                    ResultRow(
-                        resultLabel,
-                        "$correctAnswers / $totalCountries",
-                        valueDescription = A11yText.progress(
-                            res, QuizMode.fromId(quizMode), correctAnswers, totalCountries
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ResultRow("Percentage", String.format(Locale.US, "%.1f%%", percentage))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ResultRow("Time", timeFormatted, valueDescription = A11yText.duration(res, timeElapsedSeconds))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ResultRow("Incorrect Guesses", incorrectGuesses.toString())
-                    if (perfectBonus) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutcomeLine(
-                            text = "Perfect! +20% bonus!",
-                            icon = Icons.Default.Check,
-                            color = MaterialTheme.geoColors.correct,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                    summary()
+                    Spacer(modifier = Modifier.height(20.dp))
+                    actions()
                 }
-            }
-
-            if (newAchievements.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                NewAchievementsCard(newAchievements)
-            }
-
-            // Challenge result comparison card
-            val challenge = challengeResult
-            if (challenge != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                ChallengeResultCard(
-                    challengerName = challenge.challengerName,
-                    challengerScore = challenge.challengerScore,
-                    challengerTotal = challenge.challengerTotal,
-                    challengerTime = challenge.challengerTime,
-                    myScore = correctAnswers,
-                    myTotal = totalCountries,
-                    myTime = timeElapsedSeconds
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // D21: a practice quiz is not recorded, so it is not shared or sent as a challenge.
-            if (isPractice) {
-                Text(
-                    text = stringResource(R.string.results_practice_not_recorded),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(0.8f)
-                )
-            } else AdaptiveButtonRow(
-                // Side by side when both labels fit on one line, otherwise stacked (3.6).
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        ShareUtils.shareResults(
-                            context = context,
-                            categoryName = categoryName,
-                            quizMode = quizMode,
-                            score = correctAnswers,
-                            total = totalCountries,
-                            time = timeElapsedSeconds,
-                            deepLink = viewModel.createChallengeShareUrl(
-                                categoryType, categoryValue, quizMode,
-                                score = correctAnswers, total = totalCountries, time = timeElapsedSeconds
-                            )
-                        )
-                    },
-                    // Material's padding for a button with an icon: a little more room for the label.
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Share", textAlign = TextAlign.Center)
-                }
-                OutlinedButton(
-                    onClick = {
-                        ShareUtils.shareChallenge(
-                            context = context,
-                            categoryName = categoryName,
-                            deepLink = viewModel.createChallengeShareUrl(
-                                categoryType, categoryValue, quizMode,
-                                score = null, total = null, time = null
-                            )
-                        )
-                    },
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-                ) {
-                    Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                    Text("Challenge", textAlign = TextAlign.Center)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // View Answers button
-            Button(
-                onClick = onViewAnswers,
-                modifier = Modifier.fillMaxWidth(0.8f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text("View Answers", textAlign = TextAlign.Center)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onPlayAgain,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                Text("Play Again", textAlign = TextAlign.Center)
-            }
-
-            if (missedCount > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
-                PractiseMissedButton(missedCount = missedCount, onClick = onPractiseMissed)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = onGoHome,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                Text("Home", textAlign = TextAlign.Center)
             }
         }
     }
+}
+
+/** A centred, scrolling column of Results content. */
+@Composable
+private fun ResultsPane(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        content = content
+    )
 }
 
 /**

@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.graphics.Color
 import com.geoquiz.app.domain.model.AchievementTier
 import com.geoquiz.app.ui.theme.*
+import com.geoquiz.app.ui.components.ReadableWidthFrame
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,25 +65,29 @@ fun AchievementsScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
+        ReadableWidthFrame(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item {
-                val unlockedCount = state.achievements.count { it.unlocked }
-                Text(
-                    text = "$unlockedCount / ${state.achievements.size} unlocked",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
+                .padding(padding)
+        ) { sideInset ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp + sideInset, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                item {
+                    val unlockedCount = state.achievements.count { it.unlocked }
+                    Text(
+                        text = "$unlockedCount / ${state.achievements.size} unlocked",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
 
-            items(state.achievements) { info ->
-                AchievementCard(info)
+                items(state.achievements) { info ->
+                    AchievementCard(info)
+                }
             }
         }
     }

@@ -40,6 +40,20 @@ class AdaptiveLayoutsTest {
         assertEquals(2, gridColumnCount(available = 1000f, spacing = 12f, minCell = 140f))
     }
 
+    @Test
+    fun `on wide screens the grid takes up to maxColumns columns, as many as fit`() {
+        // Three 140 dp tiles and two 12 dp gaps need 444 dp.
+        assertEquals(3, gridColumnCount(available = 444f, spacing = 12f, minCell = 140f, maxColumns = 3))
+        assertEquals(2, gridColumnCount(available = 443f, spacing = 12f, minCell = 140f, maxColumns = 3))
+        assertEquals(3, gridColumnCount(available = 2000f, spacing = 12f, minCell = 140f, maxColumns = 3))
+        assertEquals(5, gridColumnCount(available = 2000f, spacing = 12f, minCell = 140f, maxColumns = 5))
+        assertEquals(1, gridColumnCount(available = 200f, spacing = 12f, minCell = 140f, maxColumns = 3))
+        // Large text widens the tiles, so fewer fit.
+        assertEquals(1, gridColumnCount(available = 444f, spacing = 12f, minCell = 140f, fontScale = 2f, maxColumns = 3))
+        // A maximum below 1 still gives one column.
+        assertEquals(1, gridColumnCount(available = 1000f, spacing = 12f, minCell = 140f, maxColumns = 0))
+    }
+
     // The Play grid: 120 dp tiles, 12 dp apart, scaled only above 130% text. A 360 dp phone has
     // 328 dp for the grid (16 dp padding each side), a 320 dp phone 288 dp.
     private fun playColumns(availableDp: Float, fontScale: Float) =

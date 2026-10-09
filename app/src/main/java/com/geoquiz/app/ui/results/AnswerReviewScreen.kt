@@ -50,6 +50,7 @@ import com.geoquiz.app.ui.components.FlagImage
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.theme.geoColors
+import com.geoquiz.app.ui.components.ReadableWidthFrame
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,153 +103,157 @@ private fun AnswerReviewContent(
             )
         }
     ) { padding ->
-        LazyColumn(
+        ReadableWidthFrame(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            item {
-                val summaryDescription = A11yText.progress(a11yResources(), quizMode, answeredCount, sorted.size)
-                Text(
-                    text = "$answeredCount / ${sorted.size} answered",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .clearAndSetSemantics { contentDescription = summaryDescription }
-                )
-            }
-
-            if (hasIncorrectGuesses) {
+                .padding(padding)
+        ) { sideInset ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp + sideInset, vertical = 8.dp)
+            ) {
                 item {
-                    // The chips wrap onto a second line when they don't fit side by side.
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    ) {
-                        FilterChip(
-                            selected = !showIncorrectGuesses,
-                            onClick = { showIncorrectGuesses = false },
-                            label = { Text("All Answers") }
-                        )
-                        FilterChip(
-                            selected = showIncorrectGuesses,
-                            onClick = { showIncorrectGuesses = true },
-                            label = { Text("Incorrect Guesses (${incorrectGuesses.size})") }
-                        )
-                    }
-                }
-            }
-
-            if (showIncorrectGuesses) {
-                items(incorrectGuesses) { incorrect ->
-                    val guess = incorrect.guess
-                    val matchedCountry = incorrect.matchedCountry
-                    val hint = if (matchedCountry != null) {
-                        getContextHint(matchedCountry, category, quizMode)
-                    } else null
-
-                    // One item for TalkBack: "Incorrect, <guess>, <hint>".
-                    Row(
+                    val summaryDescription = A11yText.progress(a11yResources(), quizMode, answeredCount, sorted.size)
+                    Text(
+                        text = "$answeredCount / ${sorted.size} answered",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp)
-                            .semantics(mergeDescendants = true) { },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = stringResource(R.string.a11y_incorrect),
-                            tint = MaterialTheme.geoColors.wrong
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = guess,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.geoColors.wrong
-                            )
-                            if (hint != null) {
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = hint,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            .padding(bottom = 8.dp)
+                            .clearAndSetSemantics { contentDescription = summaryDescription }
                     )
                 }
-            } else {
-                items(sorted, key = { it.code }) { country ->
-                    val isAnswered = country.code in answeredCodes
-                    // One item for TalkBack: "Brazil, missed" (the status icon and flag are
-                    // covered by this description).
-                    val rowDescription = A11yText.reviewRow(a11yResources(), quizMode, country, isAnswered)
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp)
-                            .clearAndSetSemantics { contentDescription = rowDescription },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = if (isAnswered) Icons.Default.Check else Icons.Default.Close,
-                            contentDescription = null, // the row description says it
-                            tint = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
+                if (hasIncorrectGuesses) {
+                    item {
+                        // The chips wrap onto a second line when they don't fit side by side.
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        ) {
+                            FilterChip(
+                                selected = !showIncorrectGuesses,
+                                onClick = { showIncorrectGuesses = false },
+                                label = { Text("All Answers") }
+                            )
+                            FilterChip(
+                                selected = showIncorrectGuesses,
+                                onClick = { showIncorrectGuesses = true },
+                                label = { Text("Incorrect Guesses (${incorrectGuesses.size})") }
+                            )
+                        }
+                    }
+                }
 
-                        if (showFlags) {
-                            FlagImage(
-                                countryCode = country.code,
-                                contentDescription = stringResource(
-                                    R.string.flag_content_description,
-                                    country.name
-                                )
+                if (showIncorrectGuesses) {
+                    items(incorrectGuesses) { incorrect ->
+                        val guess = incorrect.guess
+                        val matchedCountry = incorrect.matchedCountry
+                        val hint = if (matchedCountry != null) {
+                            getContextHint(matchedCountry, category, quizMode)
+                        } else null
+
+                        // One item for TalkBack: "Incorrect, <guess>, <hint>".
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp)
+                                .semantics(mergeDescendants = true) { },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = stringResource(R.string.a11y_incorrect),
+                                tint = MaterialTheme.geoColors.wrong
                             )
                             Spacer(modifier = Modifier.width(12.dp))
-                        }
-
-                        when (quizMode) {
-                            QuizMode.CAPITALS -> {
-                                Column(modifier = Modifier.weight(1f)) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = guess,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.geoColors.wrong
+                                )
+                                if (hint != null) {
+                                    Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = country.capital,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Medium,
-                                        color = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
-                                    )
-                                    Text(
-                                        text = country.name,
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        text = hint,
+                                        style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
+                        }
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                    }
+                } else {
+                    items(sorted, key = { it.code }) { country ->
+                        val isAnswered = country.code in answeredCodes
+                        // One item for TalkBack: "Brazil, missed" (the status icon and flag are
+                        // covered by this description).
+                        val rowDescription = A11yText.reviewRow(a11yResources(), quizMode, country, isAnswered)
 
-                            QuizMode.FLAGS, QuizMode.COUNTRIES -> {
-                                Text(
-                                    text = country.name,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                                    color = if (isAnswered) {
-                                        MaterialTheme.colorScheme.onSurface
-                                    } else {
-                                        MaterialTheme.geoColors.wrong
-                                    }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp)
+                                .clearAndSetSemantics { contentDescription = rowDescription },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isAnswered) Icons.Default.Check else Icons.Default.Close,
+                                contentDescription = null, // the row description says it
+                                tint = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            if (showFlags) {
+                                FlagImage(
+                                    countryCode = country.code,
+                                    contentDescription = stringResource(
+                                        R.string.flag_content_description,
+                                        country.name
+                                    )
                                 )
+                                Spacer(modifier = Modifier.width(12.dp))
+                            }
+
+                            when (quizMode) {
+                                QuizMode.CAPITALS -> {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = country.capital,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium,
+                                            color = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
+                                        )
+                                        Text(
+                                            text = country.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                QuizMode.FLAGS, QuizMode.COUNTRIES -> {
+                                    Text(
+                                        text = country.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                        color = if (isAnswered) {
+                                            MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                            MaterialTheme.geoColors.wrong
+                                        }
+                                    )
+                                }
                             }
                         }
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
                     }
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
                 }
             }
         }

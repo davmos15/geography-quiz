@@ -17,6 +17,7 @@ import com.geoquiz.app.R
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.util.withJson
+import com.geoquiz.app.ui.components.readableWidth
 
 /**
  * Open-source licences (L2): every library bundled in the app, generated at build time by the
@@ -43,7 +44,8 @@ fun OpenSourceLicencesScreen(onNavigateBack: () -> Unit) {
         LibrariesContainer(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .readableWidth(),
             // Reference the generated raw resource directly (rather than looking it up by name)
             // so release resource shrinking can see it is used and keeps it.
             librariesBlock = { context ->

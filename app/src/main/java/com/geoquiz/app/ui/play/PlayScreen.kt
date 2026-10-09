@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,10 +15,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
@@ -61,9 +64,13 @@ import com.geoquiz.app.ui.ads.BannerAd
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.MasteryStarsRow
 import com.geoquiz.app.ui.components.SEGMENT_LABEL_CHROME
+import com.geoquiz.app.ui.components.TWO_PANE_MAX_WIDTH
 import com.geoquiz.app.ui.components.UpToTwoColumns
+import com.geoquiz.app.ui.components.WidthClass
+import com.geoquiz.app.ui.components.WindowLayout
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
+import com.geoquiz.app.ui.components.readableWidth
 import com.geoquiz.app.ui.mode.imageVector
 import java.util.Locale
 
@@ -109,101 +116,194 @@ fun PlayScreen(
             )
         }
     ) { padding ->
-        LazyVerticalGrid(
-            // Two columns of tiles; one at large text sizes, so tile titles don't break mid-word.
-            columns = UpToTwoColumns(minCellWidth = MIN_TILE_WIDTH, scaleAbove = TILE_SCALE_ABOVE),
+        // One position for the mode switch and tiles in either layout, so it survives the
+        // switch between them (rotation, multi-window, the cards coming and going).
+        val browseState = rememberLazyGridState()
+        // The layout follows the space this screen has (beside the rail), not the whole window.
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(padding)
         ) {
-            if (state.showTodayChallenge) {
-                fullWidth { TodayChallengeCard() }
+            val windowLayout = WindowLayout.of(maxWidth, maxHeight)
+            val hasCards = state.showTodayChallenge || state.savedQuiz != null ||
+                state.recommended != null || state.pinned.isNotEmpty()
+            val onResume: (SavedQuizInfo) -> Unit = { saved ->
+                onStartQuiz(saved.quizModeId, saved.categoryType, saved.categoryValue)
             }
-
-            state.savedQuiz?.let { saved ->
-                fullWidth {
-                    ContinueCard(
-                        saved = saved,
-                        onResume = { onStartQuiz(saved.quizModeId, saved.categoryType, saved.categoryValue) },
-                        onDismiss = viewModel::dismissSavedQuiz
-                    )
-                }
-            }
-
-            state.recommended?.let { recommended ->
-                fullWidth {
-                    RecommendedCard(
-                        recommended = recommended,
-                        onStart = {
-                            onStartQuiz(recommended.quizModeId, recommended.categoryType, recommended.categoryValue)
-                        }
-                    )
-                }
-            }
-
-            if (state.pinned.isNotEmpty()) {
-                fullWidth { SectionHeading(stringResource(R.string.play_pinned_heading)) }
-                items(
-                    state.pinned,
-                    key = { "pin/${it.quizModeId}/${it.categoryType}/${it.categoryValue}" },
-                    span = { GridItemSpan(maxLineSpan) }
-                ) { pin ->
-                    PinnedRow(
-                        pin = pin,
-                        onStart = { onStartQuiz(pin.quizModeId, pin.categoryType, pin.categoryValue) }
-                    )
-                }
-            }
-
-            if (state.classicModes.isNotEmpty()) {
-                fullWidth {
-                    ModeSwitch(
-                        modes = state.classicModes,
-                        selectedId = state.selectedModeId,
-                        onSelect = viewModel::selectMode
-                    )
-                }
-            }
-
-            val content = state.selectedContent
-            if (content == null) {
-                fullWidth { Loading() }
-            } else {
-                content.allItems?.let { all ->
-                    fullWidth {
-                        AllItemsCard(all, onClick = { onStartQuiz(content.modeId, "all", "_") })
+            if (windowLayout.useWideHub && hasCards) {
+                // Large tablets (3.7): the cards in their own column beside the mode switch
+                // and tiles, which take more columns as the width allows.
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .readableWidth(TWO_PANE_MAX_WIDTH)
+                ) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(1),
+                        modifier = Modifier
+                            .weight(CARDS_PANE_WEIGHT)
+                            .fillMaxHeight(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz)
+                    }
+                    LazyVerticalGrid(
+                        columns = UpToTwoColumns(
+                            minCellWidth = MIN_TILE_WIDTH,
+                            scaleAbove = TILE_SCALE_ABOVE,
+                            maxColumns = WIDE_MAX_TILE_COLUMNS
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        state = browseState,
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode)
                     }
                 }
-
-                fullWidth { BannerAd(modifier = Modifier.padding(vertical = 8.dp)) }
-
-                fullWidth { SectionHeading(stringResource(R.string.play_categories_heading)) }
-
-                items(content.groups, key = { "${content.modeId}/${it.id}" }) { group ->
-                    GroupTileCard(group, onClick = { onOpenCategory(content.modeId, group.id) })
-                }
-            }
-
-            if (state.newModes.isNotEmpty()) {
-                fullWidth {
-                    SectionHeading(
-                        stringResource(R.string.play_new_modes_heading),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                items(state.newModes, key = { "mode/${it.id}" }) { mode ->
-                    NewModeTile(mode, onClick = { onOpenMode(mode.id) })
+            } else {
+                LazyVerticalGrid(
+                    // Two columns of tiles on phones (one at large text sizes, so tile titles
+                    // don't break mid-word); more on wider screens when they fit.
+                    columns = UpToTwoColumns(
+                        minCellWidth = MIN_TILE_WIDTH,
+                        scaleAbove = TILE_SCALE_ABOVE,
+                        maxColumns = maxTileColumns(windowLayout.widthClass)
+                    ),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .readableWidth(TWO_PANE_MAX_WIDTH),
+                    state = browseState,
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz)
+                    playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode)
                 }
             }
         }
     }
 }
 
-private fun LazyGridScope.fullWidth(content: @Composable () -> Unit) {
-    item(span = { GridItemSpan(maxLineSpan) }) { content() }
+/** Today's challenge, Continue, Recommended next and Pinned, each only when there is one. */
+private fun LazyGridScope.playCards(
+    state: PlayUiState,
+    onResume: (SavedQuizInfo) -> Unit,
+    onDismissSaved: () -> Unit,
+    onStartQuiz: (modeId: String, categoryType: String, categoryValue: String) -> Unit
+) {
+    if (state.showTodayChallenge) {
+        fullWidth("today") { TodayChallengeCard() }
+    }
+
+    state.savedQuiz?.let { saved ->
+        fullWidth("continue") {
+            ContinueCard(
+                saved = saved,
+                onResume = { onResume(saved) },
+                onDismiss = onDismissSaved
+            )
+        }
+    }
+
+    state.recommended?.let { recommended ->
+        fullWidth("recommended") {
+            RecommendedCard(
+                recommended = recommended,
+                onStart = {
+                    onStartQuiz(recommended.quizModeId, recommended.categoryType, recommended.categoryValue)
+                }
+            )
+        }
+    }
+
+    if (state.pinned.isNotEmpty()) {
+        fullWidth("pinned-heading") { SectionHeading(stringResource(R.string.play_pinned_heading)) }
+        items(
+            state.pinned,
+            key = { "pin/${it.quizModeId}/${it.categoryType}/${it.categoryValue}" },
+            span = { GridItemSpan(maxLineSpan) }
+        ) { pin ->
+            PinnedRow(
+                pin = pin,
+                onStart = { onStartQuiz(pin.quizModeId, pin.categoryType, pin.categoryValue) }
+            )
+        }
+    }
+}
+
+/** The mode switch, the selected mode's All tile and groups, and the New modes grid. */
+private fun LazyGridScope.playBrowse(
+    state: PlayUiState,
+    onSelectMode: (String) -> Unit,
+    onOpenCategory: (modeId: String, groupId: String) -> Unit,
+    onStartQuiz: (modeId: String, categoryType: String, categoryValue: String) -> Unit,
+    onOpenMode: (modeId: String) -> Unit
+) {
+    if (state.classicModes.isNotEmpty()) {
+        fullWidth("mode-switch") {
+            ModeSwitch(
+                modes = state.classicModes,
+                selectedId = state.selectedModeId,
+                onSelect = onSelectMode
+            )
+        }
+    }
+
+    val content = state.selectedContent
+    if (content == null) {
+        fullWidth("loading") { Loading() }
+    } else {
+        content.allItems?.let { all ->
+            fullWidth("all/${content.modeId}") {
+                AllItemsCard(all, onClick = { onStartQuiz(content.modeId, "all", "_") })
+            }
+        }
+
+        fullWidth("banner") { BannerAd(modifier = Modifier.padding(vertical = 8.dp)) }
+
+        fullWidth("categories-heading") { SectionHeading(stringResource(R.string.play_categories_heading)) }
+
+        items(content.groups, key = { "${content.modeId}/${it.id}" }) { group ->
+            GroupTileCard(group, onClick = { onOpenCategory(content.modeId, group.id) })
+        }
+    }
+
+    if (state.newModes.isNotEmpty()) {
+        fullWidth("new-modes-heading") {
+            SectionHeading(
+                stringResource(R.string.play_new_modes_heading),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+        items(state.newModes, key = { "mode/${it.id}" }) { mode ->
+            NewModeTile(mode, onClick = { onOpenMode(mode.id) })
+        }
+    }
+}
+
+/** The most tile columns for the window's [widthClass]: 2 on phones, 3 on tablets (3.7). */
+internal fun maxTileColumns(widthClass: WidthClass): Int =
+    if (widthClass == WidthClass.Compact) 2 else WIDE_MAX_TILE_COLUMNS
+
+/** Tile columns allowed on wide windows (when the tiles still fit, see [UpToTwoColumns]). */
+private const val WIDE_MAX_TILE_COLUMNS = 3
+
+/** The cards column's share of the width beside the tiles (tiles get 1). */
+private const val CARDS_PANE_WEIGHT = 0.8f
+
+/**
+ * A full-width item. Every item has a [key], so a grid keeps its scroll position by item when
+ * items before it come and go or it moves to the other layout (3.7).
+ */
+private fun LazyGridScope.fullWidth(key: String, content: @Composable () -> Unit) {
+    item(key = key, span = { GridItemSpan(maxLineSpan) }) { content() }
 }
 
 @Composable

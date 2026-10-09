@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.geoquiz.app.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.geoquiz.app.ui.components.readableWidth
 
 /** Full flag-icons licence text, bundled next to the SVGs. */
 private const val FLAG_LICENCE_ASSET = "flags/LICENSE"
@@ -95,6 +96,7 @@ fun CreditsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .readableWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             CreditsSection(

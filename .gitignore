@@ -74,3 +74,8 @@ nul
 
 # Kotlin 2 compiler caches
 .kotlin/
+
+# Geodata pipeline: build-time venv and Natural Earth download cache
+tools/geodata/.venv/
+tools/geodata/.cache/
+__pycache__/

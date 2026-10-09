@@ -24,6 +24,15 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `data/source/flag_colors.json` (not shipped) | authored for GeoQuiz (owner to confirm) | added `994ec27` | ODbL 1.0 (released as part of `static.db`, D13) | none |
 | `data/source/flag_elements.json` (not shipped) | authored for GeoQuiz (owner to confirm) | added `23c81ba` | ODbL 1.0 (released as part of `static.db`, D13) | none |
 | `app/src/main/assets/flags/*.svg`, `flags/LICENSE` | flag-icons (lipis) | 7.5.0 | MIT | `tools/flags/fetch_flags.py` |
+| `app/src/main/assets/geo/admin0_110m.bin` | Natural Earth `ne_110m_admin_0_countries` (+ `ne_50m_admin_0_countries` for 29 small countries) | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/admin0_50m.bin` | Natural Earth `ne_50m_admin_0_countries` | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/tap_zones.bin` | Natural Earth `ne_50m_admin_0_tiny_countries` + `ne_50m_admin_0_countries` | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/admin1_50m.bin` | Natural Earth `ne_50m_admin_1_states_provinces` (US and Canada only) | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/rivers_50m.bin` | Natural Earth `ne_50m_rivers_lake_centerlines` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/lakes_50m.bin` | Natural Earth `ne_50m_lakes` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/regions_50m.bin` | Natural Earth `ne_50m_geography_regions_polys` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/geo_points_50m.bin` | Natural Earth `ne_50m_geography_regions_elevation_points` + `ne_50m_geography_regions_points` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
+| `data/geo/build_log.txt`, `data/geo/FORMAT.md` (not shipped) | build log generated with the map layers; format contract authored for GeoQuiz | regenerated per change | Public domain inputs; authored text All rights reserved | `tools/geodata/build_geodata.py` |
 | `data/aliases.json` | derived from `data/source/countries.json` + `alias_overrides.json` | regenerated per change | ODbL 1.0 | `tools/data/export_aliases.py` |
 | `tools/fonts/Lato-*.ttf`, `OFL.txt` | Google Fonts (google/fonts) | `5d3b761` | SIL OFL 1.1 | `tools/fonts/fetch_fonts.py` |
 | Launcher icon (`res/drawable/ic_launcher_*.xml`, `res/mipmap-anydpi-v26/`) | authored for GeoQuiz | `4694f86` | All rights reserved | none |
@@ -96,6 +105,18 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Transformation | `tools/flags/fetch_flags.py`: verifies the tarball hash, copies `package/flags/4x3/<cca2>.svg` unmodified, renamed to lower-case cca3 (`aus.svg`, `unk.svg` for Kosovo), for the 197 countries the app shows. Output is reproducible. |
 | Notes | 197 SVGs plus `LICENSE`. Rendered with Coil 3 + coil-svg (`ui/components/FlagImage.kt`). See [`tools/flags/README.md`](../tools/flags/README.md). Replaced the earlier Unicode emoji flags (decision D7). |
 
+### `app/src/main/assets/geo/*.bin` (map layers)
+
+| | |
+|---|---|
+| Files | `admin0_110m.bin`, `admin0_50m.bin`, `tap_zones.bin`, `admin1_50m.bin`, `rivers_50m.bin`, `lakes_50m.bin`, `regions_50m.bin`, `geo_points_50m.bin` (one layer each; format in [`geo/FORMAT.md`](geo/FORMAT.md)) |
+| Source | Natural Earth, https://www.naturalearthdata.com/, downloaded from the versioned path https://naciscdn.org/naturalearth/5.1.2/ |
+| Version | Natural Earth release 5.1.2. The zips' `VERSION.txt` reads 5.1.1 (cultural layers) and 5.0.0 (physical layers), which is what that release ships; the script checks it. |
+| SHA-256 (zips) | `110m/cultural/ne_110m_admin_0_countries.zip` `0f243aeac8ac6cf26f0417285b0bd33ac47f1b5bdb719fd3e0df37d03ea37110`<br>`50m/cultural/ne_50m_admin_0_countries.zip` `5fed433373581fa648920435f937d95f2d3c0200e067409c6478dcdf1b853139`<br>`50m/cultural/ne_50m_admin_0_tiny_countries.zip` `e6b63e61220a65a78dfddd67cdec3aadd1e335e904de12c98442e693e62ce9d2`<br>`50m/cultural/ne_50m_admin_1_states_provinces.zip` `61f79e6705e62a55d6bcf698394295a589af5e24a4b2684c6519dd35c1300bf6`<br>`50m/physical/ne_50m_rivers_lake_centerlines.zip` `c607d9d7e7702827a7996fff6dc17b87a338c5ed3b52d12c402e0c9669cc7b56`<br>`50m/physical/ne_50m_lakes.zip` `f28d42c286d96b57a17aac2cbeb432f8c65532c20063495711fbc64e24666df3`<br>`50m/physical/ne_50m_geography_regions_polys.zip` `a6e7ac257f6f0847ed80e6dc6e776441456652c093cfe90c7bf26dc8069f0d03`<br>`50m/physical/ne_50m_geography_regions_points.zip` `c4498acc334dc84209bdac0f3262a1762a7983ed66d50073cab17bd3435cdfb9`<br>`50m/physical/ne_50m_geography_regions_elevation_points.zip` `b23b3f62c1a003ea733e2cc161148d7d4f8726462f0b45592b7ca3b52cafe6c7` |
+| Licence | Public domain (Natural Earth terms of use: no permission needed, credit appreciated). Credit used: "Made with Natural Earth." |
+| Transformation | `tools/geodata/build_geodata.py` (see [`tools/geodata/README.md`](../tools/geodata/README.md)): maps Natural Earth country codes to the app's 197 cca3 codes (Somaliland merged into Somalia, Northern Cyprus into Cyprus, Kosovo as `UNK`; other land kept as non-playable), simplifies polygon layers with shared-arc Douglas–Peucker so borders stay identical, quantises to int16 per layer, flags remote and antimeridian-wrap parts, and writes the GQGM binary format. Each build decodes and validates every file and enforces the size budgets (D3: 1.5 MB in total). `--check` detects drift; the output is byte-for-byte reproducible. |
+| Notes | 605,778 bytes in total (per-file sizes and SHA-256 in [`geo/build_log.txt`](geo/build_log.txt)). Natural Earth's default (de facto) point of view on disputed areas. Feature ids are app cca3 codes (the list of 197 comes from `data/source/countries.json` via `tools/data/export_aliases.py`; no other mledoze/countries data is included), ISO 3166-2 codes or Natural Earth `ne_id`; names, properties and Wikidata ids are Natural Earth's. |
+
 ### `data/aliases.json`
 
 | | |
@@ -139,7 +160,6 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 
 ## Planned (not yet used)
 
-- Natural Earth (public domain): map geometry, Phase 4.
 - UN M49 (factual classification, credited): region groupings, if adopted.
 
-Add a full entry above when either is bundled.
+Add a full entry above when it is bundled.

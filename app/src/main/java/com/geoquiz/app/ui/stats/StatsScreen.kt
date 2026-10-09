@@ -1,5 +1,7 @@
 package com.geoquiz.app.ui.stats
 
+import androidx.compose.ui.res.stringResource
+import com.geoquiz.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,7 +30,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,12 +40,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.ui.components.AdaptiveButtonRow
+import com.geoquiz.app.ui.components.WrappingTopAppBar
+import androidx.compose.ui.text.style.TextAlign
 import java.util.Locale
+import com.geoquiz.app.ui.components.readableWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onNavigateToAchievements: () -> Unit,
     onNavigateToChallenges: () -> Unit,
     viewModel: StatsViewModel = hiltViewModel()
@@ -54,11 +59,14 @@ fun StatsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Stats") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            WrappingTopAppBar(
+                title = stringResource(R.string.nav_stats),
+                // No back arrow when shown as a bottom navigation tab
+                navigationIcon = onNavigateBack?.let { back ->
+                    @Composable {
+                        IconButton(onClick = back) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        }
                     }
                 }
             )
@@ -69,24 +77,24 @@ fun StatsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .readableWidth()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
+            // Side by side when both labels fit on one line, otherwise stacked (3.6).
+            AdaptiveButtonRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                spacing = 12.dp
             ) {
                 OutlinedButton(
-                    onClick = onNavigateToAchievements,
-                    modifier = Modifier.weight(1f)
+                    onClick = onNavigateToAchievements
                 ) {
                     Icon(Icons.Default.EmojiEvents, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Achievements")
                 }
                 OutlinedButton(
-                    onClick = onNavigateToChallenges,
-                    modifier = Modifier.weight(1f)
+                    onClick = onNavigateToChallenges
                 ) {
                     Icon(Icons.Default.Leaderboard, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -203,15 +211,19 @@ private fun StatRow(label: String, value: String) {
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        // The label wraps at large text sizes; the value keeps its own space at the end.
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.End,
+            modifier = Modifier.padding(start = 12.dp)
         )
     }
 }

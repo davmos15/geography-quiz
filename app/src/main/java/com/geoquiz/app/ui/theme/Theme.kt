@@ -8,10 +8,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
+internal val DarkColorScheme = darkColorScheme(
     primary = Teal80,
     onPrimary = Teal20,
     primaryContainer = Color(0xFF004D40),
@@ -22,17 +23,33 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer = Amber80,
     tertiary = Green80,
     onTertiary = Color(0xFF003910),
-    tertiaryContainer = Color(0xFF1B5E20),
+    // Darker than the old 0xFF1B5E20 so onTertiaryContainer text reaches 4.5:1 (was 3.9:1).
+    tertiaryContainer = Color(0xFF124A18),
     onTertiaryContainer = Green80,
     error = Red80,
     background = Color(0xFF121212),
+    onBackground = Color(0xFFE0E0E0),
     surface = Color(0xFF1E1E1E),
     surfaceVariant = Color(0xFF2C2C2C),
     onSurface = Color(0xFFE0E0E0),
-    onSurfaceVariant = Color(0xFFBDBDBD)
+    onSurfaceVariant = Color(0xFFBDBDBD),
+    // Neutral greys to match the surfaces above. Left unset, Material 3 falls back to its
+    // purple-tinted baseline (bottom bar, sheets, dialogs, menus, outlines).
+    surfaceDim = Color(0xFF121212),
+    surfaceBright = Color(0xFF383838),
+    surfaceContainerLowest = Color(0xFF0F0F0F),
+    surfaceContainerLow = Color(0xFF1A1A1A),
+    surfaceContainer = Color(0xFF242424),
+    surfaceContainerHigh = Color(0xFF2C2C2C),
+    surfaceContainerHighest = Color(0xFF363636),
+    outline = Color(0xFF8E8E8E),
+    outlineVariant = Color(0xFF444444),
+    inverseSurface = Color(0xFFE0E0E0),
+    inverseOnSurface = Color(0xFF2C2C2C),
+    inversePrimary = Teal40,
 )
 
-private val LightColorScheme = lightColorScheme(
+internal val LightColorScheme = lightColorScheme(
     primary = Teal40,
     onPrimary = Color.White,
     primaryContainer = Color(0xFFB2DFDB),
@@ -68,9 +85,16 @@ fun GeographyQuizTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    // Always our own tokens, even with dynamic colour: feedback, map and tier colours carry
+    // meaning and are contrast-checked (GeoColorsContrastTest), so they never follow the wallpaper.
+    val geoColors = if (darkTheme) DarkGeoColors else LightGeoColors
+
+    CompositionLocalProvider(LocalGeoColors provides geoColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }

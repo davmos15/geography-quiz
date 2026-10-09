@@ -45,7 +45,8 @@ interface QuizHistoryDao {
     @Query("SELECT COUNT(*) FROM quiz_history WHERE quizMode = :quizMode")
     fun getQuizzesCompletedForMode(quizMode: String): Flow<Int>
 
-    // Batch best scores for a quiz mode
+    // Best result per category of a quiz mode (highest score); follows history, so category rows
+    // update when the player comes back from a quiz
 
     @Query("""
         SELECT qh.categoryType, qh.categoryValue, qh.score, qh.correctAnswers, qh.totalQuestions
@@ -61,19 +62,40 @@ interface QuizHistoryDao {
         WHERE qh.quizMode = :quizMode
         GROUP BY qh.categoryType, qh.categoryValue
     """)
-    suspend fun getAllBestScoresForMode(quizMode: String): List<QuizBestScore>
+    fun observeBestScoresForMode(quizMode: String): Flow<List<QuizBestScore>>
+
+    // Mastery stars: every distinct (category, tier, result) for a mode. Duplicate results
+    // collapse, so the list stays small; MasteryStars picks the best per category.
+
+    @Query("""
+        SELECT DISTINCT categoryType, categoryValue, difficulty, correctAnswers, totalQuestions
+        FROM quiz_history
+        WHERE quizMode = :quizMode AND totalQuestions > 0
+    """)
+    fun observeMasteryRowsForMode(quizMode: String): Flow<List<QuizMasteryRow>>
+
+    // Categories of a mode, most recently finished first (one row each), for "Recommended next"
+
+    @Query("""
+        SELECT categoryType, categoryValue
+        FROM quiz_history
+        WHERE quizMode = :quizMode
+        GROUP BY categoryType, categoryValue
+        ORDER BY MAX(completedAtMillis) DESC, MAX(id) DESC
+    """)
+    fun observeCategoriesByRecencyForMode(quizMode: String): Flow<List<QuizCategoryRef>>
 
     // Recent history
 
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
     fun getRecentQuizzes(limit: Int = 10): Flow<List<QuizHistoryEntity>>
 
-    // Cumulative totals (for leaderboard submission)
+    // Cumulative totals (for leaderboard submission). Easy quizzes never count (D16).
 
-    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history")
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE difficulty != 'easy'")
     suspend fun getTotalCorrectAnswersSync(): Long
 
-    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode")
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode AND difficulty != 'easy'")
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long
 
     // Reset
@@ -81,3 +103,9 @@ interface QuizHistoryDao {
     @Query("DELETE FROM quiz_history")
     suspend fun deleteAllHistory()
 }
+
+/** A recorded category of a mode, as returned by [QuizHistoryDao.observeCategoriesByRecencyForMode]. */
+data class QuizCategoryRef(
+    val categoryType: String,
+    val categoryValue: String
+)

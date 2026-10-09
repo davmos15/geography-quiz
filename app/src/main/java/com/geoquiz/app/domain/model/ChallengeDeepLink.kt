@@ -17,7 +17,7 @@ data class ChallengeDeepLink(
     val quizMode: String = "countries"
 ) {
     /** Signed deep link URI for the app's intent filter (geoquiz://challenge) */
-    fun toUri(signer: ChallengeLinkSigner = ChallengeLinkSigner.default): Uri =
+    fun toUri(signer: ChallengeLinkSigner): Uri =
         Uri.Builder()
             .scheme(ChallengeLinkParser.CUSTOM_SCHEME)
             .authority(ChallengeLinkParser.CUSTOM_HOST)
@@ -28,7 +28,7 @@ data class ChallengeDeepLink(
      * Signed HTTPS URL for sharing via messaging apps. It opens the app directly through a
      * verified App Link, or the web page that hands over to the app.
      */
-    fun toShareUrl(signer: ChallengeLinkSigner = ChallengeLinkSigner.default): Uri =
+    fun toShareUrl(signer: ChallengeLinkSigner): Uri =
         Uri.Builder()
             .scheme(ChallengeLinkParser.HTTPS)
             .authority(ChallengeLinkParser.WEB_HOST)
@@ -44,10 +44,8 @@ data class ChallengeDeepLink(
 
     companion object {
         /** Validates an incoming link; never throws. */
-        fun parse(
-            uri: Uri,
-            signer: ChallengeLinkSigner = ChallengeLinkSigner.default
-        ): ChallengeLinkParseResult = ChallengeLinkParser(signer).parse(uri.toChallengeLinkInput())
+        fun parse(uri: Uri, signer: ChallengeLinkSigner): ChallengeLinkParseResult =
+            ChallengeLinkParser(signer).parse(uri.toChallengeLinkInput())
 
         /** The first value of each query parameter (later duplicates are ignored). */
         private fun Uri.toChallengeLinkInput(): ChallengeLinkInput {

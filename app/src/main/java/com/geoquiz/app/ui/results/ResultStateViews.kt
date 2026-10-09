@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.readableWidth
 
 /** Shown while a stored result is read (usually a few milliseconds). */
 @Composable
@@ -33,6 +34,7 @@ internal fun ResultLoading() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .readableWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -53,7 +55,8 @@ internal fun ResultMissing(onGoHome: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .readableWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

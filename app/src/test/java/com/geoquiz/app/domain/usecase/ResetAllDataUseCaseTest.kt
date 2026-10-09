@@ -12,6 +12,7 @@ import com.geoquiz.app.data.local.db.QuizHistoryDao
 import com.geoquiz.app.data.local.db.SavedQuizDao
 import com.geoquiz.app.data.local.db.TransactionRunner
 import com.geoquiz.app.data.local.preferences.FeatureFlagRepository
+import com.geoquiz.app.data.local.preferences.PinnedCategoriesRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.FeatureFlag
@@ -134,6 +135,21 @@ class ResetAllDataUseCaseTest {
         val prefs = settingsStore.data.first()
         assertEquals(true, prefs[booleanPreferencesKey("ads_removed")])
         assertEquals(setOf("ads_removed"), prefs.asMap().keys.map { it.name }.toSet())
+    }
+
+    @Test
+    fun `clears pinned categories`() = runTest {
+        val pins = PinnedCategoriesRepository(settingsStore)
+        pins.setPinned("countries", "region", "Africa", pinned = true)
+        pins.setPinned("flags", "flagcolor", "red", pinned = true)
+        settingsStore.edit { it[SettingsRepository.ADS_REMOVED_KEY] = true }
+        assertEquals(2, pins.pinnedCategories.first().size)
+
+        useCase()()
+
+        assertTrue(pins.pinnedCategories.first().isEmpty())
+        assertNull(settingsStore.data.first()[PinnedCategoriesRepository.PINNED_CATEGORIES_KEY])
+        assertEquals(true, settingsStore.data.first()[SettingsRepository.ADS_REMOVED_KEY])
     }
 
     @Test

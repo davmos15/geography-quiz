@@ -1,6 +1,9 @@
 package com.geoquiz.app.ui.quiz
 
 import androidx.lifecycle.SavedStateHandle
+import com.geoquiz.app.domain.mode.ChoiceOption
+import com.geoquiz.app.domain.mode.ChoicePrompt
+import com.geoquiz.app.domain.mode.ChoiceQuestion
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Quiz
 import com.geoquiz.app.domain.model.QuizCategory
@@ -98,5 +101,99 @@ class QuizSavedStateTest {
         QuizSavedState(handle).resultId = "result-1"
 
         assertEquals("result-1", QuizSavedState(recreate(handle)).resultId)
+    }
+
+    // Easy (3.2b)
+
+    private fun question(prompt: ChoicePrompt) = ChoiceQuestion(
+        targetCode = "DEU",
+        options = listOf(
+            ChoiceOption("ITA", "Italy"),
+            ChoiceOption("DEU", "Germany"),
+            ChoiceOption("PER", "Peru"),
+            ChoiceOption("ESP", "Spain")
+        ),
+        prompt = prompt
+    )
+
+    @Test
+    fun `easy progress round-trips with every prompt kind`() {
+        val prompts = listOf(
+            ChoicePrompt.InSet("Europe"),
+            ChoicePrompt.CapitalOf("Germany"),
+            ChoicePrompt.FlagOf("DEU")
+        )
+        for (prompt in prompts) {
+            val handle = SavedStateHandle()
+            val easy = QuizState(
+                quiz = quiz,
+                answeredCountries = setOf("FRA"),
+                incorrectGuesses = 1,
+                incorrectGuessStrings = listOf("Spain"),
+                choice = question(prompt),
+                remainingOrder = listOf("AUT"),
+                missedCountries = setOf("PER", "AUT")
+            )
+            QuizSavedState(handle).save(easy, elapsedMillis = 0L)
+
+            val restored = QuizSavedState(recreate(handle)).restore()!!.toQuizState(quiz)
+
+            assertEquals(question(prompt), restored.choice)
+            assertEquals(listOf("AUT"), restored.remainingOrder)
+            // Codes outside the quiz are dropped, as for answers.
+            assertEquals(setOf("AUT"), restored.missedCountries)
+            assertNull(restored.choiceFeedback)
+        }
+    }
+
+    @Test
+    fun `a normal quiz stores no easy progress`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(running, elapsedMillis = 0L)
+
+        assertFalse(handle.contains(QuizSavedState.KEY_CHOICE_TARGET))
+        assertFalse(handle.contains(QuizSavedState.KEY_CHOICE_REMAINING))
+        val restored = QuizSavedState(recreate(handle)).restore()!!.toQuizState(quiz)
+        assertNull(restored.choice)
+        assertTrue(restored.remainingOrder.isEmpty())
+        assertTrue(restored.missedCountries.isEmpty())
+    }
+
+    // Recent correct answers (3.3)
+
+    @Test
+    fun `recent correct answers round-trip newest first`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(running.copy(recentCorrect = listOf("AUT", "FRA")), 0L)
+
+        val snapshot = QuizSavedState(recreate(handle)).restore()!!
+
+        assertEquals(listOf("AUT", "FRA"), snapshot.recentCorrect)
+        assertEquals(listOf("AUT", "FRA"), snapshot.toQuizState(quiz).recentCorrect)
+        assertTrue(handle.contains(QuizSavedState.KEY_RECENT_CORRECT))
+    }
+
+    @Test
+    fun `recent answers that are not answered in the rebuilt quiz are dropped`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(
+            running.copy(answeredCountries = setOf("FRA", "PER"), recentCorrect = listOf("PER", "DEU", "FRA")),
+            0L
+        )
+
+        val restored = QuizSavedState(handle).restore()!!.toQuizState(quiz)
+
+        assertEquals(listOf("FRA"), restored.recentCorrect)
+    }
+
+    @Test
+    fun `a handle saved before recent answers existed restores an empty list`() {
+        val handle = SavedStateHandle()
+        QuizSavedState(handle).save(running, 0L)
+        handle.remove<Any?>(QuizSavedState.KEY_RECENT_CORRECT)
+
+        val restored = QuizSavedState(recreate(handle)).restore()!!.toQuizState(quiz)
+
+        assertTrue(restored.recentCorrect.isEmpty())
     }
 }

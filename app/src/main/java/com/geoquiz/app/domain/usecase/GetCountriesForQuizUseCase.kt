@@ -111,6 +111,8 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 // Flag categories are handled by GetCountriesForFlagQuizUseCase
                 emptyList()
             }
+
+            is QuizCategory.Practice -> practiceItems(allCountries, category)
         }
     }
 
@@ -121,6 +123,15 @@ class GetCountriesForQuizUseCase @Inject constructor(
         private val VOWELS = setOf('a', 'e', 'i', 'o', 'u')
 
         private fun wordCount(name: String): Int = name.split(" ").size
+
+        /**
+         * A practice quiz (3.5c): the countries whose codes are in [practice], in its order.
+         * Codes not in [countries] are skipped. Shared by the three GetCountriesFor* use cases.
+         */
+        fun practiceItems(countries: List<Country>, practice: QuizCategory.Practice): List<Country> {
+            val byCode = countries.associateBy { it.code }
+            return practice.codes.distinct().mapNotNull { byCode[it] }
+        }
 
         private fun hasRepeatedLetter(name: String, minCount: Int): Boolean {
             val lower = name.lowercase()

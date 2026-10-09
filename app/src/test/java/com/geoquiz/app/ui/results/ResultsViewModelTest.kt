@@ -7,6 +7,8 @@ import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
+import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.testutil.TestQuizData
 import io.mockk.coEvery
@@ -41,6 +43,7 @@ class ResultsViewModelTest {
     private val adManager = mockk<AdManager>(relaxed = true)
     private val policy = mockk<InterstitialPolicy>(relaxed = true)
     private val activity = mockk<Activity>()
+    private val signer = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray())
 
     @Before
     fun setUp() {
@@ -56,7 +59,7 @@ class ResultsViewModelTest {
         viewModel(SavedStateHandle(if (resultId != null) mapOf("resultId" to resultId) else emptyMap()))
 
     private fun viewModel(handle: SavedStateHandle): ResultsViewModel {
-        val vm = ResultsViewModel(handle, playGames, challengeRepository, completedQuizzes, adManager, policy)
+        val vm = ResultsViewModel(handle, playGames, challengeRepository, completedQuizzes, adManager, policy, signer)
         dispatcher.scheduler.advanceUntilIdle()
         return vm
     }
@@ -73,6 +76,19 @@ class ResultsViewModelTest {
         val vm = viewModel("r1")
 
         assertEquals(ResultsUiState.Loaded(quiz), vm.uiState.value)
+    }
+
+    @Test
+    fun `achievements the quiz unlocked are still there after process death`() {
+        val unlocked = listOf(Achievement.FIRST_STEPS)
+        completedQuizzes.stored = TestQuizData.completedQuiz(id = "r1").copy(newAchievementIds = unlocked.map { it.id })
+        val handle = SavedStateHandle(mapOf("resultId" to "r1"))
+        viewModel(handle)
+
+        val restored = viewModel(afterProcessDeath(handle))
+
+        val loaded = restored.uiState.value as ResultsUiState.Loaded
+        assertEquals(unlocked, loaded.result.newAchievements)
     }
 
     @Test

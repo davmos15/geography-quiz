@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.roborazzi)
 }
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Base64
 import java.util.Properties
@@ -102,10 +103,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -122,6 +119,12 @@ android {
                 "--add-opens=java.base/java.io=ALL-UNNAMED"
             )
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

@@ -323,4 +323,15 @@ class ChallengeLinkParserTest {
             assertInvalid(customInput(legacyQuery + ("ct" to ct) + ("cv" to cv) + ("mode" to mode)))
         }
     }
+
+    @Test
+    fun `practice sets are never carried by a challenge link, signed or not`() {
+        // 3.5c, D21: a practice quiz is the player's own misses and is never shared.
+        listOf("countries", "capitals", "flags").forEach { mode ->
+            val practice = scored.copy(categoryType = "practice", categoryValue = "FRA+DEU", quizMode = mode)
+            assertInvalid(customInput(signedQuery(practice)))
+            assertInvalid(httpsInput(signedQuery(practice)))
+            assertInvalid(customInput(legacyQuery + ("ct" to "practice") + ("cv" to "FRA") + ("mode" to mode)))
+        }
+    }
 }

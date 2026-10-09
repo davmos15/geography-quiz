@@ -3,9 +3,14 @@ package com.geoquiz.app.ui.navigation
 import android.net.Uri
 
 sealed class Screen(val route: String) {
-    data object CountriesHome : Screen("countries_home")
-    data object CapitalsHome : Screen("capitals_home")
-    data object FlagsHome : Screen("flags_home")
+    /** The Play tab (start destination): classic-mode switch, category groups and new modes. */
+    data object Play : Screen("play") {
+        /**
+         * Key in Play's back stack entry `savedStateHandle` holding a classic mode id to show
+         * when the player returns to Play (e.g. "Home" on Results).
+         */
+        const val RESULT_SHOW_MODE = "play_show_mode"
+    }
 
     data object Settings : Screen("settings")
 
@@ -23,11 +28,30 @@ sealed class Screen(val route: String) {
         fun createRoute(quizMode: String, groupId: String): String = "category/$quizMode/$groupId"
     }
 
-    data object Quiz : Screen("quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId={challengeId}") {
-        fun createRoute(quizMode: String, categoryType: String, categoryValue: String, challengeId: String? = null): String {
+    /**
+     * A quiz. `difficulty` is an optional [com.geoquiz.app.domain.model.Difficulty.id]; without
+     * it (old callers, challenges, "Resume quiz") the quiz uses the resume save's tier or the
+     * remembered default (see `QuizViewModel`).
+     */
+    data object Quiz : Screen(
+        "quiz/{quizMode}/{categoryType}/{categoryValue}?challengeId={challengeId}&difficulty={difficulty}"
+    ) {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(
+            quizMode: String,
+            categoryType: String,
+            categoryValue: String,
+            challengeId: String? = null,
+            difficulty: String? = null
+        ): String {
             val encoded = Uri.encode(categoryValue)
             val base = "quiz/$quizMode/$categoryType/$encoded"
-            return if (challengeId != null) "$base?challengeId=$challengeId" else base
+            val query = listOfNotNull(
+                challengeId?.let { "challengeId=$it" },
+                difficulty?.let { "$ARG_DIFFICULTY=${Uri.encode(it)}" }
+            )
+            return if (query.isEmpty()) base else base + query.joinToString("&", prefix = "?")
         }
     }
 

@@ -1,5 +1,6 @@
 package com.geoquiz.app.data.local.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,5 +12,8 @@ data class SavedQuizEntity(
     val answeredCountryCodes: String,
     val timeElapsedSeconds: Int,
     val savedAtMillis: Long,
-    val quizMode: String = "countries"
+    val quizMode: String = "countries",
+    /** [com.geoquiz.app.domain.model.Difficulty.id]; saves from before version 12 are "normal". */
+    @ColumnInfo(defaultValue = "'normal'")
+    val difficulty: String = "normal"
 )

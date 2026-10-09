@@ -1,6 +1,5 @@
 package com.geoquiz.app.domain.challenge
 
-import com.geoquiz.app.BuildConfig
 import java.security.MessageDigest
 import java.util.Base64
 import javax.crypto.Mac
@@ -90,8 +89,5 @@ class ChallengeLinkSigner(key: ByteArray) {
         /** Builds a signer from a base64url key (padding optional). */
         fun fromBase64Url(key: String): ChallengeLinkSigner =
             ChallengeLinkSigner(BASE64_URL_DECODER.decode(key.trim()))
-
-        /** Signer using the key compiled into this build (see `CHALLENGE_HMAC_KEY` in app/build.gradle.kts). */
-        val default: ChallengeLinkSigner by lazy { fromBase64Url(BuildConfig.CHALLENGE_HMAC_KEY) }
     }
 }

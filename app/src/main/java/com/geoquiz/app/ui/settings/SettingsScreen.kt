@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.settings
 
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -39,7 +40,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,21 +61,24 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.DifficultySelector
+import com.geoquiz.app.ui.components.readableWidth
 
 private const val DEBUG_MENU_TAPS = 7
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onOpenCredits: () -> Unit = {},
     onOpenDebugMenu: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val showTimer by viewModel.showTimer.collectAsStateWithLifecycle()
     val showFlags by viewModel.showFlags.collectAsStateWithLifecycle()
+    val vibration by viewModel.vibration.collectAsStateWithLifecycle()
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
-    val hardMode by viewModel.hardMode.collectAsStateWithLifecycle()
+    val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
     val adsRemoved by viewModel.adsRemoved.collectAsStateWithLifecycle()
     val removeAdsPrice by viewModel.removeAdsPrice.collectAsStateWithLifecycle()
     val privacyOptionsRequired by viewModel.privacyOptionsRequired.collectAsStateWithLifecycle()
@@ -117,29 +120,31 @@ fun SettingsScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    // Debug builds only: tap the title 7 times to open the hidden debug menu
-                    val titleModifier = if (onOpenDebugMenu != null) {
-                        Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            debugTapCount++
-                            if (debugTapCount >= DEBUG_MENU_TAPS) {
-                                debugTapCount = 0
-                                Toast.makeText(context, debugMenuOpenedMessage, Toast.LENGTH_SHORT).show()
-                                onOpenDebugMenu()
-                            }
-                        }
-                    } else {
-                        Modifier
+            // Debug builds only: tap the title 7 times to open the hidden debug menu
+            val titleModifier = if (onOpenDebugMenu != null) {
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    debugTapCount++
+                    if (debugTapCount >= DEBUG_MENU_TAPS) {
+                        debugTapCount = 0
+                        Toast.makeText(context, debugMenuOpenedMessage, Toast.LENGTH_SHORT).show()
+                        onOpenDebugMenu()
                     }
-                    Text("Settings", modifier = titleModifier.semantics { heading() })
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+            } else {
+                Modifier
+            }
+            WrappingTopAppBar(
+                title = stringResource(R.string.nav_settings),
+                titleModifier = titleModifier,
+                // No back arrow when shown as a bottom navigation tab
+                navigationIcon = onNavigateBack?.let { back ->
+                    @Composable {
+                        IconButton(onClick = back) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        }
                     }
                 }
             )
@@ -150,6 +155,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                .readableWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             Row(
@@ -208,6 +214,30 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
+                        text = stringResource(R.string.setting_vibration),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = stringResource(R.string.setting_vibration_summary),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(
+                    checked = vibration,
+                    onCheckedChange = { viewModel.onToggleVibration(it) }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
                         text = "Country Hint in Capitals",
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -224,27 +254,24 @@ fun SettingsScreen(
                 )
             }
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 12.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Hard Mode",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Only 3 incorrect guesses allowed per quiz",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Switch(
-                    checked = hardMode,
-                    onCheckedChange = { viewModel.onToggleHardMode(it) }
+                Text(
+                    text = stringResource(R.string.settings_default_difficulty),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.settings_default_difficulty_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                DifficultySelector(
+                    selected = difficulty,
+                    onSelect = viewModel::onDifficultySelected
                 )
             }
 

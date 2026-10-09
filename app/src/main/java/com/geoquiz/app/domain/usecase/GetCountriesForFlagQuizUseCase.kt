@@ -43,6 +43,8 @@ class GetCountriesForFlagQuizUseCase @Inject constructor(
                 allCountries.filter { it.code in countryCodes }
             }
 
+            is QuizCategory.Practice -> GetCountriesForQuizUseCase.practiceItems(allCountries, category)
+
             else -> emptyList()
         }
     }

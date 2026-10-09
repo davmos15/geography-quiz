@@ -28,13 +28,50 @@ data class CompletedQuiz(
     val score: Double,
     val perfectBonus: Boolean,
     val incorrectGuesses: Int,
+    /** True for a Hard quiz. Kept so records written before 3.2 (which only had this) still read. */
     val hardMode: Boolean,
     val challengeId: String?,
-    val completedAtMillis: Long
+    val completedAtMillis: Long,
+    /**
+     * [Difficulty.id] of the tier the quiz was played at. Records from before 3.2 have none and
+     * read as Normal (or Hard, if [hardMode] is set). Use [difficulty] rather than this.
+     */
+    val difficultyId: String = Difficulty.DEFAULT.id,
+    /**
+     * [Achievement.id]s this quiz unlocked, so Results can show them (also after process death).
+     * Records from before 3.5b have none. Use [newAchievements] rather than this.
+     */
+    val newAchievementIds: List<String> = emptyList()
 ) {
+    /** The tier the quiz was played at. */
+    val difficulty: Difficulty
+        get() = if (hardMode) Difficulty.HARD else Difficulty.fromIdOrDefault(difficultyId)
+
+    /** The achievements this quiz unlocked, in unlock order; ids no longer known are skipped. */
+    val newAchievements: List<Achievement>
+        get() = newAchievementIds.mapNotNull { id -> Achievement.entries.firstOrNull { it.id == id } }
+
     val quizMode: QuizMode
         get() = QuizMode.fromId(quizModeId)
 
     val category: QuizCategory
         get() = QuizCategory.fromRoute(categoryType, categoryValue)
+
+    /** True for a "Practise the ones you missed" quiz (3.5c), which is not recorded (D21). */
+    val isPractice: Boolean
+        get() = categoryType == QuizCategory.Practice.TYPE_KEY
+
+    /**
+     * Every item not answered correctly, in quiz order: typed answers never given (including
+     * leftovers after giving up or striking out) and Easy items picked wrongly. Empty for a
+     * perfect quiz.
+     */
+    fun missedCodes(): List<String> {
+        val answered = answeredCodes.toSet()
+        return countryCodes.filter { it !in answered }.distinct()
+    }
+
+    /** A practice quiz of exactly the [missedCodes], or null when nothing was missed. */
+    fun practiceCategoryOrNull(): QuizCategory.Practice? =
+        missedCodes().takeIf { it.isNotEmpty() }?.let { QuizCategory.Practice(it) }
 }

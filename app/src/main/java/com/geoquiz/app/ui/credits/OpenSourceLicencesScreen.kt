@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.credits
 
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -9,7 +10,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -17,6 +17,7 @@ import com.geoquiz.app.R
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.util.withJson
+import com.geoquiz.app.ui.components.readableWidth
 
 /**
  * Open-source licences (L2): every library bundled in the app, generated at build time by the
@@ -27,8 +28,8 @@ import com.mikepenz.aboutlibraries.util.withJson
 fun OpenSourceLicencesScreen(onNavigateBack: () -> Unit) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.open_source_licences_title)) },
+            WrappingTopAppBar(
+                title = stringResource(R.string.open_source_licences_title),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -43,7 +44,8 @@ fun OpenSourceLicencesScreen(onNavigateBack: () -> Unit) {
         LibrariesContainer(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .readableWidth(),
             // Reference the generated raw resource directly (rather than looking it up by name)
             // so release resource shrinking can see it is used and keeps it.
             librariesBlock = { context ->

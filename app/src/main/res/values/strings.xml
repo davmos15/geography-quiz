@@ -25,6 +25,39 @@
 
     <!-- Quiz answer feedback -->
     <string name="answer_near_miss">Close – check the spelling</string>
+    <!-- %1$s is the country name, e.g. "France - Correct!" -->
+    <string name="answer_correct">%1$s - Correct!</string>
+    <string name="answer_already_answered">Already answered!</string>
+    <string name="answer_incorrect">Not recognised. Try again!</string>
+
+    <!-- Quiz screen (ui/quiz/QuizScreen.kt) -->
+    <string name="quiz_loading">Loading quiz…</string>
+    <!-- Header counters, e.g. "12 / 197" (answered / total) and "1 / 3" (strikes used / allowed) -->
+    <string name="quiz_count_of">%1$d / %2$d</string>
+    <string name="quiz_settings">Settings</string>
+    <string name="quiz_pause">Pause</string>
+    <string name="quiz_resume">Resume</string>
+    <string name="quiz_paused">Paused</string>
+    <!-- Spoken by TalkBack when play continues after a pause -->
+    <string name="quiz_resumed">Resumed</string>
+    <string name="quiz_submit">Submit</string>
+    <string name="quiz_give_up">Give Up</string>
+    <string name="quiz_give_up_title">Give Up?</string>
+    <string name="quiz_give_up_confirm">Yes, Give Up</string>
+    <string name="quiz_give_up_dismiss">Keep Going</string>
+    <string name="quiz_setting_show_timer">Show Timer</string>
+    <string name="quiz_setting_show_timer_summary">Display count-up timer during quizzes</string>
+    <string name="setting_vibration">Vibration</string>
+    <string name="setting_vibration_summary">Vibrate on correct and wrong answers</string>
+    <string name="quiz_setting_show_flags">Show Flags</string>
+    <string name="quiz_setting_show_flags_summary">Show flags next to countries</string>
+    <string name="quiz_setting_country_hint">Country Hint</string>
+    <string name="quiz_setting_country_hint_summary">Show the country name as a clue</string>
+    <!-- Recent correct answers above the answer field (3.3). %1$s = capital, %2$s = country, e.g. "Paris (France)" -->
+    <string name="recent_answer_capital_with_country">%1$s (%2$s)</string>
+    <!-- Spoken as one item, %1$s = the answers newest first, e.g. "Recent answers: France, Germany, Spain" -->
+    <string name="recent_answers_a11y">Recent answers: %1$s</string>
+    <string name="recent_answers_separator">", "</string>
 
     <!-- Common actions -->
     <string name="action_cancel">Cancel</string>
@@ -129,6 +162,8 @@
     <string name="a11y_status_missed">%1$s, missed</string>
     <string name="a11y_incorrect">Incorrect</string>
     <string name="a11y_completed">Completed</string>
+    <string name="a11y_challenge_won">Won</string>
+    <string name="a11y_challenge_lost">Lost</string>
     <plurals name="a11y_quiz_option_countries">
         <item quantity="one">%d country</item>
         <item quantity="other">%d countries</item>
@@ -141,4 +176,121 @@
     <string name="action_start_quiz">Start quiz</string>
     <string name="action_resume_quiz">Resume quiz</string>
     <string name="action_open_category">Open category</string>
+
+    <!-- Game modes (domain/mode/classic/ClassicGameModes.kt) -->
+    <string name="mode_countries_name">Countries</string>
+    <string name="mode_capitals_name">Capitals</string>
+    <string name="mode_flags_name">Flags</string>
+    <string name="mode_countries_input_label">Enter a country name</string>
+    <string name="mode_capitals_input_label">Enter a capital city</string>
+    <string name="mode_flags_input_label">Enter a country name</string>
+    <string name="mode_countries_items">countries</string>
+    <string name="mode_capitals_items">capitals</string>
+    <string name="mode_flags_items">flags</string>
+    <string name="mode_countries_paused_progress">%1$d / %2$d countries named</string>
+    <string name="mode_capitals_paused_progress">%1$d / %2$d capitals named</string>
+    <string name="mode_flags_paused_progress">%1$d / %2$d flags identified</string>
+    <string name="mode_countries_give_up">You\'ve named %1$d of %2$d countries. Are you sure?</string>
+    <string name="mode_capitals_give_up">You\'ve named %1$d of %2$d capitals. Are you sure?</string>
+    <string name="mode_flags_give_up">You\'ve named %1$d of %2$d flags. Are you sure?</string>
+
+    <!-- Difficulty tiers (3.2) -->
+    <string name="difficulty_title">Difficulty</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_normal">Normal</string>
+    <string name="difficulty_hard">Hard</string>
+    <string name="difficulty_easy_summary">Pick each answer from 4 options.</string>
+    <string name="difficulty_normal_summary">Type the answers. Small typos are forgiven.</string>
+    <string name="difficulty_hard_summary">Type the exact spelling. 3 wrong guesses ends the quiz, and the timer is always on.</string>
+    <!-- Quiz header label, e.g. "Difficulty: Hard" for screen readers -->
+    <string name="a11y_quiz_difficulty">Difficulty: %1$s</string>
+    <string name="quiz_timer_always_shown_hard">Always shown in Hard</string>
+    <string name="settings_default_difficulty">Default difficulty</string>
+    <string name="settings_default_difficulty_summary">Used for new quizzes. You can also change it at the top of each category list.</string>
+    <!-- Easy tier multiple choice (3.2b, ui/quiz/components/MultipleChoicePanel.kt) -->
+    <!-- %1$s is the category name, e.g. "Which of these fits “Europe”?" (reads for regions and letter/word patterns) -->
+    <string name="choice_prompt_in_set">Which of these fits “%1$s”?</string>
+    <string name="choice_prompt_capital_of">What is the capital of %1$s?</string>
+    <string name="choice_prompt_flag">Which country does this flag belong to?</string>
+    <!-- Must never name the country: it is the answer -->
+    <string name="choice_flag_description">Flag to identify</string>
+    <string name="choice_feedback_correct">Correct</string>
+    <string name="choice_feedback_incorrect">Incorrect, the answer was %1$s</string>
+    <!-- Spoken with an option while its result is shown -->
+    <string name="choice_option_correct">correct answer</string>
+    <string name="choice_option_wrong">your answer, incorrect</string>
+    <!-- Mastery stars on a category row; quantity follows the maximum (%2$d) -->
+    <plurals name="a11y_mastery_stars">
+        <item quantity="one">%1$d of %2$d star</item>
+        <item quantity="other">%1$d of %2$d stars</item>
+    </plurals>
+    <!-- Results: heading of the card listing achievements this quiz unlocked -->
+    <plurals name="results_new_achievements_heading">
+        <item quantity="one">New achievement</item>
+        <item quantity="other">New achievements</item>
+    </plurals>
+    <!-- Practise the ones you missed (3.5c). "Practise" is the verb (Australian spelling). -->
+    <!-- Title of a quiz made of the items missed in the previous quiz; keep in step with QuizCategory.Practice.displayName -->
+    <string name="practice_quiz_title">Practise your misses</string>
+    <!-- Results button; %1$d is the number of missed items, e.g. "Practise the ones you missed (3)" -->
+    <plurals name="results_practise_missed">
+        <item quantity="one">Practise the one you missed</item>
+        <item quantity="other">Practise the ones you missed (%1$d)</item>
+    </plurals>
+    <!-- Results, shown for a practice quiz instead of Share and Challenge -->
+    <string name="results_practice_not_recorded">Practice quizzes don’t count towards your stats or achievements.</string>
+
+    <!-- Bottom navigation (ui/navigation/AppNavigation.kt) -->
+    <string name="nav_play">Play</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_achievements">Achievements</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Play tab (ui/play/PlayScreen.kt) -->
+    <string name="play_loading">Loading quizzes…</string>
+    <!-- Spoken name of the Countries / Capitals / Flags switch -->
+    <string name="play_mode_switch_description">Quiz type</string>
+    <string name="play_categories_heading">Categories</string>
+    <string name="play_new_modes_heading">New modes</string>
+    <string name="play_all_countries">All countries</string>
+    <string name="play_all_capitals">All capitals</string>
+    <plurals name="play_all_countries_count">
+        <item quantity="one">%d country</item>
+        <item quantity="other">%d countries</item>
+    </plurals>
+    <plurals name="play_all_capitals_count">
+        <item quantity="one">%d capital</item>
+        <item quantity="other">%d capitals</item>
+    </plurals>
+    <plurals name="play_group_quiz_count">
+        <item quantity="one">%d quiz</item>
+        <item quantity="other">%d quizzes</item>
+    </plurals>
+    <!-- Continue card (the quiz saved part-way through) -->
+    <string name="play_continue_title">Continue</string>
+    <!-- %1$s = mode name, %2$s = category name, e.g. "Countries: Starting with 'A'" -->
+    <string name="play_card_mode_category">%1$s: %2$s</string>
+    <!-- %1$d = number answered, %2$s = time played: "01:15" on screen, "1 minute 15 seconds" for screen readers -->
+    <string name="play_continue_progress">%1$d answered in %2$s</string>
+    <string name="play_resume_dismiss">Dismiss saved quiz</string>
+    <!-- Recommended next card: one tap starts the suggested category -->
+    <string name="play_recommended_title">Recommended next</string>
+    <!-- Today's challenge placeholder, shown only behind the daily challenge feature flag -->
+    <string name="play_today_title">Today’s challenge</string>
+    <string name="play_today_body">A new set of questions every day. Coming soon.</string>
+    <string name="action_open_mode">Open mode</string>
+    <!-- Pinned categories (3.4c): pinned from a category row; one tap starts the quiz -->
+    <string name="play_pinned_heading">Pinned</string>
+
+    <!-- Category list (ui/category/CategoryListScreen.kt) -->
+    <string name="category_show_all">Show all</string>
+    <string name="category_hide_done">Hide done</string>
+    <string name="category_show_all_description">Show all quizzes</string>
+    <string name="category_hide_completed_description">Hide completed quizzes</string>
+    <string name="category_challenge_friend">Challenge a friend</string>
+    <!-- %1$d correct of %2$d, %3$s points (rounded, locale digits), e.g. "Best: 12/15 (10 pts)" -->
+    <string name="category_best_score">Best: %1$d/%2$d (%3$s pts)</string>
+    <!-- Pin toggle on a category row; %1$s = category name -->
+    <string name="category_pin">Pin %1$s</string>
+    <string name="category_unpin">Unpin %1$s</string>
 </resources>

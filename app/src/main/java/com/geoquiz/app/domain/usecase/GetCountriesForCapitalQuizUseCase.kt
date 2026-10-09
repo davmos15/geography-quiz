@@ -97,6 +97,8 @@ class GetCountriesForCapitalQuizUseCase @Inject constructor(
                 GetCountriesForQuizUseCase.capitalMatchesCountryName(country)
             }
 
+            is QuizCategory.Practice -> GetCountriesForQuizUseCase.practiceItems(allCountries, category)
+
             else -> emptyList()
         }
     }

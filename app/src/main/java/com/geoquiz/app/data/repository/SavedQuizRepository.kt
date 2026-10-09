@@ -2,6 +2,7 @@ package com.geoquiz.app.data.repository
 
 import com.geoquiz.app.data.local.db.SavedQuizDao
 import com.geoquiz.app.data.local.db.SavedQuizEntity
+import com.geoquiz.app.domain.model.Difficulty
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,7 +20,8 @@ class SavedQuizRepository @Inject constructor(
         categoryValue: String,
         answeredCodes: Set<String>,
         timeElapsed: Int,
-        quizMode: String = "countries"
+        quizMode: String = "countries",
+        difficulty: Difficulty = Difficulty.DEFAULT
     ) {
         val json = Json.encodeToString(answeredCodes.toList())
         savedQuizDao.saveQuiz(
@@ -29,7 +31,8 @@ class SavedQuizRepository @Inject constructor(
                 answeredCountryCodes = json,
                 timeElapsedSeconds = timeElapsed,
                 savedAtMillis = System.currentTimeMillis(),
-                quizMode = quizMode
+                quizMode = quizMode,
+                difficulty = difficulty.id
             )
         )
     }

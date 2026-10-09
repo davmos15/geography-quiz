@@ -30,6 +30,26 @@ sealed class QuizCategory {
     data class FlagColorCount(val count: Int) : QuizCategory()
     data class FlagElement(val element: String) : QuizCategory()
 
+    /**
+     * "Practise the ones you missed" (3.5c): exactly these items, in this order. [codes] are
+     * distinct upper-case cca3 codes. Built from a finished quiz's misses
+     * ([CompletedQuiz.practiceCategoryOrNull]), never offered in a category list and never carried
+     * by a challenge link ([fromRouteOrNull] rejects it). Not recorded (D21, see [isRecorded]).
+     */
+    data class Practice(val codes: List<String>) : QuizCategory() {
+        companion object {
+            const val TYPE_KEY = "practice"
+            private const val SEPARATOR = "+"
+            private val CODE = Regex("[A-Z]{3}")
+
+            /** Codes from a route value: well-formed ones only, first occurrence kept, order kept. */
+            fun parseCodes(value: String): List<String> =
+                value.split(SEPARATOR).filter { CODE.matches(it) }.distinct()
+
+            fun routeValue(codes: List<String>): String = codes.joinToString(SEPARATOR)
+        }
+    }
+
     val displayName: String
         get() = when (this) {
             is AllCountries -> "All Countries"
@@ -58,6 +78,8 @@ sealed class QuizCategory {
             is FlagColorCombo -> "Only " + colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
             is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
             is FlagElement -> ELEMENT_DISPLAY_NAMES[element] ?: element.replaceFirstChar { it.uppercase() }
+            // Same text as R.string.practice_quiz_title, which Results shows instead.
+            is Practice -> "Practise your misses"
         }
 
     val description: String?
@@ -107,6 +129,7 @@ sealed class QuizCategory {
             is FlagColorCombo -> "flagcombo"
             is FlagColorCount -> "flagcount"
             is FlagElement -> "flagelement"
+            is Practice -> Practice.TYPE_KEY
         }
 
     val valueKey: String
@@ -137,6 +160,8 @@ sealed class QuizCategory {
             is FlagColorCombo -> colors.sorted().joinToString("+")
             is FlagColorCount -> count.toString()
             is FlagElement -> element
+            // Quiz order, not sorted.
+            is Practice -> Practice.routeValue(codes)
         }
 
     companion object {
@@ -186,6 +211,8 @@ sealed class QuizCategory {
                 "flagcombo" -> FlagColorCombo(value.split("+").sorted())
                 "flagcount" -> value.toIntOrNull()?.let { FlagColorCount(it) } ?: AllCountries
                 "flagelement" -> FlagElement(value)
+                Practice.TYPE_KEY -> Practice.parseCodes(value).takeIf { it.isNotEmpty() }
+                    ?.let { Practice(it) } ?: AllCountries
                 else -> AllCountries
             }
         } catch (_: Exception) {
@@ -256,6 +283,8 @@ sealed class QuizCategory {
                     ?.takeIf { it in 1..MAX_FLAG_COLOURS }
                     ?.let { FlagColorCount(it) }
                 "flagelement" -> if (ELEMENT_VALUE.matches(value)) FlagElement(value) else null
+                // A practice set is the player's own misses: never something to send to a friend.
+                Practice.TYPE_KEY -> null
                 else -> null
             }
         }
@@ -279,8 +308,18 @@ sealed class QuizCategory {
 
     /** Whether the app offers this category in [mode]; challenge links must match. */
     fun isOfferedIn(mode: QuizMode): Boolean = when {
+        this is Practice -> false
         isFlagCategory -> mode == QuizMode.FLAGS
         this is CapitalMatchesCountry -> mode == QuizMode.CAPITALS
         else -> mode == QuizMode.COUNTRIES || mode == QuizMode.CAPITALS
     }
+
+    /**
+     * Whether finishing a quiz in this category is recorded. D21 (Dav, 2026-10-08): a practice
+     * quiz ([Practice]) adds no history or stats row, no mastery stars, no achievements, no Play
+     * Games unlocks or leaderboard scores, and leaves no "Resume quiz" save. Its result is still
+     * saved for Results and Answer review.
+     */
+    val isRecorded: Boolean
+        get() = this !is Practice
 }

@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.debug
 
+import com.geoquiz.app.ui.components.WrappingTopAppBar
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.ui.components.readableWidth
 
 /** Hidden developer menu, only reachable in debug builds. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,8 +44,8 @@ fun DebugMenuScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.debug_menu_title)) },
+            WrappingTopAppBar(
+                title = stringResource(R.string.debug_menu_title),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -60,6 +61,7 @@ fun DebugMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .readableWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             item {

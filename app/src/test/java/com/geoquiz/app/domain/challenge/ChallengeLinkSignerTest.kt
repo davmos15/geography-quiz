@@ -1,5 +1,6 @@
 package com.geoquiz.app.domain.challenge
 
+import com.geoquiz.app.di.ChallengeModule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -105,8 +106,8 @@ class ChallengeLinkSignerTest {
     }
 
     @Test
-    fun `build config key is usable`() {
-        val sig = ChallengeLinkSigner.default.sign(fields)
-        assertTrue(ChallengeLinkSigner.default.verify(fields, sig))
+    fun `build config key from the Hilt module is usable`() {
+        val buildSigner = ChallengeModule.provideChallengeLinkSigner()
+        assertTrue(buildSigner.verify(fields, buildSigner.sign(fields)))
     }
 }

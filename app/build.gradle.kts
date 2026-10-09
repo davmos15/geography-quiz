@@ -118,6 +118,8 @@ android {
                 "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
                 "--add-opens=java.base/java.io=ALL-UNNAMED"
             )
+            // Map timing assertions run only with ./gradlew testDebugUnitTest -Pgeoquiz.perf=true
+            it.systemProperty("geoquiz.perf", project.findProperty("geoquiz.perf") ?: "false")
         }
     }
 }

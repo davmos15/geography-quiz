@@ -119,6 +119,17 @@ class GeoColorsContrastTest {
     }
 
     @Test
+    fun mapLandInactive_sitsBetweenLandAndWater() {
+        // Non-playable land must read as land but not as a country you can find.
+        for (t in themes) {
+            val g = t.geo
+            assertContrast("${t.name} inactive land vs land", g.mapLandInactive, g.mapLand, 1.2)
+            assertContrast("${t.name} inactive land vs water", g.mapLandInactive, g.mapWater, 1.2)
+            assertContrast("${t.name} map border on inactive land", g.mapLandBorder, g.mapLandInactive, 2.0)
+        }
+    }
+
+    @Test
     fun mapStates_areDistinctFromEachOther() {
         // Found and wrong sit next to each other on the map (blue vs orange); the highlight must
         // not read as either. Hue does most of the work, so the bound is low: just not equal.
@@ -135,6 +146,7 @@ class GeoColorsContrastTest {
         val dark = DarkGeoColors
         listOf(
             "land" to (light.mapLand to dark.mapLand),
+            "landInactive" to (light.mapLandInactive to dark.mapLandInactive),
             "border" to (light.mapLandBorder to dark.mapLandBorder),
             "water" to (light.mapWater to dark.mapWater),
             "found" to (light.mapFound to dark.mapFound),

@@ -18,6 +18,29 @@
     <string translatable="false" name="debug_menu_flag_overridden">Overridden</string>
     <string translatable="false" name="debug_menu_reset_flags">Reset all flags to defaults</string>
     <string translatable="false" name="debug_menu_opened">Debug menu unlocked</string>
+    <string translatable="false" name="debug_menu_tools">Tools</string>
+    <string translatable="false" name="debug_menu_map_preview">Map preview</string>
+
+    <!-- Map preview (debug builds only, task 4.2) -->
+    <string translatable="false" name="map_preview_title">Map preview</string>
+    <string translatable="false" name="map_preview_loading">Loading map layers…</string>
+    <string translatable="false" name="map_preview_error">Couldn\'t load a layer: %1$s</string>
+    <string translatable="false" name="map_preview_level_auto">Auto</string>
+    <string translatable="false" name="map_preview_level_110m">110m</string>
+    <string translatable="false" name="map_preview_level_50m">50m</string>
+    <string translatable="false" name="map_preview_lakes">Lakes</string>
+    <string translatable="false" name="map_preview_rivers">Rivers</string>
+    <string translatable="false" name="map_preview_demo_states">Demo states</string>
+    <string translatable="false" name="map_preview_frame_rate_toggle">Frame rate</string>
+    <string translatable="false" name="map_preview_fit_australia">Fit to Australia</string>
+    <string translatable="false" name="map_preview_reset_view">Reset view</string>
+    <!-- %1$.1f zoom factor, %2$s level label (110m or 50m) -->
+    <string translatable="false" name="map_preview_zoom">Zoom %1$.1f×, drawing %2$s</string>
+    <!-- %1$s layer file, %2$d decode ms, %3$s path build ms or a dash -->
+    <string translatable="false" name="map_preview_timing">%1$s: decode %2$d ms, paths %3$s ms</string>
+    <string translatable="false" name="map_preview_last_tap">Last tap: %1$.2f°, %2$.2f°</string>
+    <string translatable="false" name="map_preview_last_tap_outside">Last tap: off the map</string>
+    <string translatable="false" name="map_preview_frame_rate">%1$d fps (frames while the map moves)</string>
 
     <!-- Flags -->
     <string name="flag_content_description_hidden">Flag</string>

@@ -16,6 +16,9 @@ sealed class Screen(val route: String) {
 
     data object DebugMenu : Screen("debug_menu")
 
+    /** Debug builds only: world map renderer preview (task 4.2). */
+    data object MapPreview : Screen("debug_map_preview")
+
     data object Credits : Screen("credits")
 
     data object OpenSourceLicences : Screen("open_source_licences")

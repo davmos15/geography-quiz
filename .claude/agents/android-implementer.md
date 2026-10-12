@@ -1,6 +1,7 @@
 ---
 name: android-implementer
 description: Implements one GeoQuiz upgrade task in Kotlin/Jetpack Compose to a written brief, and writes or updates unit tests for the code it touches. Use for any production-code task from docs/UPGRADE_PLAN.md.
+model: sonnet
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 

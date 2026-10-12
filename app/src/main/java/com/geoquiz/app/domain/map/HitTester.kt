@@ -149,9 +149,13 @@ class TapZones private constructor(
     fun indexOf(id: String): Int = ids.indexOf(id)
 
     companion object {
-        fun build(land: ProjectedLayer, tapZones: ProjectedLayer?): TapZones {
-            val tapById = tapZones?.features?.associateBy { it.id }.orEmpty()
-            val picked = land.features.withIndex().filter { it.value.isPlayable }
+        /**
+         * Zones for the playable, not culled features of [land] that pass [include] (a region
+         * preset's members; non-members get no zone).
+         */
+        fun build(land: ProjectedLayer, tapZones: ProjectedLayer?, include: (String) -> Boolean = { true }): TapZones {
+            val tapById = tapZones?.features?.filter { !it.isCulled }?.associateBy { it.id }.orEmpty()
+            val picked = land.features.withIndex().filter { it.value.isPlayable && !it.value.isCulled && include(it.value.id) }
             return TapZones(
                 ids = Array(picked.size) { picked[it].value.id },
                 centreX = FloatArray(picked.size) { i -> picked[i].value.let { tapById[it.id]?.labelX ?: it.labelX } },

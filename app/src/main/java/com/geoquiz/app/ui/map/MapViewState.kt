@@ -56,6 +56,17 @@ class MapViewState(
     var contentBounds by mutableStateOf<PlaneRect?>(null)
         private set
 
+    /**
+     * How far past [contentBounds] the view may pan, as a fraction of the content's width and
+     * height (region presets show context land round the region). Zoom 1 still fits the
+     * content itself.
+     */
+    var panMarginFraction by mutableFloatStateOf(0f)
+        private set
+
+    /** Identifies the plane the camera is in (the projection); see [updateContent]. */
+    private var contentKey: Any? = null
+
     /** Pixels per plane unit at zoom 1; 0 until the viewport and content are known. */
     val fitScale: Float
         get() = fitScale(contentBounds, viewportWidth, viewportHeight)
@@ -94,6 +105,31 @@ class MapViewState(
             centreY = bounds.centreY
         }
         clampCamera()
+    }
+
+    /**
+     * Sets the content for a scene. If [key] (the projection) differs from the previous key,
+     * the old camera means nothing in the new plane, so it resets to zoom 1 on the content
+     * centre and this returns true. A camera restored by [saver] keeps its position (the
+     * first key after a restore is accepted as is).
+     */
+    fun updateContent(bounds: PlaneRect, key: Any?, panMarginFraction: Float = 0f): Boolean {
+        val previous = contentKey
+        contentKey = key
+        this.panMarginFraction = panMarginFraction
+        val reset = previous != null && key != previous
+        if (reset) {
+            cancelAnimation()
+            zoom = 1f
+            centreX = bounds.centreX
+            centreY = bounds.centreY
+        }
+        if (bounds != contentBounds) {
+            updateContentBounds(bounds)
+        } else {
+            clampCamera()
+        }
+        return reset
     }
 
     /**
@@ -254,8 +290,10 @@ class MapViewState(
 
     private fun clampedCentre(cx: Float, cy: Float, scale: Float): Pair<Float, Float> {
         val content = contentBounds ?: return cx to cy
-        return clampAxis(cx, content.minX, content.maxX, viewportWidth / (2 * scale)) to
-            clampAxis(cy, content.minY, content.maxY, viewportHeight / (2 * scale))
+        val mx = content.width * panMarginFraction
+        val my = content.height * panMarginFraction
+        return clampAxis(cx, content.minX - mx, content.maxX + mx, viewportWidth / (2 * scale)) to
+            clampAxis(cy, content.minY - my, content.maxY + my, viewportHeight / (2 * scale))
     }
 
     /** A camera position: zoom and the plane point at the viewport centre. */

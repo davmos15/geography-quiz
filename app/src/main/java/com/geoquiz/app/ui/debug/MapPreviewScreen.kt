@@ -69,12 +69,15 @@ fun MapPreviewScreen(
     val reducedMotion = rememberReducedMotion()
     val density = LocalDensity.current
     val scene = rememberMapScene(
-        projection = viewModel.projection,
+        projection = state.preset.projection,
         coarse = state.coarse,
         detail = state.detail,
         lakes = state.lakes,
         rivers = state.rivers,
         tapZones = state.tapZones,
+        bounds = state.frame,
+        members = state.members,
+        panMarginFraction = state.preset.panMarginFraction,
     )
 
     Scaffold(
@@ -137,6 +140,15 @@ fun MapPreviewScreen(
                             onClick = { viewModel.onLevelChange(level) },
                             shape = SegmentedButtonDefaults.itemShape(index, levels.size)
                         ) { Text(stringResource(label)) }
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MapPreviewViewModel.PRESETS.forEach { preset ->
+                        FilterChip(
+                            selected = state.preset == preset,
+                            onClick = { viewModel.onPresetChange(preset) },
+                            label = { Text(stringResource(preset.label)) }
+                        )
                     }
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

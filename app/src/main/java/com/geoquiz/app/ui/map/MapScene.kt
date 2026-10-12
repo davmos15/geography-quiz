@@ -92,6 +92,14 @@ class MapScene(
     bounds: PlaneRect? = null,
     /** `tap_zones` (point layer): tap centres for the small countries that always get a zone. */
     val tapZones: MapLayerPaths? = null,
+    /**
+     * The countries this view is about (a [com.geoquiz.app.domain.map.RegionPreset]'s members).
+     * Other land is drawn as context in `mapLandInactive` and gets no tap zone, but can still be
+     * tapped. Null: every country is a member.
+     */
+    val members: Set<String>? = null,
+    /** How far past [contentBounds] the camera may pan, as a fraction of its size. */
+    val panMarginFraction: Float = 0f,
 ) {
     init {
         require(coarse != null || detail != null) { "A map scene needs at least one country layer" }
@@ -101,8 +109,12 @@ class MapScene(
     val contentBounds: PlaneRect =
         bounds ?: listOfNotNull(coarse?.bounds, detail?.bounds).reduce { a, b -> a.union(b) }
 
-    private val coarseZones: TapZones? by lazy { coarse?.let { TapZones.build(it.projected, tapZones?.projected) } }
-    private val detailZones: TapZones? by lazy { detail?.let { TapZones.build(it.projected, tapZones?.projected) } }
+    private val includeInZones: (String) -> Boolean = { id -> members == null || id in members }
+    private val coarseZones: TapZones? by lazy { coarse?.let { TapZones.build(it.projected, tapZones?.projected, includeInZones) } }
+    private val detailZones: TapZones? by lazy { detail?.let { TapZones.build(it.projected, tapZones?.projected, includeInZones) } }
+
+    /** Whether [id] is drawn as a member (normal land) rather than context. */
+    fun isMember(id: String): Boolean = members == null || id in members
 
     /** The country layer drawn at [level] (falls back to the other one if missing). */
     fun land(level: MapLevel): MapLayerPaths? = if (level == MapLevel.DETAIL) detail ?: coarse else coarse ?: detail
@@ -183,14 +195,16 @@ fun rememberMapScene(
     rivers: GeoLayer? = null,
     bounds: PlaneRect? = null,
     tapZones: GeoLayer? = null,
+    members: Set<String>? = null,
+    panMarginFraction: Float = 0f,
 ): MapScene? {
     val coarsePaths = rememberMapLayerPaths(coarse, projection)
     val detailPaths = rememberMapLayerPaths(detail, projection)
     val lakePaths = rememberMapLayerPaths(lakes, projection)
     val riverPaths = rememberMapLayerPaths(rivers, projection)
     val tapZonePaths = rememberMapLayerPaths(tapZones, projection)
-    return remember(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths) {
+    return remember(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths, members, panMarginFraction) {
         if (coarsePaths == null && detailPaths == null) null
-        else MapScene(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths)
+        else MapScene(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths, members, panMarginFraction)
     }
 }

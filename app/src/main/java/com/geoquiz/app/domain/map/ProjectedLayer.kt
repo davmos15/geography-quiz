@@ -20,8 +20,16 @@ class ProjectedLayer(
             val layerAcc = BoundsAccumulator()
             val features = layer.features.map { feature ->
                 val acc = BoundsAccumulator()
-                val rings = Array(feature.parts.size) { p ->
-                    val part = feature.parts[p]
+                // Parts with no point the projection shows are dropped (azimuthal far side). A
+                // hole is kept or dropped with its outer ring, so it never fills in or goes missing.
+                var outerKept = false
+                val kept = feature.parts.filter { part ->
+                    val visible = (0 until part.size).any { projection.isVisible(part.lon[it].toDouble(), part.lat[it].toDouble()) }
+                    if (part.isHole) outerKept else visible.also { outerKept = it }
+                }
+                val culled = kept.isEmpty() && (feature.parts.isNotEmpty() || !projection.isVisible(feature.labelLon, feature.labelLat))
+                val rings = Array(kept.size) { p ->
+                    val part = kept[p]
                     val xy = FloatArray(part.size * 2)
                     for (i in 0 until part.size) {
                         projection.project(part.lon[i].toDouble(), part.lat[i].toDouble(), scratch)
@@ -36,17 +44,18 @@ class ProjectedLayer(
                 projection.project(feature.labelLon, feature.labelLat, scratch)
                 val labelX = scratch[0].toFloat()
                 val labelY = (-scratch[1]).toFloat()
-                if (acc.isEmpty) acc.add(labelX, labelY)
-                val bounds = acc.rect()!!
-                layerAcc.add(bounds)
+                if (acc.isEmpty && !culled) acc.add(labelX, labelY)
+                val bounds = if (culled) PlaneRect.EMPTY else acc.rect()!!
+                if (!culled) layerAcc.add(bounds)
                 ProjectedFeature(
                     id = feature.id,
                     isPlayable = feature.isPlayable,
                     rings = rings,
-                    partFlags = IntArray(feature.parts.size) { feature.parts[it].flags },
+                    partFlags = IntArray(kept.size) { kept[it].flags },
                     bounds = bounds,
                     labelX = labelX,
                     labelY = labelY,
+                    isCulled = culled,
                 )
             }
             return ProjectedLayer(
@@ -65,7 +74,8 @@ class ProjectedLayer(
  *
  * @property rings one interleaved `[x0, y0, x1, y1, ...]` array per part (rings are open:
  *   close them when drawing); empty for point features.
- * @property partFlags [GeoPart] flags per ring.
+ * @property partFlags [GeoPart] flags per ring. Parts the projection culls are left out, so
+ *   rings and flags may be fewer than the source feature's parts.
  */
 class ProjectedFeature(
     val id: String,
@@ -75,6 +85,11 @@ class ProjectedFeature(
     val bounds: PlaneRect,
     val labelX: Float,
     val labelY: Float,
+    /**
+     * True if the projection hides the whole feature (azimuthal far side): no rings and
+     * [PlaneRect.EMPTY] bounds, so it is never drawn, hit or framed.
+     */
+    val isCulled: Boolean = false,
 ) {
     val pointCount: Int get() = rings.sumOf { it.size / 2 }
 }

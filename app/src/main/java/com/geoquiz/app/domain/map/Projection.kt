@@ -41,6 +41,13 @@ interface MapProjection {
         val out = DoubleArray(2)
         return if (inverse(x, y, out)) ProjectedPoint(out[0], out[1]) else null
     }
+
+    /**
+     * Whether a point is drawn at all. Parts with no visible point are dropped when a layer is
+     * projected ([ProjectedLayer.build]), so the far side of the globe doesn't draw as huge
+     * rings round the rim of an azimuthal map. Everything is visible by default.
+     */
+    fun isVisible(lonDeg: Double, latDeg: Double): Boolean = true
 }
 
 /** A projected (x, y), or a (lon, lat) from [MapProjection.inverse]. */
@@ -107,10 +114,23 @@ data object EqualEarthProjection : MapProjection {
  * radius 2 (the antipode is the rim). Longitudes wrap naturally, so features that cross the
  * antimeridian stay contiguous when the centre is near them.
  */
-data class LambertAzimuthalEqualAreaProjection(val centreLon: Double, val centreLat: Double) : MapProjection {
+data class LambertAzimuthalEqualAreaProjection(
+    val centreLon: Double,
+    val centreLat: Double,
+    /** Points further than this great-circle angle from the centre are culled ([isVisible]). */
+    val maxDistanceDeg: Double = DEFAULT_MAX_DISTANCE_DEG,
+) : MapProjection {
     private val lambda0 = centreLon * DEG
     private val sinPhi0 = sin(centreLat * DEG)
     private val cosPhi0 = cos(centreLat * DEG)
+    private val minCosDistance = cos(maxDistanceDeg * DEG)
+
+    /** Great-circle angle from the centre is at most [maxDistanceDeg]. */
+    override fun isVisible(lonDeg: Double, latDeg: Double): Boolean {
+        val phi = latDeg * DEG
+        val cosC = sinPhi0 * sin(phi) + cosPhi0 * cos(phi) * cos(lonDeg * DEG - lambda0)
+        return cosC >= minCosDistance
+    }
 
     override fun project(lonDeg: Double, latDeg: Double, out: DoubleArray) {
         val phi = latDeg * DEG
@@ -143,10 +163,12 @@ data class LambertAzimuthalEqualAreaProjection(val centreLon: Double, val centre
         return true
     }
 
-    private companion object {
-        const val DEG = Math.PI / 180.0
+    companion object {
+        /** About 100 degrees: a hemisphere and a bit, so continents' context land stays. */
+        const val DEFAULT_MAX_DISTANCE_DEG = 100.0
+        private const val DEG = Math.PI / 180.0
 
-        fun normaliseLon(lon: Double): Double {
+        private fun normaliseLon(lon: Double): Double {
             var l = lon
             while (l > 180) l -= 360
             while (l < -180) l += 360
@@ -176,6 +198,14 @@ data class PlaneRect(val minX: Float, val minY: Float, val maxX: Float, val maxY
 
     /** Grown by [amount] on every side. */
     fun inflate(amount: Float): PlaneRect = PlaneRect(minX - amount, minY - amount, maxX + amount, maxY + amount)
+
+    /** True if this is [EMPTY] or otherwise inverted. */
+    val isEmpty: Boolean get() = !(minX <= maxX && minY <= maxY)
+
+    companion object {
+        /** Contains and intersects nothing (culled features). */
+        val EMPTY = PlaneRect(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY)
+    }
 }
 
 /** Projects degrees to plane coordinates (`out[0]` = x, `out[1]` = -y). [scratch] holds 2 doubles. */

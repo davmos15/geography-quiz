@@ -252,6 +252,50 @@ class MapViewStateTest {
         assertEquals(1f, state.zoom, 1e-4f)
     }
 
+    // ---- Content per projection (region presets) ----
+
+    @Test
+    fun `a new projection resets the camera, the same one keeps it`() {
+        val state = MapViewState()
+        state.updateViewport(400f, 400f)
+        assertFalse(state.updateContent(world, key = "equal-earth"))
+        state.applyGesture(300f, 200f, 0f, 0f, 4f)
+        val zoomed = state.zoom to state.centreX
+        // Same projection, same bounds: nothing moves.
+        assertFalse(state.updateContent(world, key = "equal-earth"))
+        assertEquals(zoomed, state.zoom to state.centreX)
+        // A new projection: back to zoom 1 on the new content.
+        val europe = PlaneRect(-0.5f, -0.4f, 0.5f, 0.4f)
+        assertTrue(state.updateContent(europe, key = "laea-europe"))
+        assertEquals(1f, state.zoom)
+        assertEquals(0f, state.centreX, 1e-6f)
+        assertEquals(400f, state.fitScale, 1e-3f)
+    }
+
+    @Test
+    fun `a restored camera survives its first content update`() {
+        val restored = MapViewState(initialZoom = 3f, initialCentreX = 1f, initialCentreY = 0.2f)
+        restored.updateViewport(400f, 400f)
+        assertFalse(restored.updateContent(world, key = "laea-europe"))
+        assertEquals(3f, restored.zoom)
+        assertEquals(1f, restored.centreX, 1e-5f)
+    }
+
+    @Test
+    fun `the pan margin lets the view go past the content`() {
+        val state = MapViewState().apply { updateViewport(400f, 400f) }
+        state.updateContent(world, key = "p", panMarginFraction = 0.25f)
+        // Zoom 1 still fits the content itself.
+        assertEquals(100f, state.fitScale, 1e-4f)
+        state.applyGesture(200f, 200f, 0f, 0f, 4f) // view 1 x 1 units
+        state.panBy(-10_000f, 0f)
+        // Content maxX 2 + margin 0.25 * 4 = 3, minus half the view (0.5).
+        assertEquals(2.5f, state.centreX, 1e-4f)
+        // Without a margin it stops at 1.5 as before.
+        state.updateContent(world, key = "p", panMarginFraction = 0f)
+        assertEquals(1.5f, state.centreX, 1e-4f)
+    }
+
     @Test
     fun `clamp axis centres narrow content`() {
         assertEquals(5f, MapViewState.clampAxis(100f, 0f, 10f, 6f), 0f)

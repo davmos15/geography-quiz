@@ -1,5 +1,7 @@
 package com.geoquiz.app.ui.map
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -13,6 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -40,10 +43,13 @@ import kotlin.math.min
 /**
  * Draws a [MapScene] with pan, pinch zoom (about the pinch centre) and double-tap zoom
  * (2x, or back to the whole map when already at maximum zoom; animated unless reduced motion
- * is on). Stateless apart from the camera in [state].
+ * is on). Stateless apart from the camera in [state]. When the scene's projection changes (a
+ * new region preset) the camera resets to fit the new content and the map fades in (no fade
+ * with reduced motion).
  *
- * Layers, bottom to top: water background, land fills (playable land in `mapLand`, other land
- * in `mapLandInactive`, state fills), lakes, rivers, borders (a hairline that stays the same
+ * Layers, bottom to top: water background, land fills (playable member land in `mapLand`;
+ * non-playable land and, in a region preset, countries outside the region in
+ * `mapLandInactive`; state fills), lakes, rivers, borders (a hairline that stays the same
  * on-screen width at any zoom), state outlines and patterns, then state markers. Paths are
  * built once (see [rememberMapScene]) and drawn under a canvas transform; features outside the
  * viewport are skipped.
@@ -104,11 +110,21 @@ fun MapCanvas(
     val cache = remember { MapDrawCache() }
     val stateCount = remember(featureStates) { featureStates.count { it.value != MapFeatureState.Default } }
 
-    SideEffect { state.updateContentBounds(scene.contentBounds) }
+    // A new projection (region preset) resets the camera; fade the new map in.
+    val fade = remember { Animatable(1f) }
+    SideEffect {
+        if (state.updateContent(scene.contentBounds, scene.projection, scene.panMarginFraction) && !reducedMotion) {
+            scope.launch {
+                fade.snapTo(0f)
+                fade.animateTo(1f, tween(PRESET_FADE_MILLIS))
+            }
+        }
+    }
 
     Canvas(
         modifier = modifier
             .clipToBounds()
+            .graphicsLayer { alpha = fade.value }
             .onSizeChanged { state.updateViewport(it.width.toFloat(), it.height.toFloat()) }
             .semantics { mapFeatureStateCount = stateCount }
             .pointerInput(state) {
@@ -161,6 +177,7 @@ internal const val MARKER_RADIUS_DP = 7f
 private const val MARKER_RIM_DP = 1f
 private const val MARKER_GLYPH_DP = 2f
 private const val TAP_ZONE_STROKE_DP = 1.5f
+private const val PRESET_FADE_MILLIS = 250
 private const val TAP_ZONE_DASH_DP = 4f
 /** Alpha of a state colour tinting the inside of a tap zone. */
 internal const val TAP_ZONE_TINT_ALPHA = 0.45f
@@ -318,7 +335,7 @@ internal fun DrawScope.drawMap(
             if (!land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
             val featureState = featureStates[land.ids[i]] ?: MapFeatureState.Default
             val fill = when (featureState) {
-                MapFeatureState.Default -> if (land.playable[i]) palette.land else palette.inactiveLand
+                MapFeatureState.Default -> if (land.playable[i] && scene.isMember(land.ids[i])) palette.land else palette.inactiveLand
                 MapFeatureState.Found -> palette.found
                 MapFeatureState.Highlighted -> palette.highlighted
                 MapFeatureState.Start -> palette.start

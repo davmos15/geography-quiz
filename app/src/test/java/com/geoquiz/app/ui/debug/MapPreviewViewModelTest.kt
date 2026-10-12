@@ -12,6 +12,13 @@ import com.geoquiz.app.domain.map.GeoProperties
 import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.map.MapRepository
+import com.geoquiz.app.domain.map.RegionPreset
+import com.geoquiz.app.domain.map.frame
+import com.geoquiz.app.domain.model.Country
+import com.geoquiz.app.domain.repository.CountryRepository
+import com.geoquiz.app.domain.usecase.GetRegionMembersUseCase
+import io.mockk.every
+import kotlinx.coroutines.flow.flowOf
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.ui.map.MapLevelPreference
 import io.mockk.coEvery
@@ -56,9 +63,38 @@ class MapPreviewViewModelTest {
         }
     }
 
+    /** Two countries: Australia (Oceania) and Kenya (Africa). */
+    private val countryRepository: CountryRepository = mockk {
+        every { getAllCountries() } returns flowOf(
+            listOf(
+                Country("AUS", "Australia", "Commonwealth of Australia", "Oceania", "Australia and New Zealand", 9, "Canberra"),
+                Country("KEN", "Kenya", "Republic of Kenya", "Africa", "Eastern Africa", 5, "Nairobi"),
+            )
+        )
+    }
+
+    private fun previewVm(repository: MapRepository) = MapPreviewViewModel(repository, GetRegionMembersUseCase(countryRepository))
+
+    @Test
+    fun `switching preset loads members, projection and frame`() = runTest {
+        val vm = previewVm(repository())
+        assertEquals(RegionPreset.WORLD, vm.uiState.value.preset)
+        assertNull(vm.uiState.value.frame)
+        vm.onPresetChange(RegionPreset.OCEANIA)
+        val state = vm.uiState.value
+        assertEquals(setOf("AUS"), state.members)
+        assertEquals(RegionPreset.OCEANIA.projection, vm.projection)
+        // Framed on the mainland square only (the remote island is left out), plus padding.
+        val expected = RegionPreset.OCEANIA.frame(state.detail!!, setOf("AUS"))
+        assertEquals(expected, state.frame)
+        vm.onPresetChange(RegionPreset.WORLD)
+        assertNull(vm.uiState.value.members)
+        assertNull(vm.uiState.value.frame)
+    }
+
     @Test
     fun `loads the four preview layers`() = runTest {
-        val vm = MapPreviewViewModel(repository())
+        val vm = previewVm(repository())
         val state = vm.uiState.value
         assertEquals(GeoLayerId.ADMIN0_110M, state.coarse?.id)
         assertEquals(GeoLayerId.ADMIN0_50M, state.detail?.id)
@@ -71,7 +107,7 @@ class MapPreviewViewModelTest {
 
     @Test
     fun `a failing layer is reported and the others still load`() = runTest {
-        val vm = MapPreviewViewModel(repository(failing = GeoLayerId.LAKES_50M))
+        val vm = previewVm(repository(failing = GeoLayerId.LAKES_50M))
         val state = vm.uiState.value
         assertNull(state.lakes)
         assertNotNull(state.rivers)
@@ -80,7 +116,7 @@ class MapPreviewViewModelTest {
 
     @Test
     fun `toggles update the state`() = runTest {
-        val vm = MapPreviewViewModel(repository())
+        val vm = previewVm(repository())
         vm.uiState.test {
             val initial = awaitItem()
             assertEquals(MapLevelPreference.AUTO, initial.level)
@@ -107,7 +143,7 @@ class MapPreviewViewModelTest {
 
     @Test
     fun `tap records the longitude and latitude, or off the map`() = runTest {
-        val vm = MapPreviewViewModel(repository())
+        val vm = previewVm(repository())
         val p = EqualEarthProjection.project(151.2, -33.9)
         vm.onTap(p.x.toFloat(), p.y.toFloat())
         val state = vm.uiState.value
@@ -122,7 +158,7 @@ class MapPreviewViewModelTest {
 
     @Test
     fun `tapping a country cycles it through the states`() = runTest {
-        val vm = MapPreviewViewModel(repository())
+        val vm = previewVm(repository())
         val hit = MapHit("AUS", isPlayable = true, viaTapZone = false)
         vm.onShowDemoStatesChange(false)
         val seen = (1..MapPreviewViewModel.STATE_CYCLE.size).map {
@@ -139,7 +175,7 @@ class MapPreviewViewModelTest {
 
     @Test
     fun `tapping water records a miss`() = runTest {
-        val vm = MapPreviewViewModel(repository())
+        val vm = previewVm(repository())
         vm.onFeatureTap(null)
         assertTrue(vm.uiState.value.hasHit)
         assertNull(vm.uiState.value.lastHit)
@@ -147,7 +183,7 @@ class MapPreviewViewModelTest {
 
     @Test
     fun `australia bounds leave out remote parts`() = runTest {
-        val vm = MapPreviewViewModel(repository())
+        val vm = previewVm(repository())
         val bounds = vm.australiaBounds()!!
         assertEquals(EqualEarthProjection.project(150.0, -10.0).x.toFloat(), bounds.maxX, 1e-5f)
         assertEquals(-EqualEarthProjection.project(110.0, -10.0).y.toFloat(), bounds.minY, 1e-5f)

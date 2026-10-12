@@ -2,7 +2,6 @@ package com.geoquiz.app.ui.debug
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geoquiz.app.domain.map.EqualEarthProjection
 import com.geoquiz.app.domain.map.GeoFeature
 import com.geoquiz.app.domain.map.GeoLayer
 import com.geoquiz.app.domain.map.GeoLayerId
@@ -11,7 +10,10 @@ import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.map.MapProjection
 import com.geoquiz.app.domain.map.MapRepository
 import com.geoquiz.app.domain.map.PlaneRect
+import com.geoquiz.app.domain.map.RegionPreset
+import com.geoquiz.app.domain.map.frame
 import com.geoquiz.app.domain.map.planeBounds
+import com.geoquiz.app.domain.usecase.GetRegionMembersUseCase
 import com.geoquiz.app.ui.map.MapLevelPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -26,9 +28,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MapPreviewViewModel @Inject constructor(
     private val mapRepository: MapRepository,
+    private val getRegionMembers: GetRegionMembersUseCase,
 ) : ViewModel() {
 
-    val projection: MapProjection = EqualEarthProjection
+    /** The current preset's projection. */
+    val projection: MapProjection get() = _uiState.value.preset.projection
 
     private val _uiState = MutableStateFlow(MapPreviewUiState())
     val uiState: StateFlow<MapPreviewUiState> = _uiState.asStateFlow()
@@ -49,7 +53,19 @@ class MapPreviewViewModel @Inject constructor(
                 continue
             }
             val millis = (System.nanoTime() - start) / 1_000_000
-            _uiState.update { it.withLayer(layer).copy(loadMillis = it.loadMillis + (id to millis)) }
+            _uiState.update { it.withLayer(layer).copy(loadMillis = it.loadMillis + (id to millis)).withFrame() }
+        }
+    }
+
+    /** Switches the region preset: its members, projection and frame. */
+    fun onPresetChange(preset: RegionPreset) {
+        _uiState.update { it.copy(preset = preset, members = null, frame = null) }
+        if (preset == RegionPreset.WORLD) return
+        viewModelScope.launch {
+            val members = getRegionMembers(preset)
+            _uiState.update { state ->
+                if (state.preset != preset) state else state.copy(members = members).withFrame()
+            }
         }
     }
 
@@ -96,6 +112,8 @@ class MapPreviewViewModel @Inject constructor(
 
     companion object {
         const val AUSTRALIA = "AUS"
+
+        val PRESETS = RegionPreset.entries
 
         val PREVIEW_LAYERS = listOf(
             GeoLayerId.ADMIN0_110M, GeoLayerId.TAP_ZONES, GeoLayerId.ADMIN0_50M, GeoLayerId.LAKES_50M, GeoLayerId.RIVERS_50M,
@@ -147,7 +165,19 @@ data class MapPreviewUiState(
     val lastHitName: String? = null,
     /** States set by tapping; they win over the demo states. */
     val tapStates: Map<String, MapFeatureState> = emptyMap(),
+    val preset: RegionPreset = RegionPreset.WORLD,
+    /** The preset's member codes; null for the world (every country) or while loading. */
+    val members: Set<String>? = null,
+    /** The preset's frame in its projection; null for the world or until members and a country layer are ready. */
+    val frame: PlaneRect? = null,
 ) {
+    /** Recomputes [frame] from the members and the most detailed country layer loaded. */
+    fun withFrame(): MapPreviewUiState {
+        val layer = detail ?: coarse
+        val m = members
+        return if (layer == null || m == null || preset == RegionPreset.WORLD) this else copy(frame = preset.frame(layer, m))
+    }
+
     val featureStates: Map<String, MapFeatureState>
         get() = (if (showDemoStates) MapPreviewViewModel.DEMO_STATES else emptyMap()) + tapStates
 

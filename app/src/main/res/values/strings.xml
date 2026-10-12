@@ -21,6 +21,15 @@
     <string translatable="false" name="debug_menu_tools">Tools</string>
     <string translatable="false" name="debug_menu_map_preview">Map preview</string>
 
+    <!-- Map region presets -->
+    <string name="region_world">World</string>
+    <string name="region_africa">Africa</string>
+    <string name="region_asia">Asia</string>
+    <string name="region_europe">Europe</string>
+    <string name="region_north_america">North America</string>
+    <string name="region_oceania">Oceania</string>
+    <string name="region_south_america">South America</string>
+
     <!-- Map preview (debug builds only, task 4.2) -->
     <string translatable="false" name="map_preview_title">Map preview</string>
     <string translatable="false" name="map_preview_loading">Loading map layers…</string>

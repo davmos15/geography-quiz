@@ -55,18 +55,20 @@ class CompleteQuizUseCaseTest {
 
     private fun request(
         id: String = "result-1",
-        mode: QuizMode = QuizMode.CAPITALS,
-        difficulty: Difficulty = Difficulty.HARD
+        modeId: String = QuizMode.CAPITALS.id,
+        difficulty: Difficulty = Difficulty.HARD,
+        variantId: String? = null
     ) =
         CompleteQuizUseCase.Request(
             resultId = id,
             state = state,
             timeElapsedSeconds = 75,
-            quizMode = mode,
+            modeId = modeId,
             routeCategoryType = "startletter",
             routeCategoryValue = "A",
             difficulty = difficulty,
-            challengeId = "challenge-7"
+            challengeId = "challenge-7",
+            variantId = variantId
         )
 
     init {
@@ -218,10 +220,48 @@ class CompleteQuizUseCaseTest {
     fun `each mode submits to its own leaderboard`() = runTest {
         coEvery { quizHistoryRepository.getTotalCorrectAnswersForModeSync("countries") } returns 55L
 
-        useCase(request(mode = QuizMode.COUNTRIES))
+        useCase(request(modeId = QuizMode.COUNTRIES.id))
 
         verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.OVERALL, 120L) }
         verify(exactly = 1) { playGames.submitScore(PlayGamesLeaderboardIds.COUNTRIES, 55L) }
+    }
+
+    // New modes (task 5.0, D35)
+
+    @Test
+    fun `a new mode is recorded in history but unlocks no achievements and submits no scores`() = runTest {
+        val outcome = useCase(request(modeId = "silhouettes", difficulty = Difficulty.HARD))
+
+        assertTrue(outcome.newlyRecorded)
+        assertTrue(outcome.newAchievements.isEmpty())
+        assertEquals("silhouettes", completedQuizzes.get("result-1")?.quizModeId)
+        coVerify(exactly = 1) {
+            quizHistoryRepository.recordQuizResult(
+                quizMode = "silhouettes",
+                categoryType = "startletter",
+                categoryValue = "A",
+                correctAnswers = 2,
+                totalQuestions = 3,
+                incorrectGuesses = 2,
+                score = any(),
+                timeElapsedSeconds = 75,
+                perfectBonus = false,
+                difficulty = Difficulty.HARD
+            )
+        }
+        coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { playGames.unlockAchievement(any()) }
+        verify(exactly = 0) { playGames.submitScore(any(), any()) }
+        // D37: new modes never write a "Resume quiz" save, so finishing one must not clear a
+        // classic mode's save left behind from an earlier session.
+        coVerify(exactly = 0) { savedQuizRepository.clearSavedQuiz() }
+    }
+
+    @Test
+    fun `a new mode's variant id is kept on the result`() = runTest {
+        val outcome = useCase(request(modeId = "tap_map", variantId = "name_all"))
+
+        assertEquals("name_all", outcome.completedQuiz.variantId)
     }
 
     // Difficulty tiers (3.2a, D16)

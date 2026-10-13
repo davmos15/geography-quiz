@@ -325,6 +325,18 @@ class ChallengeLinkParserTest {
     }
 
     @Test
+    fun `silhouettes and tap_map are rejected (D35, no challenge links for new modes)`() {
+        // task 5.0: these two ids are now registered modes, but ChallengeLinkParser still only
+        // knows the three classic QuizMode ids.
+        listOf("silhouettes", "tap_map").forEach { mode ->
+            assertInvalid(customInput(legacyQuery + ("ct" to "all") + ("cv" to "_") + ("mode" to mode)))
+            val signed = scored.copy(categoryType = "all", categoryValue = "_", quizMode = mode)
+            assertInvalid(customInput(signedQuery(signed)))
+            assertInvalid(httpsInput(signedQuery(signed)))
+        }
+    }
+
+    @Test
     fun `practice sets are never carried by a challenge link, signed or not`() {
         // 3.5c, D21: a practice quiz is the player's own misses and is never shared.
         listOf("countries", "capitals", "flags").forEach { mode ->

@@ -39,7 +39,9 @@ class QuizCategoryStrictParseTest {
         QuizCategory.FlagSingleColor("red"),
         QuizCategory.FlagColorCombo(listOf("blue", "red", "white")),
         QuizCategory.FlagColorCount(3),
-        QuizCategory.FlagElement("coat_of_arms")
+        QuizCategory.FlagElement("coat_of_arms"),
+        QuizCategory.MapRegion("world"),
+        QuizCategory.MapRegion("north_america")
     )
 
     @Test
@@ -89,5 +91,30 @@ class QuizCategoryStrictParseTest {
         assertTrue(QuizCategory.AllCountries.isOfferedIn(QuizMode.COUNTRIES))
         assertTrue(QuizCategory.AllCountries.isOfferedIn(QuizMode.CAPITALS))
         assertFalse(QuizCategory.AllCountries.isOfferedIn(QuizMode.FLAGS))
+    }
+
+    // MapRegion (task 5.0, Tap the map)
+
+    @Test
+    fun `map region display names match the region presets`() {
+        assertEquals("World", QuizCategory.MapRegion("world").displayName)
+        assertEquals("North America", QuizCategory.MapRegion("north_america").displayName)
+        assertEquals("South America", QuizCategory.MapRegion("south_america").displayName)
+        assertEquals("Africa", QuizCategory.MapRegion("africa").displayName)
+    }
+
+    @Test
+    fun `map region is never offered in a classic mode`() {
+        val region = QuizCategory.MapRegion("world")
+        assertFalse(region.isOfferedIn(QuizMode.COUNTRIES))
+        assertFalse(region.isOfferedIn(QuizMode.CAPITALS))
+        assertFalse(region.isOfferedIn(QuizMode.FLAGS))
+    }
+
+    @Test
+    fun `an unknown map region preset id does not parse strictly`() {
+        assertNull(QuizCategory.fromRouteOrNull("map_region", "atlantis"))
+        // The lenient parse falls back to all countries, like every other unknown value.
+        assertEquals(QuizCategory.AllCountries, QuizCategory.fromRoute("map_region", "atlantis"))
     }
 }

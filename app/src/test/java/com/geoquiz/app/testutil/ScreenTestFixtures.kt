@@ -184,7 +184,10 @@ object ScreenTestFixtures {
         incorrectGuessStrings = listOf("Narnia", "Tokyo")
     ).copy(timeSeconds = 192, score = 41.5)
 
-    fun resultsViewModel(result: CompletedQuiz = RESULT): ResultsViewModel {
+    fun resultsViewModel(
+        result: CompletedQuiz = RESULT,
+        extraModes: Set<GameMode> = emptySet()
+    ): ResultsViewModel {
         val playGames = mockk<PlayGamesAchievementService>(relaxed = true) {
             every { playerName } returns MutableStateFlow("A friend")
         }
@@ -198,18 +201,21 @@ object ScreenTestFixtures {
             completedQuizRepository = FakeCompletedQuizRepository(result),
             adManager = mockk<AdManager>(relaxed = true),
             interstitialPolicy = policy,
-            challengeLinkSigner = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray())
+            challengeLinkSigner = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray()),
+            gameModes = TestGameModes.registry(extraModes = extraModes)
         )
     }
 
     fun answerReviewViewModel(
         result: CompletedQuiz = RESULT,
-        countries: List<Country> = EIGHT
+        countries: List<Country> = EIGHT,
+        extraModes: Set<GameMode> = emptySet()
     ) = AnswerReviewViewModel(
         savedStateHandle = SavedStateHandle(mapOf(Screen.AnswerReview.ARG_RESULT_ID to result.id)),
         completedQuizRepository = FakeCompletedQuizRepository(result),
         countryRepository = countryRepository(countries),
-        settingsRepository = settingsRepository()
+        settingsRepository = settingsRepository(),
+        gameModes = TestGameModes.registry(extraModes = extraModes)
     )
 
     /** Flag colours and elements for [EIGHT]-style Play tests: 3 colours, 1 element. */

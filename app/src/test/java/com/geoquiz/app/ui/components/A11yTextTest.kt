@@ -101,11 +101,11 @@ class A11yTextTest {
 
     @Test
     fun `review rows`() {
-        assertEquals("France, answered", A11yText.reviewRow(res, QuizMode.COUNTRIES, france, true))
-        assertEquals("France, missed", A11yText.reviewRow(res, QuizMode.FLAGS, france, false))
+        assertEquals("France, answered", A11yText.reviewRow(res, isCapitals = false, france, isAnswered = true))
+        assertEquals("France, missed", A11yText.reviewRow(res, isCapitals = false, france, isAnswered = false))
         assertEquals(
             "Paris, capital of France, missed",
-            A11yText.reviewRow(res, QuizMode.CAPITALS, france, false)
+            A11yText.reviewRow(res, isCapitals = true, france, isAnswered = false)
         )
     }
 

@@ -74,4 +74,47 @@ sealed class Screen(val route: String) {
     }
 
     data object Challenges : Screen("challenges")
+
+    /**
+     * A new mode's own setup screen, opened from Play's "New modes" grid
+     * ([com.geoquiz.app.domain.mode.GameModeRegistry]). Dispatches by [modeId] to that mode's own
+     * setup composable (task 5.0); classic modes never navigate here.
+     */
+    data object ModeSetup : Screen("mode_setup/{modeId}") {
+        const val ARG_MODE_ID = "modeId"
+        fun createRoute(modeId: String): String = "mode_setup/$modeId"
+    }
+
+    /**
+     * Country silhouettes (task 5.1 builds the real screen). `difficulty` is an optional
+     * [com.geoquiz.app.domain.model.Difficulty.id], as in [Quiz].
+     */
+    data object Silhouettes : Screen("silhouettes/{categoryType}/{categoryValue}?difficulty={difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(categoryType: String, categoryValue: String, difficulty: String? = null): String {
+            val encoded = Uri.encode(categoryValue)
+            val base = "silhouettes/$categoryType/$encoded"
+            return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
+        }
+    }
+
+    /**
+     * Tap the map (task 5.2 builds the real screen). [variant] is one of
+     * `TapMapGameMode.VARIANT_FIND` or `VARIANT_NAME_ALL`. `difficulty` is optional, as in [Quiz].
+     */
+    data object TapMap : Screen("tap_map/{variant}/{categoryType}/{categoryValue}?difficulty={difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(
+            variant: String,
+            categoryType: String,
+            categoryValue: String,
+            difficulty: String? = null
+        ): String {
+            val encoded = Uri.encode(categoryValue)
+            val base = "tap_map/$variant/$categoryType/$encoded"
+            return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
+        }
+    }
 }

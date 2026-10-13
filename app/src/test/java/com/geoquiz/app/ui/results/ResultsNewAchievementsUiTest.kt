@@ -35,10 +35,10 @@ class ResultsNewAchievementsUiTest {
         compose.setContent {
             GeographyQuizTheme(darkTheme = false) {
                 ResultsScreen(
-                    onPlayAgain = { _, _, _, _ -> },
+                    onPlayAgain = { _ -> },
                     onGoHome = {},
                     onViewAnswers = {},
-                    onPractiseMissed = { _, _, _, _ -> },
+                    onPractiseMissed = { _ -> },
                     viewModel = viewModel
                 )
             }

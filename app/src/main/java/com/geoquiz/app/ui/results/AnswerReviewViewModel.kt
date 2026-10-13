@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
@@ -28,7 +30,14 @@ sealed interface AnswerReviewUiState {
 
     data class Loaded(
         val categoryName: String,
-        val quizMode: QuizMode,
+        /** Labels and icon for this result's mode, any registered one (task 5.0). */
+        val modeSpec: GameModeSpec,
+        /**
+         * True only for Capitals: review rows show the capital with the country as a hint, and
+         * [getContextHint] reads the capital instead of the name. Every other mode, classic or
+         * new, behaves like Countries (D37: new modes have no capitals branch).
+         */
+        val isCapitals: Boolean,
         val category: QuizCategory,
         /** Quiz countries sorted for display (by capital in Capitals mode, else by name). */
         val countries: List<Country>,
@@ -48,7 +57,8 @@ class AnswerReviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val completedQuizRepository: CompletedQuizRepository,
     private val countryRepository: CountryRepository,
-    settingsRepository: SettingsRepository
+    settingsRepository: SettingsRepository,
+    private val gameModes: GameModeRegistry
 ) : ViewModel() {
 
     private val resultId: String? = savedStateHandle[Screen.AnswerReview.ARG_RESULT_ID]
@@ -66,9 +76,10 @@ class AnswerReviewViewModel @Inject constructor(
                 _uiState.value = AnswerReviewUiState.Missing
                 return@launch
             }
-            val quizMode = result.quizMode
+            val isCapitals = result.quizModeId == QuizMode.CAPITALS.id
+            val modeSpec = gameModes.findOrDefault(result.quizModeId).spec
             val countries = countryRepository.getCountriesByCodes(result.countryCodes)
-            val sorted = if (quizMode == QuizMode.CAPITALS) {
+            val sorted = if (isCapitals) {
                 countries.sortedBy { it.capital }
             } else {
                 countries.sortedBy { it.name }
@@ -80,7 +91,8 @@ class AnswerReviewViewModel @Inject constructor(
             }
             _uiState.value = AnswerReviewUiState.Loaded(
                 categoryName = result.categoryName,
-                quizMode = quizMode,
+                modeSpec = modeSpec,
+                isCapitals = isCapitals,
                 category = result.category,
                 countries = sorted,
                 answeredCodes = result.answeredCodes.toSet(),

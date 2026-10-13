@@ -1,5 +1,6 @@
 package com.geoquiz.app.domain.usecase
 
+import com.geoquiz.app.domain.map.RegionPreset
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.repository.CountryRepository
@@ -7,7 +8,8 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class GetCountriesForQuizUseCase @Inject constructor(
-    private val repository: CountryRepository
+    private val repository: CountryRepository,
+    private val getRegionMembers: GetRegionMembersUseCase
 ) {
 
     suspend operator fun invoke(category: QuizCategory): List<Country> {
@@ -110,6 +112,18 @@ class GetCountriesForQuizUseCase @Inject constructor(
             is QuizCategory.FlagElement -> {
                 // Flag categories are handled by GetCountriesForFlagQuizUseCase
                 emptyList()
+            }
+
+            // Tap the map only (task 5.0): world or one continent. An unknown preset id (e.g. a
+            // stale route) resolves to no members, same as the strict parser (fromRouteOrNull).
+            is QuizCategory.MapRegion -> {
+                val preset = RegionPreset.fromId(category.presetId)
+                if (preset == null) {
+                    emptyList()
+                } else {
+                    val members = getRegionMembers(preset)
+                    allCountries.filter { it.code in members }
+                }
             }
 
             is QuizCategory.Practice -> practiceItems(allCountries, category)

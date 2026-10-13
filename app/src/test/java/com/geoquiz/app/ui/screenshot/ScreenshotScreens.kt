@@ -107,10 +107,10 @@ object ScreenshotScreens {
         val viewModel = ScreenTestFixtures.resultsViewModel(result)
         return {
             ResultsScreen(
-                onPlayAgain = { _, _, _, _ -> },
+                onPlayAgain = { _ -> },
                 onGoHome = {},
                 onViewAnswers = {},
-                onPractiseMissed = { _, _, _, _ -> },
+                onPractiseMissed = { _ -> },
                 viewModel = viewModel
             )
         }

@@ -11,9 +11,12 @@ import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
+import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.repository.CompletedQuizRepository
 import com.geoquiz.app.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +33,18 @@ sealed interface ResultsUiState {
     /** The result is gone (e.g. "Reset all data" ran, or a newer quiz replaced it). */
     data object Missing : ResultsUiState
 
-    data class Loaded(val result: CompletedQuiz) : ResultsUiState
+    /**
+     * @param modeSpec labels and icon for [result]'s mode (any registered mode, classic or
+     *   new); an unknown id falls back to Countries.
+     * @param showChallenge true for a classic mode result; false for a new (non-classic) mode,
+     *   which gets no Challenge button and no challenge link in its Share text (D35). Computed
+     *   once in the view model so the screen never has to ask it mid-composition.
+     */
+    data class Loaded(
+        val result: CompletedQuiz,
+        val modeSpec: GameModeSpec,
+        val showChallenge: Boolean
+    ) : ResultsUiState
 }
 
 /**
@@ -50,7 +64,8 @@ class ResultsViewModel @Inject constructor(
     private val completedQuizRepository: CompletedQuizRepository,
     private val adManager: AdManager,
     private val interstitialPolicy: InterstitialPolicy,
-    private val challengeLinkSigner: ChallengeLinkSigner
+    private val challengeLinkSigner: ChallengeLinkSigner,
+    private val gameModes: GameModeRegistry
 ) : ViewModel() {
     val playerName = playGamesService.playerName
 
@@ -74,7 +89,12 @@ class ResultsViewModel @Inject constructor(
                 return@launch
             }
             decideInterstitial(result)
-            _uiState.value = ResultsUiState.Loaded(result)
+            _uiState.value = ResultsUiState.Loaded(
+                result = result,
+                modeSpec = gameModes.findOrDefault(result.quizModeId).spec,
+                // D35: new (non-classic) modes get no Challenge button or challenge link.
+                showChallenge = result.classicModeOrNull != null
+            )
 
             // Update the incoming challenge with our result. This sets the same values every
             // time, so running it again after process death is harmless.
@@ -106,6 +126,9 @@ class ResultsViewModel @Inject constructor(
     /**
      * Records a new outgoing challenge and returns its signed share link. Pass the player's
      * [score], [total] and [time] to share a result, or nulls for a plain challenge.
+     *
+     * Null for a new (non-classic) [quizMode] (D35): no outgoing challenge is saved and nothing
+     * is signed.
      */
     fun createChallengeShareUrl(
         categoryType: String,
@@ -114,7 +137,8 @@ class ResultsViewModel @Inject constructor(
         score: Int?,
         total: Int?,
         time: Int?
-    ): Uri {
+    ): Uri? {
+        if (QuizMode.fromIdOrNull(quizMode) == null) return null
         val deepLink = ChallengeDeepLink(
             challengeId = UUID.randomUUID().toString(),
             categoryType = categoryType,

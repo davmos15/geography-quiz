@@ -22,7 +22,7 @@ data class PinnedCategory(
          * or a category the mode doesn't offer.
          */
         fun validOrNull(modeId: String, categoryType: String, categoryValue: String): PinnedCategory? {
-            val mode = QuizMode.entries.find { it.id == modeId } ?: return null
+            val mode = QuizMode.fromIdOrNull(modeId) ?: return null
             val category = QuizCategory.fromRouteOrNull(categoryType, categoryValue) ?: return null
             if (category is QuizCategory.Practice || !category.isOfferedIn(mode)) return null
             return PinnedCategory(modeId, categoryType, categoryValue)

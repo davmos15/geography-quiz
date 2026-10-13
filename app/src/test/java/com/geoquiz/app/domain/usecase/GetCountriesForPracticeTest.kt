@@ -31,7 +31,7 @@ class GetCountriesForPracticeTest {
 
     @Test
     fun `countries returns exactly the practice codes in order`() = runTest {
-        val items = GetCountriesForQuizUseCase(repository)(practice)
+        val items = GetCountriesForQuizUseCase(repository, GetRegionMembersUseCase(repository))(practice)
         assertEquals(expected, items.map { it.code })
     }
 
@@ -51,7 +51,10 @@ class GetCountriesForPracticeTest {
     fun `unknown and repeated codes are skipped`() = runTest {
         val withJunk = QuizCategory.Practice(listOf("DEU", "XXX", "DEU", "AUT"))
 
-        assertEquals(listOf("DEU", "AUT"), GetCountriesForQuizUseCase(repository)(withJunk).map { it.code })
+        assertEquals(
+            listOf("DEU", "AUT"),
+            GetCountriesForQuizUseCase(repository, GetRegionMembersUseCase(repository))(withJunk).map { it.code }
+        )
         assertEquals(listOf("DEU", "AUT"), GetCountriesForCapitalQuizUseCase(repository)(withJunk).map { it.code })
     }
 

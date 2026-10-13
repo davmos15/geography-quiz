@@ -59,7 +59,10 @@ class ResultsViewModelTest {
         viewModel(SavedStateHandle(if (resultId != null) mapOf("resultId" to resultId) else emptyMap()))
 
     private fun viewModel(handle: SavedStateHandle): ResultsViewModel {
-        val vm = ResultsViewModel(handle, playGames, challengeRepository, completedQuizzes, adManager, policy, signer)
+        val vm = ResultsViewModel(
+            handle, playGames, challengeRepository, completedQuizzes, adManager, policy, signer,
+            com.geoquiz.app.testutil.TestGameModes.registry()
+        )
         dispatcher.scheduler.advanceUntilIdle()
         return vm
     }
@@ -75,7 +78,22 @@ class ResultsViewModelTest {
 
         val vm = viewModel("r1")
 
-        assertEquals(ResultsUiState.Loaded(quiz), vm.uiState.value)
+        val loaded = vm.uiState.value as ResultsUiState.Loaded
+        assertEquals(quiz, loaded.result)
+        // The classic Countries spec, and a classic mode shows the Challenge button (D35).
+        assertEquals(com.geoquiz.app.R.string.mode_countries_name, loaded.modeSpec.labels.name)
+        assertTrue(loaded.showChallenge)
+    }
+
+    @Test
+    fun `a new mode's result shows no Challenge button`() {
+        val quiz = TestQuizData.completedQuiz(id = "r1", quizModeId = "silhouettes")
+        completedQuizzes.stored = quiz
+
+        val vm = viewModel("r1")
+
+        val loaded = vm.uiState.value as ResultsUiState.Loaded
+        assertFalse(loaded.showChallenge)
     }
 
     @Test

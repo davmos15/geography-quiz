@@ -56,8 +56,13 @@ class QuizViewModel @Inject constructor(
     private val quizModeId: String = savedStateHandle["quizMode"] ?: "countries"
     val quizMode: QuizMode = QuizMode.fromId(quizModeId)
 
-    /** Generator, validator and scoring for this quiz; unknown ids fall back to Countries. */
-    private val gameMode: GameMode = gameModes.findOrDefault(quizModeId)
+    /**
+     * Generator, validator and scoring for this quiz. This screen is classic-only (new modes
+     * have their own screens and view models, task 5.0): [quizMode] already falls back to
+     * Countries for an unknown id, so looking the mode up by it rather than the raw
+     * [quizModeId] string can never resolve to a non-classic mode.
+     */
+    private val gameMode: GameMode = gameModes[quizMode]
 
     /** Labels and icon of this quiz's mode. */
     val modeSpec: GameModeSpec get() = gameMode.spec
@@ -490,7 +495,10 @@ class QuizViewModel @Inject constructor(
             resultId = resultId,
             state = current.state,
             timeElapsedSeconds = quizTimer.elapsedSeconds(),
-            quizMode = quizMode,
+            // quizMode.id, never the raw route value: an unknown id in the route already fell
+            // back to Countries above (quizMode), and this screen is classic-only, so the result
+            // is always recorded under a real, classic mode id.
+            modeId = quizMode.id,
             routeCategoryType = categoryType,
             routeCategoryValue = categoryValue,
             difficulty = _difficulty.value,

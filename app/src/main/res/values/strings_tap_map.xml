@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tap the map (task 5.2 owns the rest of this mode's strings). Australian spelling. Never name
+  another game or app.
+-->
+<resources>
+    <string name="mode_tap_map_name">Tap the map</string>
+    <string name="mode_tap_map_input_label">Enter a country name</string>
+    <string name="mode_tap_map_items">countries</string>
+    <string name="mode_tap_map_paused_progress">%1$d / %2$d countries found</string>
+    <string name="mode_tap_map_give_up">You\'ve found %1$d of %2$d countries. Are you sure?</string>
+    <!-- Quantity follows the total (%2$d), like a11y_progress_countries. -->
+    <plurals name="a11y_progress_tap_map">
+        <item quantity="one">%1$d of %2$d country found</item>
+        <item quantity="other">%1$d of %2$d countries found</item>
+    </plurals>
+    <!-- Task 5.0 stand-in screens, replaced by the real picker and game screen in task 5.2. -->
+    <string name="mode_tap_map_placeholder_coming_soon">Coming soon</string>
+    <string name="mode_tap_map_placeholder_start_world">Start (world)</string>
+</resources>

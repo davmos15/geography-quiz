@@ -6,14 +6,10 @@ import android.net.Uri
 
 object ShareUtils {
     /**
-     * [itemsNoun] is the mode's own plural, already resolved by the caller (e.g.
-     * `stringResource(modeSpec.labels.itemsNoun)`), so this works for any registered mode -
-     * classic or new - without knowing about [com.geoquiz.app.domain.model.QuizMode].
-     */
-    /**
      * The text shared for a finished result: a classic mode's carries a challenge link,
      * a new (non-classic) mode's does not ([deepLink] is null, D35). Pure, so it is tested
-     * without a [Context].
+     * without a [Context]. [itemsNoun] is the mode's own plural, already resolved by the caller
+     * (e.g. `stringResource(modeSpec.labels.itemsNoun)`), so this works for any registered mode.
      */
     fun buildResultsShareText(
         categoryName: String,

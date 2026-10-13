@@ -1,6 +1,7 @@
 package com.geoquiz.app.domain.model
 
 import com.geoquiz.app.domain.mode.ChoiceQuestion
+import com.geoquiz.app.domain.mode.HintType
 
 /**
  * A running quiz.
@@ -30,7 +31,13 @@ data class QuizState(
      * Normal and Hard (typed): codes of the latest correct answers, newest first, at most
      * [RECENT_CORRECT_MAX]. Shown above the answer field; stays empty at Easy.
      */
-    val recentCorrect: List<String> = emptyList()
+    val recentCorrect: List<String> = emptyList(),
+    /**
+     * Hints used so far, one entry per use (new modes only; classic modes have no hints yet).
+     * A mode's [com.geoquiz.app.domain.mode.ScoringRule] takes their cost off the score with
+     * [com.geoquiz.app.domain.mode.HintCosts.applyTo].
+     */
+    val hintsUsed: List<HintType> = emptyList()
 ) {
     val progress: Float
         get() = if (quiz.countries.isEmpty()) 0f

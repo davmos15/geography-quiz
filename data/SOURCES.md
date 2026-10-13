@@ -34,6 +34,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `app/src/main/assets/geo/geo_points_50m.bin` | Natural Earth `ne_50m_geography_regions_elevation_points` + `ne_50m_geography_regions_points` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
 | `data/geo/build_log.txt`, `data/geo/FORMAT.md` (not shipped) | build log generated with the map layers; format contract authored for GeoQuiz | regenerated per change | Public domain inputs; authored text All rights reserved | `tools/geodata/build_geodata.py` |
 | `data/aliases.json` | derived from `data/source/countries.json` + `alias_overrides.json` | regenerated per change | ODbL 1.0 | `tools/data/export_aliases.py` |
+| `data/borders.json`, `data/borders_report.md` (report not shipped) | mledoze/countries `borders` field, cross-checked against `app/src/main/assets/geo/admin0_50m.bin` (Natural Earth) | regenerated per change | ODbL 1.0 (derived database) | `tools/data/build_borders.py` |
 | `tools/fonts/Lato-*.ttf`, `OFL.txt` | Google Fonts (google/fonts) | `5d3b761` | SIL OFL 1.1 | `tools/fonts/fetch_fonts.py` |
 | Launcher icon (`res/drawable/ic_launcher_*.xml`, `res/mipmap-anydpi-v26/`) | authored for GeoQuiz | `4694f86` | All rights reserved | none |
 | Launcher icon PNGs (`res/mipmap-*dpi/`) | 1x1 transparent placeholders (70 bytes each, no artwork) | `40a5fd3` | n/a | none |
@@ -126,6 +127,16 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Licence | ODbL 1.0 (Derivative Database of mledoze/countries). Full text: [`LICENSE-ODbL.txt`](LICENSE-ODbL.txt) |
 | Transformation | `tools/data/export_aliases.py` (same rules as `static.db`; the normaliser is checked against the app's by a unit test) |
 | Notes | 197 countries, 704 country aliases, 204 capital aliases. Not bundled in the APK as a file (the same table ships inside `static.db`); published in the repo to meet the ODbL share-alike obligation. See [`README.md`](README.md). |
+
+### `data/borders.json`
+
+| | |
+|---|---|
+| Source | Primary: `data/source/countries.json` (mledoze/countries, ODbL 1.0) `borders` field, restricted to the app's 197 countries (`tools/data/export_aliases.py` `derive_countries()`) and symmetrised. Cross-checked against `app/src/main/assets/geo/admin0_50m.bin` (Natural Earth 5.1.2 `ne_50m_admin_0_countries`, public domain, already bundled): two countries are adjacent if their polygons share at least one identical quantised border segment. |
+| Version | Regenerated whenever `data/source/countries.json` or the map asset changes; `--check` mode detects drift |
+| Licence | ODbL 1.0 (Derivative Database of mledoze/countries); the Natural Earth cross-check contributes no data to the graph beyond confirming/disputing mledoze's land borders, as agreed for the map layers (decision D31) |
+| Transformation | `tools/data/build_borders.py`: builds the mledoze adjacency graph for the app's 197 countries, builds a second adjacency graph from shared border segments in `admin0_50m.bin`, and resolves every disagreement between them with an explicit, reviewed, commented override table in the script (five disagreements found: Botswana-Zambia kept as the Kazungula quadripoint; Spain-Morocco kept, the Ceuta/Melilla border is too small for 50m-scale geometry; India-Sri Lanka removed, no land border exists across the Palk Strait and the mledoze entry was asymmetric; France-Brazil and France-Suriname added, real land borders via French Guiana that mledoze's France entry omits). Full evidence and the resulting BFS statistics are in `data/borders_report.md` (not shipped, build output only). |
+| Notes | 197 countries, 317 land-border edges, 40 islands (no land border in the final graph), 43 connected components (largest 153 countries, diameter 21 hops). Built for the Border hop mode (Phase 6). Feature ids are the app's cca3 codes. |
 
 ### `tools/fonts/Lato-Regular.ttf`, `tools/fonts/Lato-Bold.ttf`, `tools/fonts/OFL.txt`
 

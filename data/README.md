@@ -1,9 +1,10 @@
 # GeoQuiz data
 
-Two databases in this repository are made available under the
+Three databases in this repository are made available under the
 [Open Database License (ODbL) v1.0](https://opendatacommons.org/licenses/odbl/1-0/):
-the country database the app ships (`static.db`) and the published alias table
-(`aliases.json`). Both are Derivative Databases of
+the country database the app ships (`static.db`), the published alias table
+(`aliases.json`) and the land-border graph (`borders.json`). All three are
+Derivative Databases of
 [mledoze/countries](https://github.com/mledoze/countries).
 
 ## `static.db` (the app's built-in country database)
@@ -169,6 +170,31 @@ The `--check` modes write nothing; CI runs both.
 The copy of mledoze/countries in `data/source/countries.json` arrived
 with the project's initial commit; the upstream release or commit it was taken
 from was not recorded.
+
+## `borders.json`
+
+`data/borders.json` is the land-border graph for the app's 197 countries, built
+for the Border hop mode: each country's land neighbours, the countries with no
+land border, and shortest-path statistics.
+
+### Attribution
+
+"Contains information from mledoze/countries
+(https://github.com/mledoze/countries), made available under the Open Database
+License (ODbL) v1.0." The same notice is embedded in the file.
+
+### Licence
+
+ODbL 1.0, as a Derivative Database of mledoze/countries (its `borders` field).
+
+### How it is derived
+
+`tools/data/build_borders.py` restricts the mledoze `borders` field to the 197
+countries and makes it symmetric, then cross-checks it against shared border
+segments in the Natural Earth map layer (`app/src/main/assets/geo/admin0_50m.bin`,
+public domain). Every disagreement is resolved in a commented override table in
+the script; the evidence is in `data/borders_report.md`.
+`python tools/data/build_borders.py --check` detects drift.
 
 ## Map layers (`app/src/main/assets/geo/`)
 

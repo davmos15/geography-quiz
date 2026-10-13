@@ -44,6 +44,15 @@ Credit (to show in the app's Credits screen with the map features):
 
 > Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.
 
+### Wikidata (facts)
+
+| | |
+|---|---|
+| Source | https://www.wikidata.org/ (SPARQL endpoint https://query.wikidata.org/sparql) |
+| Version | Pinned snapshots retrieved 2026-10-13: `data/source/wikidata_currencies.json`, `data/source/wikidata_physical_features.json` (query text and SHA-256 inside each) |
+| Licence | CC0 1.0 (public domain dedication); no attribution required |
+| Used in | Currency facts in `data/currencies.json`; Wikidata ids, countries and aliases in `data/physical_features.json`. Built by `tools/data/build_currencies.py` and `tools/data/build_physical_features.py`. Credited on the app's Credits screen ("Facts"). |
+
 ### flag-icons (flag images)
 
 | | |

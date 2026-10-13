@@ -228,4 +228,5 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 
 ## Credited, not bundled
 
+- Wikidata (CC0): facts, Wikidata ids, countries and aliases in `data/currencies.json` and `data/physical_features.json` come from or are checked against Wikidata (pinned snapshots in `data/source/wikidata_*.json`). CC0 needs no credit; it is credited on the Credits screen anyway ("Facts"). Move this entry to the bundled files once Phases 6–7 ship these data files in the app.
 - UN M49 (factual classification): the map's continent views follow the UN M49 continents and are credited on the Credits screen (since Phase 4). No UN M49 file is bundled; groupings use mledoze `region`/`subregion` in `static.db`.

@@ -169,7 +169,7 @@ silently. The validator only checks codes and format.
    - The tier rules: tier 1 is NE scalerank 1, plus Mont Blanc, the Pyrenees and the Carpathians bumped up by judgement; tier 2 is well known; tier 3 is less prominent.
    - "Lake Eyre" is shown for Lake Eyre North.
    - 41 rivers is one more than about 40 (fine as is, in my view).
-6. **Done after Phase 4 finished:** the mledoze entry in `THIRD_PARTY_NOTICES.md` lists the `borders` and `currencies` uses and the new derived databases; the root README's "Data and licences" names the new files; CI runs the four `--check` scripts. Still open: credit Wikidata on the Credits screen if wanted (CC0 needs no credit).
+6. **Done after Phase 4 finished:** the mledoze entry in `THIRD_PARTY_NOTICES.md` lists the `borders` and `currencies` uses and the new derived databases; the root README's "Data and licences" names the new files; CI runs the four `--check` scripts. Wikidata is credited on the Credits screen ("Facts" section, with a link) and in `THIRD_PARTY_NOTICES.md`.
 7. **Email.** The Wikidata queries on 2026-10-13 sent the owner's personal email in the
    User-Agent; it has been replaced with the repository URL, and the branch history was
    rewritten so no commit contains it. Commits in this repo now use the GitHub noreply

@@ -224,7 +224,7 @@ QUESTIONABLE_CODES: dict[str, str] = {
            "still lists only the pre-2022 SLL for SLE, and the Wikidata "
            "snapshot has no P498=SLL match either. Kept as mledoze gives it "
            "-- this pipeline only uses currencies mledoze actually lists, "
-           "and does not add SLE since mledoze doesn't; flagged for the lead.",
+           "and does not add SLE since mledoze doesn't; accepted by the owner (2026-10-13).",
 }
 
 # Entries double-checked against the brief's list of examples and found to

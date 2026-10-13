@@ -1,9 +1,9 @@
 # Data prep for Phases 6–7
 
 Branch `upgrade/data-prep` (from `upgrade/p4-maps` at `b888ee1`), 2026-10-13.
-Python only; no app code, no Gradle. `docs/UPGRADE_PLAN.md` is untouched: anything
-it should record is listed below under **Lead to confirm**, ready to copy into the
-decisions log.
+Python only; no app code, no Gradle. `docs/UPGRADE_PLAN.md` is untouched: the
+decisions below were confirmed by Dav on 2026-10-13 and are ready to copy into the
+decisions log (proposed D34 for item 1).
 
 ## What was built
 
@@ -11,8 +11,8 @@ decisions log.
 |---|---|---|---|---|
 | 6.1 Border hop | `data/borders.json` | `tools/data/build_borders.py` | ODbL 1.0 (from mledoze `borders`) | `data/borders_report.md` |
 | 7.1 Currencies | `data/currencies.json` | `tools/data/build_currencies.py` (`--refresh` re-queries Wikidata) | ODbL 1.0; facts CC0 | `data/currencies_report.md` |
-| 7.2 Rivers, mountains, lakes | `data/physical_features.json` | `tools/data/build_physical_features.py` (`--refresh`; build takes ~2 min) | Public domain + CC0 (lead to confirm) | `data/physical_features_report.md` |
-| 7.3 Flag speed round | `data/flag_lookalikes.json` | `tools/data/validate_flag_lookalikes.py` | Authored (lead to confirm) | below |
+| 7.2 Rivers, mountains, lakes | `data/physical_features.json` | `tools/data/build_physical_features.py` (`--refresh`; build takes ~2 min) | Public domain + CC0 | `data/physical_features_report.md` |
+| 7.3 Flag speed round | `data/flag_lookalikes.json` | `tools/data/validate_flag_lookalikes.py` | All rights reserved; ODbL if put in `static.db` | below |
 
 Every file has a `data/SOURCES.md` row and Details section. Wikidata snapshots are
 pinned in `data/source/wikidata_*.json` with query text, date and SHA-256, so builds
@@ -147,7 +147,7 @@ but the bundled `syr.svg` is the current green-white-black flag with three red s
 Re-check the cues if flag-icons is upgraded, because a flag change makes a cue wrong
 silently. The validator only checks codes and format.
 
-## Lead to confirm
+## Decisions (confirmed by Dav, 2026-10-13: "happy with your suggestions")
 
 1. **Licences.**
    - `borders.json` and `currencies.json` are ODbL derived databases. Each embeds a licence, licence URL and attribution, and has a `data/README.md` section.
@@ -159,7 +159,7 @@ silently. The validator only checks codes and format.
    - Spain–Morocco (Ceuta and Melilla)
    - Botswana–Zambia (a border of about 150 m)
 
-   I recommend keeping all four, with the in-app rule worded as "land borders, including overseas territories".
+   Decided: keep all four, with the in-app rule worded as "land borders, including overseas territories".
 4. **Currency answers.**
    - Panama → balboa (USD also circulates).
    - Zimbabwe → USD (its own current currency is not in this mledoze copy). The alternative is to leave Zimbabwe out of the mode.
@@ -169,11 +169,11 @@ silently. The validator only checks codes and format.
    - The tier rules: tier 1 is NE scalerank 1, plus Mont Blanc, the Pyrenees and the Carpathians bumped up by judgement; tier 2 is well known; tier 3 is less prominent.
    - "Lake Eyre" is shown for Lake Eyre North.
    - 41 rivers is one more than about 40 (fine as is, in my view).
-6. **Must happen before shipping**, but not done here to avoid conflicts with the Phase 4 session's uncommitted edits:
-   - Add the `borders` and `currencies` uses and the new derived databases to the mledoze entry in `THIRD_PARTY_NOTICES.md`.
-   - Mention the new data files in the root README's "Data and licences".
-   - Add Wikidata to the Credits screen if the lead wants it credited (CC0 needs no credit).
-7. **Personal email sent to Wikidata (owner action).** The Wikidata queries on 2026-10-13 sent the owner's personal email in the User-Agent. It was also committed in `b7049a9`. `588e46e` replaces it with the repository URL, but it remains in branch history. If the repository is public and that matters, squash or rewrite `upgrade/data-prep` before merging.
+6. **Done after Phase 4 finished:** the mledoze entry in `THIRD_PARTY_NOTICES.md` lists the `borders` and `currencies` uses and the new derived databases; the root README's "Data and licences" names the new files; CI runs the four `--check` scripts. Still open: credit Wikidata on the Credits screen if wanted (CC0 needs no credit).
+7. **Email.** The Wikidata queries on 2026-10-13 sent the owner's personal email in the
+   User-Agent; it has been replaced with the repository URL, and the branch history was
+   rewritten so no commit contains it. Commits in this repo now use the GitHub noreply
+   address. Older commits on `main` still carry the personal address as author.
 
 ## Re-running
 
@@ -184,5 +184,4 @@ python tools/data/build_physical_features.py --check   # ~2 minutes
 python tools/data/validate_flag_lookalikes.py --check
 ```
 
-These scripts are not in CI yet; add them to `.github/workflows/ci.yml` next to
-`export_aliases.py --check` when the data is first used.
+CI runs all four next to `export_aliases.py --check`.

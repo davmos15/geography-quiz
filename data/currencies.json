@@ -1918,7 +1918,7 @@
       "fact_reveals_country": false,
       "fact_source": null,
       "name": "Sierra Leonean leone",
-      "note": "Sierra Leone redenominated its currency on 1 July 2022 (1,000 old leones = 1 new leone, new ISO code SLE, coincidentally the same three letters as Sierra Leone's cca3); mledoze's snapshot still lists only the pre-2022 SLL for SLE, and the Wikidata snapshot has no P498=SLL match either. Kept as mledoze gives it -- this pipeline only uses currencies mledoze actually lists, and does not add SLE since mledoze doesn't; flagged for the lead.",
+      "note": "Sierra Leone redenominated its currency on 1 July 2022 (1,000 old leones = 1 new leone, new ISO code SLE, coincidentally the same three letters as Sierra Leone's cca3); mledoze's snapshot still lists only the pre-2022 SLL for SLE, and the Wikidata snapshot has no P498=SLL match either. Kept as mledoze gives it -- this pipeline only uses currencies mledoze actually lists, and does not add SLE since mledoze doesn't; accepted by the owner (2026-10-13).",
       "questionable": true,
       "shared": false,
       "symbol": "Le"

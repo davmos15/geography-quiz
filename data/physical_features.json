@@ -2444,7 +2444,7 @@
     }
   ],
   "licence": "Public domain (Natural Earth) and CC0 (Wikidata)",
-  "licenceFlagForLead": "Flagged for the lead: this file carries no mledoze/ODbL content beyond the 197 app cca3 ids used to key country membership (D31: not a substantial extract), so it is licensed as public domain (Natural Earth geometry and attributes) and CC0 (Wikidata facts), not ODbL. Please confirm this call.",
+  "licenceNote": "Confirmed by the owner (2026-10-13): this file carries no mledoze/ODbL content beyond the 197 app cca3 ids used to key country membership (D31: not a substantial extract), so it is licensed as public domain (Natural Earth geometry and attributes) and CC0 (Wikidata facts), not ODbL.",
   "sources": {
     "naturalEarth": {
       "files": [

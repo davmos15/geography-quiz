@@ -78,11 +78,10 @@ USER_AGENT = "GeoQuiz-dataprep/1.0 (https://github.com/davmos15/geography-quiz)"
 
 LICENCE = "Public domain (Natural Earth) and CC0 (Wikidata)"
 LICENCE_FLAG = (
-    "Flagged for the lead: this file carries no mledoze/ODbL content beyond "
+    "Confirmed by the owner (2026-10-13): this file carries no mledoze/ODbL content beyond "
     "the 197 app cca3 ids used to key country membership (D31: not a "
     "substantial extract), so it is licensed as public domain (Natural "
-    "Earth geometry and attributes) and CC0 (Wikidata facts), not ODbL. "
-    "Please confirm this call."
+    "Earth geometry and attributes) and CC0 (Wikidata facts), not ODbL."
 )
 
 WD_CLASS_RIVER = "Q4022"
@@ -910,7 +909,7 @@ def build(snapshot: dict, admin0: Admin0Index):
     data = {
         "version": VERSION,
         "licence": LICENCE,
-        "licenceFlagForLead": LICENCE_FLAG,
+        "licenceNote": LICENCE_FLAG,
         "sources": {
             "naturalEarth": {
                 "release": NE_RELEASE,
@@ -1004,9 +1003,9 @@ def render_report(data: dict, ctx: dict, inventory_lines: list[str]) -> str:
         f"{data['sources']['wikidata']['snapshotRetrievedAt']} (CC0), sha256 "
         f"`{data['sources']['wikidata']['snapshotSha256']}`.")
     add("")
-    add("## Licence note for the lead")
+    add("## Licence note")
     add("")
-    add(data["licenceFlagForLead"])
+    add(data["licenceNote"])
     add("")
 
     add("## Layer inventory")

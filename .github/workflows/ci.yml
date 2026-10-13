@@ -28,6 +28,13 @@ jobs:
       - name: Check prebuilt static database is up to date
         run: python3 tools/data/build_static_db.py --check
 
+      - name: Check Phase 6-7 data files are up to date
+        run: |
+          python3 tools/data/build_borders.py --check
+          python3 tools/data/build_currencies.py --check
+          python3 tools/data/build_physical_features.py --check
+          python3 tools/data/validate_flag_lookalikes.py --check
+
       - name: Check achievements match Achievement.kt
         run: python3 generate_achievements_zip.py --check
 

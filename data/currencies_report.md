@@ -52,7 +52,7 @@ Kept in the output exactly as mledoze gives them; never dropped or
 silently fixed.
 
 - **CUC**: Cuba abolished the convertible peso on 1 January 2021; mledoze's snapshot of data/source/countries.json still lists it for CUB alongside CUP. Kept, not dropped; CUP is primary for CUB (see PRIMARY_OVERRIDES).
-- **SLL**: Sierra Leone redenominated its currency on 1 July 2022 (1,000 old leones = 1 new leone, new ISO code SLE, coincidentally the same three letters as Sierra Leone's cca3); mledoze's snapshot still lists only the pre-2022 SLL for SLE, and the Wikidata snapshot has no P498=SLL match either. Kept as mledoze gives it -- this pipeline only uses currencies mledoze actually lists, and does not add SLE since mledoze doesn't; flagged for the lead.
+- **SLL**: Sierra Leone redenominated its currency on 1 July 2022 (1,000 old leones = 1 new leone, new ISO code SLE, coincidentally the same three letters as Sierra Leone's cca3); mledoze's snapshot still lists only the pre-2022 SLL for SLE, and the Wikidata snapshot has no P498=SLL match either. Kept as mledoze gives it -- this pipeline only uses currencies mledoze actually lists, and does not add SLE since mledoze doesn't; accepted by the owner (2026-10-13).
 
 ### Symbol disagreements (resolved, documented)
 

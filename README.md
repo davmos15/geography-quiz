@@ -176,6 +176,8 @@ Privacy policy: https://geoquiz-app.netlify.app/privacy-policy.html
 - [`data/SOURCES.md`](data/SOURCES.md): every bundled data and asset file, with source, version, licence and the script that produces it.
 - [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md): third-party data, assets and libraries with versions and required notices.
 - [`data/aliases.json`](data/aliases.json): the answer alias table, a derivative database of mledoze/countries published under ODbL 1.0 (see [`data/README.md`](data/README.md)).
+- [`data/borders.json`](data/borders.json) and [`data/currencies.json`](data/currencies.json): land borders and currencies for the Border hop and Currencies modes, also derivative databases of mledoze/countries under ODbL 1.0.
+- [`data/physical_features.json`](data/physical_features.json) and [`data/flag_lookalikes.json`](data/flag_lookalikes.json): rivers, mountains and lakes (Natural Earth, public domain, checked against Wikidata, CC0) and the lookalike flag sets (authored for GeoQuiz).
 - [`LICENSE`](LICENSE): licence for this repository.
 
 ---
@@ -184,4 +186,4 @@ Privacy policy: https://geoquiz-app.netlify.app/privacy-policy.html
 
 Copyright (c) 2026 davmos15. All rights reserved. The app code and original assets are proprietary; see [`LICENSE`](LICENSE).
 
-Third-party components keep their own licences (see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)). Country data contains information from [mledoze/countries](https://github.com/mledoze/countries), made available under the Open Database License (ODbL) v1.0. Flag images are from [flag-icons](https://github.com/lipis/flag-icons) (MIT). The derived alias table [`data/aliases.json`](data/aliases.json) is available under ODbL 1.0.
+Third-party components keep their own licences (see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)). Country data contains information from [mledoze/countries](https://github.com/mledoze/countries), made available under the Open Database License (ODbL) v1.0. Flag images are from [flag-icons](https://github.com/lipis/flag-icons) (MIT). The derived tables [`data/aliases.json`](data/aliases.json), [`data/borders.json`](data/borders.json) and [`data/currencies.json`](data/currencies.json) are available under ODbL 1.0.

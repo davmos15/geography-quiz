@@ -39,6 +39,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `data/source/wikidata_currencies.json` (not shipped) | Wikidata SPARQL endpoint, pinned snapshot | retrieved 2026-10-13 | CC0 | `tools/data/build_currencies.py --refresh` |
 | `data/physical_features.json`, `data/physical_features_report.md` (report not shipped) | Natural Earth rivers/lakes/regions/geo-points layers already in `app/src/main/assets/geo/`, cross-checked against Wikidata | regenerated per change | Public domain (Natural Earth) and CC0 (Wikidata) -- flagged for the lead to confirm, see Details | `tools/data/build_physical_features.py` |
 | `data/source/wikidata_physical_features.json` (not shipped) | Wikidata SPARQL endpoint, pinned snapshot | retrieved 2026-10-13 | CC0 | `tools/data/build_physical_features.py --refresh` |
+| `data/flag_lookalikes.json` | authored for GeoQuiz (no third-party source) | added on `upgrade/data-prep` | All rights reserved unless bundled into `static.db`, then ODbL 1.0 as for `flag_colors` (D13); lead to confirm | `tools/data/validate_flag_lookalikes.py` (validates, no generation) |
 | `tools/fonts/Lato-*.ttf`, `OFL.txt` | Google Fonts (google/fonts) | `5d3b761` | SIL OFL 1.1 | `tools/fonts/fetch_fonts.py` |
 | Launcher icon (`res/drawable/ic_launcher_*.xml`, `res/mipmap-anydpi-v26/`) | authored for GeoQuiz | `4694f86` | All rights reserved | none |
 | Launcher icon PNGs (`res/mipmap-*dpi/`) | 1x1 transparent placeholders (70 bytes each, no artwork) | `40a5fd3` | n/a | none |
@@ -183,6 +184,16 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Licence | CC0 (Wikidata) |
 | Transformation | `tools/data/build_physical_features.py --refresh`: five SPARQL queries (English label + `P2044` elevation, `wdt:P31/wdt:P279*` against the four target classes, `P17` country, English `skos:altLabel` aliases, and `P298` ISO 3166-1 alpha-3 for every P17 country found; all saved verbatim in the file) against the ~100 QIDs used by `data/physical_features.json`. Reduced to a lean per-QID structure (label, elevation, instance-of classes, P17 countries, English aliases) rather than the raw SPARQL JSON. Not shipped; `data/physical_features.json` is built from it offline. |
 | Notes | 101 QIDs. Two data-quality issues found in Natural Earth's own `wikidata` property during verification (not in this snapshot's own data, but discovered using it) are documented in `data/physical_features_report.md`: a Colorado River record pointing to the Texas Colorado River's QID, and a Paraná River record pointing to an unlabelled Wikidata stub typed only as "watercourse". |
+
+### `data/flag_lookalikes.json`
+
+| | |
+|---|---|
+| Source | Authored for GeoQuiz by the lead (2026-10-13): 24 sets of flags that are easy to confuse, each with a short original explanation of the difference and a one-line cue per country. Written from the flags themselves (as drawn by the bundled flag-icons SVGs); no list, wording or grouping was taken from any quiz, website or other source. |
+| Version / commit | Added on `upgrade/data-prep` |
+| Licence | All rights reserved (authored text). If the sets are copied into `static.db`, they are released under ODbL 1.0 with it, as for `flag_colors` and `flag_elements` (decision D13). Lead to confirm. |
+| Transformation | None. `tools/data/validate_flag_lookalikes.py` checks every code is one of the 197 app countries with a bundled flag, ids are unique, each set has 2-4 countries and a cue per country, tiers and the `in_app` rating are valid, text is short and uses Australian spelling, and the file is in canonical format. `--check` exits 1 on any problem. |
+| Notes | Flags are drawn at 4:3 in the app, so a difference only in official proportions is not visible; `in_app` records what a player can actually see (`clear`, `subtle`, `near_identical`). Indonesia/Monaco is `near_identical` and should not be asked as a pair; Poland is a separate `clear` set with Indonesia. Built for the Flag speed round (Phase 7.3). |
 
 ### `tools/fonts/Lato-Regular.ttf`, `tools/fonts/Lato-Bold.ttf`, `tools/fonts/OFL.txt`
 

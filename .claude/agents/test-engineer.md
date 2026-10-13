@@ -1,6 +1,7 @@
 ---
 name: test-engineer
 description: Writes unit, Compose UI, Room migration and Roborazzi screenshot tests for GeoQuiz. Never changes production code except test hooks explicitly agreed in the brief.
+model: sonnet
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 

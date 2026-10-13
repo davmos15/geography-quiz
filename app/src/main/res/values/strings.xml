@@ -18,6 +18,45 @@
     <string translatable="false" name="debug_menu_flag_overridden">Overridden</string>
     <string translatable="false" name="debug_menu_reset_flags">Reset all flags to defaults</string>
     <string translatable="false" name="debug_menu_opened">Debug menu unlocked</string>
+    <string translatable="false" name="debug_menu_tools">Tools</string>
+    <string translatable="false" name="debug_menu_map_preview">Map preview</string>
+
+    <!-- Map region presets -->
+    <string name="region_world">World</string>
+    <string name="region_africa">Africa</string>
+    <string name="region_asia">Asia</string>
+    <string name="region_europe">Europe</string>
+    <string name="region_north_america">North America</string>
+    <string name="region_oceania">Oceania</string>
+    <string name="region_south_america">South America</string>
+
+    <!-- Map preview (debug builds only, task 4.2) -->
+    <string translatable="false" name="map_preview_title">Map preview</string>
+    <string translatable="false" name="map_preview_loading">Loading map layers…</string>
+    <string translatable="false" name="map_preview_error">Couldn\'t load a layer: %1$s</string>
+    <string translatable="false" name="map_preview_level_auto">Auto</string>
+    <string translatable="false" name="map_preview_level_110m">110m</string>
+    <string translatable="false" name="map_preview_level_50m">50m</string>
+    <string translatable="false" name="map_preview_lakes">Lakes</string>
+    <string translatable="false" name="map_preview_rivers">Rivers</string>
+    <string translatable="false" name="map_preview_demo_states">Demo states</string>
+    <string translatable="false" name="map_preview_frame_rate_toggle">Frame rate</string>
+    <string translatable="false" name="map_preview_fit_australia">Fit to Australia</string>
+    <string translatable="false" name="map_preview_reset_view">Reset view</string>
+    <!-- %1$.1f zoom factor, %2$s level label (110m or 50m) -->
+    <string translatable="false" name="map_preview_zoom">Zoom %1$.1f×, drawing %2$s</string>
+    <!-- %1$s layer file, %2$d decode ms, %3$s path build ms or a dash -->
+    <string translatable="false" name="map_preview_timing">%1$s: decode %2$d ms, paths %3$s ms</string>
+    <string translatable="false" name="map_preview_last_tap">Last tap: %1$.2f°, %2$.2f°</string>
+    <string translatable="false" name="map_preview_last_tap_outside">Last tap: off the map</string>
+    <!-- %1$s id, %2$s name, %3$s playable label, %4$s zone/shape label, %5$s state name -->
+    <string translatable="false" name="map_preview_hit">Hit: %1$s %2$s (%3$s, %4$s), now %5$s</string>
+    <string translatable="false" name="map_preview_hit_water">Hit: water</string>
+    <string translatable="false" name="map_preview_hit_playable">playable</string>
+    <string translatable="false" name="map_preview_hit_not_playable">not playable</string>
+    <string translatable="false" name="map_preview_hit_zone">tap zone</string>
+    <string translatable="false" name="map_preview_hit_shape">shape</string>
+    <string translatable="false" name="map_preview_frame_rate">%1$d fps (frames while the map moves)</string>
 
     <!-- Flags -->
     <string name="flag_content_description_hidden">Flag</string>
@@ -110,6 +149,14 @@
     <string translatable="false" name="credits_url_odbl">https://opendatacommons.org/licenses/odbl/1-0/</string>
     <string translatable="false" name="credits_url_aliases">https://github.com/davmos15/geography-quiz/blob/main/data/README.md</string>
     <string translatable="false" name="credits_url_flag_icons">https://github.com/lipis/flag-icons</string>
+    <string name="credits_maps_heading">Maps</string>
+    <string name="credits_maps_body">Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.</string>
+    <string name="credits_link_natural_earth">naturalearthdata.com</string>
+    <string translatable="false" name="credits_url_natural_earth">https://www.naturalearthdata.com</string>
+    <string name="credits_regions_heading">Regions</string>
+    <string name="credits_regions_body">Regions follow the UN M49 standard country or area codes for statistical use, United Nations Statistics Division.</string>
+    <string name="credits_link_un_m49">unstats.un.org</string>
+    <string translatable="false" name="credits_url_un_m49">https://unstats.un.org/unsd/methodology/m49/</string>
 
     <!-- Open-source licences -->
     <string name="open_source_licences_title">Open-source licences</string>
@@ -173,6 +220,36 @@
         <item quantity="other">%d capitals</item>
     </plurals>
     <string name="a11y_best_score">Best score %1$d of %2$d, %3$s points</string>
+
+    <!-- Map accessibility (4.6) -->
+    <string name="a11y_map_of">Map of %1$s.</string>
+    <!-- Quantity follows the total (%2$d) -->
+    <plurals name="a11y_map_found">
+        <item quantity="one">%1$d of %2$d country found</item>
+        <item quantity="other">%1$d of %2$d countries found</item>
+    </plurals>
+    <plurals name="a11y_map_wrong">
+        <item quantity="one">%d wrong</item>
+        <item quantity="other">%d wrong</item>
+    </plurals>
+    <!-- Whole map description (mapContentDescription): %1$s is a11y_map_of, %2$s a11y_map_found, %3$s a11y_map_wrong. -->
+    <string name="a11y_map_description_found">%1$s %2$s.</string>
+    <string name="a11y_map_description_found_wrong">%1$s %2$s, %3$s.</string>
+    <string name="a11y_map_zoom_in">Zoom in</string>
+    <string name="a11y_map_zoom_out">Zoom out</string>
+    <string name="a11y_map_show_whole_map">Show whole map</string>
+
+    <!-- Map list alternative (4.6): a reusable list of a map's features for TalkBack -->
+    <string name="map_list_search_label">Search countries</string>
+    <string name="map_list_no_matches">No countries match your search.</string>
+    <string name="map_list_state_found">Found</string>
+    <string name="map_list_state_wrong">Wrong</string>
+    <string name="map_list_state_highlighted">Highlighted</string>
+    <string name="map_list_state_start">Start</string>
+    <string name="map_list_state_end">End</string>
+    <string name="map_view_mode_map">Map</string>
+    <string name="map_view_mode_list">List</string>
+
     <string name="action_start_quiz">Start quiz</string>
     <string name="action_resume_quiz">Resume quiz</string>
     <string name="action_open_category">Open category</string>

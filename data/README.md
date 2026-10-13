@@ -169,3 +169,19 @@ The `--check` modes write nothing; CI runs both.
 The copy of mledoze/countries in `data/source/countries.json` arrived
 with the project's initial commit; the upstream release or commit it was taken
 from was not recorded.
+
+## Map layers (`app/src/main/assets/geo/`)
+
+The map files the app bundles (country outlines, US states and Canadian
+provinces, rivers, lakes, physical regions and points) are built from
+[Natural Earth](https://www.naturalearthdata.com/) data, which is in the
+public domain. They are not part of the ODbL databases above: they contain
+no mledoze/countries data apart from the app's list of country codes, which
+is used as feature ids. Made with Natural Earth.
+
+- Format: [`geo/FORMAT.md`](geo/FORMAT.md)
+- Build log (code mapping, merges, remote parts, sizes): [`geo/build_log.txt`](geo/build_log.txt)
+- Pipeline and rules: [`../tools/geodata/README.md`](../tools/geodata/README.md)
+- Sources, versions and checksums: [`SOURCES.md`](SOURCES.md)
+
+Rebuild with `python tools/geodata/build_geodata.py`; check with `--check`.

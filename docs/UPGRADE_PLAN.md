@@ -44,7 +44,7 @@ where you stopped, commit, and tell me to start a new session.
 | 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
 | 2 | Code and architecture | Done (merged) | `upgrade/p2-architecture` | #5 |
 | 3 | Game engine and UX foundation | Done – PR open | `upgrade/p3-ux-engine` | #6 |
-| 4 | Map engine and geodata pipeline | Not started | `upgrade/p4-maps` | |
+| 4 | Map engine and geodata pipeline | Done – PR open | `upgrade/p4-maps` | #7 |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Not started | `upgrade/p6-modes-b` | |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Not started | `upgrade/p7-modes-c` | |
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 4, task 4.1, on a new branch `upgrade/p4-maps` created from `upgrade/p3-ux-engine` (D30: stacked branches; PR #6 is open and not merged, and that's expected). Decide D3 (map asset format and size budget) before 4.2. Read the session 6 log first. Open the Phase 4 PR against `upgrade/p3-ux-engine`.
+> Phase 5 (New modes A: Country silhouettes, Tap the map) on a new branch `upgrade/p5-modes-a` from `upgrade/p4-maps` (D30; PRs #6 and the Phase 4 PR are open, not merged – expected). If `upgrade/data-prep` exists, merge it into the Phase 6/7 branches later, not Phase 5. Read the session 7 log first (carry-overs and device checks).
 
 ---
 
@@ -210,6 +210,14 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - `CompletedQuiz.newAchievementIds` (default empty) is written by `CompleteQuizUseCase` after unlocks (a second `save`), so Results' "New achievement(s)" card (`NewAchievementsCard`, polite live region) survives process death. `QuizViewModel` no longer holds achievements.
 - "Practise the ones you missed": `QuizCategory.Practice(codes)` (type `practice`, value = cca3 codes joined by `+`, quiz order). `CompletedQuiz.missedCodes()` = all items minus correct (Easy wrong picks and give-up leftovers included). Results button carries the difficulty route arg; hidden on a perfect result. D21: `QuizCategory.isRecorded` is false for Practice: `CompleteQuizUseCase` saves the result and returns before clearing the resume save or recording anything; `QuizViewModel` writes no Room resume save; `fromRouteOrNull` rejects it (no challenge links); Results hides Share/Challenge and shows a "not counted" note. Countries Easy uses the flag prompt for a practice set.
 
+**Map engine** (since Phase 4)
+- Data: `tools/geodata/build_geodata.py` (pinned Natural Earth 5.1.2, pyshp only in a hash-pinned venv, shared-arc Douglas–Peucker, reproducible, `--check` needs the cached zips) writes 8 layers to `app/src/main/assets/geo/*.bin` (606 KB of the 1.5 MB D3 budget): `admin0_110m`, `admin0_50m` (197 playable keyed by cca3 + non-playable land with `playable = 0`; part flags hole/remote/wrap; label points; `area_km2`), `tap_zones` (46 small countries), `admin1_50m` (US 50 + DC, Canada 13; ISO 3166-2 ids), `rivers_50m`, `lakes_50m`, `regions_50m`, `geo_points_50m` (Wikidata ids from NE `WIKIDATAID`). Byte contract `data/geo/FORMAT.md` (GQGM v1); build log `data/geo/build_log.txt`. D31 (not an ODbL derived database), D32 (disputed areas: NE default view).
+- Kotlin: `J/data/geo/GeoLayerReader.kt` (strict; `GeoFormatException` reasons), `AssetMapRepository` (`MapRepository.layer(GeoLayerId)`, lazy, cached, IO; `J/di/MapModule.kt`). `J/domain/map/`: `GeoLayer`/`GeoFeature`/`GeoPart`, `Projection.kt` (`EqualEarthProjection`, `LambertAzimuthalEqualAreaProjection(centreLon, centreLat, maxDistanceDeg = 100)`, `isVisible`, `centreAngleDeg`; plane coordinates are y-down), `ProjectedLayer`, `HitTester.kt` (`FeatureHitIndex` grid + even-odd, smallest box wins; `TapZones`; `resolveTap`; `MapHit(featureId, isPlayable, viaTapZone, isMember)`), `RegionPreset` (World + 6 continents, members from the app's region/subregion; `frame()` skips remote parts; Europe frames Russia to 60°E), `OutlineGeometry` (per-country LAEA, 92% fit with a minimum-area clamp, geometry neighbours), `MapFeatureState`. Use cases `GetRegionMembersUseCase`, `GetCountryOutlineUseCase` (`@DefaultDispatcher`, new qualifier in `J/di/AppModule.kt`).
+- UI `J/ui/map/`: `MapCanvas` (pan, pinch, double-tap zoom / reset at max, `doubleTapToZoom = false` for instant taps, `onFeatureTap(MapHit?)`, `showTapZones`, `mapContentDescription` + custom actions Zoom in/out/Show whole map), `MapViewState` (saveable camera, `fitTo`, `updateContent` re-fits on new bounds unless `userMoved`, interrupted animations return normally), `MapScene`/`rememberMapScene` (110m/50m switch at 160 dp per unit; members, pan margin, far-side non-members beyond 80° neither drawn nor hit), `MapPathCache` (process-wide, LRU of 3 projections), `MapHitTesting.kt` (`MapScene.hitTest`, tap zones 44 dp; circles drawn only for the 46 listed or a country with a state), `CountryOutline` (+ LRU path cache), `MapListAlternative` + `MapOrListToggle` + `rememberIsTouchExplorationEnabled()` (TalkBack path), `MapAccessibility.kt`. States: Found blue + tick, Wrong orange + cross + hatch, Start dot, End ring + dashed outline, Highlighted thick outline; non-playable/non-member land `mapLandInactive`.
+- Debug: Settings title ×7 → Debug menu → Map preview (presets, level/lakes/rivers toggles, map/list toggle, tap shows the hit and cycles states, decode/build timings).
+- Tests: reader/repository/projection/camera/hit (all 197 tappable on a phone at world fit and 50m at 3×)/presets (no clipping on phone and tablet)/outline (197 at consistent size)/accessibility; map timing assertions only with `-Pgeoquiz.perf=true`. Goldens: 15 `map_*` in `MapScreenshotTest` (47 goldens in total).
+- Build tooling (D33): Sonnet sub-agents; one Gradle build at a time via a lock helper (`mkdir` lock directory; call Git Bash by its full path, plain `bash` resolves to the WSL stub on this machine); Gradle build + configuration cache on; CI on every push to `upgrade/**`. Never pipe a Gradle run through `head` (it hung a build).
+
 **Room** (since Phase 2, task 2.1)
 - Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
 - `AppDatabase` (`geoquiz.db`, v12 since 3.2: `difficulty TEXT NOT NULL DEFAULT 'normal'` on `quiz_history` and `saved_quizzes`; leaderboard totals exclude Easy): `saved_quizzes`, `challenges`, `quiz_history` only. Migrations in `J/data/local/db/AppDatabaseMigrations.kt` (`ALL`); 10→11 drops the static tables; the old re-seed `DELETE`s are gone. No destructive fallback. `RoomTransactionRunner` wraps `AppDatabase` only.
@@ -263,7 +271,7 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 
 **Licensing recon (0.2)**
 - Flag source was emoji (Unicode) until Phase 1; now flag-icons SVGs (see Flags).
-- Phase 1 added the Credits and Open-source licences screens with the in-app ODbL notice. Natural Earth and UN M49 are not used yet; the Credits screen leaves out a maps section until Phase 4 (code comment in `CreditsScreen.kt`).
+- Phase 1 added the Credits and Open-source licences screens with the in-app ODbL notice. Since Phase 4 Natural Earth map layers are bundled and the Credits screen has Maps (Natural Earth) and Regions (UN M49) sections.
 - `countries.json` (1.29 MB, 250 entries) matches the mledoze v3-era schema. Version/commit not recorded; it arrived in initial commit `40a5fd3`. `flag_colors.json` and `flag_elements.json` look hand-curated, source undocumented.
 - `generate_store_assets.py` and `generate_achievements_zip.py` use Pillow with system Arial / Arial Bold (Microsoft, proprietary) via `ImageFont.truetype("arialbd.ttf")`. No downloads or external images; all artwork is drawn in code. `store_assets/achievements/` has 38 PNGs plus CSVs; `AchievementsIconMappings.csv` and `AchievementsIconsMappings.csv` both exist (likely a stale duplicate). Launcher icon origin undocumented.
 - Privacy policy (`docs/privacy-policy.html`): says personalised ads via advertising ID, "suitable for all ages" (conflicts with personalised ads and no child tags), deletion = clear data/uninstall, contact = "open an issue on GitHub" (no email, no link). Billing not mentioned. Last updated 17 Feb 2026.
@@ -399,6 +407,8 @@ Shared by modes 1, 3, 5, 10 and 12.
 
 Decide and log the asset format (e.g. compact binary or GeoJSON-lite) before 4.2 starts.
 
+Status: D3 decided; 4.1–4.6 and the gate done in session 7 (2026-10-09 to 2026-10-13). PR open. Device checks (60 fps, API 26/27, world view density) in the session 7 log.
+
 ### Phase 5 – New modes A
 
 | ID | Mode | Spec | Group |
@@ -456,7 +466,7 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 |---|---|---|
 | D1 | Target audience: mixed audience including children (Dav, 2026-10-07). | Decided |
 | D2 | Licence for app code: All rights reserved (Dav, 2026-10-07) | Decided |
-| D3 | Map asset format and size budget | Phase 4 decides |
+| D3 | Map assets: compact binary, one file per layer (lon/lat quantised to int16 per layer bounds, delta-encoded, simplified per level), read by a Kotlin reader; all map layers together at most 1.5 MB raw, enforced by the pipeline (Dav, 2026-10-09). | Decided |
 | D4 | Daily challenge seed: device local date | Decided |
 | D5 | Feature flags: enum `FeatureFlag` + DataStore "feature_flags". Overrides are honoured only in debug builds (`BuildConfig.DEBUG`); release always uses each flag's default. Debug menu opens by tapping the Settings title 7 times (debug builds only). Phase 9 flips approved defaults to on. | Decided (Phase 0) |
 | D6 | `.gitignore` ignores `.claude/*` except `.claude/agents/`, so project agents are versioned but personal settings are not. | Decided (Phase 0) |
@@ -483,6 +493,9 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 | D28 | Wide layouts (3.7): no adaptive library; breakpoints Compact < 600 dp, Medium < 840, Expanded; navigation rail from 600 dp; two panes on Expanded, Medium landscape and landscape phones (quiz: controls start, list end – Dav, 2026-10-09; Results: summary | actions; Play: cards | browse); other screens capped at 840 dp. | Decided |
 | D29 | Large text (3.6b): buttons that don't fit side by side stack rather than clip, also at 100% on 360 dp phones (Results Share/Challenge, Stats); title scrolls with the content below 560 dp of space ÷ font scale; when it scrolls, TalkBack reads it in screen order (after the pinned status) (lead, 2026-10-09). | Decided |
 | D30 | Stacked phases (Dav, 2026-10-09): Dav tests on a device and merges only at the end. Until then each phase branches from the previous phase's branch (not `main`), and its PR targets that branch; "Done – PR open" on the previous phase does not block the next one. Device checklists stay in each session log. At the end, merge the PRs in order (#6 first), retargeting each to `main` after the one before it merges. | Decided |
+| D31 | Map layers use only Natural Earth geometry and attributes; mledoze contributes nothing but the list of 197 cca3 ids used to key and check features, which is not a substantial extract, so the `.bin` files are not an ODbL derived database. If mledoze names, regions or borders are ever written into map files, revisit this (licence audit, 2026-10-09). | Decided |
+| D32 | Disputed areas follow Natural Earth's default de facto view (Crimea in Russia, Golan in Israel, Western Sahara separate and not playable, Kashmir split along the lines of control); Christmas/Cocos and Ashmore & Cartier stay separate non-playable land (lead, 2026-10-09; Dav to confirm at the end). | Decided (lead) |
+| D33 | Faster runs (Dav, 2026-10-13): implementer, test-engineer, geodata-engineer and licence-auditor run on Sonnet (`model: sonnet` in `.claude/agents/`); code-reviewer and the lead stay on Opus, and the lead may pick Opus per task for tricky algorithms. A fresh agent per task (no long-lived resumed agents). Up to 2–3 agents in parallel on disjoint files, but only one Gradle build at a time on this machine (agents take a lock: `mkdir` of a shared lock directory, remove it after the build). CI runs on every push to `upgrade/**`, so GitHub does the full suite, Roborazzi verify and lint; locally per task stays D19, the local gate drops `clean`, and `assembleRelease` runs once per phase, last and alone. Gradle build cache and configuration cache are on (`gradle.properties`). | Decided |
 | D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
 
 ---
@@ -612,3 +625,31 @@ Each session appends one entry:
   14. Landscape phone: the quiz is in two panes and the field is reachable with the keyboard open; on a punch-hole phone rotated with the camera on the left, the rail and quiz content are not under the camera.
   15. Multi-window / resizing: switch between one and two panes mid-quiz; nothing is lost.
 - Next session starts at: Phase 4, task 4.1, after the Phase 3 PR is merged (decide D3, the asset format and size budget, before 4.2).
+
+### Session 7 – 2026-10-09 to 2026-10-13 – Phase 4
+- Done: D30 (stacked branches) and D3 (compact binary, 1.5 MB); 4.1 geodata pipeline (`3bea617`), 4.2 reader, projections and `MapCanvas` (`5bc323e`), 4.3 hit testing and tap zones (`4a0794d`), 4.4 region presets (`456a9ec`), D33 speed-ups (`ea8dfff`), 4.5 outlines (`047292a`), 4.6 accessibility, list alternative and Natural Earth / UN M49 credits (`b888ee1`), review fixes (`91f1a6d`), gate screenshots and visual fixes (`6bead8b`).
+- Not done / carried over:
+  - Device checks only (see checklist): 60 fps pan/zoom (plan AC; JVM timings: decode all layers 16–109 ms, 50m paths 35–84 ms); API 26/27 "path too large for texture" at high zoom; how busy the world view looks on a phone (portrait world is small: Phase 5 Tap the map should start on a continent or zoomed); 50m switch at 160 dp per unit (small European countries).
+  - `MapPathCache.clear()` is not wired to `onTrimMemory` (needs `GeographyQuizApplication`).
+  - Rings straddling the 100° LAEA cut are kept whole (far-side members such as Russia in some presets draw distorted near the rim); the canvas fade-in starts from a `SideEffect` (possible one-frame flash).
+  - Europe frame includes Svalbard and Iceland, so on a portrait phone Europe sits low with Arctic above; consider excluding Svalbard from framing in Phase 5.
+  - Outline neighbours come from geometry (bbox overlap), not mledoze `borders` (not in the `Country` model yet); revisit with Border hop (Phase 6).
+  - `MapPreviewViewModel.onListSelect` builds `MapHit` with `isMember = true` (debug only).
+  - Phase 3 carry-overs unchanged (strings and spelling, lint warnings, Give up icon).
+  - Data prep for Phases 6–7 (borders graph, currencies, physical features with Wikidata QIDs, flag lookalikes) can run in a separate chat in a git worktree on `upgrade/data-prep` (prompt given to Dav, 2026-10-13); merge it into the Phase 6/7 branches.
+- Decisions: D3, D30 (Dav), D31, D32 (lead; Dav to confirm), D33 (Dav).
+- Owner actions added: none new. Confirm D32 (disputed areas) at the end.
+- Verification: per task D19 (compile + own tests; 4.2–4.6 map classes up to 150 tests green); the review-fix and visual-fix agents ran full `assembleDebug testDebugUnitTest` green; CI on push ran the full suite, `verifyRoborazziDebug` and lint: passed on `fba6a11` (896 tests; the first run caught a flaky outline screenshot, fixed by building outline paths before capture); 15 map goldens recorded and checked by eye; code-reviewer on 4.2 and on 4.3–4.6 (one blocking finding, outline neighbours, fixed); licence-auditor on 4.1 and on the phase (no required items). `assembleRelease` (local, last and alone): passed after making the release-key check configuration-cache safe (`app/build.gradle.kts`), 26 min, signed R8 APK 5.2 MB (was 4.7 MB; +0.5 MB of map layers).
+- Manual test checklist for Phase 4 (debug build; Settings title ×7 → Debug menu → Map preview):
+  1. World map draws in light and dark; pan, pinch (zooms about your fingers), double-tap zooms in and at maximum zoom resets; "Fit to Australia" animates (snaps with Remove animations on). Turn on Developer options → Profile HWUI rendering or the frame-rate overlay: panning and pinching the world stays smooth (target 60 fps) at auto, forced 110m and forced 50m.
+  2. Detail: zooming into Europe switches to the detailed borders; small countries (Luxembourg, Slovenia) look right at the switch point.
+  3. Taps: tap each of a few countries (Australia, Chile, Lesotho, San Marino, Vatican at its circle, Fiji, Tuvalu) and check the name shown; tapping the sea shows nothing; each tap cycles the country through found (blue + tick), wrong (orange + cross + hatch), highlighted, start (dot), end (ring + dashed) and back.
+  4. World view on a phone: dashed circles only around microstates and small islands (plus any country with a state); none of the 197 is impossible to tap.
+  5. Presets: each continent chip frames its countries with nothing cut off (phone portrait and landscape, and a tablet); non-member land is dimmer; no Antarctica under Asia; Fiji, Kiribati and Russia's far east are in one piece; switching presets fades the new map in.
+  6. High zoom on an Android 8 (API 26/27) device or emulator: zoom fully into Russia, Canada and Brazil; land and borders keep drawing (no missing shapes).
+  7. Rotate and switch dark mode on the Map preview: no long reload, camera kept.
+  8. TalkBack: the map reads "Map of Europe. N of 46 countries found, M wrong."; the Zoom in / Zoom out / Show whole map actions work; with TalkBack on, the preview opens in List view; rows read the country and its state; search finds "cote d'ivoire" without accents; selecting a row behaves like a tap.
+  9. 200% text: the list view rows and search field are readable, nothing clipped.
+  10. Settings → Credits and licences: "Maps" (Made with Natural Earth, link works) and "Regions" (UN M49, link works).
+  11. A release build doesn't show the Map preview (no debug menu).
+- Next session starts at: Phase 5 (New modes A: Country silhouettes, Tap the map) on `upgrade/p5-modes-a` from `upgrade/p4-maps` (D30); merge `upgrade/data-prep` first if it exists.

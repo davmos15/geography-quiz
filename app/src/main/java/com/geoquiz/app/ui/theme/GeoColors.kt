@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
  * primaryContainer and tertiaryContainer, where results and challenge cards put them). Each
  * `onX` reaches 4.5:1 on its `X`. [star] reaches 3:1 on background, surface and surfaceVariant.
  * Map state colours reach 3:1 against [mapLand]; land and water 1.5:1; borders 3:1 on land.
+ * [mapLandInactive] reaches 1.2:1 against both land and water, and borders 2:1 on it.
  * [flagBorder] reaches 2:1 on every surface a flag sits on and on the flag edge most likely to
  * merge with it (white in light, black in dark). Achievement tier accents reach 4.5:1 and tier
  * on-colours 7:1 on their tier container.
@@ -74,6 +75,11 @@ data class GeoColors(
     // ---- Map (used from Phase 4) ----
     /** Country fill before it is found. */
     val mapLand: Color,
+    /**
+     * Land that isn't one of the app's countries (Antarctica, Greenland, dependencies): never
+     * found or tapped, so a step between [mapLand] and [mapWater].
+     */
+    val mapLandInactive: Color,
     /** Country borders and coastlines. */
     val mapLandBorder: Color,
     val mapWater: Color,
@@ -121,6 +127,7 @@ internal val LightGeoColors = GeoColors(
     onTierBronzeContainer = Color(0xFF3A1E08),
 
     mapLand = Color(0xFFF5F2EC),
+    mapLandInactive = Color(0xFFDFDBD3),
     mapLandBorder = Color(0xFF8A857A),
     mapWater = Color(0xFFA9CBE3),
     mapFound = Color(0xFF1A65AA),
@@ -161,6 +168,7 @@ internal val DarkGeoColors = GeoColors(
     onTierBronzeContainer = Color(0xFFFFE3D0),
 
     mapLand = Color(0xFF403F3A),
+    mapLandInactive = Color(0xFF2E2D2A),
     mapLandBorder = Color(0xFF908B81),
     mapWater = Color(0xFF0B1926),
     mapFound = Color(0xFF64B0F5),

@@ -116,6 +116,19 @@ class A11yTextTest {
         assertEquals("54 capitals", A11yText.quizOptionCount(res, QuizMode.CAPITALS, 54))
     }
 
+    @Test
+    fun `map found count follows the total for plurals, like progress`() {
+        assertEquals("12 of 46 countries found", A11yText.mapFound(res, 12, 46))
+        assertEquals("1 of 1 country found", A11yText.mapFound(res, 1, 1))
+        assertEquals("0 of 197 countries found", A11yText.mapFound(res, 0, 197))
+    }
+
+    @Test
+    fun `map wrong count`() {
+        assertEquals("1 wrong", A11yText.mapWrong(res, 1))
+        assertEquals("2 wrong", A11yText.mapWrong(res, 2))
+    }
+
     private fun row(mode: QuizMode, answered: Boolean, hint: Boolean = false): String =
         A11yText.quizRow(
             res = res,

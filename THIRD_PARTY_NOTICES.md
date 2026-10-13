@@ -31,6 +31,19 @@ Required attribution (shown in the app's Credits screen):
 mledoze/countries excludes its flag images from the ODbL; GeoQuiz does not use
 them.
 
+### Natural Earth (map data)
+
+| | |
+|---|---|
+| Source | https://www.naturalearthdata.com/ (downloads from https://naciscdn.org/naturalearth/5.1.2/) |
+| Version | Release 5.1.2 (zip `VERSION.txt` 5.1.1 for cultural layers, 5.0.0 for physical layers); zip SHA-256 checksums in [`data/SOURCES.md`](data/SOURCES.md) |
+| Licence | Public domain. Natural Earth asks for no permission or fee; credit is appreciated. |
+| Used in | `app/src/main/assets/geo/*.bin`: country outlines (110m and 50m), tap points for small countries, US states and Canadian provinces, rivers, lakes, physical regions and elevation/geography points. Built by `tools/geodata/build_geodata.py` (see [`tools/geodata/README.md`](tools/geodata/README.md)). Wikidata item ids in the rivers, lakes, regions and points layers are Natural Earth's own `WIKIDATAID` field; Wikidata is CC0. |
+
+Credit (to show in the app's Credits screen with the map features):
+
+> Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.
+
 ### flag-icons (flag images)
 
 | | |
@@ -135,6 +148,7 @@ in by Coil) are covered by the in-app Open-source licences screen.
 | Compose UI test (ui-test-junit4, ui-test-manifest) | BOM 2024.12.01 | Apache 2.0 | https://developer.android.com/jetpack/compose |
 | Gradle wrapper | 8.14.5 | Apache 2.0 | https://gradle.org |
 | Pillow (store asset scripts) | not pinned | MIT-CMU (HPND) | https://python-pillow.org |
+| pyshp (geodata pipeline, reads Natural Earth shapefiles) | 3.1.6, pinned with SHA-256 in `tools/geodata/requirements.txt` | MIT | https://github.com/GeospatialPython/pyshp |
 
 ### Apache License 2.0 notice
 
@@ -144,8 +158,9 @@ https://www.apache.org/licenses/LICENSE-2.0. They are distributed on an "AS IS"
 basis, without warranties or conditions of any kind. The full licence texts
 and any NOTICE files are shown in the app's Open-source licences screen.
 
-## Planned sources (not used yet)
+## Classifications credited (no file bundled)
 
-Later phases plan to add Natural Earth (public domain) map data and UN M49
-region classifications. They will be added here and to `data/SOURCES.md` when
-they are bundled; neither is used today.
+UN M49 (United Nations Statistics Division, factual classification): the map's
+continent views follow the UN M49 continents and are credited on the Credits
+screen. No UN M49 file is bundled; the groupings use the `region` and
+`subregion` fields from mledoze/countries (covered by the ODbL notice above).

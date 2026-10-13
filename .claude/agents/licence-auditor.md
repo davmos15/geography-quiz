@@ -1,6 +1,7 @@
 ---
 name: licence-auditor
 description: Read-only reviewer that checks GeoQuiz assets, data files, dependencies, store copy and UI copy against the licensing and IP rules in docs/UPGRADE_PLAN.md section 5. Reports findings; never edits.
+model: sonnet
 tools: Read, Grep, Glob, Bash
 ---
 

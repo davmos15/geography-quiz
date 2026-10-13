@@ -37,6 +37,7 @@ import com.geoquiz.app.ui.components.rememberWindowLayout
 import com.geoquiz.app.ui.credits.CreditsScreen
 import com.geoquiz.app.ui.credits.OpenSourceLicencesScreen
 import com.geoquiz.app.ui.debug.DebugMenuScreen
+import com.geoquiz.app.ui.debug.MapPreviewScreen
 import com.geoquiz.app.ui.play.PlayScreen
 import com.geoquiz.app.ui.play.PlayViewModel
 import com.geoquiz.app.ui.quiz.QuizScreen
@@ -202,6 +203,12 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                 if (BuildConfig.DEBUG) {
                     composable(Screen.DebugMenu.route) {
                         DebugMenuScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onOpenMapPreview = { navController.navigate(Screen.MapPreview.route) }
+                        )
+                    }
+                    composable(Screen.MapPreview.route) {
+                        MapPreviewScreen(
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }

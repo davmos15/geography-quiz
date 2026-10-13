@@ -38,6 +38,7 @@ import com.geoquiz.app.ui.components.readableWidth
 @Composable
 fun DebugMenuScreen(
     onNavigateBack: () -> Unit,
+    onOpenMapPreview: () -> Unit = {},
     viewModel: DebugMenuViewModel = hiltViewModel()
 ) {
     val flags by viewModel.flags.collectAsStateWithLifecycle()
@@ -107,6 +108,21 @@ fun DebugMenuScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.debug_menu_reset_flags))
+                }
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.debug_menu_tools),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            item {
+                TextButton(
+                    onClick = onOpenMapPreview,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.debug_menu_map_preview))
                 }
             }
         }

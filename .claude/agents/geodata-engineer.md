@@ -1,6 +1,7 @@
 ---
 name: geodata-engineer
 description: Writes the Python build scripts in tools/geodata/ that turn Natural Earth and mledoze/countries data into compact bundled GeoQuiz assets, recording source, licence and version for every output file.
+model: sonnet
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 

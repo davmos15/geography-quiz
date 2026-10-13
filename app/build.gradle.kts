@@ -118,6 +118,8 @@ android {
                 "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
                 "--add-opens=java.base/java.io=ALL-UNNAMED"
             )
+            // Map timing assertions run only with ./gradlew testDebugUnitTest -Pgeoquiz.perf=true
+            it.systemProperty("geoquiz.perf", project.findProperty("geoquiz.perf") ?: "false")
         }
     }
 }
@@ -138,8 +140,10 @@ roborazzi {
 // runs, so debug-only builds and CI work without the key.
 val requireChallengeKeyForRelease = challengeHmacKey == null
 tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    // Copy into a local so the action doesn't capture the build script (configuration cache, D33).
+    val missingKey = requireChallengeKeyForRelease
     doFirst {
-        if (requireChallengeKeyForRelease) {
+        if (missingKey) {
             throw GradleException(
                 "No challenge link HMAC key configured for the release build. Add " +
                     "challengeHmacKey=<base64url key> to signing.properties or set the " +

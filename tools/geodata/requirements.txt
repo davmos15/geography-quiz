@@ -1,0 +1,4 @@
+# Build-time only (not shipped in the app). Installed by build_geodata.py into
+# tools/geodata/.venv with: pip install --require-hashes -r requirements.txt
+pyshp==3.1.6 \
+    --hash=sha256:be8cd9436dcbde477c63ea789f7dcdea3af19f17ea84f2744bfc12efe9145d1e

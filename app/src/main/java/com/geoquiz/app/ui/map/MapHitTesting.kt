@@ -36,6 +36,8 @@ internal fun TapZones.visibleAt(i: Int, scale: Float, density: Float): Boolean =
  * country layer drawn at the current zoom: tap zones (with the neighbour rule of [resolveTap]),
  * then polygons, else null (water). [MapHit.isMember] is filled in from this scene's own
  * [MapScene.isMember] (true with no member set, i.e. the whole world or an unrestricted layer).
+ * A hit on far-side context land ([MapScene.excluded], task 4.7: Antarctica under Asia and the
+ * like) is reported as water instead - that land isn't drawn, so there is nothing there to tap.
  * [density] is px per dp.
  */
 fun MapScene.hitTest(
@@ -55,6 +57,11 @@ fun MapScene.hitTest(
     val hit = resolveTap(
         index, if (useTapZones) zones(level) else null, state.screenToPlaneX(screenX), state.screenToPlaneY(screenY),
         zoneRadius = m.radius, alwaysMaxExtent = m.listedMax, otherMaxExtent = m.otherMax, tieDistance = m.tie,
-    )
-    return hit?.copy(isMember = isMember(hit.featureId))
+    ) ?: return null
+    val excluded = excluded(level)
+    if (excluded != null) {
+        val i = land.indexOf(hit.featureId)
+        if (i >= 0 && excluded[i]) return null
+    }
+    return hit.copy(isMember = isMember(hit.featureId))
 }

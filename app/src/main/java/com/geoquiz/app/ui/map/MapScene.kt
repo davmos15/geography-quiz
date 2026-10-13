@@ -113,6 +113,22 @@ class MapScene(
     private val coarseZones: TapZones? by lazy { coarse?.let { TapZones.build(it.projected, tapZones?.projected, includeInZones) } }
     private val detailZones: TapZones? by lazy { detail?.let { TapZones.build(it.projected, tapZones?.projected, includeInZones) } }
 
+    // Task 4.7 review fix: Antarctica (under Asia), Canada/Alaska (across Asia/Oceania's top)
+    // and the like keep a visible vertex under the azimuthal projection's 100 degree cutoff
+    // ([LambertAzimuthalEqualAreaProjection.isVisible]) and so draw whole, far past that cutoff.
+    // With a member set (a region preset), non-member land whose label point is more than
+    // [FAR_CONTEXT_MAX_DEG] from the centre is dropped from both drawing and hit testing; members
+    // are always kept. Null with no member set (World): nothing is dropped.
+    private val coarseExcluded: BooleanArray? by lazy { coarse?.let { buildExcluded(it) } }
+    private val detailExcluded: BooleanArray? by lazy { detail?.let { buildExcluded(it) } }
+
+    private fun buildExcluded(layer: MapLayerPaths): BooleanArray? {
+        if (members == null) return null
+        return BooleanArray(layer.size) { i ->
+            isFarContext(isMember(layer.ids[i]), projection.centreAngleDeg(layer.labelX[i], layer.labelY[i]))
+        }
+    }
+
     /** Whether [id] is drawn as a member (normal land) rather than context. */
     fun isMember(id: String): Boolean = members == null || id in members
 
@@ -122,7 +138,28 @@ class MapScene(
     /** Tap zones for the country layer drawn at [level]. */
     fun zones(level: MapLevel): TapZones? =
         if (level == MapLevel.DETAIL && detail != null || coarse == null) detailZones else coarseZones
+
+    /**
+     * Per-feature "drop this one" flags (see [isFarContext]) for the layer [land] draws at
+     * [level], indexed the same way; null when the scene has no member set, so nothing is
+     * dropped.
+     */
+    fun excluded(level: MapLevel): BooleanArray? =
+        if (level == MapLevel.DETAIL && detail != null || coarse == null) detailExcluded else coarseExcluded
 }
+
+/** Non-member land further than this (angular, from a region preset's centre) is far-side
+ * context rather than a neighbour worth seeing: task 4.7. */
+const val FAR_CONTEXT_MAX_DEG = 80.0
+
+/**
+ * True if non-member land at [angleDeg] from the view's centre should be dropped from drawing
+ * and hit testing. Members ([isMember] true) are never dropped, however far their label point
+ * sits (a large member can still have a far corner). Pure, so it is unit-testable without a
+ * projection or real geometry.
+ */
+fun isFarContext(isMember: Boolean, angleDeg: Double, maxDeg: Double = FAR_CONTEXT_MAX_DEG): Boolean =
+    !isMember && angleDeg > maxDeg
 
 /**
  * Process-wide cache of built paths, keyed by (layer, projection), so paths survive rotation,

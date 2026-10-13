@@ -6,12 +6,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.geoquiz.app.domain.map.EqualEarthProjection
+import com.geoquiz.app.domain.map.GeoBounds
+import com.geoquiz.app.domain.map.GeoFeature
+import com.geoquiz.app.domain.map.GeoPart
+import com.geoquiz.app.domain.map.GeoProperties
+import com.geoquiz.app.domain.map.GeoPropertyDef
+import com.geoquiz.app.domain.map.GeoPropertyType
 import com.geoquiz.app.domain.map.LambertAzimuthalEqualAreaProjection
+import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.map.MapProjection
 import com.geoquiz.app.domain.map.PlaneRect
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -123,6 +132,66 @@ class MapSceneTest {
         val hit = scene.hitTest(state, state.planeToScreenX(0.5f), state.planeToScreenY(0.5f), density = 2f, useTapZones = false)
         assertEquals("MAR", hit?.featureId)
         assertEquals(true, hit?.isMember)
+    }
+
+    // ---- Far-side context land (task 4.7 review fix): excluded() and hitTest ----
+
+    /** A tiny square centred on ([lon], [lat]) degrees (for Lambert azimuthal distance tests). */
+    private fun geoFeature(id: String, lon: Double, lat: Double): GeoFeature {
+        val d = 0.5
+        val lons = floatArrayOf((lon - d).toFloat(), (lon + d).toFloat(), (lon + d).toFloat(), (lon - d).toFloat())
+        val lats = floatArrayOf((lat - d).toFloat(), (lat - d).toFloat(), (lat + d).toFloat(), (lat + d).toFloat())
+        val schema = listOf(GeoPropertyDef("playable", GeoPropertyType.UINT8))
+        return GeoFeature(
+            id, GeoProperties(schema, arrayOf(1)),
+            GeoBounds(lon - d, lat - d, lon + d, lat + d), lon, lat, listOf(GeoPart(0, lons, lats)),
+        )
+    }
+
+    @Test
+    fun `far-side context land is excluded from drawing and hit testing, members are always kept`() = runBlocking {
+        // Centred on (0, 0): on the equator, angular distance from the centre equals longitude.
+        val member = geoFeature("MBR", lon = 130.0, lat = 0.0) // a member, past 80 degrees too
+        val close = geoFeature("CLOSE", lon = 50.0, lat = 0.0) // context, within 80 degrees
+        val far = geoFeature("FAR", lon = 100.0, lat = 0.0) // context, past 80 degrees
+        val layer = squareLayer(member, close, far)
+        // A wide maxDistanceDeg so isVisible keeps every vertex (this is about the exclusion
+        // this task adds, not about the projection's own 100 degree cull).
+        val projection = LambertAzimuthalEqualAreaProjection(0.0, 0.0, maxDistanceDeg = 175.0)
+
+        val cache = MapPathCache()
+        val land = cache.paths(layer, projection).await()
+        val scene = MapScene(projection, land, null, members = setOf("MBR"))
+
+        val excluded = scene.excluded(MapLevel.COARSE)!!
+        assertFalse("member kept past 80 degrees", excluded[land.indexOf("MBR")])
+        assertFalse("context within 80 degrees kept", excluded[land.indexOf("CLOSE")])
+        assertTrue("context past 80 degrees dropped", excluded[land.indexOf("FAR")])
+
+        val state = MapViewState().apply {
+            updateViewport(400f, 400f)
+            updateContentBounds(scene.contentBounds)
+        }
+        fun tap(id: String): MapHit? {
+            val f = land.projected.features.first { it.id == id }
+            return scene.hitTest(state, state.planeToScreenX(f.labelX), state.planeToScreenY(f.labelY), density = 2f)
+        }
+        assertEquals("MBR", tap("MBR")?.featureId)
+        assertEquals(true, tap("MBR")?.isMember)
+        assertEquals("CLOSE", tap("CLOSE")?.featureId)
+        assertEquals(false, tap("CLOSE")?.isMember)
+        assertNull("far-side context land isn't drawn, so there is nothing there to tap", tap("FAR"))
+    }
+
+    @Test
+    fun `with no member set nothing is excluded, however far`() = runBlocking {
+        val far = geoFeature("FAR", lon = 170.0, lat = 0.0)
+        val layer = squareLayer(far)
+        val projection = LambertAzimuthalEqualAreaProjection(0.0, 0.0, maxDistanceDeg = 175.0)
+        val cache = MapPathCache()
+        val land = cache.paths(layer, projection).await()
+        val scene = MapScene(projection, land, null, members = null)
+        assertEquals(null, scene.excluded(MapLevel.COARSE))
     }
 
     @Test

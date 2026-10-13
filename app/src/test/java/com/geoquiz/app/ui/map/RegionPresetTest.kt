@@ -277,6 +277,48 @@ class RegionPresetTest {
         assertTrue(problems.joinToString(), problems.isEmpty())
     }
 
+    // ---- Far-side context land (task 4.7 review fix) ----
+
+    /** Angle, in degrees, from [preset]'s centre to [id]'s label point in the 50m layer. */
+    private fun labelAngle(preset: RegionPreset, id: String): Double {
+        val projected = ProjectedLayer.build(detail, preset.projection)
+        val f = projected.features.first { it.id == id }
+        return (preset.projection as LambertAzimuthalEqualAreaProjection).centreAngleDeg(f.labelX, f.labelY)
+    }
+
+    @Test
+    fun `far-side context land is dropped from a preset's drawable and hittable set, members never are`() {
+        val asia = members.getValue(RegionPreset.ASIA)
+        val oceania = members.getValue(RegionPreset.OCEANIA)
+        assertFalse("RUS" in asia)
+        assertFalse("AUS" in asia)
+        assertFalse("ATA" in asia)
+        assertFalse("CAN" in asia)
+        assertFalse("ATA" in oceania)
+
+        // Antarctica keeps a vertex inside the 100 degree cutoff in both views (it is not
+        // culled), but its label point is well past the 80 degree context limit.
+        assertFalse(ProjectedLayer.build(detail, RegionPreset.ASIA.projection).features.first { it.id == "ATA" }.isCulled)
+        assertTrue("ATA from Asia's centre: ${labelAngle(RegionPreset.ASIA, "ATA")}", labelAngle(RegionPreset.ASIA, "ATA") > 80.0)
+        assertTrue("ATA from Oceania's centre: ${labelAngle(RegionPreset.OCEANIA, "ATA")}", labelAngle(RegionPreset.OCEANIA, "ATA") > 80.0)
+        assertTrue("CAN from Asia's centre: ${labelAngle(RegionPreset.ASIA, "CAN")}", labelAngle(RegionPreset.ASIA, "CAN") > 80.0)
+        assertTrue(isFarContext(isMember = false, angleDeg = labelAngle(RegionPreset.ASIA, "ATA")))
+        assertTrue(isFarContext(isMember = false, angleDeg = labelAngle(RegionPreset.ASIA, "CAN")))
+        assertTrue(isFarContext(isMember = false, angleDeg = labelAngle(RegionPreset.OCEANIA, "ATA")))
+
+        // RUS and AUS are context in Asia (not members) but close enough to stay as context.
+        assertFalse("RUS from Asia's centre: ${labelAngle(RegionPreset.ASIA, "RUS")}", isFarContext(isMember = false, angleDeg = labelAngle(RegionPreset.ASIA, "RUS")))
+        assertFalse("AUS from Asia's centre: ${labelAngle(RegionPreset.ASIA, "AUS")}", isFarContext(isMember = false, angleDeg = labelAngle(RegionPreset.ASIA, "AUS")))
+
+        // Every member is always kept, whatever its angle from the centre.
+        for (code in asia) assertFalse(code, isFarContext(isMember = true, angleDeg = labelAngle(RegionPreset.ASIA, code)))
+        for (code in oceania) assertFalse(code, isFarContext(isMember = true, angleDeg = labelAngle(RegionPreset.OCEANIA, code)))
+
+        // World (Equal Earth, no members) never drops anything: the default angle is 0.0.
+        assertEquals(0.0, EqualEarthProjection.centreAngleDeg(100f, 50f), 0.0)
+        assertFalse(isFarContext(isMember = false, angleDeg = EqualEarthProjection.centreAngleDeg(100f, 50f)))
+    }
+
     @Test
     fun `continent projections are azimuthal and the world is Equal Earth`() {
         assertEquals(EqualEarthProjection, RegionPreset.WORLD.projection)

@@ -36,8 +36,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.geoquiz.app.data.geo.AndroidGeoAssetSource
 import com.geoquiz.app.data.geo.AssetMapRepository
 import com.geoquiz.app.domain.map.EqualEarthProjection
+import com.geoquiz.app.domain.map.GeoBounds
+import com.geoquiz.app.domain.map.GeoFeature
 import com.geoquiz.app.domain.map.GeoLayer
 import com.geoquiz.app.domain.map.GeoLayerId
+import com.geoquiz.app.domain.map.GeoProperties
+import com.geoquiz.app.domain.map.GeometryKind
 import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.ui.theme.DarkGeoColors
@@ -438,6 +442,62 @@ class MapCanvasUiTest {
         assertTrue(marker.any { close(it, MARKER_BACKGROUND.toArgb()) })
         val tinted = pixels[(mus.x + 30).toInt(), mus.y.toInt()].toArgb()
         assertTrue("tinted, not plain water", !close(tinted, LightGeoColors.mapWater.toArgb()))
+    }
+
+    @Test
+    fun `tap zone drawing - listed always, unlisted only once it carries a state`() {
+        assertTrue(shouldDrawTapZone(listed = true, state = MapFeatureState.Default))
+        assertTrue(shouldDrawTapZone(listed = true, state = MapFeatureState.Found))
+        assertFalse(shouldDrawTapZone(listed = false, state = MapFeatureState.Default))
+        assertTrue(shouldDrawTapZone(listed = false, state = MapFeatureState.Found))
+        assertTrue(shouldDrawTapZone(listed = false, state = MapFeatureState.Wrong))
+        assertTrue(shouldDrawTapZone(listed = false, state = MapFeatureState.Highlighted))
+    }
+
+    /**
+     * Two small, well-separated squares (so neither zone's rim can land on the other's) over
+     * plane 0..100: "LISTED" (round the tap-zone layer) and "UNLISTED" (round any other small
+     * playable country).
+     */
+    private fun twoZonesScene(): MapScene {
+        val layer = squareLayer(squareFeature("UNLISTED", 16f, 24f), squareFeature("LISTED", 76f, 84f))
+        val tapLayer = GeoLayer(
+            GeoLayerId.TAP_ZONES, GeometryKind.POINT, GeoBounds(-180.0, -90.0, 180.0, 90.0), "t", emptyList(),
+            listOf(GeoFeature("LISTED", GeoProperties(emptyList(), emptyArray()), GeoBounds(80.0, -80.0, 80.0, -80.0), 80.0, -80.0, emptyList())),
+        )
+        return MapScene(
+            PlateProjection, MapLayerPaths.build(layer, PlateProjection), detail = null,
+            tapZones = MapLayerPaths.build(tapLayer, PlateProjection),
+            bounds = com.geoquiz.app.domain.map.PlaneRect(0f, 0f, 100f, 100f),
+        )
+    }
+
+    @Test
+    fun `unlisted zones are drawn only once they carry a state, so small countries don't bury the continents`() {
+        val scene = twoZonesScene()
+        val zones = scene.zones(MapLevel.COARSE)!!
+        val unlisted = zones.indexOf("UNLISTED")
+        val listed = zones.indexOf("LISTED")
+        assertFalse(zones.listed[unlisted])
+        assertTrue(zones.listed[listed])
+
+        fun rim(pixels: PixelMap, state: MapViewState, z: Int): List<Int> {
+            assertTrue(zones.visibleAt(z, state.scale, 2f))
+            val centre = Offset(state.planeToScreenX(zones.centreX[z]), state.planeToScreenY(zones.centreY[z]))
+            return (0 until 72).map { k ->
+                val a = k * Math.PI * 2 / 72
+                pixels[(centre.x + 44 * Math.cos(a)).toInt(), (centre.y + 44 * Math.sin(a)).toInt()].toArgb()
+            }
+        }
+
+        // No state on either: the listed zone's dashed rim is drawn, the unlisted one's is not.
+        val (plain, plainState) = renderFrame(scene, emptyMap(), LightGeoColors, 300, 300, density = 2f, showTapZones = true)
+        assertTrue("no dashed rim, unlisted, without a state", rim(plain, plainState, unlisted).none { close(it, LightGeoColors.mapTapZoneOutline.toArgb(), 60) })
+        assertTrue("dashed rim, listed, with no state at all", rim(plain, plainState, listed).any { close(it, LightGeoColors.mapTapZoneOutline.toArgb(), 60) })
+
+        // Found on the unlisted one: now its rim is drawn too.
+        val (found, foundState) = renderFrame(scene, mapOf("UNLISTED" to MapFeatureState.Found), LightGeoColors, 300, 300, density = 2f, showTapZones = true)
+        assertTrue("dashed rim, unlisted, once Found", rim(found, foundState, unlisted).any { close(it, LightGeoColors.mapTapZoneOutline.toArgb(), 60) })
     }
 
     @Test

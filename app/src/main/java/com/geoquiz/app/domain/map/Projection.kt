@@ -48,6 +48,18 @@ interface MapProjection {
      * rings round the rim of an azimuthal map. Everything is visible by default.
      */
     fun isVisible(lonDeg: Double, latDeg: Double): Boolean = true
+
+    /**
+     * Great-circle angle, in degrees, between this projection's centre and the point it placed
+     * at plane ([x], [y]) (already projected, [toPlane] convention). A feature kept whole by
+     * [isVisible] (one visible vertex is enough) can still have most of its shape, or its label
+     * point, far past that cutoff - draw order in [ProjectedLayer] has no notion of "how far",
+     * only "visible at all" - so a caller that wants to drop far-side *context* land from a
+     * region preset (task 4.7: Antarctica under Asia, Canada/Alaska across Asia/Oceania) needs
+     * the actual angle. Meaningful only for projections with one centre (azimuthal); others
+     * return 0.0, so a caller filtering "further than N degrees" never drops anything on them.
+     */
+    fun centreAngleDeg(x: Float, y: Float): Double = 0.0
 }
 
 /** A projected (x, y), or a (lon, lat) from [MapProjection.inverse]. */
@@ -143,6 +155,17 @@ data class LambertAzimuthalEqualAreaProjection(
         val k = if (denom <= 1e-12) 0.0 else sqrt(2 / denom)
         out[0] = if (denom <= 1e-12) 2.0 else k * cosPhi * sin(dLambda)
         out[1] = k * (cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDl)
+    }
+
+    /**
+     * The projection is equal-area and azimuthal, so plane distance from the centre (the
+     * origin) encodes the great-circle angle exactly and the same way in every direction:
+     * `rho = 2 sin(c / 2)`, inverted here. Not clamped to [maxDistanceDeg]: a vertex just inside
+     * it can leave the rest of its feature, or its label point, well past it.
+     */
+    override fun centreAngleDeg(x: Float, y: Float): Double {
+        val rho = sqrt(x.toDouble() * x.toDouble() + y.toDouble() * y.toDouble())
+        return 2 * asin(min(1.0, rho / 2)) / DEG
     }
 
     override fun inverse(x: Double, y: Double, out: DoubleArray): Boolean {

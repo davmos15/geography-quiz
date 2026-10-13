@@ -73,8 +73,13 @@ import kotlin.math.min
  *
  * Tap zones (see [com.geoquiz.app.domain.map.TapZones] and [hitTest]): small playable
  * countries get a dashed `mapTapZoneOutline` circle [TAP_ZONE_DIAMETER_DP] across at a fixed
- * on-screen size. A zone with a state is tinted with the state colour, carries the state's
- * marker at its centre (instead of the label point) and, for Highlighted, a thick solid rim.
+ * on-screen size. Hit testing is unchanged - every zone, listed or not, still catches taps - but
+ * only *drawing* the circle is restricted (task 4.7 review fix: at world fit every small
+ * country's dashed ring buried the continents), per [shouldDrawTapZone]: always for a zone
+ * listed in `tap_zones.bin` (the microstates and small islands this view always wants a target
+ * for), otherwise only once the country carries a non-[MapFeatureState.Default] state. A drawn
+ * zone with a state is tinted with the state colour, carries the state's marker at its centre
+ * (instead of the label point) and, for Highlighted, a thick solid rim.
  *
  * @param featureStates feature id to state; missing ids are [MapFeatureState.Default].
  * @param showTapZones draw tap zones (and use them for [onFeatureTap]); off for outline views.
@@ -366,6 +371,7 @@ internal fun DrawScope.drawMap(
     )
     val land = scene.land(level) ?: return
     val zones = if (showTapZones) scene.zones(level) else null
+    val excluded = scene.excluded(level)
     cache.update(scale, density)
 
     // Visible plane rectangle, for culling.
@@ -385,6 +391,7 @@ internal fun DrawScope.drawMap(
         // Land fills.
         for (i in 0 until land.size) {
             if (!land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+            if (excluded != null && excluded[i]) continue
             val featureState = featureStates[land.ids[i]] ?: MapFeatureState.Default
             val fill = when (featureState) {
                 MapFeatureState.Default -> if (land.playable[i] && scene.isMember(land.ids[i])) palette.land else palette.inactiveLand
@@ -413,13 +420,16 @@ internal fun DrawScope.drawMap(
 
         // Borders and coastlines.
         for (i in 0 until land.size) {
-            if (land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) drawPath(land.paths[i], palette.border, style = cache.border)
+            if (!land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+            if (excluded != null && excluded[i]) continue
+            drawPath(land.paths[i], palette.border, style = cache.border)
         }
 
         // Outlines and patterns for states, on top so neighbours' borders don't cover them.
         if (featureStates.isNotEmpty()) {
             for (i in 0 until land.size) {
                 if (!land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+                if (excluded != null && excluded[i]) continue
                 val featureState = featureStates[land.ids[i]] ?: continue
                 val path = land.paths[i]
                 when (featureState) {
@@ -447,11 +457,12 @@ internal fun DrawScope.drawMap(
     if (zones != null) {
         for (z in 0 until zones.size) {
             if (!zones.visibleAt(z, scale, density)) continue
+            val featureState = featureStates[zones.ids[z]] ?: MapFeatureState.Default
+            if (!shouldDrawTapZone(zones.listed[z], featureState)) continue
             val x = zones.centreX[z] * scale + offsetX
             val y = zones.centreY[z] * scale + offsetY
             if (x < -zr || y < -zr || x > size.width + zr || y > size.height + zr) continue
             val centre = Offset(x, y)
-            val featureState = featureStates[zones.ids[z]] ?: MapFeatureState.Default
             val tint = palette.fillFor(featureState)
             if (tint != null) drawCircle(tint, radius = zr, center = centre, alpha = TAP_ZONE_TINT_ALPHA)
             if (featureState == MapFeatureState.Highlighted) {
@@ -467,6 +478,7 @@ internal fun DrawScope.drawMap(
     if (featureStates.isEmpty()) return
     val r = cache.markerRadius
     for (i in 0 until land.size) {
+        if (excluded != null && excluded[i]) continue
         val featureState = featureStates[land.ids[i]] ?: continue
         if (!featureState.hasMarker) continue
         val extent = max(land.maxX[i] - land.minX[i], land.maxY[i] - land.minY[i]) * scale
@@ -484,6 +496,16 @@ internal fun DrawScope.drawMap(
 
 private val MapFeatureState.hasMarker: Boolean
     get() = this != MapFeatureState.Default && this != MapFeatureState.Highlighted
+
+/**
+ * Whether a tap zone's dashed outline (and any state tint/marker) is drawn: [listed] zones
+ * (`tap_zones.bin`, the 46 microstates and small islands) always, so they always have a visible
+ * target; any other zone only once its country carries a non-[MapFeatureState.Default] [state]
+ * (task 4.7 review fix). Hit testing does not use this: every zone still resolves taps whether
+ * or not its circle is drawn.
+ */
+internal fun shouldDrawTapZone(listed: Boolean, state: MapFeatureState): Boolean =
+    listed || state != MapFeatureState.Default
 
 /** The state fill colour, or null for Default. */
 private fun MapPalette.fillFor(state: MapFeatureState): Color? = when (state) {

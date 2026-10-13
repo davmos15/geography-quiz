@@ -73,7 +73,8 @@ class MapPreviewViewModelTest {
         )
     }
 
-    private fun previewVm(repository: MapRepository) = MapPreviewViewModel(repository, GetRegionMembersUseCase(countryRepository))
+    private fun previewVm(repository: MapRepository) =
+        MapPreviewViewModel(repository, GetRegionMembersUseCase(countryRepository), countryRepository)
 
     @Test
     fun `switching preset loads members, projection and frame`() = runTest {
@@ -187,5 +188,26 @@ class MapPreviewViewModelTest {
         val bounds = vm.australiaBounds()!!
         assertEquals(EqualEarthProjection.project(150.0, -10.0).x.toFloat(), bounds.maxX, 1e-5f)
         assertEquals(-EqualEarthProjection.project(110.0, -10.0).y.toFloat(), bounds.minY, 1e-5f)
+    }
+
+    @Test
+    fun `countries narrows to the current preset, for the task 4_6 list alternative`() = runTest {
+        val vm = previewVm(repository())
+        assertEquals(setOf("AUS", "KEN"), vm.uiState.value.countries.map { it.code }.toSet())
+
+        vm.onPresetChange(RegionPreset.OCEANIA)
+        assertEquals(listOf("AUS"), vm.uiState.value.countries.map { it.code })
+
+        vm.onPresetChange(RegionPreset.AFRICA)
+        assertEquals(listOf("KEN"), vm.uiState.value.countries.map { it.code })
+    }
+
+    @Test
+    fun `selecting a list row taps the country like a shape hit`() = runTest {
+        val vm = previewVm(repository())
+        vm.onShowDemoStatesChange(false)
+        vm.onListSelect("AUS")
+        assertEquals(MapFeatureState.Found, vm.uiState.value.featureStates["AUS"])
+        assertEquals(MapHit("AUS", isPlayable = true, viaTapZone = false), vm.uiState.value.lastHit)
     }
 }

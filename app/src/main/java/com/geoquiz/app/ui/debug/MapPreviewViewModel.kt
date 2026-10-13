@@ -13,6 +13,8 @@ import com.geoquiz.app.domain.map.PlaneRect
 import com.geoquiz.app.domain.map.RegionPreset
 import com.geoquiz.app.domain.map.frame
 import com.geoquiz.app.domain.map.planeBounds
+import com.geoquiz.app.domain.model.Country
+import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.GetRegionMembersUseCase
 import com.geoquiz.app.ui.map.MapLevelPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +31,7 @@ import javax.inject.Inject
 class MapPreviewViewModel @Inject constructor(
     private val mapRepository: MapRepository,
     private val getRegionMembers: GetRegionMembersUseCase,
+    private val countryRepository: CountryRepository,
 ) : ViewModel() {
 
     /** The current preset's projection. */
@@ -39,6 +42,11 @@ class MapPreviewViewModel @Inject constructor(
 
     init {
         viewModelScope.launch { loadLayers() }
+        viewModelScope.launch {
+            countryRepository.getAllCountries().collect { countries ->
+                _uiState.update { it.copy(allCountries = countries) }
+            }
+        }
     }
 
     private suspend fun loadLayers() {
@@ -102,6 +110,13 @@ class MapPreviewViewModel @Inject constructor(
             )
         }
     }
+
+    /**
+     * A row picked in [com.geoquiz.app.ui.map.MapListAlternative]: the same path as tapping
+     * that country's shape (task 4.6), reported as a shape hit (not via a tap zone) on a
+     * playable country.
+     */
+    fun onListSelect(code: String) = onFeatureTap(MapHit(featureId = code, isPlayable = true, viaTapZone = false))
 
     /** Plane bounds of mainland Australia (remote islands left out), or null before 50m/110m load. */
     fun australiaBounds(): PlaneRect? {
@@ -170,6 +185,8 @@ data class MapPreviewUiState(
     val members: Set<String>? = null,
     /** The preset's frame in its projection; null for the world or until members and a country layer are ready. */
     val frame: PlaneRect? = null,
+    /** Every country from [CountryRepository], for the task 4.6 list alternative; empty while loading. */
+    val allCountries: List<Country> = emptyList(),
 ) {
     /** Recomputes [frame] from the members and the most detailed country layer loaded. */
     fun withFrame(): MapPreviewUiState {
@@ -180,6 +197,10 @@ data class MapPreviewUiState(
 
     val featureStates: Map<String, MapFeatureState>
         get() = (if (showDemoStates) MapPreviewViewModel.DEMO_STATES else emptyMap()) + tapStates
+
+    /** [allCountries] narrowed to the current preset (every country for [RegionPreset.WORLD]). */
+    val countries: List<Country>
+        get() = allCountries.filter { preset.includes(it) }
 
     val isLoading: Boolean get() = coarse == null && error == null
 

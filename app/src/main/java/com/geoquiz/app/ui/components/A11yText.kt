@@ -108,6 +108,14 @@ object A11yText {
         }
         return res.getQuantityString(id, count, count)
     }
+
+    /** "12 of 46 countries found" (quantity follows the total, like [progress]); for maps (4.6). */
+    fun mapFound(res: Resources, found: Int, total: Int): String =
+        res.getQuantityString(R.plurals.a11y_map_found, total, found, total)
+
+    /** "2 wrong"; for maps (4.6). */
+    fun mapWrong(res: Resources, wrong: Int): String =
+        res.getQuantityString(R.plurals.a11y_map_wrong, wrong, wrong)
 }
 
 /** Resources for [A11yText] inside a composable. */

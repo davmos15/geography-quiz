@@ -149,6 +149,14 @@
     <string translatable="false" name="credits_url_odbl">https://opendatacommons.org/licenses/odbl/1-0/</string>
     <string translatable="false" name="credits_url_aliases">https://github.com/davmos15/geography-quiz/blob/main/data/README.md</string>
     <string translatable="false" name="credits_url_flag_icons">https://github.com/lipis/flag-icons</string>
+    <string name="credits_maps_heading">Maps</string>
+    <string name="credits_maps_body">Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.</string>
+    <string name="credits_link_natural_earth">naturalearthdata.com</string>
+    <string translatable="false" name="credits_url_natural_earth">https://www.naturalearthdata.com</string>
+    <string name="credits_regions_heading">Regions</string>
+    <string name="credits_regions_body">Regions follow the UN M49 standard country or area codes for statistical use, United Nations Statistics Division.</string>
+    <string name="credits_link_un_m49">unstats.un.org</string>
+    <string translatable="false" name="credits_url_un_m49">https://unstats.un.org/unsd/methodology/m49/</string>
 
     <!-- Open-source licences -->
     <string name="open_source_licences_title">Open-source licences</string>
@@ -212,6 +220,33 @@
         <item quantity="other">%d capitals</item>
     </plurals>
     <string name="a11y_best_score">Best score %1$d of %2$d, %3$s points</string>
+
+    <!-- Map accessibility (4.6) -->
+    <string name="a11y_map_of">Map of %1$s.</string>
+    <!-- Quantity follows the total (%2$d) -->
+    <plurals name="a11y_map_found">
+        <item quantity="one">%1$d of %2$d country found</item>
+        <item quantity="other">%1$d of %2$d countries found</item>
+    </plurals>
+    <plurals name="a11y_map_wrong">
+        <item quantity="one">%d wrong</item>
+        <item quantity="other">%d wrong</item>
+    </plurals>
+    <string name="a11y_map_zoom_in">Zoom in</string>
+    <string name="a11y_map_zoom_out">Zoom out</string>
+    <string name="a11y_map_show_whole_map">Show whole map</string>
+
+    <!-- Map list alternative (4.6): a reusable list of a map's features for TalkBack -->
+    <string name="map_list_search_label">Search countries</string>
+    <string name="map_list_no_matches">No countries match your search.</string>
+    <string name="map_list_state_found">Found</string>
+    <string name="map_list_state_wrong">Wrong</string>
+    <string name="map_list_state_highlighted">Highlighted</string>
+    <string name="map_list_state_start">Start</string>
+    <string name="map_list_state_end">End</string>
+    <string name="map_view_mode_map">Map</string>
+    <string name="map_view_mode_list">List</string>
+
     <string name="action_start_quiz">Start quiz</string>
     <string name="action_resume_quiz">Resume quiz</string>
     <string name="action_open_category">Open category</string>

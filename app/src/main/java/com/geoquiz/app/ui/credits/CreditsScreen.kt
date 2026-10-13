@@ -152,8 +152,29 @@ fun CreditsScreen(
                 )
             }
 
-            // Maps and regions: no Natural Earth or UN M49 data is bundled yet. Add a section here
-            // (with its attribution) in the phase that first ships that data.
+            CreditsSection(
+                heading = stringResource(R.string.credits_maps_heading),
+                body = stringResource(R.string.credits_maps_body)
+            ) {
+                val naturalEarthUrl = stringResource(R.string.credits_url_natural_earth)
+                LinkRow(
+                    label = stringResource(R.string.credits_link_natural_earth),
+                    onClickLabel = openInBrowserLabel,
+                    onClick = { openUrl(naturalEarthUrl) }
+                )
+            }
+
+            CreditsSection(
+                heading = stringResource(R.string.credits_regions_heading),
+                body = stringResource(R.string.credits_regions_body)
+            ) {
+                val unM49Url = stringResource(R.string.credits_url_un_m49)
+                LinkRow(
+                    label = stringResource(R.string.credits_link_un_m49),
+                    onClickLabel = openInBrowserLabel,
+                    onClick = { openUrl(unM49Url) }
+                )
+            }
 
             CreditsSection(
                 heading = stringResource(R.string.credits_fonts_heading),

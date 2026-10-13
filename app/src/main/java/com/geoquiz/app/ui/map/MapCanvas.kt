@@ -27,9 +27,14 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import com.geoquiz.app.R
 import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.ui.components.rememberReducedMotion
@@ -80,6 +85,13 @@ import kotlin.math.min
  *   `scene.projection.inverse(x, y)` gives the longitude and latitude.
  * @param doubleTapToZoom with true (default) a double tap zooms, so single taps are reported
  *   after the double-tap timeout; with false single taps are reported at once (quiz modes).
+ * @param mapContentDescription the map's one spoken description (see
+ *   [com.geoquiz.app.ui.map.mapContentDescription]), e.g. "Map of Europe. 12 of 46 countries
+ *   found, 2 wrong."; null leaves the canvas undescribed (tests, or a caller that gives TalkBack
+ *   users [MapListAlternative] instead). The canvas is one semantics node: TalkBack never reads
+ *   per-feature detail, and nothing is announced on its own (callers use their own live
+ *   regions). "Zoom in", "Zoom out" and "Show whole map" are offered as custom accessibility
+ *   actions wired to [state], animated unless reduced motion is on (task 4.6).
  */
 @Composable
 fun MapCanvas(
@@ -94,6 +106,7 @@ fun MapCanvas(
     onFeatureTap: ((hit: MapHit?) -> Unit)? = null,
     onTapProjected: ((x: Float, y: Float) -> Unit)? = null,
     doubleTapToZoom: Boolean = true,
+    mapContentDescription: String? = null,
 ) {
     val geo = MaterialTheme.geoColors
     val outline = MaterialTheme.colorScheme.onSurface
@@ -109,6 +122,9 @@ fun MapCanvas(
     val scope = rememberCoroutineScope()
     val cache = remember { MapDrawCache() }
     val stateCount = remember(featureStates) { featureStates.count { it.value != MapFeatureState.Default } }
+    val zoomInLabel = stringResource(R.string.a11y_map_zoom_in)
+    val zoomOutLabel = stringResource(R.string.a11y_map_zoom_out)
+    val showWholeMapLabel = stringResource(R.string.a11y_map_show_whole_map)
 
     // A new projection (region preset) resets the camera; fade the new map in.
     val fade = remember { Animatable(1f) }
@@ -126,7 +142,41 @@ fun MapCanvas(
             .clipToBounds()
             .graphicsLayer { alpha = fade.value }
             .onSizeChanged { state.updateViewport(it.width.toFloat(), it.height.toFloat()) }
-            .semantics { mapFeatureStateCount = stateCount }
+            .semantics {
+                mapFeatureStateCount = stateCount
+                mapContentDescription?.let { contentDescription = it }
+                customActions = listOf(
+                    CustomAccessibilityAction(zoomInLabel) {
+                        if (!state.isReady) return@CustomAccessibilityAction false
+                        scope.launch {
+                            state.zoomBy(
+                                CUSTOM_ACTION_ZOOM_FACTOR,
+                                state.viewportWidth / 2,
+                                state.viewportHeight / 2,
+                                animate = !reducedMotionState.value,
+                            )
+                        }
+                        true
+                    },
+                    CustomAccessibilityAction(zoomOutLabel) {
+                        if (!state.isReady) return@CustomAccessibilityAction false
+                        scope.launch {
+                            state.zoomBy(
+                                1f / CUSTOM_ACTION_ZOOM_FACTOR,
+                                state.viewportWidth / 2,
+                                state.viewportHeight / 2,
+                                animate = !reducedMotionState.value,
+                            )
+                        }
+                        true
+                    },
+                    CustomAccessibilityAction(showWholeMapLabel) {
+                        val bounds = state.contentBounds ?: return@CustomAccessibilityAction false
+                        scope.launch { state.fitTo(bounds, animate = !reducedMotionState.value) }
+                        true
+                    },
+                )
+            }
             .pointerInput(state) {
                 detectTransformGestures { centroid, pan, zoom, _ ->
                     state.cancelAnimation()
@@ -159,7 +209,7 @@ fun MapCanvas(
     }
 }
 
-/** Semantics for tests (not read by TalkBack; map accessibility is task 4.6). */
+/** Semantics for tests only, not read by TalkBack (see [mapContentDescription] for that). */
 val MapFeatureStateCountKey = SemanticsPropertyKey<Int>("MapFeatureStateCount")
 var SemanticsPropertyReceiver.mapFeatureStateCount by MapFeatureStateCountKey
 
@@ -179,6 +229,8 @@ private const val MARKER_GLYPH_DP = 2f
 private const val TAP_ZONE_STROKE_DP = 1.5f
 private const val PRESET_FADE_MILLIS = 250
 private const val TAP_ZONE_DASH_DP = 4f
+/** Zoom step for the "Zoom in"/"Zoom out" custom accessibility actions (task 4.6). */
+internal const val CUSTOM_ACTION_ZOOM_FACTOR = 2f
 /** Alpha of a state colour tinting the inside of a tap zone. */
 internal const val TAP_ZONE_TINT_ALPHA = 0.45f
 

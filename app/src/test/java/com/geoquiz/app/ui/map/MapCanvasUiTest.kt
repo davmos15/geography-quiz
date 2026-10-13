@@ -18,8 +18,12 @@ import androidx.compose.ui.graphics.PixelMap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.doubleClick
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -76,6 +80,7 @@ class MapCanvasUiTest {
         onTap: ((Float, Float) -> Unit)? = null,
         onFeatureTap: ((MapHit?) -> Unit)? = null,
         doubleTapToZoom: Boolean = true,
+        mapContentDescription: String? = null,
     ): GeoColors {
         val layer = coarse
         var colours: GeoColors? = null
@@ -93,6 +98,7 @@ class MapCanvasUiTest {
                             onTapProjected = onTap,
                             onFeatureTap = onFeatureTap,
                             doubleTapToZoom = doubleTapToZoom,
+                            mapContentDescription = mapContentDescription,
                         )
                     }
                 }
@@ -130,6 +136,46 @@ class MapCanvasUiTest {
         assertEquals(1f, state.zoom)
         // The world fits the 360 dp width.
         assertEquals(360f, state.contentBounds!!.width * state.scale, 1f)
+    }
+
+    @Test
+    fun `the caller's content description is the canvas's one spoken description`() {
+        val state = MapViewState()
+        showMap(state, mapContentDescription = "Map of the world. 12 of 197 countries found.")
+        compose.onNodeWithTag(TAG).assertContentDescriptionEquals("Map of the world. 12 of 197 countries found.")
+    }
+
+    @Test
+    fun `with no content description the canvas stays undescribed`() {
+        val state = MapViewState()
+        showMap(state)
+        val node = compose.onNodeWithTag(TAG).fetchSemanticsNode()
+        assertTrue(node.config.getOrNull(SemanticsProperties.ContentDescription) == null)
+    }
+
+    @Test
+    fun `zoom in, zoom out and show whole map are offered as custom accessibility actions`() {
+        val state = MapViewState()
+        showMap(state, mapContentDescription = "Map of the world.")
+        val node = compose.onNodeWithTag(TAG).fetchSemanticsNode()
+        val actions = node.config[SemanticsActions.CustomActions]
+        val labels = actions.map { it.label }
+        assertEquals(listOf("Zoom in", "Zoom out", "Show whole map"), labels)
+
+        fun invoke(label: String) {
+            actions.single { it.label == label }.action()
+            compose.mainClock.advanceTimeBy(1_000)
+            compose.waitForIdle()
+        }
+
+        invoke("Zoom in")
+        assertEquals(2f, state.zoom, 1e-3f)
+        invoke("Zoom out")
+        assertEquals(1f, state.zoom, 1e-3f)
+        invoke("Zoom in")
+        invoke("Show whole map")
+        assertEquals(1f, state.zoom, 1e-3f)
+        assertEquals(state.contentBounds!!.centreX, state.centreX, 1e-3f)
     }
 
     /**

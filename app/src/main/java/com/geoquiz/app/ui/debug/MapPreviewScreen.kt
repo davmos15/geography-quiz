@@ -29,8 +29,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -43,13 +45,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.map.GeoLayerId
 import com.geoquiz.app.ui.components.WrappingTopAppBar
+import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.rememberReducedMotion
 import com.geoquiz.app.ui.map.MapCanvas
 import com.geoquiz.app.ui.map.MapLayerPaths
 import com.geoquiz.app.ui.map.MapLevel
 import com.geoquiz.app.ui.map.MapLevelPreference
+import com.geoquiz.app.ui.map.MapListAlternative
+import com.geoquiz.app.ui.map.MapOrListToggle
 import com.geoquiz.app.ui.map.MapScene
+import com.geoquiz.app.ui.map.MapViewMode
 import com.geoquiz.app.ui.map.MapViewState
+import com.geoquiz.app.ui.map.mapContentDescription
+import com.geoquiz.app.ui.map.rememberIsTouchExplorationEnabled
 import com.geoquiz.app.ui.map.rememberMapScene
 import com.geoquiz.app.ui.map.rememberMapViewState
 import com.geoquiz.app.ui.map.resolveMapLevel
@@ -68,6 +76,11 @@ fun MapPreviewScreen(
     val scope = rememberCoroutineScope()
     val reducedMotion = rememberReducedMotion()
     val density = LocalDensity.current
+    // TalkBack (or another touch-exploration service) already on: default to the list (4.6).
+    val touchExplorationEnabled = rememberIsTouchExplorationEnabled()
+    var viewMode by rememberSaveable {
+        mutableStateOf(if (touchExplorationEnabled) MapViewMode.List else MapViewMode.Map)
+    }
     val scene = rememberMapScene(
         projection = state.preset.projection,
         coarse = state.coarse,
@@ -91,7 +104,8 @@ fun MapPreviewScreen(
                             contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                }
+                },
+                actions = { MapOrListToggle(mode = viewMode, onModeChange = { viewMode = it }) }
             )
         }
     ) { padding ->
@@ -100,7 +114,7 @@ fun MapPreviewScreen(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                if (scene != null) {
+                if (scene != null && viewMode == MapViewMode.Map) {
                     MapCanvas(
                         scene = scene,
                         state = mapState,
@@ -111,6 +125,19 @@ fun MapPreviewScreen(
                         showRivers = state.showRivers,
                         onTapProjected = viewModel::onTap,
                         onFeatureTap = viewModel::onFeatureTap,
+                        mapContentDescription = mapContentDescription(
+                            res = a11yResources(),
+                            regionLabel = stringResource(state.preset.label),
+                            featureStates = state.featureStates,
+                            total = state.countries.size,
+                        ),
+                    )
+                } else if (viewMode == MapViewMode.List) {
+                    MapListAlternative(
+                        countries = state.countries,
+                        featureStates = state.featureStates,
+                        onSelect = viewModel::onListSelect,
+                        modifier = Modifier.fillMaxSize(),
                     )
                 } else if (state.error == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

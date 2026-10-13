@@ -37,6 +37,8 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `data/borders.json`, `data/borders_report.md` (report not shipped) | mledoze/countries `borders` field, cross-checked against `app/src/main/assets/geo/admin0_50m.bin` (Natural Earth) | regenerated per change | ODbL 1.0 (derived database) | `tools/data/build_borders.py` |
 | `data/currencies.json`, `data/currencies_report.md` (report not shipped) | mledoze/countries `currencies` field, plus one short fact per code from Wikidata | regenerated per change | ODbL 1.0 (derived database); Wikidata facts are CC0 | `tools/data/build_currencies.py` |
 | `data/source/wikidata_currencies.json` (not shipped) | Wikidata SPARQL endpoint, pinned snapshot | retrieved 2026-10-13 | CC0 | `tools/data/build_currencies.py --refresh` |
+| `data/physical_features.json`, `data/physical_features_report.md` (report not shipped) | Natural Earth rivers/lakes/regions/geo-points layers already in `app/src/main/assets/geo/`, cross-checked against Wikidata | regenerated per change | Public domain (Natural Earth) and CC0 (Wikidata) -- flagged for the lead to confirm, see Details | `tools/data/build_physical_features.py` |
+| `data/source/wikidata_physical_features.json` (not shipped) | Wikidata SPARQL endpoint, pinned snapshot | retrieved 2026-10-13 | CC0 | `tools/data/build_physical_features.py --refresh` |
 | `tools/fonts/Lato-*.ttf`, `OFL.txt` | Google Fonts (google/fonts) | `5d3b761` | SIL OFL 1.1 | `tools/fonts/fetch_fonts.py` |
 | Launcher icon (`res/drawable/ic_launcher_*.xml`, `res/mipmap-anydpi-v26/`) | authored for GeoQuiz | `4694f86` | All rights reserved | none |
 | Launcher icon PNGs (`res/mipmap-*dpi/`) | 1x1 transparent placeholders (70 bytes each, no artwork) | `40a5fd3` | n/a | none |
@@ -160,6 +162,27 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Licence | CC0 (Wikidata) |
 | Transformation | `tools/data/build_currencies.py --refresh`: two SPARQL queries (`mainQuery`, `demonymQuery`, both saved verbatim in the file) -- one matching each ISO 4217 code (`P498`) used by an app country to its Wikidata item and reading `P571` inception, `P580` start time, `P1365` replaces (with its `P585` point-in-time qualifier) and `P17` country; the other reading `P1549` demonym for every country found by the first query, used only to detect when a generated fact would name the country the player is asked to guess. Not shipped; `data/currencies.json` is built from it offline. |
 | Notes | 147 codes, 1,379,799 bytes. 4 codes (`KID`, `SLL`, `TVD`, `ZWB`) have no Wikidata item with that ISO 4217 code. 3 codes (`GBP`, `INR`, `SYP`) matched more than one Wikidata item; each is disambiguated by a reviewed, commented table in the script (`QID_DISAMBIGUATION`) after checking the candidates' own labels (for example `INR`'s two matches are "Indian rupee" and "Digital Rupee", the central bank digital currency pilot -- the latter is rejected). |
+
+### `data/physical_features.json`
+
+| | |
+|---|---|
+| Source | Candidates come only from features already shipped in `app/src/main/assets/geo/rivers_50m.bin`, `lakes_50m.bin`, `regions_50m.bin` and `geo_points_50m.bin` (Natural Earth 5.1.2, public domain, decoded with `tools/geodata/geoformat.py`). Each feature's Wikidata QID is read from Natural Earth's own `wikidata` property and verified against `data/source/wikidata_physical_features.json` (CC0). |
+| Version | Regenerated whenever the map `.bin` files or the Wikidata snapshot change; `--check` mode detects drift (offline, reads only the pinned snapshot) |
+| Licence | **Public domain (Natural Earth) and CC0 (Wikidata)** -- this file is not ODbL. It carries no mledoze/countries content beyond the 197 app cca3 ids used to key the `countries` field (decision D31: that id list is not a substantial extract of mledoze's database). Flagged for the lead to confirm this call; see `data/physical_features_report.md` "Licence note for the lead". |
+| Transformation | `tools/data/build_physical_features.py`: a reviewed, commented selection table (`SELECTION`, ~40 rivers, ~30 mountain ranges/peaks, ~30 lakes, grouping Natural Earth `ne_id`s where one river or lake is split across several records) with a `QID_OVERRIDES` table for the handful of cases where Natural Earth's own `wikidata` property is missing, wrong or the wrong type, and a small curated `ALIASES_CURATED` table of common alternative English names (each checked against the Wikidata snapshot's own English alias list). `countries` is computed geometrically by testing each feature's vertices against `app/src/main/assets/geo/admin0_50m.bin`'s polygons (point-in-polygon with holes subtracted) and combined with Wikidata P17 (restricted to the app's 197): the final list is the union of the two minus a reviewed `COUNTRY_EXCLUSIONS` table (8 exclusions across 7 features, each with a reason), because a single point cannot show a peak on a border and 50m river lines stop short, while P17 sometimes lists a whole basin or an overseas territory. Every difference is listed in the report. Every QID is verified against the snapshot for an English label and for `wdt:P31/wdt:P279*` reaching the expected Wikidata class (river `Q4022`, lake `Q23397`, mountain range `Q46831`, mountain `Q8502`); the build stops if one fails. Full evidence for every decision, the layer inventory, and near-misses (well-known features not in the 50m layers) are in `data/physical_features_report.md` (not shipped, build output only). |
+| Notes | 101 features: 41 rivers, 22 mountain ranges, 8 peaks, 30 lakes, covering every inhabited continent plus Antarctica (Transantarctic Mountains, Vinson Massif -- both have an empty `countries` list, correctly: Antarctica is not one of the app's 197 countries). `--refresh` re-queries Wikidata; the default build and `--check` are offline. |
+
+### `data/source/wikidata_physical_features.json`
+
+| | |
+|---|---|
+| Source | Wikidata SPARQL endpoint, https://query.wikidata.org/sparql |
+| Retrieved | 2026-10-13 |
+| SHA-256 | `8144884cd8f1114913314a2292cd46f846e36717e54e70270bb75d1b97c58310` (of the pinned per-item data and country-ISO3 map; checked on every load) |
+| Licence | CC0 (Wikidata) |
+| Transformation | `tools/data/build_physical_features.py --refresh`: five SPARQL queries (English label + `P2044` elevation, `wdt:P31/wdt:P279*` against the four target classes, `P17` country, English `skos:altLabel` aliases, and `P298` ISO 3166-1 alpha-3 for every P17 country found; all saved verbatim in the file) against the ~100 QIDs used by `data/physical_features.json`. Reduced to a lean per-QID structure (label, elevation, instance-of classes, P17 countries, English aliases) rather than the raw SPARQL JSON. Not shipped; `data/physical_features.json` is built from it offline. |
+| Notes | 101 QIDs. Two data-quality issues found in Natural Earth's own `wikidata` property during verification (not in this snapshot's own data, but discovered using it) are documented in `data/physical_features_report.md`: a Colorado River record pointing to the Texas Colorado River's QID, and a Paraná River record pointing to an unlabelled Wikidata stub typed only as "watercourse". |
 
 ### `tools/fonts/Lato-Regular.ttf`, `tools/fonts/Lato-Bold.ttf`, `tools/fonts/OFL.txt`
 

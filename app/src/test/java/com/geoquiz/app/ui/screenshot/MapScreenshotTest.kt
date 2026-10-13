@@ -24,6 +24,7 @@ import com.geoquiz.app.domain.map.RegionPreset
 import com.geoquiz.app.domain.map.frame
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.ui.map.CountryOutline
+import com.geoquiz.app.ui.map.CountryOutlinePathCache
 import com.geoquiz.app.ui.map.MapCanvas
 import com.geoquiz.app.ui.map.MapLayerPaths
 import com.geoquiz.app.ui.map.MapListAlternative
@@ -189,6 +190,9 @@ class MapScreenshotTest {
         val outlines: List<OutlineModel> = outlineCodes.map { code ->
             requireNotNull(OutlineGeometry.build(detail, code)) { "no outline for $code" }
         }
+        // Build every outline's paths before composing: they are built on Dispatchers.Default,
+        // which Compose's idle wait doesn't track, so a slow one (RUS) could otherwise miss the capture.
+        runBlocking { outlines.forEach { CountryOutlinePathCache.Shared.paths(it, showNeighbours = true).await() } }
         return {
             Column(Modifier.fillMaxSize()) {
                 outlines.chunked(2).forEach { row ->

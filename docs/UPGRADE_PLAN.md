@@ -44,7 +44,7 @@ where you stopped, commit, and tell me to start a new session.
 | 1 | Licensing and IP compliance | Done (merged) | `upgrade/p1-licensing` | #4 |
 | 2 | Code and architecture | Done (merged) | `upgrade/p2-architecture` | #5 |
 | 3 | Game engine and UX foundation | Done – PR open | `upgrade/p3-ux-engine` | #6 |
-| 4 | Map engine and geodata pipeline | Done – PR open | `upgrade/p4-maps` | (see PR) |
+| 4 | Map engine and geodata pipeline | Done – PR open | `upgrade/p4-maps` | #7 |
 | 5 | New modes A: Silhouettes, Tap the map | Not started | `upgrade/p5-modes-a` | |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Not started | `upgrade/p6-modes-b` | |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Not started | `upgrade/p7-modes-c` | |

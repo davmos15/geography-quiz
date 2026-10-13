@@ -1,11 +1,12 @@
 # GeoQuiz data
 
-Three databases in this repository are made available under the
+Four databases in this repository are made available under the
 [Open Database License (ODbL) v1.0](https://opendatacommons.org/licenses/odbl/1-0/):
 the country database the app ships (`static.db`), the published alias table
-(`aliases.json`) and the land-border graph (`borders.json`). All three are
-Derivative Databases of
-[mledoze/countries](https://github.com/mledoze/countries).
+(`aliases.json`), the land-border graph (`borders.json`) and the currency
+data (`currencies.json`). All four are Derivative Databases of
+[mledoze/countries](https://github.com/mledoze/countries); `currencies.json`
+also includes a short fact per currency from Wikidata, under CC0.
 
 ## `static.db` (the app's built-in country database)
 
@@ -195,6 +196,43 @@ segments in the Natural Earth map layer (`app/src/main/assets/geo/admin0_50m.bin
 public domain). Every disagreement is resolved in a commented override table in
 the script; the evidence is in `data/borders_report.md`.
 `python tools/data/build_borders.py --check` detects drift.
+
+## `currencies.json`
+
+`data/currencies.json` is the currency data for the Currencies mode: one entry
+per ISO 4217 code used by an app country (name, symbol, which countries use
+it, whether it's shared), a `primaryCurrency` map of one currency per
+country, `groups` for the shared currencies that can only be asked as "which
+of these uses...", and a one-line fact per currency.
+
+### Attribution
+
+"Contains information from mledoze/countries
+(https://github.com/mledoze/countries), made available under the Open Database
+License (ODbL) v1.0." The same notice is embedded in the file. The `fact` and
+`fact_source` fields on each currency come from Wikidata, CC0, no attribution
+required.
+
+### Licence
+
+ODbL 1.0 as a whole, as a Derivative Database of mledoze/countries (its
+`currencies` field); the per-currency `fact` and `fact_source` fields are
+Wikidata data under CC0.
+
+### How it is derived
+
+`tools/data/build_currencies.py` restricts mledoze's `currencies` field to the
+197 app countries and builds one entry per code, then adds one short fact per
+code generated from a pinned Wikidata snapshot
+(`data/source/wikidata_currencies.json`). mledoze gives no signal for which
+currency is "primary" when a country lists more than one (13 countries); each
+of those choices, and every anomaly found in the source data (a non-ISO code,
+a currency obsolete in practice but still listed, a symbol mledoze disagrees
+with itself about), is resolved by an explicit, reviewed, commented override
+table in the script -- nothing is silently guessed, dropped or fixed. Full
+evidence is in `data/currencies_report.md`.
+`python tools/data/build_currencies.py --check` detects drift (offline, reads
+only the pinned snapshot); `--refresh` re-queries Wikidata first.
 
 ## Map layers (`app/src/main/assets/geo/`)
 

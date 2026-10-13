@@ -35,6 +35,8 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `data/geo/build_log.txt`, `data/geo/FORMAT.md` (not shipped) | build log generated with the map layers; format contract authored for GeoQuiz | regenerated per change | Public domain inputs; authored text All rights reserved | `tools/geodata/build_geodata.py` |
 | `data/aliases.json` | derived from `data/source/countries.json` + `alias_overrides.json` | regenerated per change | ODbL 1.0 | `tools/data/export_aliases.py` |
 | `data/borders.json`, `data/borders_report.md` (report not shipped) | mledoze/countries `borders` field, cross-checked against `app/src/main/assets/geo/admin0_50m.bin` (Natural Earth) | regenerated per change | ODbL 1.0 (derived database) | `tools/data/build_borders.py` |
+| `data/currencies.json`, `data/currencies_report.md` (report not shipped) | mledoze/countries `currencies` field, plus one short fact per code from Wikidata | regenerated per change | ODbL 1.0 (derived database); Wikidata facts are CC0 | `tools/data/build_currencies.py` |
+| `data/source/wikidata_currencies.json` (not shipped) | Wikidata SPARQL endpoint, pinned snapshot | retrieved 2026-10-13 | CC0 | `tools/data/build_currencies.py --refresh` |
 | `tools/fonts/Lato-*.ttf`, `OFL.txt` | Google Fonts (google/fonts) | `5d3b761` | SIL OFL 1.1 | `tools/fonts/fetch_fonts.py` |
 | Launcher icon (`res/drawable/ic_launcher_*.xml`, `res/mipmap-anydpi-v26/`) | authored for GeoQuiz | `4694f86` | All rights reserved | none |
 | Launcher icon PNGs (`res/mipmap-*dpi/`) | 1x1 transparent placeholders (70 bytes each, no artwork) | `40a5fd3` | n/a | none |
@@ -137,6 +139,27 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Licence | ODbL 1.0 (Derivative Database of mledoze/countries); the Natural Earth cross-check contributes no data to the graph beyond confirming/disputing mledoze's land borders, as agreed for the map layers (decision D31) |
 | Transformation | `tools/data/build_borders.py`: builds the mledoze adjacency graph for the app's 197 countries, builds a second adjacency graph from shared border segments in `admin0_50m.bin`, and resolves every disagreement between them with an explicit, reviewed, commented override table in the script (five disagreements found: Botswana-Zambia kept as the Kazungula quadripoint; Spain-Morocco kept, the Ceuta/Melilla border is too small for 50m-scale geometry; India-Sri Lanka removed, no land border exists across the Palk Strait and the mledoze entry was asymmetric; France-Brazil and France-Suriname added, real land borders via French Guiana that mledoze's France entry omits). Full evidence and the resulting BFS statistics are in `data/borders_report.md` (not shipped, build output only). |
 | Notes | 197 countries, 317 land-border edges, 40 islands (no land border in the final graph), 43 connected components (largest 153 countries, diameter 21 hops). Built for the Border hop mode (Phase 6). Feature ids are the app's cca3 codes. |
+
+### `data/currencies.json`
+
+| | |
+|---|---|
+| Source | Primary: `data/source/countries.json` (mledoze/countries, ODbL 1.0) `currencies` field, restricted to the app's 197 countries (`tools/data/export_aliases.py` `derive_countries()`). One short fact per ISO 4217 code comes from Wikidata (CC0), queried once and pinned as `data/source/wikidata_currencies.json`. |
+| Version | Regenerated whenever `data/source/countries.json` changes or the Wikidata snapshot is refreshed; `--check` mode detects drift (offline, reads only the pinned snapshot) |
+| Licence | ODbL 1.0 (Derivative Database of mledoze/countries) as a whole; the per-currency `fact` and `fact_source` fields are drawn from Wikidata under CC0 |
+| Transformation | `tools/data/build_currencies.py`: one entry per ISO 4217 code used by an app country (146 codes), with `countries` (sorted cca3), `shared` and a `group` label for currencies used by two or more app countries (the well-known unions named in the task brief -- euro, US dollar, the two CFA francs, East Caribbean dollar -- plus every other shared code found automatically, e.g. the Australian dollar, South African rand, Indian rupee). A separate `primaryCurrency` map gives one currency per country; for the 13 countries mledoze lists with more than one currency, the choice is made by an explicit, reviewed, commented override table in the script (`PRIMARY_OVERRIDES`/`PRIMARY_OVERRIDE_NOTES`), or left `null` where there's no official currency to decide between (the Palestinian territories). Zimbabwe's entry is a basket of foreign currencies (`BASKET_COUNTRIES`): only its primary currency (USD) counts as used by Zimbabwe, the others are recorded in `listedInBasketBy`, and the non-ISO `ZWB` ("Zimbabwean bonds"), which only Zimbabwe lists, is left out. Other anomalies are kept and flagged with `questionable`/`note`: two currencies obsolete in practice (Cuba's `CUC`, Sierra Leone's pre-2022 `SLL`) and three codes where mledoze gives more than one symbol (`CHF`, `EGP`, `JOD`). Every generated fact was reviewed (`FACT_REVIEW`): 20 rejected because Wikidata dates an older currency of the same name or links the wrong predecessor, 8 kept as the year only. Full evidence for every decision is in `data/currencies_report.md` (not shipped, build output only). |
+| Notes | 146 currency codes, 197 countries, 113 one-line facts (20 rejected in review, the rest have no usable Wikidata statement or no Wikidata match for their ISO code). A fact is marked `fact_reveals_country: true` (30 of the 113) when it names the demonym or label of the country the player is asked to guess, so the app can withhold it until after answering. `--refresh` re-queries Wikidata; the default build and `--check` are offline. |
+
+### `data/source/wikidata_currencies.json`
+
+| | |
+|---|---|
+| Source | Wikidata SPARQL endpoint, https://query.wikidata.org/sparql |
+| Retrieved | 2026-10-13 |
+| SHA-256 | `5c48f5dee2de8eae0ab6ec4bebda71ed420923e48aec289960bbc84d78894a35` (of the pinned `main` and `demonyms` query results; checked on every load) |
+| Licence | CC0 (Wikidata) |
+| Transformation | `tools/data/build_currencies.py --refresh`: two SPARQL queries (`mainQuery`, `demonymQuery`, both saved verbatim in the file) -- one matching each ISO 4217 code (`P498`) used by an app country to its Wikidata item and reading `P571` inception, `P580` start time, `P1365` replaces (with its `P585` point-in-time qualifier) and `P17` country; the other reading `P1549` demonym for every country found by the first query, used only to detect when a generated fact would name the country the player is asked to guess. Not shipped; `data/currencies.json` is built from it offline. |
+| Notes | 147 codes, 1,379,799 bytes. 4 codes (`KID`, `SLL`, `TVD`, `ZWB`) have no Wikidata item with that ISO 4217 code. 3 codes (`GBP`, `INR`, `SYP`) matched more than one Wikidata item; each is disambiguated by a reviewed, commented table in the script (`QID_DISAMBIGUATION`) after checking the candidates' own labels (for example `INR`'s two matches are "Indian rupee" and "Digital Rupee", the central bank digital currency pilot -- the latter is rejected). |
 
 ### `tools/fonts/Lato-Regular.ttf`, `tools/fonts/Lato-Bold.ttf`, `tools/fonts/OFL.txt`
 

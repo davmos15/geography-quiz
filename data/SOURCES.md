@@ -158,8 +158,6 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Transformation | The two scripts above; rerun after changing achievements or artwork |
 | Notes | Achievement names and descriptions come from the list in `generate_achievements_zip.py`, which duplicates `domain/model/Achievement.kt`. `AchievementsIconMappings.csv` is a byte-identical stale copy of `AchievementsIconsMappings.csv`, which is the file the script writes and puts in the ZIP. Check which name the Play Games bulk import expects before removing either. |
 
-## Planned (not yet used)
+## Credited, not bundled
 
-- UN M49 (factual classification, credited): region groupings, if adopted.
-
-Add a full entry above when it is bundled.
+- UN M49 (factual classification): the map's continent views follow the UN M49 continents and are credited on the Credits screen (since Phase 4). No UN M49 file is bundled; groupings use mledoze `region`/`subregion` in `static.db`.

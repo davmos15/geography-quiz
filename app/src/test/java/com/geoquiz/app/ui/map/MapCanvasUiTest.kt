@@ -48,6 +48,7 @@ import com.geoquiz.app.ui.theme.geoColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -176,6 +177,30 @@ class MapCanvasUiTest {
         invoke("Show whole map")
         assertEquals(1f, state.zoom, 1e-3f)
         assertEquals(state.contentBounds!!.centreX, state.centreX, 1e-3f)
+    }
+
+    @Test
+    fun `zoom out at the minimum zoom reports failure, not a silent no-op success`() {
+        val state = MapViewState()
+        showMap(state, mapContentDescription = "Map of the world.")
+        val node = compose.onNodeWithTag(TAG).fetchSemanticsNode()
+        val zoomOut = node.config[SemanticsActions.CustomActions].single { it.label == "Zoom out" }
+        // Already at zoom 1 (the minimum): nothing to do.
+        assertFalse(zoomOut.action())
+        assertEquals(1f, state.zoom, 1e-3f)
+    }
+
+    @Test
+    fun `zoom in at the maximum zoom reports failure`() {
+        val state = MapViewState(maxZoom = 2f)
+        showMap(state, mapContentDescription = "Map of the world.")
+        val node = compose.onNodeWithTag(TAG).fetchSemanticsNode()
+        val zoomIn = node.config[SemanticsActions.CustomActions].single { it.label == "Zoom in" }
+        assertTrue(zoomIn.action()) // the first zoom-in reaches max (factor 2, maxZoom 2)
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.waitForIdle()
+        assertEquals(2f, state.zoom, 1e-3f)
+        assertFalse(zoomIn.action()) // already at max
     }
 
     /**

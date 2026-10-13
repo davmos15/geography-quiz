@@ -20,6 +20,11 @@ import com.geoquiz.app.ui.components.A11yText
  * found, 2 wrong." Only [MapFeatureState.Found] and [MapFeatureState.Wrong] are counted; the
  * wrong clause is left out when nothing is wrong yet. [total] is the number of features a mode
  * is asking about (not necessarily `featureStates.size`, which only holds non-default entries).
+ *
+ * The join itself - the space after the region clause, the comma before "wrong", the full stop -
+ * lives in [R.string.a11y_map_description_found] / [R.string.a11y_map_description_found_wrong]
+ * (placeholders only), not hardcoded here, so a translation can reorder or repunctuate it. The
+ * found/wrong counts still go through their own plurals ([A11yText.mapFound], [A11yText.mapWrong]).
  */
 fun mapContentDescription(
     res: Resources,
@@ -29,9 +34,13 @@ fun mapContentDescription(
 ): String {
     val found = featureStates.values.count { it == MapFeatureState.Found }
     val wrong = featureStates.values.count { it == MapFeatureState.Wrong }
-    val wrongClause = if (wrong > 0) ", " + A11yText.mapWrong(res, wrong) else ""
     val mapOf = res.getString(R.string.a11y_map_of, regionLabel)
-    return "$mapOf ${A11yText.mapFound(res, found, total)}$wrongClause."
+    val foundClause = A11yText.mapFound(res, found, total)
+    return if (wrong > 0) {
+        res.getString(R.string.a11y_map_description_found_wrong, mapOf, foundClause, A11yText.mapWrong(res, wrong))
+    } else {
+        res.getString(R.string.a11y_map_description_found, mapOf, foundClause)
+    }
 }
 
 /**

@@ -102,6 +102,23 @@ class CountryOutlineRenderTest {
     }
 
     @Test
+    fun `overshoot past the fitted box is clipped at the box edge, not the whole canvas`() {
+        // Ring spans -0.55..0.55 in box units: past the nominal 0.5 box edge (the small overshoot
+        // OutlineGeometry allows on the long axis of an elongated country) but, scaled up, still
+        // short of the canvas's own edge. 10.5's fix clips at the padded box, not the canvas, so
+        // a pixel in the padding strip beyond the box (but inside the overshoot) must stay empty.
+        val overshoot = outline().let {
+            OutlineModel(it.cca3, it.includeRemote, it.projection, listOf(squareRing(-0.55f, 0.55f)), it.neighbours, it.frame, it.scale)
+        }
+        val pixels = render(overshoot)
+        // Canvas is 200x200, padding is 6% of 200 = 12px, so the box spans pixel 12..188. A ring
+        // corner at 0.55 * 176 (box size) = 96.8px from the 100,100 centre lands at pixel ~196.8,
+        // well past the box edge (188) but still inside the 200px canvas.
+        val pastBoxEdge = pixels[193, 100].toArgb()
+        assertTrue("past the box edge should stay transparent, not show the overshoot", (pastBoxEdge ushr 24) and 0xFF < 10)
+    }
+
+    @Test
     fun `a border is drawn round the silhouette`() {
         val pixels = render(outline())
         // The box fills the canvas (minus padding); the own ring spans -0.4..0.4 of a nominally
@@ -161,6 +178,22 @@ class CountryOutlineRenderTest {
         val node = compose.onNodeWithTag(TAG).fetchSemanticsNode()
         assertEquals(listOf("A country silhouette"), node.config[SemanticsProperties.ContentDescription])
         assertFalse(node.config.contains(SemanticsProperties.InvisibleToUser))
+    }
+
+    // ---- CountryOutlinePathCache: keyed on whether the model actually has neighbours (4.6/2) ----
+
+    @Test
+    fun `same country drawn first without neighbours then with shows neighbours`() {
+        val cache = CountryOutlinePathCache()
+        val neighbour = OutlineNeighbour("NXT", listOf(squareRing(0.42f, 0.48f)))
+
+        val withoutNeighbours = outline(neighbours = emptyList())
+        val firstPaths = kotlinx.coroutines.runBlocking { cache.paths(withoutNeighbours, showNeighbours = true).await() }
+        assertTrue("first draw has no neighbours to show", firstPaths.neighbourPaths.isEmpty())
+
+        val withNeighbours = outline(neighbours = listOf(neighbour))
+        val secondPaths = kotlinx.coroutines.runBlocking { cache.paths(withNeighbours, showNeighbours = true).await() }
+        assertEquals("second draw's model has a neighbour, so the cache must not reuse the first (neighbour-less) entry", 1, secondPaths.neighbourPaths.size)
     }
 
     private companion object {

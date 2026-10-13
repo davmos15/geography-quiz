@@ -158,7 +158,9 @@ https://www.apache.org/licenses/LICENSE-2.0. They are distributed on an "AS IS"
 basis, without warranties or conditions of any kind. The full licence texts
 and any NOTICE files are shown in the app's Open-source licences screen.
 
-## Planned sources (not used yet)
+## Classifications credited (no file bundled)
 
-Later phases plan to add UN M49 region classifications. They will be added
-here and to `data/SOURCES.md` when they are bundled.
+UN M49 (United Nations Statistics Division, factual classification): the map's
+continent views follow the UN M49 continents and are credited on the Credits
+screen. No UN M49 file is bundled; the groupings use the `region` and
+`subregion` fields from mledoze/countries (covered by the ODbL notice above).

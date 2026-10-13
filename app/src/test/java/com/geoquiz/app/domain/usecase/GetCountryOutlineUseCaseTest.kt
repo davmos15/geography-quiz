@@ -13,11 +13,14 @@ import com.geoquiz.app.domain.map.MapRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.CoroutineContext
 
 /** [GetCountryOutlineUseCase] delegates to [OutlineGeometry][com.geoquiz.app.domain.map.OutlineGeometry] on the right layer. */
 class GetCountryOutlineUseCaseTest {
@@ -66,5 +69,19 @@ class GetCountryOutlineUseCaseTest {
         val withRemote = GetCountryOutlineUseCase(repository)("FRA", includeRemote = true)
         assertEquals(true, withRemote?.includeRemote)
         assertEquals(false, withNeighbours.includeRemote)
+    }
+
+    @Test
+    fun `builds the outline on the injected dispatcher, off the caller's`() = runTest {
+        val dispatchCount = AtomicInteger(0)
+        val tracking = object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                dispatchCount.incrementAndGet()
+                block.run()
+            }
+        }
+        val outline = GetCountryOutlineUseCase(repository, tracking)("FRA")
+        assertEquals("FRA", outline?.cca3)
+        assertTrue("OutlineGeometry.build should run via withContext(defaultDispatcher)", dispatchCount.get() > 0)
     }
 }

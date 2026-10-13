@@ -131,6 +131,23 @@ class MapViewStateTest {
     }
 
     @Test
+    fun `wouldZoomChange is false exactly at the zoom limits`() {
+        // Review item 10b: a custom accessibility action should report failure, not a silent
+        // success, when it is a no-op.
+        val state = ready(maxZoom = 8f)
+        assertFalse("not ready yet", MapViewState().wouldZoomChange(2f))
+        // Starts at zoom 1, the minimum: room to zoom in, none to zoom out further.
+        assertTrue("room to zoom in from the minimum", state.wouldZoomChange(2f))
+        assertFalse("already at the minimum zoom", state.wouldZoomChange(0.5f))
+        state.snapTo(8f, 0f, 0f)
+        assertFalse("already at max zoom", state.wouldZoomChange(2f))
+        assertTrue("still room to zoom out", state.wouldZoomChange(0.5f))
+        state.snapTo(1f, 0f, 0f)
+        assertFalse("already at zoom 1", state.wouldZoomChange(0.5f))
+        assertTrue("still room to zoom in", state.wouldZoomChange(2f))
+    }
+
+    @Test
     fun `camera survives a viewport change`() {
         val state = ready()
         state.applyGesture(300f, 200f, 0f, 0f, 4f)
@@ -163,6 +180,24 @@ class MapViewStateTest {
         state.reset()
         assertEquals(1f, state.zoom)
         assertEquals(0f, state.centreX, 1e-6f)
+    }
+
+    @Test
+    fun `userMoved tracks gestures and explicit zoom actions, and clears on reset`() = runTest {
+        val state = ready()
+        assertFalse(state.userMoved)
+        state.applyGesture(200f, 200f, 0f, 0f, 2f)
+        assertTrue(state.userMoved)
+        state.reset()
+        assertFalse(state.userMoved)
+
+        state.zoomBy(2f, 200f, 200f, animate = false)
+        assertTrue(state.userMoved)
+        state.reset()
+        assertFalse(state.userMoved)
+
+        state.doubleTapZoom(200f, 200f, animate = false)
+        assertTrue(state.userMoved)
     }
 
     // ---- Animations (need a frame clock, as in a composition scope) ----
@@ -270,6 +305,41 @@ class MapViewStateTest {
         assertEquals(1f, state.zoom)
         assertEquals(0f, state.centreX, 1e-6f)
         assertEquals(400f, state.fitScale, 1e-3f)
+    }
+
+    @Test
+    fun `same key, new bounds and an untouched camera recentres on the new bounds`() {
+        // Review item 3: a region preset's frame arriving after its members load (or a preset
+        // change that happens to share a projection) narrows the bounds under the same key.
+        // Without having moved the camera, the player should see the new bounds centred, not
+        // just clamped into from wherever the old (e.g. whole-world) bounds left it.
+        val state = MapViewState()
+        state.updateViewport(400f, 400f)
+        state.updateContent(world, key = "k")
+        val narrower = PlaneRect(1f, 0f, 1.5f, 0.3f)
+        assertFalse(state.updateContent(narrower, key = "k"))
+        assertEquals(1f, state.zoom)
+        assertEquals(narrower.centreX, state.centreX, 1e-5f)
+        assertEquals(narrower.centreY, state.centreY, 1e-5f)
+    }
+
+    @Test
+    fun `same key, new bounds and a camera the player already moved is only clamped`() {
+        val state = MapViewState()
+        state.updateViewport(400f, 400f)
+        state.updateContent(world, key = "k")
+        state.applyGesture(200f, 200f, 0f, 0f, 4f) // the player pinch-zooms: userMoved becomes true
+        assertEquals(4f, state.zoom)
+        assertEquals(0f, state.centreX, 1e-5f)
+
+        val narrower = PlaneRect(1f, 0f, 1.5f, 0.3f)
+        state.updateContent(narrower, key = "k")
+        // Zoom is untouched (not reset to 1) and the centre is clamped into the new bounds, not
+        // jumped to their centre (1.25, 0.15): fit scale for 0.5 x 0.3 units in 400 x 400 px is
+        // 800 px/unit, so at zoom 4 (3200 px/unit) half the view is 0.0625 plane units.
+        assertEquals(4f, state.zoom, 1e-5f)
+        assertEquals(1.0625f, state.centreX, 1e-4f)
+        assertEquals(0.0625f, state.centreY, 1e-4f)
     }
 
     @Test

@@ -10,6 +10,13 @@ data class MapHit(
     val isPlayable: Boolean,
     /** True if a tap zone (the circle round a small country) caught the tap. */
     val viaTapZone: Boolean,
+    /**
+     * True when the id is one of the current view's members (a region preset), or the view has
+     * no member set at all (the whole world, or this layer with no region restriction). This
+     * type has no notion of a region preset itself, so it defaults to `true`; callers that do
+     * (see [com.geoquiz.app.ui.map.MapScene.hitTest]) set it from their own member set.
+     */
+    val isMember: Boolean = true,
 )
 
 /**

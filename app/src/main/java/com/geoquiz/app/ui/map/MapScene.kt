@@ -131,29 +131,55 @@ class MapScene(
  * effect (layer id, projection); the layer instance is part of the key so test fixtures with
  * the same id never collide. A build that failed or was cancelled is retried on the next
  * request. The whole world set (two country levels, lakes, rivers) is a few MB of paths.
+ *
+ * Bounded by [projectionCapacity] *projections* (not individual layer entries): switching
+ * region presets builds several layers (coarse, detail, lakes, rivers, tap zones) under one new
+ * [MapProjection] each time, so without this every preset ever visited in a session would keep
+ * its paths forever. [projectionKeys] is an access-order LRU of the projections themselves;
+ * evicting the oldest one drops every layer entry built under it. [clear] (memory pressure,
+ * tests) drops everything; there is no [android.content.ComponentCallbacks2] hook wired to call
+ * it automatically (`GeographyQuizApplication` is outside this task's files), so `onTrimMemory`
+ * does not call it yet.
  */
 class MapPathCache(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+    private val projectionCapacity: Int = 3,
 ) {
     private data class Key(val layer: GeoLayer, val projection: MapProjection)
 
-    private val entries = HashMap<Key, Deferred<MapLayerPaths>>()
+    // Named away from "entries": a Map's own `entries` property would otherwise shadow this
+    // inside projectionKeys's removeEldestEntry below (it overrides a LinkedHashMap, whose
+    // inherited `entries` is its own entry set, not this field).
+    private val builtPaths = HashMap<Key, Deferred<MapLayerPaths>>()
+
+    /** Access-order LRU of projections to the cache keys built under them; see the class doc. */
+    private val projectionKeys = object : LinkedHashMap<MapProjection, MutableSet<Key>>(4, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<MapProjection, MutableSet<Key>>): Boolean {
+            if (size <= projectionCapacity) return false
+            builtPaths.keys.removeAll(eldest.value)
+            return true
+        }
+    }
 
     /** The paths for [layer] in [projection], building them in the background on first use. */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Synchronized
     fun paths(layer: GeoLayer, projection: MapProjection): Deferred<MapLayerPaths> {
         val key = Key(layer, projection)
-        entries[key]?.let { existing ->
+        projectionKeys.getOrPut(projection) { mutableSetOf() }.add(key)
+        builtPaths[key]?.let { existing ->
             val failed = existing.isCompleted && existing.getCompletionExceptionOrNull() != null
             if (!failed) return existing
         }
-        return scope.async { MapLayerPaths.build(layer, projection) }.also { entries[key] = it }
+        return scope.async { MapLayerPaths.build(layer, projection) }.also { builtPaths[key] = it }
     }
 
     /** Drops every entry (memory pressure, tests). Running builds finish but aren't kept. */
     @Synchronized
-    fun clear() = entries.clear()
+    fun clear() {
+        builtPaths.clear()
+        projectionKeys.clear()
+    }
 
     companion object {
         /** The app's cache; also provided by Hilt (`MapModule`) so ViewModels can pre-warm it. */

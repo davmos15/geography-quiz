@@ -2,6 +2,7 @@ package com.geoquiz.app.ui.debug
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geoquiz.app.di.DefaultDispatcher
 import com.geoquiz.app.domain.map.GeoFeature
 import com.geoquiz.app.domain.map.GeoLayer
 import com.geoquiz.app.domain.map.GeoLayerId
@@ -19,11 +20,14 @@ import com.geoquiz.app.domain.usecase.GetRegionMembersUseCase
 import com.geoquiz.app.ui.map.MapLevelPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /** Debug-only map preview (task 4.2): loads the world layers and holds the toggles. */
@@ -32,6 +36,8 @@ class MapPreviewViewModel @Inject constructor(
     private val mapRepository: MapRepository,
     private val getRegionMembers: GetRegionMembersUseCase,
     private val countryRepository: CountryRepository,
+    /** Where [RegionPreset.frame] (CPU-bound: walks every member's vertices) runs; see [onPresetChange]. */
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     /** The current preset's projection. */
@@ -65,14 +71,33 @@ class MapPreviewViewModel @Inject constructor(
         }
     }
 
-    /** Switches the region preset: its members, projection and frame. */
+    /** The most recently requested preset, so a slower, superseded request's result is dropped. */
+    private var latestPresetRequest: RegionPreset = RegionPreset.WORLD
+
+    /**
+     * Switches the region preset: its members, projection and frame.
+     *
+     * Published as one state update with preset, members and frame already resolved (see
+     * [MapViewState.updateContent][com.geoquiz.app.ui.map.MapViewState.updateContent]'s doc):
+     * publishing an interim state with the new preset but a stale or null frame, followed by a
+     * second update with the real frame, let [com.geoquiz.app.ui.map.MapCanvas] see two updates
+     * under the one (new) projection key - the second only clamps the still-unmoved camera into
+     * the real frame instead of centring on it, which could clip the region. [RegionPreset.frame]
+     * itself (walking every member's vertices) runs on [defaultDispatcher], off the caller.
+     */
     fun onPresetChange(preset: RegionPreset) {
-        _uiState.update { it.copy(preset = preset, members = null, frame = null) }
-        if (preset == RegionPreset.WORLD) return
+        latestPresetRequest = preset
+        if (preset == RegionPreset.WORLD) {
+            _uiState.update { it.copy(preset = preset, members = null, frame = null) }
+            return
+        }
         viewModelScope.launch {
             val members = getRegionMembers(preset)
+            val layer = _uiState.value.detail ?: _uiState.value.coarse
+            val frame = layer?.let { l -> withContext(defaultDispatcher) { preset.frame(l, members) } }
+            if (latestPresetRequest != preset) return@launch
             _uiState.update { state ->
-                if (state.preset != preset) state else state.copy(members = members).withFrame()
+                if (latestPresetRequest != preset) state else state.copy(preset = preset, members = members, frame = frame)
             }
         }
     }

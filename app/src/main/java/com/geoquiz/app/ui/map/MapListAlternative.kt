@@ -44,9 +44,23 @@ import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
 import com.geoquiz.app.ui.theme.geoColors
+import java.text.Collator
 
 /** Which view a map screen shows; see [MapOrListToggle]. */
 enum class MapViewMode { Map, List }
+
+/** A [Country] paired with its name normalised once (see [MapListAlternative]'s search filter). */
+private data class SearchableCountry(val country: Country, val normalizedName: String)
+
+/**
+ * [countries] in a locale-aware order: [java.text.Collator], not plain UTF-16 code point order,
+ * so accented names sort where a reader expects - Côte d'Ivoire before Czechia, São Tomé and
+ * Príncipe before Saudi Arabia - instead of after every unaccented letter.
+ */
+internal fun sortCountriesForList(countries: List<Country>): List<Country> {
+    val collator = Collator.getInstance()
+    return countries.sortedWith(Comparator { a, b -> collator.compare(a.name, b.name) })
+}
 
 /**
  * A segmented "Map"/"List" switch a map screen places in its top bar's actions (task 4.6). Pair
@@ -93,10 +107,16 @@ fun MapListAlternative(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val normalize = remember { NormalizeInputUseCase() }
-    val sorted = remember(countries) { countries.sortedBy { it.name } }
+    // Locale-aware order (see [sortCountriesForList]). Each name is normalised once here, not on
+    // every keystroke, and the search filter below matches against that stored value instead of
+    // re-normalising it per query change.
+    val sorted = remember(countries) {
+        sortCountriesForList(countries).map { SearchableCountry(it, normalize(it.name)) }
+    }
     val filtered = remember(sorted, query, normalize) {
         val needle = normalize(query)
-        if (needle.isBlank()) sorted else sorted.filter { normalize(it.name).contains(needle) }
+        val matches = if (needle.isBlank()) sorted else sorted.filter { it.normalizedName.contains(needle) }
+        matches.map { it.country }
     }
 
     Column(modifier = modifier) {

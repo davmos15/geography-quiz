@@ -9,13 +9,13 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
@@ -37,9 +37,11 @@ import kotlin.math.min
  * Draws one country's silhouette from [outline] (see [com.geoquiz.app.domain.map.OutlineGeometry]):
  * the country fills [fill] (default `mapLand`) with a `mapLandBorder` outline, aspect-fit inside
  * [modifier]'s bounds with a small padding; optional faint neighbouring land ([showNeighbours])
- * fills `mapLandInactive` with a thinner border. Nothing outside the fitted box is drawn
- * (`clipToBounds`), which also catches the small overshoot [OutlineGeometry] allows on the long
- * axis of very elongated countries. Stateless and gesture-free: this is just the shape.
+ * fills `mapLandInactive` with a thinner border. Nothing outside the fitted *box* is drawn (a
+ * [clipRect] round the padded square itself, inside [drawCountryOutline] - not the whole canvas,
+ * which would let an elongated country's long-axis overshoot bleed into the padding), which also
+ * catches the small overshoot [OutlineGeometry] allows on the long axis of very elongated
+ * countries. Stateless and gesture-free: this is just the shape.
  *
  * Paths are built off the main thread from [outline]'s plain geometry and kept in a small LRU
  * (see [CountryOutlinePathCache]), keyed by (cca3, includeRemote, showNeighbours), so re-showing
@@ -71,7 +73,6 @@ fun CountryOutline(
 
     Canvas(
         modifier = modifier
-            .clipToBounds()
             .semantics {
                 if (description != null) this.contentDescription = description else invisibleToUser()
             }
@@ -83,8 +84,11 @@ fun CountryOutline(
 /**
  * The silhouette's whole frame: aspect-fit [paths] into the current [DrawScope.size] with
  * [OUTLINE_PADDING_FRACTION] padding on the shorter side, neighbours first (if [showNeighbours])
- * so the country's own outline draws over their borders. Internal so tests can render it
- * offscreen without the full Compose pipeline (see `CountryOutlineRenderTest`).
+ * so the country's own outline draws over their borders. Clipped to the fitted square itself
+ * (not the whole [DrawScope.size], which includes the padding), so a very elongated country's
+ * long-axis overshoot (see [com.geoquiz.app.domain.map.OutlineGeometry]'s class doc) is cut off
+ * at the box edge instead of bleeding into the padding. Internal so tests can render it offscreen
+ * without the full Compose pipeline (see `CountryOutlineRenderTest`).
  */
 internal fun DrawScope.drawCountryOutline(
     paths: CountryOutlinePaths,
@@ -102,18 +106,23 @@ internal fun DrawScope.drawCountryOutline(
     val ownStroke = Stroke(width = max(1f, OUTLINE_BORDER_DP * density) / boxPx)
     val neighbourStroke = Stroke(width = max(1f, OUTLINE_NEIGHBOUR_BORDER_DP * density) / boxPx)
 
-    withTransform({
-        translate(size.width / 2f, size.height / 2f)
-        scale(boxPx, boxPx, pivot = Offset.Zero)
-    }) {
-        if (showNeighbours) {
-            for (path in paths.neighbourPaths) {
-                drawPath(path, neighbourLand)
-                drawPath(path, border, style = neighbourStroke)
+    val boxLeft = (size.width - boxPx) / 2f
+    val boxTop = (size.height - boxPx) / 2f
+
+    clipRect(left = boxLeft, top = boxTop, right = boxLeft + boxPx, bottom = boxTop + boxPx) {
+        withTransform({
+            translate(size.width / 2f, size.height / 2f)
+            scale(boxPx, boxPx, pivot = Offset.Zero)
+        }) {
+            if (showNeighbours) {
+                for (path in paths.neighbourPaths) {
+                    drawPath(path, neighbourLand)
+                    drawPath(path, border, style = neighbourStroke)
+                }
             }
+            drawPath(paths.ownPath, land)
+            drawPath(paths.ownPath, border, style = ownStroke)
         }
-        drawPath(paths.ownPath, land)
-        drawPath(paths.ownPath, border, style = ownStroke)
     }
 }
 
@@ -154,9 +163,17 @@ internal class CountryOutlinePaths(
 }
 
 /**
- * A small process-wide cache of [CountryOutlinePaths], keyed by (cca3, includeRemote,
- * showNeighbours), built in the background on first use. An LRU of [capacity] entries: a quiz
- * only has a handful of silhouettes on screen or just off it at once.
+ * A small process-wide cache of [CountryOutlinePaths], keyed by (cca3, includeRemote, whether
+ * neighbours are both requested and actually present), built in the background on first use. An
+ * LRU of [capacity] entries: a quiz only has a handful of silhouettes on screen or just off it at
+ * once.
+ *
+ * The key folds in `outline.neighbours.isNotEmpty()` rather than just the caller's
+ * [showNeighbours] flag: an [OutlineModel] for the same country can be built with or without
+ * neighbour geometry (see [com.geoquiz.app.domain.map.OutlineGeometry.build]'s
+ * `includeNeighbours`), so a plain (cca3, includeRemote, showNeighbours) key would return a
+ * stale, neighbour-less cached path the first time a neighbour-less model was drawn, even once a
+ * model with neighbours came along for the same country.
  */
 internal class CountryOutlinePathCache(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
@@ -172,7 +189,8 @@ internal class CountryOutlinePathCache(
     @OptIn(ExperimentalCoroutinesApi::class)
     @Synchronized
     fun paths(outline: OutlineModel, showNeighbours: Boolean): Deferred<CountryOutlinePaths> {
-        val key = Key(outline.cca3, outline.includeRemote, showNeighbours)
+        val effectiveShowNeighbours = showNeighbours && outline.neighbours.isNotEmpty()
+        val key = Key(outline.cca3, outline.includeRemote, effectiveShowNeighbours)
         entries[key]?.let { existing ->
             val failed = existing.isCompleted && existing.getCompletionExceptionOrNull() != null
             if (!failed) return existing

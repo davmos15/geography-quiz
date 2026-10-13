@@ -14,6 +14,7 @@ import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.ui.assertTextNotClipped
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -127,5 +128,20 @@ class MapListAlternativeUiTest {
         launch(mapOf("FRA" to MapFeatureState.Found))
         compose.onNodeWithText("France", useUnmergedTree = true).assertTextNotClipped()
         compose.onNodeWithText("Found", useUnmergedTree = true).assertTextNotClipped()
+    }
+
+    // ---- sortCountriesForList (4.6/8): locale-aware order, not plain UTF-16 code points ----
+
+    @Test
+    fun `accented names sort where a reader expects, not after every unaccented letter`() {
+        val coteDIvoire = Country("CIV", "Côte d'Ivoire", "Republic of Côte d'Ivoire", "Africa", "Western Africa", 4, "Yamoussoukro")
+        val czechia = Country("CZE", "Czechia", "Czech Republic", "Europe", "Eastern Europe", 2, "Prague")
+        val saoTome = Country("STP", "São Tomé and Príncipe", "Democratic Republic of São Tomé and Príncipe", "Africa", "Middle Africa", 4, "São Tomé")
+        val saudiArabia = Country("SAU", "Saudi Arabia", "Kingdom of Saudi Arabia", "Asia", "Western Asia", 4, "Riyadh")
+
+        val sorted = sortCountriesForList(listOf(czechia, coteDIvoire, saudiArabia, saoTome)).map { it.name }
+
+        assertTrue(sorted.toString(), sorted.indexOf("Côte d'Ivoire") < sorted.indexOf("Czechia"))
+        assertTrue(sorted.toString(), sorted.indexOf("São Tomé and Príncipe") < sorted.indexOf("Saudi Arabia"))
     }
 }

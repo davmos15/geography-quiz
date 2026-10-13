@@ -274,6 +274,9 @@ class HitTestingTest {
         assertEquals(MapHit("X", isPlayable = false, viaTapZone = false), FeatureHitIndex(layer).hit(2.5f, 2.5f))
     }
 
+    // MapHit.isMember (4.6/4) is computed by MapScene.hitTest (needs real android.graphics.Path,
+    // so it is tested with Robolectric in MapSceneTest, not this plain-JVM class).
+
     @Test
     fun `hit test timing on the 50m layer`() {
         val index = FeatureHitIndex(detail)

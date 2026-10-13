@@ -256,6 +256,68 @@ class OutlineGeometryTest {
     }
 
     @Test
+    fun `neighbours of Belgium include France, the Netherlands and Germany`() {
+        // Regression for the pre-filter bug: a candidate's *whole* bounding box centre (which for
+        // France includes French Guiana and Reunion) used to be tested for visibility instead of
+        // its own non-remote parts, wrongly dropping France (and similarly the Netherlands, whose
+        // bbox centre is pulled towards its Caribbean territories) as Belgium's neighbour.
+        val bel = requireNotNull(OutlineGeometry.build(layer, "BEL"))
+        val ids = bel.neighbours.map { it.cca3 }.toSet()
+        assertTrue(ids.toString(), "FRA" in ids)
+        assertTrue(ids.toString(), "NLD" in ids)
+        assertTrue(ids.toString(), "DEU" in ids)
+    }
+
+    @Test
+    fun `neighbours of Germany include France and the Netherlands`() {
+        val deu = requireNotNull(OutlineGeometry.build(layer, "DEU"))
+        val ids = deu.neighbours.map { it.cca3 }.toSet()
+        assertTrue(ids.toString(), "FRA" in ids)
+        assertTrue(ids.toString(), "NLD" in ids)
+    }
+
+    @Test
+    fun `neighbours of Mongolia include Russia and China`() {
+        // Regression: Russia's whole-bbox centre (pulled east by Chukotka/Kaliningrad spread) used
+        // to fail the old visibility pre-filter for some neighbours.
+        val mng = requireNotNull(OutlineGeometry.build(layer, "MNG"))
+        val ids = mng.neighbours.map { it.cca3 }.toSet()
+        assertTrue(ids.toString(), "RUS" in ids)
+        assertTrue(ids.toString(), "CHN" in ids)
+    }
+
+    @Test
+    fun `neighbours of Mexico include the USA`() {
+        // Regression: the USA's whole-bbox centre (pulled west/north by Hawaii and Alaska) used
+        // to fail the old visibility pre-filter.
+        val mex = requireNotNull(OutlineGeometry.build(layer, "MEX"))
+        val ids = mex.neighbours.map { it.cca3 }.toSet()
+        assertTrue(ids.toString(), "USA" in ids)
+    }
+
+    @Test
+    fun `neighbours never produce huge bounds from antipodal land`() {
+        // Every neighbour ring, once converted back to box units, should land within a modest
+        // multiple of the box - not the tens-of-units spread an azimuthal projection gives land
+        // close to the antipode of the silhouette's own centre.
+        for (code in listOf("FRA", "BEL", "MNG", "MEX", "RUS", "NZL")) {
+            val outline = requireNotNull(OutlineGeometry.build(layer, code)) { code }
+            for (neighbour in outline.neighbours) {
+                for (ring in neighbour.rings) {
+                    var i = 0
+                    while (i < ring.points.size) {
+                        assertTrue(
+                            "$code neighbour ${neighbour.cca3} has an implausibly large coordinate ${ring.points[i]}",
+                            abs(ring.points[i]) < 50f && abs(ring.points[i + 1]) < 50f,
+                        )
+                        i += 2
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `includeNeighbours false returns no neighbours`() {
         val fra = requireNotNull(OutlineGeometry.build(layer, "FRA", includeNeighbours = false))
         assertTrue(fra.neighbours.isEmpty())

@@ -48,6 +48,84 @@ class MapSceneTest {
     }
 
     @Test
+    fun `path cache evicts the least recently used projection beyond its capacity`() = runBlocking {
+        // 4.6/7: bounded by distinct *projections*, not individual layer entries - each
+        // projection below only ever has one (coarse) entry, to keep the LRU bookkeeping
+        // visible directly through object identity of the cached Deferred.
+        val cache = MapPathCache(projectionCapacity = 2)
+        val a = LambertAzimuthalEqualAreaProjection(0.0, 0.0)
+        val b = LambertAzimuthalEqualAreaProjection(10.0, 0.0)
+        val c = LambertAzimuthalEqualAreaProjection(20.0, 0.0)
+
+        val firstA = cache.paths(coarse, a)
+        val firstB = cache.paths(coarse, b)
+        // A third distinct projection pushes A (the least recently touched) out.
+        val firstC = cache.paths(coarse, c)
+
+        // Check the still-cached projections first: re-requesting the evicted A touches the LRU
+        // again and would otherwise evict whichever of these is checked after it.
+        assertSame("B is still cached", firstB, cache.paths(coarse, b))
+        assertSame("C is still cached", firstC, cache.paths(coarse, c))
+        assertNotSame("A should have been evicted once a third projection was cached", firstA, cache.paths(coarse, a))
+    }
+
+    @Test
+    fun `touching a cached projection again keeps it from being the next eviction`() = runBlocking {
+        val cache = MapPathCache(projectionCapacity = 2)
+        val a = LambertAzimuthalEqualAreaProjection(0.0, 0.0)
+        val b = LambertAzimuthalEqualAreaProjection(10.0, 0.0)
+        val c = LambertAzimuthalEqualAreaProjection(20.0, 0.0)
+
+        val firstA = cache.paths(coarse, a)
+        val firstB = cache.paths(coarse, b)
+        // Re-touching A makes B the least recently used instead, so the next new projection
+        // evicts B, not A.
+        cache.paths(coarse, a)
+        cache.paths(coarse, c)
+
+        assertSame("A was touched again, so it should survive", firstA, cache.paths(coarse, a))
+        assertNotSame("B, now the least recently used, should have been evicted", firstB, cache.paths(coarse, b))
+    }
+
+    // ---- MapHit.isMember (4.6/4): computed by MapScene.hitTest from its own member set ----
+
+    @Test
+    fun `isMember reflects the scene's own member set, true for a member and false for context land`() = runBlocking {
+        val layer = squareLayer(squareFeature("MAR", 0f, 1f), squareFeature("FRA", 2f, 3f))
+        val cache = MapPathCache()
+        val land = cache.paths(layer, PlateProjection).await()
+        // A stand-in "Europe" preset: FRA is a member, MAR (just outside it geographically) is not.
+        val scene = MapScene(PlateProjection, land, null, members = setOf("FRA"))
+        val state = MapViewState().apply {
+            updateViewport(400f, 400f)
+            updateContentBounds(scene.contentBounds)
+        }
+
+        val morocco = scene.hitTest(state, state.planeToScreenX(0.5f), state.planeToScreenY(0.5f), density = 2f, useTapZones = false)
+        assertEquals("MAR", morocco?.featureId)
+        assertEquals(false, morocco?.isMember)
+
+        val france = scene.hitTest(state, state.planeToScreenX(2.5f), state.planeToScreenY(2.5f), density = 2f, useTapZones = false)
+        assertEquals("FRA", france?.featureId)
+        assertEquals(true, france?.isMember)
+    }
+
+    @Test
+    fun `isMember is always true with no member set`() = runBlocking {
+        val layer = squareLayer(squareFeature("MAR", 0f, 1f))
+        val cache = MapPathCache()
+        val land = cache.paths(layer, PlateProjection).await()
+        val scene = MapScene(PlateProjection, land, null, members = null)
+        val state = MapViewState().apply {
+            updateViewport(400f, 400f)
+            updateContentBounds(scene.contentBounds)
+        }
+        val hit = scene.hitTest(state, state.planeToScreenX(0.5f), state.planeToScreenY(0.5f), density = 2f, useTapZones = false)
+        assertEquals("MAR", hit?.featureId)
+        assertEquals(true, hit?.isMember)
+    }
+
+    @Test
     fun `content bounds are the union of both levels unless given`() = runBlocking {
         val cache = MapPathCache()
         val c = cache.paths(coarse, PlateProjection).await()

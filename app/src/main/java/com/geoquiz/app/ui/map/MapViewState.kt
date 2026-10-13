@@ -67,6 +67,17 @@ class MapViewState(
     /** Identifies the plane the camera is in (the projection); see [updateContent]. */
     private var contentKey: Any? = null
 
+    /**
+     * True once a gesture or an explicit zoom action ([applyGesture], [panBy], [zoomBy],
+     * [doubleTapZoom]) has moved the camera away from wherever it was last auto-fitted. Cleared
+     * by [reset] and by [updateContent] itself whenever it re-centres the camera (a key change,
+     * or - while this is false - a bounds change under the same key; see its doc). While this is
+     * true, a bounds change under the same key only clamps the camera instead of re-centring it,
+     * so a player's own pan/zoom is never yanked back.
+     */
+    var userMoved: Boolean = false
+        private set
+
     /** Pixels per plane unit at zoom 1; 0 until the viewport and content are known. */
     val fitScale: Float
         get() = fitScale(contentBounds, viewportWidth, viewportHeight)
@@ -112,19 +123,33 @@ class MapViewState(
      * the old camera means nothing in the new plane, so it resets to zoom 1 on the content
      * centre and this returns true. A camera restored by [saver] keeps its position (the
      * first key after a restore is accepted as is).
+     *
+     * If [key] is unchanged but [bounds] has (e.g. a region preset's frame arriving once its
+     * members load, or a preset change under one shared projection), the camera re-centres on
+     * the new bounds the same way - *unless* [userMoved] is already true, in which case it is
+     * only clamped into the new bounds. Without this, a camera the player hasn't touched since
+     * the last reset would otherwise just get clamped to a much smaller new frame instead of
+     * being centred on it, which can clip the region (task 4.6, review item 3).
      */
     fun updateContent(bounds: PlaneRect, key: Any?, panMarginFraction: Float = 0f): Boolean {
         val previous = contentKey
+        val firstCall = previous == null
         contentKey = key
         this.panMarginFraction = panMarginFraction
-        val reset = previous != null && key != previous
-        if (reset) {
+        val reset = !firstCall && key != previous
+        val boundsChanged = bounds != contentBounds
+        // A restored camera (see [saver]) is accepted as is on its first call, whatever the
+        // bounds; after that, a bounds change under an unchanged key re-centres too, unless the
+        // player has already moved the camera themselves.
+        val recentre = reset || (!firstCall && boundsChanged && !userMoved)
+        if (recentre) {
             cancelAnimation()
+            userMoved = false
             zoom = 1f
             centreX = bounds.centreX
             centreY = bounds.centreY
         }
-        if (bounds != contentBounds) {
+        if (boundsChanged) {
             updateContentBounds(bounds)
         } else {
             clampCamera()
@@ -138,6 +163,7 @@ class MapViewState(
      */
     fun applyGesture(focusX: Float, focusY: Float, panX: Float, panY: Float, zoomFactor: Float) {
         if (!isReady) return
+        userMoved = true
         val oldScale = scale
         val focusPlaneX = centreX + (focusX - viewportWidth / 2) / oldScale
         val focusPlaneY = centreY + (focusY - viewportHeight / 2) / oldScale
@@ -161,6 +187,7 @@ class MapViewState(
     /** Back to zoom 1 on the content centre. */
     fun reset() {
         val content = contentBounds ?: return
+        userMoved = false
         snapTo(1f, content.centreX, content.centreY)
     }
 
@@ -194,11 +221,20 @@ class MapViewState(
     }
 
     /**
+     * Whether [zoomBy]([factor], ...) would actually change the zoom: false already at [maxZoom]
+     * zooming in, or already at zoom 1 zooming out. Synchronous and side-effect free, so a
+     * caller like a custom accessibility action can decide whether to report success without
+     * launching a coroutine first (task 4.6, review item 10b).
+     */
+    fun wouldZoomChange(factor: Float): Boolean = isReady && (zoom * factor).coerceIn(1f, maxZoom) != zoom
+
+    /**
      * Zooms by [factor] about the screen point ([focusX], [focusY]), animated unless [animate]
      * is false. Same calling rules as [fitTo].
      */
     suspend fun zoomBy(factor: Float, focusX: Float, focusY: Float, animate: Boolean = true) {
         if (!isReady) return
+        userMoved = true
         if (!animate) {
             runInterruptible { applyGesture(focusX, focusY, 0f, 0f, factor) }
             return
@@ -224,6 +260,7 @@ class MapViewState(
      */
     suspend fun doubleTapZoom(focusX: Float, focusY: Float, animate: Boolean = true) {
         if (!isReady) return
+        userMoved = true
         if (zoom >= maxZoom * (1f - 1e-4f)) {
             val content = contentBounds ?: return
             val target = Camera(1f, content.centreX, content.centreY)

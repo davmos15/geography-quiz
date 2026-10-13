@@ -23,6 +23,7 @@ import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.ui.map.MapLevelPreference
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -73,8 +74,11 @@ class MapPreviewViewModelTest {
         )
     }
 
-    private fun previewVm(repository: MapRepository) =
-        MapPreviewViewModel(repository, GetRegionMembersUseCase(countryRepository), countryRepository)
+    // Frame computation (4.6/3) runs on an injected dispatcher; Unconfined keeps it synchronous
+    // here, same as MainDispatcherRule does for Dispatchers.Main/viewModelScope.
+    private fun previewVm(repository: MapRepository) = MapPreviewViewModel(
+        repository, GetRegionMembersUseCase(countryRepository), countryRepository, UnconfinedTestDispatcher(),
+    )
 
     @Test
     fun `switching preset loads members, projection and frame`() = runTest {

@@ -313,17 +313,24 @@ object OutlineGeometry {
 
     /**
      * Other features in [layer] whose own plane-space bounding box overlaps [frame] (geometry
-     * only; see the class doc). A feature whose geographic bounding box centre is already
-     * outside [projection]'s visibility cutoff is skipped before it is projected, both as a
-     * cheap pre-filter and to avoid the huge (but finite) bounding boxes an azimuthal projection
-     * gives land near its antipode.
+     * only; see the class doc). Only the candidate's non-remote parts are considered (unless
+     * every part is remote), and each part is kept only if at least one of its own vertices
+     * passes [projection]'s visibility cutoff - the same per-part rule [ProjectedLayer.build]
+     * uses, rather than the centre of the candidate's *whole* bounding box (which can include
+     * remote territory far from the part that is actually near [frame], e.g. France's overseas
+     * regions, and wrongly skip an otherwise-visible neighbour). Candidates with no visible part
+     * are skipped, which also keeps the huge (but finite) bounding boxes an azimuthal projection
+     * gives land near its antipode out of the overlap test.
      */
     private fun findNeighbours(layer: GeoLayer, excludeId: String, projection: MapProjection, frame: PlaneRect): List<GeoFeature> {
         val result = mutableListOf<GeoFeature>()
         for (candidate in layer.features) {
             if (candidate.id == excludeId) continue
-            if (!projection.isVisible(candidate.bbox.centreLon, candidate.bbox.centreLat)) continue
-            val bounds = projection.planeBounds(candidate, includeRemote = false)
+            val candidateAllRemote = candidate.parts.all { it.isRemote }
+            val candidateParts = if (candidateAllRemote) candidate.parts else candidate.parts.filter { !it.isRemote }
+            if (candidateParts.isEmpty()) continue
+            val rings = projectParts(candidateParts, projection)
+            val bounds = boundsOf(rings) ?: continue
             if (frame.intersects(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY)) result += candidate
         }
         return result

@@ -147,7 +147,7 @@ fun MapCanvas(
                 mapContentDescription?.let { contentDescription = it }
                 customActions = listOf(
                     CustomAccessibilityAction(zoomInLabel) {
-                        if (!state.isReady) return@CustomAccessibilityAction false
+                        if (!state.wouldZoomChange(CUSTOM_ACTION_ZOOM_FACTOR)) return@CustomAccessibilityAction false
                         scope.launch {
                             state.zoomBy(
                                 CUSTOM_ACTION_ZOOM_FACTOR,
@@ -159,7 +159,7 @@ fun MapCanvas(
                         true
                     },
                     CustomAccessibilityAction(zoomOutLabel) {
-                        if (!state.isReady) return@CustomAccessibilityAction false
+                        if (!state.wouldZoomChange(1f / CUSTOM_ACTION_ZOOM_FACTOR)) return@CustomAccessibilityAction false
                         scope.launch {
                             state.zoomBy(
                                 1f / CUSTOM_ACTION_ZOOM_FACTOR,
@@ -472,7 +472,7 @@ internal fun DrawScope.drawMap(
         val extent = max(land.maxX[i] - land.minX[i], land.maxY[i] - land.minY[i]) * scale
         if (extent < cache.markerMinExtent) continue
         if (zones != null) {
-            val z = zones.indexOf(land.ids[i])
+            val z = zones.zoneOf(i)
             if (z >= 0 && zones.visibleAt(z, scale, density)) continue
         }
         val x = land.labelX[i] * scale + offsetX

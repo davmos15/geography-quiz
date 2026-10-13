@@ -232,6 +232,9 @@
         <item quantity="one">%d wrong</item>
         <item quantity="other">%d wrong</item>
     </plurals>
+    <!-- Whole map description (mapContentDescription): %1$s is a11y_map_of, %2$s a11y_map_found, %3$s a11y_map_wrong. -->
+    <string name="a11y_map_description_found">%1$s %2$s.</string>
+    <string name="a11y_map_description_found_wrong">%1$s %2$s, %3$s.</string>
     <string name="a11y_map_zoom_in">Zoom in</string>
     <string name="a11y_map_zoom_out">Zoom out</string>
     <string name="a11y_map_show_whole_map">Show whole map</string>

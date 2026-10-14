@@ -645,4 +645,64 @@ class TapMapGameViewModelTest {
         private const val SEED = 11L
         private const val MIN_FRAME_CLAMP_FACTOR = 5
     }
+
+    // --- Verification-review fixes (task 5.2a) ---------------------------------------------
+
+    @Test
+    fun `easy - backgrounding during a pick's feedback still moves on after resuming`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
+        val first = requireNotNull(vm.active().quizState.choice)
+
+        vm.onChoiceSelected(first.targetCode)
+        runCurrent()
+        vm.onBackgrounded()
+        advanceBy(TapMapGameViewModel.CHOICE_FEEDBACK_MILLIS)
+        vm.togglePause()
+        runCurrent()
+
+        val state = vm.active().quizState
+        assertEquals(null, state.choiceFeedback)
+        val next = requireNotNull(state.choice)
+        assertTrue(next.targetCode != first.targetCode)
+    }
+
+    private fun reachHardLimit(vm: TapMapGameViewModel, wrong: String) {
+        repeat(2) {
+            vm.onFeatureTap(MapHit(featureId = wrong, isPlayable = true, viaTapZone = false))
+            advanceBy(TapMapGameViewModel.WRONG_FLASH_MILLIS)
+        }
+        // Third strike: its game over is still pending.
+        vm.onFeatureTap(MapHit(featureId = wrong, isPlayable = true, viaTapZone = false))
+        runCurrent()
+    }
+
+    @Test
+    fun `hard - skip in the window after the third strike ends the round`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
+        val order = expectedOrder(europe, SEED)
+        reachHardLimit(vm, order[1])
+        assertFalse(vm.active().quizState.isComplete)
+
+        vm.onSkip()
+        runCurrent()
+
+        val qs = vm.active().quizState
+        assertTrue(qs.isComplete)
+        assertEquals(3, qs.incorrectGuesses)
+        // Skip did not mark the prompt missed on top of ending the round.
+        assertFalse(order[0] in qs.missedCountries)
+    }
+
+    @Test
+    fun `hard - a round restored after its third strike comes back finished`() {
+        val handle = routeHandle(difficulty = Difficulty.HARD)
+        val vm = viewModel(handle)
+        val order = expectedOrder(europe, SEED)
+        reachHardLimit(vm, order[1])
+
+        val restored = viewModel(afterProcessDeath(handle))
+        runCurrent()
+
+        assertTrue(restored.active().quizState.isComplete)
+    }
 }

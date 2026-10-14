@@ -99,13 +99,13 @@ data class SilhouetteState(
 
     /**
      * This mode's hint set ([SilhouettesGameMode.SPEC]), minus Show region when [category] is
-     * already a region or subregion filter: the player chose it, so the hint would give nothing
-     * away (task 5.1 review nit).
+     * already a subregion filter: the hint reveals the subregion, which the player chose, so it
+     * would give nothing away. On a region (continent) round it still narrows the answer down.
      */
     val availableHints: Set<HintType>
         get() {
             val all = SilhouettesGameMode.SPEC.hintTypes
-            return if (category is QuizCategory.ByRegion || category is QuizCategory.BySubregion) {
+            return if (category is QuizCategory.BySubregion) {
                 all - HintType.SHOW_REGION
             } else {
                 all

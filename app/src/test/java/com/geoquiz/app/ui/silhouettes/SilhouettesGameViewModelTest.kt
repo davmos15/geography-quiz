@@ -512,14 +512,22 @@ class SilhouettesGameViewModelTest {
     }
 
     @Test
-    fun `Show region is hidden for a region or subregion round`() {
+    fun `Show region (the subregion) is hidden on a subregion round`() {
         val mode = silhouettesMode(listOf(france))
-        val vm = viewModel(routeHandle(categoryType = "region", categoryValue = "Europe"), mode)
+        val vm = viewModel(routeHandle(categoryType = "subregion", categoryValue = "Western Europe"), mode)
 
         assertFalse(HintType.SHOW_REGION in vm.active().availableHints)
 
         vm.onHint(HintType.SHOW_REGION)
         assertTrue("a hidden hint can't be used", vm.active().hintsUsed.isEmpty())
+    }
+
+    @Test
+    fun `Show region is still offered on a continent round, where the subregion narrows it`() {
+        val mode = silhouettesMode(listOf(france))
+        val vm = viewModel(routeHandle(categoryType = "region", categoryValue = "Europe"), mode)
+
+        assertTrue(HintType.SHOW_REGION in vm.active().availableHints)
     }
 
     @Test

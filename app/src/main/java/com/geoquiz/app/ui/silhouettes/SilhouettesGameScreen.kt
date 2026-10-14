@@ -2,6 +2,7 @@
 
 package com.geoquiz.app.ui.silhouettes
 
+import androidx.activity.compose.BackHandler
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -128,13 +129,17 @@ fun SilhouettesGameScreen(
     }
 
     var showGiveUpDialog by remember { mutableStateOf(false) }
+    // Back during a round asks first, like Tap the map (D39): there is no resume save (D37), so
+    // leaving would throw the round away unrecorded.
+    val roundInProgress = (uiState as? SilhouettesUiState.Active)?.state?.isComplete == false
+    BackHandler(enabled = roundInProgress) { showGiveUpDialog = true }
 
     Scaffold(
         topBar = {
             WrappingTopAppBar(
                 title = stringResource(R.string.mode_silhouettes_name),
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = { if (roundInProgress) showGiveUpDialog = true else onNavigateBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }

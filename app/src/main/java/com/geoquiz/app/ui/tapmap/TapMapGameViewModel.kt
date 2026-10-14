@@ -182,6 +182,10 @@ class TapMapGameViewModel @Inject constructor(
             // happen) completes immediately instead of soft-locking with no target and no way
             // to finish.
             items.isEmpty() -> state.copy(quizState = state.quizState.copy(isComplete = true, isPaused = false))
+            // Restored in the window between a third Hard strike and its game over (D36): the
+            // round is over, whatever the pending flash would have done.
+            hardLimitReached(state.quizState) && !state.quizState.isComplete ->
+                state.copy(quizState = state.quizState.copy(isComplete = true, isPaused = false))
             // A fresh round, or a snapshot saved mid-transition: put a prompt on screen.
             !state.quizState.isComplete && state.targetCode == null -> nextPrompt(state)
             else -> state
@@ -416,7 +420,10 @@ class TapMapGameViewModel @Inject constructor(
     private fun advanceAfterChoiceFeedback() {
         val active = activeOrNull() ?: return
         val qs = active.state.quizState
-        if (qs.choiceFeedback == null || qs.isComplete || qs.isPaused) return
+        // Advances even while paused (backgrounded mid-feedback): the pick is already recorded,
+        // and skipping this would leave the options disabled after Resume with no way on (Easy
+        // has no Skip, D39).
+        if (qs.choiceFeedback == null || qs.isComplete) return
         publish(nextPrompt(active.state.copy(quizState = qs.copy(choiceFeedback = null))))
         finishQuizIfComplete()
     }
@@ -431,6 +438,9 @@ class TapMapGameViewModel @Inject constructor(
         val state = active.state
         val qs = state.quizState
         if (qs.isComplete || qs.isPaused || state.revealedCode != null || qs.choiceFeedback != null) return
+        // Hard's third strike is already counted: end the round now rather than letting Skip
+        // cancel the pending game over (D36).
+        if (hardLimitReached(qs)) return endRound(state)
         val target = state.targetCode ?: return
         flashJob?.cancel()
         revealJob?.cancel()
@@ -449,6 +459,7 @@ class TapMapGameViewModel @Inject constructor(
         val qs = state.quizState
         if (qs.isComplete || qs.isPaused || state.hintUsedThisPrompt) return
         if (state.revealedCode != null || qs.choiceFeedback != null) return
+        if (hardLimitReached(qs)) return
         val targetCode = state.targetCode ?: return
         val target = itemsByCode[targetCode] ?: allCountries.find { it.code == targetCode } ?: return
         val mates = allCountries.filter { it.subregion == target.subregion }
@@ -502,6 +513,25 @@ class TapMapGameViewModel @Inject constructor(
     }
 
     private fun activeOrNull(): TapMapUiState.Active? = _uiState.value as? TapMapUiState.Active
+
+    /** Hard only: the strike limit has been reached (the round is over, or about to be). */
+    private fun hardLimitReached(qs: QuizState): Boolean =
+        _difficulty.value == Difficulty.HARD &&
+            qs.incorrectGuesses >= (Difficulty.HARD.strikeLimit ?: HARD_STRIKE_LIMIT_FALLBACK)
+
+    private fun endRound(state: TapMapGameState) {
+        flashJob?.cancel()
+        revealJob?.cancel()
+        hintJob?.cancel()
+        publish(
+            state.copy(
+                wrongFlashCode = null,
+                wrongFlashName = null,
+                quizState = state.quizState.copy(isComplete = true, isPaused = false)
+            )
+        )
+        finishQuizIfComplete()
+    }
 
     private fun publish(state: TapMapGameState) {
         _uiState.value = TapMapUiState.Active(state)

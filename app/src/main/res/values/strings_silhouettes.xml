@@ -63,7 +63,7 @@
 
     <string name="silhouettes_hints_cost_points">Hints cost points</string>
     <string name="silhouettes_hint_show_region">Show region (%1$.2f points)</string>
-    <string name="silhouettes_hint_show_region_revealed">Region: %1$s</string>
+    <string name="silhouettes_hint_show_region_revealed">Subregion: %1$s</string>
     <string name="silhouettes_hint_first_letter">First letter (%1$.2f points)</string>
     <string name="silhouettes_hint_first_letter_revealed">First letter: %1$s</string>
     <string name="silhouettes_hint_show_neighbours">Show neighbours (%1$.2f points)</string>

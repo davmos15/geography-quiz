@@ -201,9 +201,14 @@ class SilhouettesGameViewModel @Inject constructor(
 
     private fun activeState(): SilhouetteState? = (_uiState.value as? SilhouettesUiState.Active)?.state
 
-    /** Commits [state], always as a genuinely new value (even if every field repeats): see [SilhouetteState.feedbackToken]. */
-    private fun commit(state: SilhouetteState) {
-        val stamped = state.copy(feedbackToken = state.feedbackToken + 1)
+    /**
+     * Commits [state]. [announce] bumps [SilhouetteState.feedbackToken] so the feedback banner's
+     * live region speaks again: by default only when the feedback itself changed, and forced by
+     * answers whose feedback can repeat word for word ("Not recognised" twice). Pauses, hints and
+     * keystrokes never re-announce the last answer (task 5.1 verification nit).
+     */
+    private fun commit(state: SilhouetteState, announce: Boolean = state.feedback != activeState()?.feedback) {
+        val stamped = if (announce) state.copy(feedbackToken = state.feedbackToken + 1) else state
         _uiState.value = SilhouettesUiState.Active(stamped)
         syncTimer(stamped)
         savedState.save(stamped, quizTimer.snapshot())
@@ -253,11 +258,11 @@ class SilhouettesGameViewModel @Inject constructor(
                     }
                 }
                 AnswerResult.NearMiss -> {
-                    commit(latest.copy(feedback = SilhouetteFeedback.NearMiss))
+                    commit(latest.copy(feedback = SilhouetteFeedback.NearMiss), announce = true)
                     _feedbackEvents.tryEmit(AnswerFeedbackEvent.NEAR_MISS)
                 }
                 AnswerResult.Incorrect, AnswerResult.AlreadyAnswered -> {
-                    commit(latest.copy(feedback = SilhouetteFeedback.NotRecognised))
+                    commit(latest.copy(feedback = SilhouetteFeedback.NotRecognised), announce = true)
                 }
                 AnswerResult.None -> Unit
             }
@@ -286,7 +291,13 @@ class SilhouettesGameViewModel @Inject constructor(
      * [REVEAL_DELAY_MILLIS] before the round's result is published (task 5.1 review, S4).
      */
     private fun onWrongCountryGuess(state: SilhouetteState, target: Country, name: String, code: String) {
-        val alreadyGuessed = code.isNotEmpty() && code in state.wrongGuessCodesForCurrent
+        // An alias that maps to no single country has a blank code: de-duplicate it by name, so
+        // repeating the same unresolved guess never costs a second life (verification nit).
+        val alreadyGuessed = if (code.isNotEmpty()) {
+            code in state.wrongGuessCodesForCurrent
+        } else {
+            state.wrongGuessNamesForCurrent.any { it.equals(name, ignoreCase = true) }
+        }
         val newIncorrectGuesses = if (alreadyGuessed) state.incorrectGuesses else state.incorrectGuesses + 1
         val livesAfter = (SilhouetteState.MAX_LIVES - newIncorrectGuesses).coerceAtLeast(0)
         val updated = if (alreadyGuessed) {
@@ -305,7 +316,7 @@ class SilhouettesGameViewModel @Inject constructor(
             endRoundLivesExhausted(updated.copy(feedback = SilhouetteFeedback.LivesExhausted(name, target.name)))
             return
         }
-        commit(updated)
+        commit(updated, announce = true)
         if (!alreadyGuessed) _feedbackEvents.tryEmit(AnswerFeedbackEvent.INCORRECT)
     }
 

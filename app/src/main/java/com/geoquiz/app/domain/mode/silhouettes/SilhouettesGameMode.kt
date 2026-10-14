@@ -4,12 +4,14 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.AnswerType
 import com.geoquiz.app.domain.mode.AnswerValidator
 import com.geoquiz.app.domain.mode.ChoiceQuestionGenerator
-import com.geoquiz.app.domain.mode.CountriesChoiceGenerator
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeSpec
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.HintType
 import com.geoquiz.app.domain.mode.ModeIcon
 import com.geoquiz.app.domain.mode.ModeLabels
+import com.geoquiz.app.domain.mode.QuestionGenerator
+import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.ScoringRule
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
 import com.geoquiz.app.domain.model.Difficulty
@@ -20,21 +22,30 @@ import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import javax.inject.Inject
 
 /**
- * Country silhouettes (task 5.1 builds the real screen; this registers the mode so shared
- * plumbing - results, history, routes - works end to end). An outline is shown and the player
- * types every country's name in the set, exactly like Countries at Normal and Hard; Easy is
- * multiple choice. Task 5.1 replaces [generator] and [choiceGenerator] with ones that draw from
- * the map outlines; for now it reuses the Countries behaviour so the [GameMode] contract is met.
+ * Country silhouettes (task 5.1): an outline is shown and the player types the country's name
+ * (Normal/Hard, typos allowed at Normal, D12) or picks one of four options (Easy,
+ * [SilhouettesChoiceGenerator]); 3 lives (D34) and placeholder hint costs (D37,
+ * [HintCosts.applyTo]) apply. [generator] is [SilhouettesQuestionGenerator]: 15 random countries
+ * from the category's filter (fewer if smaller), or a practice set's exact codes in order. The
+ * typed validator is unchanged from Countries ([ValidateAnswerUseCase] over the whole country
+ * list): `ui/silhouettes/SilhouettesGameViewModel.kt` judges one answer at a time by checking
+ * which country (if any) the result names against the silhouette on screen.
+ *
+ * [countriesQuestionGenerator] (every country matching the category, unchanged constructor shape
+ * for `testutil/TestGameModes.kt`) is this mode's filter; [quizRandom] defaults to
+ * [QuizRandom.random]'s production randomness, seeded only in tests.
  */
 class SilhouettesGameMode @Inject constructor(
-    override val generator: CountriesQuestionGenerator,
+    countriesQuestionGenerator: CountriesQuestionGenerator,
     validateAnswer: ValidateAnswerUseCase,
-    calculateScore: CalculateScoreUseCase
+    calculateScore: CalculateScoreUseCase,
+    quizRandom: QuizRandom = QuizRandom()
 ) : GameMode {
     override val spec: GameModeSpec = SPEC
+    override val generator: QuestionGenerator = SilhouettesQuestionGenerator(countriesQuestionGenerator, quizRandom)
     override val validator = AnswerValidator { input, state, allowFuzzy -> validateAnswer(input, state, allowFuzzy) }
-    override val scoring = ScoringRule { state -> calculateScore(state) }
-    override val choiceGenerator: ChoiceQuestionGenerator = CountriesChoiceGenerator
+    override val scoring = ScoringRule { state -> HintCosts.applyTo(calculateScore(state), state.hintsUsed) }
+    override val choiceGenerator: ChoiceQuestionGenerator = SilhouettesChoiceGenerator
 
     /**
      * Silhouettes offers the same categories as outlines make sense for: every country, region

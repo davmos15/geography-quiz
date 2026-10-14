@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Country silhouettes (task 5.1 owns the rest of this mode's strings). Australian spelling.
-  Never name another game or app.
+  Country silhouettes (task 5.1). Australian spelling. Never name another game or app.
 -->
 <resources>
+    <!-- Mode spec (domain/mode/silhouettes/SilhouettesGameMode.kt) -->
     <string name="mode_silhouettes_name">Country silhouettes</string>
     <string name="mode_silhouettes_input_label">Enter a country name</string>
     <string name="mode_silhouettes_items">countries</string>
@@ -14,7 +14,60 @@
         <item quantity="one">%1$d of %2$d country named</item>
         <item quantity="other">%1$d of %2$d countries named</item>
     </plurals>
-    <!-- Task 5.0 stand-in screens, replaced by the real picker and game screen in task 5.1. -->
-    <string name="mode_silhouettes_placeholder_coming_soon">Coming soon</string>
-    <string name="mode_silhouettes_placeholder_start_all_countries">Start (all countries)</string>
+
+    <!-- Setup screen (ui/silhouettes/SilhouettesSetupScreen.kt) -->
+    <string name="silhouettes_setup_intro">Choose a filter. A round asks about up to 15 countries from it.</string>
+    <string name="silhouettes_filter_all_countries">All countries</string>
+    <string name="silhouettes_filter_by_region">By region</string>
+    <string name="silhouettes_filter_by_subregion">By subregion</string>
+    <string name="silhouettes_filter_starting_letter">Starting letter</string>
+    <string name="silhouettes_filter_ending_letter">Ending letter</string>
+    <string name="silhouettes_filter_containing_letter">Containing letter</string>
+    <string name="silhouettes_filter_islands">Islands</string>
+    <string name="silhouettes_expand_section">Expand this section</string>
+    <string name="silhouettes_collapse_section">Collapse this section</string>
+    <string name="silhouettes_start_action">Start round</string>
+    <plurals name="silhouettes_filter_country_count">
+        <item quantity="one">%1$d country</item>
+        <item quantity="other">%1$d countries</item>
+    </plurals>
+
+    <!-- Game screen (ui/silhouettes/SilhouettesGameScreen.kt, SilhouettesGameComponents.kt) -->
+    <!-- Visible header, e.g. "3 of 15". -->
+    <string name="silhouettes_progress">%1$d of %2$d</string>
+    <!-- Spoken description of the same header, e.g. "Silhouette 3 of 15". -->
+    <string name="silhouettes_a11y_progress">Silhouette %1$d of %2$d</string>
+    <plurals name="silhouettes_lives_left">
+        <item quantity="one">%1$d life left</item>
+        <item quantity="other">%1$d lives left</item>
+    </plurals>
+    <string name="silhouettes_pass">Pass</string>
+    <string name="silhouettes_guessed_so_far_title">Guessed so far</string>
+    <!-- Easy: the outline itself is the question; this stands in for the hidden "Which of these
+         fits…" prompt text (MultipleChoicePanel's showPrompt = false). -->
+    <string name="silhouettes_prompt_which_country">Which country is this?</string>
+    <!-- A fallback shown instead of an endless spinner if the outline fails to load. -->
+    <string name="silhouettes_outline_unavailable">Outline unavailable</string>
+
+    <string name="silhouettes_feedback_correct">%1$s – Correct!</string>
+    <!-- Quantity follows lives left (%2$d) after this guess. -->
+    <plurals name="silhouettes_feedback_wrong_country">
+        <item quantity="one">%1$s is a country, but not this one. %2$d life left</item>
+        <item quantity="other">%1$s is a country, but not this one. %2$d lives left</item>
+    </plurals>
+    <!-- Lives just ran out on this guess: no "lives left", the reveal underneath says it all. -->
+    <string name="silhouettes_feedback_wrong_country_last">%1$s is a country, but not this one.</string>
+    <string name="silhouettes_feedback_near_miss">Close – check the spelling</string>
+    <string name="silhouettes_feedback_not_recognised">Not recognised. Try again!</string>
+    <string name="silhouettes_feedback_revealed">This was %1$s</string>
+
+    <string name="silhouettes_hints_cost_points">Hints cost points</string>
+    <string name="silhouettes_hint_show_region">Show region (%1$.2f points)</string>
+    <string name="silhouettes_hint_show_region_revealed">Region: %1$s</string>
+    <string name="silhouettes_hint_first_letter">First letter (%1$.2f points)</string>
+    <string name="silhouettes_hint_first_letter_revealed">First letter: %1$s</string>
+    <string name="silhouettes_hint_show_neighbours">Show neighbours (%1$.2f points)</string>
+    <!-- D38: names the land neighbours too, sorted, so the hint helps a screen-reader user as well. -->
+    <string name="silhouettes_hint_show_neighbours_revealed">Neighbours: %1$s</string>
+    <string name="silhouettes_hint_no_neighbours">No land neighbours</string>
 </resources>

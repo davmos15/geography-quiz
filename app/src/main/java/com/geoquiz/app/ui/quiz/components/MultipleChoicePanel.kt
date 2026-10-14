@@ -58,6 +58,9 @@ private enum class OptionLook { NEUTRAL, CORRECT, WRONG, DIMMED }
  *
  * [motion] (3.3) pulses the feedback line after a correct pick and shakes it after a wrong one;
  * null, or reduced motion, keeps it still.
+ *
+ * [showPrompt] false leaves out the prompt card, for modes that show the question themselves
+ * (a silhouette, a highlighted country on a map) above the options.
  */
 @Composable
 fun MultipleChoicePanel(
@@ -66,13 +69,14 @@ fun MultipleChoicePanel(
     enabled: Boolean,
     onSelect: (code: String) -> Unit,
     modifier: Modifier = Modifier,
-    motion: FeedbackMotion? = null
+    motion: FeedbackMotion? = null,
+    showPrompt: Boolean = true
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        PromptCard(question.prompt)
+        if (showPrompt) PromptCard(question.prompt)
         question.options.forEach { option ->
             val look = when {
                 feedback == null -> OptionLook.NEUTRAL

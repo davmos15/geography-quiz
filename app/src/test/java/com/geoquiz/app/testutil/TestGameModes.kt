@@ -6,6 +6,7 @@ import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.mode.ModeIcon
 import com.geoquiz.app.domain.mode.QuestionGenerator
+import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.ScoringRule
 import com.geoquiz.app.domain.mode.classic.CapitalsGameMode
 import com.geoquiz.app.domain.mode.classic.CapitalsQuestionGenerator
@@ -15,6 +16,7 @@ import com.geoquiz.app.domain.mode.classic.FlagsGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsQuestionGenerator
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
+import com.geoquiz.app.domain.mode.tapmap.TapMapQuestionGenerator
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
@@ -74,11 +76,11 @@ object TestGameModes {
     /** The real [TapMapGameMode], wired to the given use cases (strict mocks by default). */
     fun tapMap(
         getCountriesForQuiz: GetCountriesForQuizUseCase = mockk(),
-        getCountriesForFlagQuiz: GetCountriesForFlagQuizUseCase = mockk(),
         validateAnswer: ValidateAnswerUseCase = mockk(),
-        calculateScore: CalculateScoreUseCase = CalculateScoreUseCase()
+        calculateScore: CalculateScoreUseCase = CalculateScoreUseCase(),
+        quizRandom: QuizRandom = QuizRandom()
     ): GameMode = TapMapGameMode(
-        CountriesQuestionGenerator(getCountriesForQuiz, getCountriesForFlagQuiz),
+        TapMapQuestionGenerator(getCountriesForQuiz, quizRandom),
         validateAnswer,
         calculateScore
     )

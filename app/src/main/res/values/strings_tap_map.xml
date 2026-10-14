@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Tap the map (task 5.2 owns the rest of this mode's strings). Australian spelling. Never name
-  another game or app.
+  Tap the map (task 5.2). Australian spelling. Never name another game or app.
 -->
 <resources>
     <string name="mode_tap_map_name">Tap the map</string>
@@ -9,12 +8,34 @@
     <string name="mode_tap_map_items">countries</string>
     <string name="mode_tap_map_paused_progress">%1$d / %2$d countries found</string>
     <string name="mode_tap_map_give_up">You\'ve found %1$d of %2$d countries. Are you sure?</string>
-    <!-- Quantity follows the total (%2$d), like a11y_progress_countries. -->
+    <!-- Quantity follows the total (%2$d), like a11y_progress_countries. Also used as the on-screen progress text. -->
     <plurals name="a11y_progress_tap_map">
         <item quantity="one">%1$d of %2$d country found</item>
         <item quantity="other">%1$d of %2$d countries found</item>
     </plurals>
-    <!-- Task 5.0 stand-in screens, replaced by the real picker and game screen in task 5.2. -->
-    <string name="mode_tap_map_placeholder_coming_soon">Coming soon</string>
-    <string name="mode_tap_map_placeholder_start_world">Start (world)</string>
+
+    <!-- Setup screen: region picker, difficulty (shared difficulty_title/DifficultySelector), start. -->
+    <string name="mode_tap_map_setup_region_title">Region</string>
+    <string name="mode_tap_map_setup_start">Start</string>
+
+    <!-- Game screen: prompt card ("Find: France"), Easy heading, controls. -->
+    <string name="mode_tap_map_prompt">Find: %1$s</string>
+    <string name="mode_tap_map_easy_heading">Which country is highlighted?</string>
+    <!-- D39: shown above the four names for everyone at Easy (also a TalkBack-only clue, since
+         there is no map/list toggle or list at Easy to mark the answer). -->
+    <string name="mode_tap_map_easy_subregion_clue">Highlighted country is in %1$s</string>
+    <string name="mode_tap_map_skip">Skip</string>
+    <string name="mode_tap_map_hint">Hint</string>
+    <string name="a11y_tap_map_hint">Hint: briefly highlight nearby countries</string>
+    <string name="a11y_tap_map_hint_used">Hint already used for this country</string>
+    <!-- Hard tier status row: a short on-screen strike label (S4); the full wording is its
+         content description (a11y_hard_mode_strikes, in strings.xml). -->
+    <string name="mode_tap_map_strikes_short">%1$d/%2$d strikes</string>
+    <!-- Nit: shown instead of an endless spinner if the map's layers fail to load. -->
+    <string name="mode_tap_map_map_error">Couldn\'t load the map. Try again later.</string>
+
+    <!-- Normal/Hard tap feedback, shown as text and read by a polite live region (D36: never
+         colour alone). Easy's pick feedback uses MultipleChoicePanel's own (choice_feedback_*). -->
+    <string name="mode_tap_map_wrong_tap_feedback">That\'s %1$s.</string>
+    <string name="mode_tap_map_missed_feedback">Missed it — that was %1$s.</string>
 </resources>

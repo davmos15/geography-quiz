@@ -76,6 +76,82 @@ class GameModeRegistryTest {
     }
 
     @Test
+    fun `silhouettes and tap_map are registered with their own icon, answer type and hints`() {
+        val withNew = GameModeRegistry(registry.all.toSet() + TestGameModes.silhouettes() + TestGameModes.tapMap())
+
+        val silhouettes = withNew.require("silhouettes")
+        assertEquals(ModeIcon.SILHOUETTE, silhouettes.spec.icon)
+        assertEquals(AnswerType.TYPED_NAME, silhouettes.spec.answerType)
+        assertEquals(
+            setOf(HintType.SHOW_REGION, HintType.FIRST_LETTER, HintType.SHOW_NEIGHBOURS),
+            silhouettes.spec.hintTypes
+        )
+        assertEquals(FeatureFlag.COUNTRY_SILHOUETTES, silhouettes.spec.featureFlag)
+
+        val tapMap = withNew.require("tap_map")
+        assertEquals(ModeIcon.MAP_PIN, tapMap.spec.icon)
+        assertEquals(AnswerType.MAP_TAP, tapMap.spec.answerType)
+        assertEquals(setOf(HintType.FLASH_REGION), tapMap.spec.hintTypes)
+        assertEquals(FeatureFlag.TAP_THE_MAP, tapMap.spec.featureFlag)
+
+        // Hidden until their own flag is on; classic modes are unaffected either way.
+        assertEquals(3, withNew.available { false }.size)
+        assertEquals(4, withNew.available { it == FeatureFlag.COUNTRY_SILHOUETTES }.size)
+        assertEquals(5, withNew.available { true }.size)
+        assertEquals(QuizMode.entries.map { it.id }, withNew.classic.map { it.id })
+    }
+
+    @Test
+    fun `silhouettes offers names, regions, letters and islands, not flags or capitals`() {
+        val silhouettes = TestGameModes.silhouettes()
+
+        assertTrue(silhouettes.offers(QuizCategory.AllCountries))
+        assertTrue(silhouettes.offers(QuizCategory.ByRegion("Africa")))
+        assertTrue(silhouettes.offers(QuizCategory.BySubregion("South America")))
+        assertTrue(silhouettes.offers(QuizCategory.StartingWithLetter('A')))
+        assertTrue(silhouettes.offers(QuizCategory.EndingWithLetter('A')))
+        assertTrue(silhouettes.offers(QuizCategory.ContainingLetter('A')))
+        assertTrue(silhouettes.offers(QuizCategory.IslandCountries))
+        assertTrue(silhouettes.offers(QuizCategory.Practice(listOf("FRA"))))
+        assertTrue(!silhouettes.offers(QuizCategory.FlagSingleColor("red")))
+        assertTrue(!silhouettes.offers(QuizCategory.CapitalMatchesCountry))
+        assertTrue(!silhouettes.offers(QuizCategory.DoubleLetter))
+    }
+
+    @Test
+    fun `tap_map offers every region preset and practice, not letters, flags or region, subregion`() {
+        val tapMap = TestGameModes.tapMap()
+
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("world")))
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("africa")))
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("asia")))
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("europe")))
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("oceania")))
+        // North America spans three subregions, which is exactly why MapRegion exists.
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("north_america")))
+        assertTrue(tapMap.offers(QuizCategory.MapRegion("south_america")))
+        assertTrue(tapMap.offers(QuizCategory.Practice(listOf("FRA"))))
+        assertTrue(!tapMap.offers(QuizCategory.MapRegion("atlantis")))
+        assertTrue(!tapMap.offers(QuizCategory.AllCountries))
+        assertTrue(!tapMap.offers(QuizCategory.ByRegion("Africa")))
+        assertTrue(!tapMap.offers(QuizCategory.BySubregion("North America")))
+        assertTrue(!tapMap.offers(QuizCategory.StartingWithLetter('A')))
+        assertTrue(!tapMap.offers(QuizCategory.FlagSingleColor("red")))
+    }
+
+    @Test
+    fun `the classic offers default matches QuizCategory isOfferedIn`() {
+        for (mode in registry.classic) {
+            val quizMode = QuizMode.entries.first { it.id == mode.id }
+            assertEquals(QuizCategory.AllCountries.isOfferedIn(quizMode), mode.offers(QuizCategory.AllCountries))
+            assertEquals(
+                QuizCategory.FlagSingleColor("red").isOfferedIn(quizMode),
+                mode.offers(QuizCategory.FlagSingleColor("red"))
+            )
+        }
+    }
+
+    @Test
     fun `registering two modes with the same id fails`() {
         val duplicate = fakeMode("countries", featureFlag = null, sortOrder = 5)
         val error = runCatching { GameModeRegistry(registry.all.toSet() + duplicate) }.exceptionOrNull()

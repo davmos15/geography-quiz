@@ -41,7 +41,13 @@ data class CompletedQuiz(
      * [Achievement.id]s this quiz unlocked, so Results can show them (also after process death).
      * Records from before 3.5b have none. Use [newAchievements] rather than this.
      */
-    val newAchievementIds: List<String> = emptyList()
+    val newAchievementIds: List<String> = emptyList(),
+    /**
+     * Tap the map's variant id ("find" or "name_all", `TapMapGameMode`), so "Play again" and
+     * "Practise the ones you missed" (`ModeRoutes`) replay the same variant. Null for every other
+     * mode. Added in task 5.0; older records read as null (serialisation-compatible).
+     */
+    val variantId: String? = null
 ) {
     /** The tier the quiz was played at. */
     val difficulty: Difficulty
@@ -51,8 +57,9 @@ data class CompletedQuiz(
     val newAchievements: List<Achievement>
         get() = newAchievementIds.mapNotNull { id -> Achievement.entries.firstOrNull { it.id == id } }
 
-    val quizMode: QuizMode
-        get() = QuizMode.fromId(quizModeId)
+    /** This result's classic [QuizMode], or null for a new (non-classic) mode. Never falls back. */
+    val classicModeOrNull: QuizMode?
+        get() = QuizMode.fromIdOrNull(quizModeId)
 
     val category: QuizCategory
         get() = QuizCategory.fromRoute(categoryType, categoryValue)

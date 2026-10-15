@@ -1,5 +1,7 @@
 package com.geoquiz.app.domain.model
 
+import com.geoquiz.app.domain.map.RegionPreset
+
 sealed class QuizCategory {
     data object AllCountries : QuizCategory()
     data class StartingWithLetter(val letter: Char) : QuizCategory()
@@ -29,6 +31,19 @@ sealed class QuizCategory {
     data class FlagColorCombo(val colors: List<String>) : QuizCategory()
     data class FlagColorCount(val count: Int) : QuizCategory()
     data class FlagElement(val element: String) : QuizCategory()
+
+    /**
+     * World or one continent (task 5.2, Tap the map): [presetId] is a
+     * [com.geoquiz.app.domain.map.RegionPreset.id]. No existing category type can express every
+     * preset ([ByRegion]/[BySubregion] are each one of the app's regions or subregions, but North
+     * America is three subregions), so this is its own type. Never offered in a classic mode
+     * ([isOfferedIn] is always false for it): Tap the map is the only mode that offers it
+     * ([com.geoquiz.app.domain.mode.tapmap.TapMapGameMode.offers]) and the only one that resolves
+     * it to countries, via [com.geoquiz.app.domain.usecase.GetRegionMembersUseCase] (also used by
+     * [com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase], which the mode's generator
+     * reuses, task 5.0).
+     */
+    data class MapRegion(val presetId: String) : QuizCategory()
 
     /**
      * "Practise the ones you missed" (3.5c): exactly these items, in this order. [codes] are
@@ -78,6 +93,9 @@ sealed class QuizCategory {
             is FlagColorCombo -> "Only " + colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
             is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
             is FlagElement -> ELEMENT_DISPLAY_NAMES[element] ?: element.replaceFirstChar { it.uppercase() }
+            // "world" -> "World", "north_america" -> "North America": matches region_world etc.
+            // in strings.xml (no Android resource dependency here, same as every other name above).
+            is MapRegion -> presetId.split('_').joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
             // Same text as R.string.practice_quiz_title, which Results shows instead.
             is Practice -> "Practise your misses"
         }
@@ -129,6 +147,7 @@ sealed class QuizCategory {
             is FlagColorCombo -> "flagcombo"
             is FlagColorCount -> "flagcount"
             is FlagElement -> "flagelement"
+            is MapRegion -> "map_region"
             is Practice -> Practice.TYPE_KEY
         }
 
@@ -160,6 +179,7 @@ sealed class QuizCategory {
             is FlagColorCombo -> colors.sorted().joinToString("+")
             is FlagColorCount -> count.toString()
             is FlagElement -> element
+            is MapRegion -> presetId
             // Quiz order, not sorted.
             is Practice -> Practice.routeValue(codes)
         }
@@ -211,6 +231,7 @@ sealed class QuizCategory {
                 "flagcombo" -> FlagColorCombo(value.split("+").sorted())
                 "flagcount" -> value.toIntOrNull()?.let { FlagColorCount(it) } ?: AllCountries
                 "flagelement" -> FlagElement(value)
+                "map_region" -> RegionPreset.fromId(value)?.let { MapRegion(value) } ?: AllCountries
                 Practice.TYPE_KEY -> Practice.parseCodes(value).takeIf { it.isNotEmpty() }
                     ?.let { Practice(it) } ?: AllCountries
                 else -> AllCountries
@@ -283,6 +304,9 @@ sealed class QuizCategory {
                     ?.takeIf { it in 1..MAX_FLAG_COLOURS }
                     ?.let { FlagColorCount(it) }
                 "flagelement" -> if (ELEMENT_VALUE.matches(value)) FlagElement(value) else null
+                // Tap the map resolves this itself (GetRegionMembersUseCase); never a challenge
+                // link, same as Practice below, since a classic mode never offers it (D35).
+                "map_region" -> if (RegionPreset.fromId(value) != null) MapRegion(value) else null
                 // A practice set is the player's own misses: never something to send to a friend.
                 Practice.TYPE_KEY -> null
                 else -> null
@@ -306,9 +330,14 @@ sealed class QuizCategory {
         get() = this is FlagSingleColor || this is FlagColorCombo ||
             this is FlagColorCount || this is FlagElement
 
-    /** Whether the app offers this category in [mode]; challenge links must match. */
+    /**
+     * Whether the app offers this category in a classic [mode]; challenge links and pins must
+     * match. Always false for [MapRegion]: it is never offered in a classic mode (only Tap the
+     * map's own setup screen offers it, via [com.geoquiz.app.domain.mode.GameMode.offers], D35).
+     */
     fun isOfferedIn(mode: QuizMode): Boolean = when {
         this is Practice -> false
+        this is MapRegion -> false
         isFlagCategory -> mode == QuizMode.FLAGS
         this is CapitalMatchesCountry -> mode == QuizMode.CAPITALS
         else -> mode == QuizMode.COUNTRIES || mode == QuizMode.CAPITALS

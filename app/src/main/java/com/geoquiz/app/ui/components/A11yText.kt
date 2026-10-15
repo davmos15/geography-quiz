@@ -88,9 +88,12 @@ object A11yText {
         }
     }
 
-    /** One answer review row: "Brazil, missed", "Brasília, capital of Brazil, answered". */
-    fun reviewRow(res: Resources, mode: QuizMode, country: Country, isAnswered: Boolean): String {
-        val label = if (mode == QuizMode.CAPITALS) {
+    /**
+     * One answer review row: "Brazil, missed", "Brasília, capital of Brazil, answered".
+     * [isCapitals] is true only for Capitals; every other mode, classic or new, reads the name.
+     */
+    fun reviewRow(res: Resources, isCapitals: Boolean, country: Country, isAnswered: Boolean): String {
+        val label = if (isCapitals) {
             res.getString(R.string.a11y_capital_of, country.capital, country.name)
         } else {
             country.name

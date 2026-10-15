@@ -3,6 +3,7 @@ package com.geoquiz.app.data.local.db
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.geoquiz.app.di.DatabaseModule
+import com.geoquiz.app.domain.model.QuizMode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -41,6 +42,9 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
         @JvmStatic
         @Parameters(name = "from version {0}")
         fun versions(): List<Array<Any>> = listOf(1, 4, 5, 6, 7, 8, 9, 10, 11).map { arrayOf(it) }
+
+        /** New modes (Silhouettes, Tap the map, ...) are excluded from the "Overall" total (D35). */
+        private val CLASSIC_MODE_IDS: List<String> = QuizMode.entries.map { it.id }
 
         private val STATIC_TABLES =
             listOf("countries", "aliases", "capital_aliases", "flag_colors", "flag_elements")
@@ -226,7 +230,7 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
         )
         assertEquals(150L, database.quizHistoryDao().getTotalCorrectAnswersForModeSync("countries"))
         // Old rows count as Normal, so they still count for leaderboards.
-        assertEquals(160L, database.quizHistoryDao().getTotalCorrectAnswersSync())
+        assertEquals(160L, database.quizHistoryDao().getTotalCorrectAnswersSync(CLASSIC_MODE_IDS))
         val mastery = database.quizHistoryDao().observeMasteryRowsForMode("flags").first()
         assertEquals(listOf(QuizMasteryRow("flag_color", "red", "normal", 10, 10)), mastery)
     }
@@ -257,7 +261,7 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
     @Test
     fun `easy rows never count towards leaderboard totals`() = runBlocking {
         val dao = database.quizHistoryDao()
-        val before = dao.getTotalCorrectAnswersSync()
+        val before = dao.getTotalCorrectAnswersSync(CLASSIC_MODE_IDS)
         val beforeCapitals = dao.getTotalCorrectAnswersForModeSync("capitals")
         fun row(difficulty: String, correct: Int) = QuizHistoryEntity(
             quizMode = "capitals", categoryType = "region", categoryValue = "Asia",
@@ -269,7 +273,7 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
         dao.insertQuizResult(row("normal", 7))
         dao.insertQuizResult(row("hard", 5))
 
-        assertEquals(before + 12, dao.getTotalCorrectAnswersSync())
+        assertEquals(before + 12, dao.getTotalCorrectAnswersSync(CLASSIC_MODE_IDS))
         assertEquals(beforeCapitals + 12, dao.getTotalCorrectAnswersForModeSync("capitals"))
     }
 }

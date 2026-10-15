@@ -4,6 +4,7 @@ import com.geoquiz.app.data.local.db.QuizBestScore
 import com.geoquiz.app.data.local.db.QuizHistoryDao
 import com.geoquiz.app.data.local.db.QuizHistoryEntity
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.usecase.MasteryAttempt
 import com.geoquiz.app.domain.usecase.MasteryStars
 import kotlinx.coroutines.flow.Flow
@@ -98,9 +99,12 @@ class QuizHistoryRepository @Inject constructor(
             rows.map { categoryKey(it.categoryType, it.categoryValue) }
         }
 
-    /** Leaderboard total over Normal and Hard quizzes; Easy never counts (D16). */
+    /**
+     * Leaderboard total over Normal and Hard quizzes of the classic modes only; Easy never counts
+     * (D16) and new modes never submit leaderboard scores (D35).
+     */
     suspend fun getTotalCorrectAnswersSync(): Long =
-        quizHistoryDao.getTotalCorrectAnswersSync()
+        quizHistoryDao.getTotalCorrectAnswersSync(CLASSIC_MODE_IDS)
 
     /** Leaderboard total for one mode over Normal and Hard quizzes; Easy never counts (D16). */
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long =
@@ -111,5 +115,8 @@ class QuizHistoryRepository @Inject constructor(
     companion object {
         /** Key used by [masteryStarsForMode] and [bestScoresForMode]. */
         fun categoryKey(categoryType: String, categoryValue: String): String = "$categoryType|$categoryValue"
+
+        /** The classic mode ids, for [getTotalCorrectAnswersSync]'s "Overall" leaderboard total (D35). */
+        private val CLASSIC_MODE_IDS: List<String> = QuizMode.entries.map { it.id }
     }
 }

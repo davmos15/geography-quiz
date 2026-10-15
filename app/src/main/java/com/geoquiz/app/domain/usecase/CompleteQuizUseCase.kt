@@ -19,13 +19,16 @@ import javax.inject.Inject
 
 /**
  * Finishes a quiz: scores it with its mode's scoring rule, saves the [CompletedQuiz] that Results and Answer review read,
- * clears the "Resume quiz" save (except after a practice quiz), and records achievements,
- * history and leaderboard scores.
+ * clears the "Resume quiz" save (classic modes only, after a recorded quiz), and records
+ * achievements, history and leaderboard scores.
  *
  * Easy quizzes are recorded in history (so they show in stats and mastery stars) but unlock no
  * achievements and submit no leaderboard scores (D16, [Difficulty.countsForAchievements]).
  * Practice quizzes ([QuizCategory.Practice]) record nothing beyond the result and leave any
- * "Resume quiz" save alone (D21, [QuizCategory.isRecorded]).
+ * "Resume quiz" save alone (D21, [QuizCategory.isRecorded]). New (non-classic) modes are recorded
+ * in history with mastery stars, but unlock no achievements, submit no leaderboard scores and
+ * never write or clear a "Resume quiz" save, which only exists for classic modes (D35, D37,
+ * [CompletedQuiz.classicModeOrNull]).
  *
  * Achievements the quiz unlocks are stored with the result ([CompletedQuiz.newAchievementIds]) so
  * Results can show them.
@@ -51,12 +54,15 @@ class CompleteQuizUseCase @Inject constructor(
         val resultId: String,
         val state: QuizState,
         val timeElapsedSeconds: Int,
-        val quizMode: QuizMode,
+        /** Any registered [com.geoquiz.app.domain.mode.GameMode] id, classic or new (task 5.0). */
+        val modeId: String,
         /** Category keys as given in the quiz route; history rows have always used these. */
         val routeCategoryType: String,
         val routeCategoryValue: String,
         val difficulty: Difficulty,
-        val challengeId: String?
+        val challengeId: String?,
+        /** Tap the map's variant id, carried into the result ([CompletedQuiz.variantId]). */
+        val variantId: String? = null
     )
 
     data class Outcome(
@@ -74,11 +80,11 @@ class CompleteQuizUseCase @Inject constructor(
 
         val state = request.state
         val category = state.quiz.category
-        val result = gameModes[request.quizMode].scoring
+        val result = gameModes.findOrDefault(request.modeId).scoring
             .score(state.copy(timeElapsedSeconds = request.timeElapsedSeconds))
         val completed = CompletedQuiz(
             id = request.resultId,
-            quizModeId = request.quizMode.id,
+            quizModeId = request.modeId,
             categoryType = category.typeKey,
             categoryValue = category.valueKey,
             categoryName = category.displayName,
@@ -94,7 +100,8 @@ class CompleteQuizUseCase @Inject constructor(
             hardMode = request.difficulty == Difficulty.HARD,
             challengeId = request.challengeId,
             completedAtMillis = System.currentTimeMillis(),
-            difficultyId = request.difficulty.id
+            difficultyId = request.difficulty.id,
+            variantId = request.variantId
         )
 
         // Atomic check-and-save: a second run with the same id (e.g. a recreated screen racing
@@ -109,16 +116,23 @@ class CompleteQuizUseCase @Inject constructor(
         // It never writes a "Resume quiz" save, so it leaves any save (from another quiz) alone.
         if (!category.isRecorded) return@withContext Outcome(completed, emptyList(), newlyRecorded = true)
 
-        savedQuizRepository.clearSavedQuiz()
+        // D37: a new mode (Silhouettes, Tap the map, ...) never writes a "Resume quiz" save, so
+        // there is nothing of its own to clear; clearing here would also wipe a classic mode's
+        // resume save left behind from an earlier session.
+        val isClassic = completed.classicModeOrNull != null
+        if (isClassic) savedQuizRepository.clearSavedQuiz()
 
-        val counts = request.difficulty.countsForAchievements
+        // D35: achievements, Play Games unlocks and leaderboard submissions are classic-only.
+        // New modes are still recorded in history below, with mastery stars, so Stats and Play's
+        // "Recommended next" work for them too.
+        val counts = request.difficulty.countsForAchievements && isClassic
         val newlyUnlocked = if (counts) {
             achievementRepository.onQuizCompleted(
                 category = category,
                 correctAnswers = result.correctAnswers,
                 totalCountries = result.totalCountries,
                 timeElapsedSeconds = result.timeElapsedSeconds,
-                quizMode = request.quizMode,
+                quizMode = QuizMode.fromId(request.modeId),
                 incorrectGuesses = result.incorrectGuesses,
                 hardMode = request.difficulty == Difficulty.HARD
             )
@@ -135,7 +149,7 @@ class CompleteQuizUseCase @Inject constructor(
         newlyUnlocked.forEach { playGamesService.unlockAchievement(it) }
 
         quizHistoryRepository.recordQuizResult(
-            quizMode = request.quizMode.id,
+            quizMode = request.modeId,
             categoryType = request.routeCategoryType,
             categoryValue = request.routeCategoryValue,
             correctAnswers = result.correctAnswers,
@@ -151,8 +165,8 @@ class CompleteQuizUseCase @Inject constructor(
 
         val overallTotal = quizHistoryRepository.getTotalCorrectAnswersSync()
         playGamesService.submitScore(PlayGamesLeaderboardIds.OVERALL, overallTotal)
-        PlayGamesLeaderboardIds.forMode(request.quizMode.id)?.let { leaderboardId ->
-            val modeTotal = quizHistoryRepository.getTotalCorrectAnswersForModeSync(request.quizMode.id)
+        PlayGamesLeaderboardIds.forMode(request.modeId)?.let { leaderboardId ->
+            val modeTotal = quizHistoryRepository.getTotalCorrectAnswersForModeSync(request.modeId)
             playGamesService.submitScore(leaderboardId, modeTotal)
         }
 

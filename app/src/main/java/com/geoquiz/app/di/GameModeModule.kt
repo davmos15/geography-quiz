@@ -4,6 +4,8 @@ import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.classic.CapitalsGameMode
 import com.geoquiz.app.domain.mode.classic.CountriesGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsGameMode
+import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
+import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -26,4 +28,10 @@ abstract class GameModeModule {
 
     @Binds @IntoSet
     abstract fun flags(mode: FlagsGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun silhouettes(mode: SilhouettesGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun tapMap(mode: TapMapGameMode): GameMode
 }

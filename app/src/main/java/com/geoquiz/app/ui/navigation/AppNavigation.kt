@@ -44,7 +44,11 @@ import com.geoquiz.app.ui.quiz.QuizScreen
 import com.geoquiz.app.ui.results.AnswerReviewScreen
 import com.geoquiz.app.ui.results.ResultsScreen
 import com.geoquiz.app.ui.settings.SettingsScreen
+import com.geoquiz.app.ui.silhouettes.SilhouettesGameScreen
+import com.geoquiz.app.ui.silhouettes.SilhouettesSetupScreen
 import com.geoquiz.app.ui.stats.StatsScreen
+import com.geoquiz.app.ui.tapmap.TapMapGameScreen
+import com.geoquiz.app.ui.tapmap.TapMapSetupScreen
 
 /** A display cutout on the left or right edge. */
 private val HORIZONTAL_CUTOUT: WindowInsets
@@ -94,6 +98,24 @@ internal fun ConsumeRequestedPlayMode(entry: NavBackStackEntry, selectMode: (Str
             entry.savedStateHandle.remove<String>(Screen.Play.RESULT_SHOW_MODE)
         }
     }
+}
+
+/**
+ * Whether [modeId] is currently reachable (its [com.geoquiz.app.domain.model.FeatureFlag] is on,
+ * the same rule as Play's "New modes" grid); null while that is still loading. Pops back to Play
+ * once it is known to be false, so a bookmarked deep link or a flag flipped from the debug menu
+ * while the player is on a new mode's own screen (`ModeSetup`, `Silhouettes`, `TapMap`) can't
+ * strand them there (task 5.0 review).
+ */
+@Composable
+internal fun rememberModeIsAvailable(navController: NavHostController, modeId: String): Boolean? {
+    val availableIds by hiltViewModel<ModeAvailabilityViewModel>().availableModeIds.collectAsStateWithLifecycle()
+    LaunchedEffect(availableIds, modeId) {
+        if (availableIds != null && modeId !in availableIds!!) {
+            navController.popBackStack()
+        }
+    }
+    return availableIds?.let { modeId in it }
 }
 
 @Composable
@@ -168,9 +190,8 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                         onStartQuiz = { modeId, categoryType, categoryValue ->
                             navController.navigate(Screen.Quiz.createRoute(modeId, categoryType, categoryValue))
                         },
-                        onOpenMode = { _ ->
-                            // Phase 5 adds each new mode's entry route here. No non-classic mode is
-                            // registered yet, so the "New modes" grid is never shown.
+                        onOpenMode = { modeId ->
+                            navController.navigate(Screen.ModeSetup.createRoute(modeId))
                         },
                         viewModel = playViewModel
                     )
@@ -285,10 +306,8 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                     )
                 ) {
                     ResultsScreen(
-                        onPlayAgain = { quizMode, categoryType, categoryValue, difficulty ->
-                            navController.navigate(
-                                Screen.Quiz.createRoute(quizMode, categoryType, categoryValue, difficulty = difficulty)
-                            ) {
+                        onPlayAgain = { route ->
+                            navController.navigate(route) {
                                 popUpTo(Screen.Results.route) { inclusive = true }
                             }
                         },
@@ -297,10 +316,8 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             navController.navigate(Screen.AnswerReview.createRoute(resultId))
                         },
                         // 3.5c: same back stack behaviour as Play Again.
-                        onPractiseMissed = { quizMode, categoryType, categoryValue, difficulty ->
-                            navController.navigate(
-                                Screen.Quiz.createRoute(quizMode, categoryType, categoryValue, difficulty = difficulty)
-                            ) {
+                        onPractiseMissed = { route ->
+                            navController.navigate(route) {
                                 popUpTo(Screen.Results.route) { inclusive = true }
                             }
                         }
@@ -341,6 +358,80 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                     ChallengeLeaderboardScreen(
                         onNavigateBack = { navController.popBackStack() }
                     )
+                }
+
+                // Task 5.0: a new mode's own setup screen, dispatched by mode id. Tasks 5.1/5.2
+                // replace these stand-ins with the real pickers in ui/silhouettes and ui/tapmap.
+                // An id this screen doesn't recognise (and a flag that is off and not
+                // overridden, via rememberModeIsAvailable) pops back to Play.
+                composable(
+                    route = Screen.ModeSetup.route,
+                    arguments = listOf(navArgument(Screen.ModeSetup.ARG_MODE_ID) { type = NavType.StringType })
+                ) {
+                    val modeId = it.arguments?.getString(Screen.ModeSetup.ARG_MODE_ID) ?: ""
+                    val available = rememberModeIsAvailable(navController, modeId)
+                    if (available == true) {
+                        val onNavigateBack: () -> Unit = { navController.popBackStack() }
+                        val onStart: (String) -> Unit = { route -> navController.navigate(route) }
+                        when (modeId) {
+                            ModeRoutes.SILHOUETTES_MODE_ID ->
+                                SilhouettesSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.TAP_MAP_MODE_ID ->
+                                TapMapSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            else -> LaunchedEffect(Unit) { navController.popBackStack() }
+                        }
+                    }
+                }
+
+                composable(
+                    route = Screen.Silhouettes.route,
+                    arguments = listOf(
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.Silhouettes.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.SILHOUETTES_MODE_ID)
+                    if (available == true) {
+                        SilhouettesGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.Silhouettes.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.TapMap.route,
+                    arguments = listOf(
+                        navArgument("variant") { type = NavType.StringType },
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.TapMap.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.TAP_MAP_MODE_ID)
+                    if (available == true) {
+                        TapMapGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.TapMap.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }

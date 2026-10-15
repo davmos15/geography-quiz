@@ -94,6 +94,9 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.FlagColorCombo -> "flagcombo"
                 is QuizCategory.FlagColorCount -> "flagcount"
                 is QuizCategory.FlagElement -> "flagelement"
+                // Never reached: achievements are classic-only (D35, CompleteQuizUseCase) and
+                // MapRegion is only offered by Tap the map, a new (non-classic) mode.
+                is QuizCategory.MapRegion -> "mapregion"
                 // Never reached: practice quizzes record no achievements (D21, CompleteQuizUseCase).
                 is QuizCategory.Practice -> "practice"
             }

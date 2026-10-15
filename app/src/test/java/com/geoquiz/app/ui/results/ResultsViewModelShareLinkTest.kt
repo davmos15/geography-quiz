@@ -58,13 +58,15 @@ class ResultsViewModelShareLinkTest {
         FakeCompletedQuizRepository(),
         mockk<AdManager>(relaxed = true),
         mockk<InterstitialPolicy>(relaxed = true),
-        signer
+        signer,
+        com.geoquiz.app.testutil.TestGameModes.registry()
     )
 
     @Test
     fun `shared result link is signed, carries the score and is saved under the same id`() {
         val vm = viewModel()
-        val url = vm.createChallengeShareUrl("region", "Europe", "capitals", score = 40, total = 44, time = 312)
+        // Classic mode: never null (see "a new mode's share link is null" below).
+        val url = vm.createChallengeShareUrl("region", "Europe", "capitals", score = 40, total = 44, time = 312)!!
         dispatcher.scheduler.advanceUntilIdle()
 
         val result = ChallengeDeepLink.parse(Uri.parse(url.toString()), signer)
@@ -96,7 +98,7 @@ class ResultsViewModelShareLinkTest {
 
     @Test
     fun `plain challenge link has no score`() {
-        val url = viewModel().createChallengeShareUrl("region", "Europe", "countries", null, null, null)
+        val url = viewModel().createChallengeShareUrl("region", "Europe", "countries", null, null, null)!!
         dispatcher.scheduler.advanceUntilIdle()
 
         val result = ChallengeDeepLink.parse(Uri.parse(url.toString()), signer)
@@ -120,12 +122,38 @@ class ResultsViewModelShareLinkTest {
 
     @Test
     fun `link does not verify under a different key`() {
-        val url = viewModel().createChallengeShareUrl("region", "Europe", "countries", 40, 44, 312)
+        val url = viewModel().createChallengeShareUrl("region", "Europe", "countries", 40, 44, 312)!!
         val other = ChallengeLinkSigner("another-key-0123456789abcdef".toByteArray())
 
         val result = ChallengeDeepLink.parse(Uri.parse(url.toString()), other)
         result as ChallengeLinkParseResult.Valid
         assertFalse(result.scoreVerified)
         assertNull(result.link.challengerScore)
+    }
+
+    // D35: new (non-classic) modes never save an outgoing challenge or sign a link.
+
+    @Test
+    fun `a new mode's share link is null and no outgoing challenge is saved`() {
+        val url = viewModel().createChallengeShareUrl(
+            "region", "Europe", "silhouettes", score = 40, total = 44, time = 312
+        )
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertNull(url)
+        coVerify(exactly = 0) {
+            challengeRepository.createOutgoingChallenge(
+                any(), any(), any(), any(), any(), any(), any(), any(), any()
+            )
+        }
+    }
+
+    @Test
+    fun `tap_map's share link is also null`() {
+        val url = viewModel().createChallengeShareUrl(
+            "map_region", "world", "tap_map", score = null, total = null, time = null
+        )
+
+        assertNull(url)
     }
 }

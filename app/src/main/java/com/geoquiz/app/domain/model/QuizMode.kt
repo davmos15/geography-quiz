@@ -25,6 +25,9 @@ enum class QuizMode(val id: String, val displayLabel: String) {
         }
 
     companion object {
-        fun fromId(id: String): QuizMode = entries.find { it.id == id } ?: COUNTRIES
+        fun fromId(id: String): QuizMode = fromIdOrNull(id) ?: COUNTRIES
+
+        /** The classic mode with [id], or null when [id] is a new (non-classic) mode. Never falls back. */
+        fun fromIdOrNull(id: String): QuizMode? = entries.find { it.id == id }
     }
 }

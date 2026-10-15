@@ -11,6 +11,7 @@ import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.GetCountriesForCapitalQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
+import com.geoquiz.app.domain.usecase.GetRegionMembersUseCase
 import com.geoquiz.app.testutil.TestGameModes
 import com.geoquiz.app.testutil.TestQuizData.country
 import io.mockk.coEvery
@@ -56,7 +57,7 @@ class ClassicQuestionGeneratorsTest {
         )
     }
 
-    private val getCountriesForQuiz = GetCountriesForQuizUseCase(repository)
+    private val getCountriesForQuiz = GetCountriesForQuizUseCase(repository, GetRegionMembersUseCase(repository))
     private val getCountriesForCapitalQuiz = GetCountriesForCapitalQuizUseCase(repository)
     private val getCountriesForFlagQuiz = GetCountriesForFlagQuizUseCase(repository, flagColorDao, flagElementDao)
 

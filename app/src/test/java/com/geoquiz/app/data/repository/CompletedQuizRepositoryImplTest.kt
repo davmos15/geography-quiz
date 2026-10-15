@@ -127,4 +127,39 @@ class CompletedQuizRepositoryImplTest {
 
         assertEquals("a", repository.get("a")?.id)
     }
+
+    @Test
+    fun `an old record with no variantId decodes with a null variantId`() = runTest {
+        // Shaped like a record saved before task 5.0 added variantId (and before 3.2/3.5b added
+        // difficultyId and newAchievementIds): none of those keys exist.
+        val oldJson = """
+            {
+                "id":"old-1",
+                "quizModeId":"countries",
+                "categoryType":"all",
+                "categoryValue":"_",
+                "categoryName":"All Countries",
+                "countryCodes":["FRA","DEU"],
+                "answeredCodes":["FRA"],
+                "incorrectGuessStrings":[],
+                "correct":1,
+                "total":2,
+                "timeSeconds":42,
+                "score":0.33,
+                "perfectBonus":false,
+                "incorrectGuesses":0,
+                "hardMode":false,
+                "challengeId":null,
+                "completedAtMillis":1700000000000
+            }
+        """.trimIndent()
+        store.edit { it[CompletedQuizRepositoryImpl.LAST_RESULT_KEY] = oldJson }
+
+        val result = repository.get("old-1")
+
+        assertEquals("old-1", result?.id)
+        assertNull(result?.variantId)
+        assertEquals(TestQuizData.completedQuiz(id = "old-1").difficultyId, result?.difficultyId)
+        assertTrue(result?.newAchievementIds.orEmpty().isEmpty())
+    }
 }

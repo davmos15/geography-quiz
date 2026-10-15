@@ -3,7 +3,9 @@ package com.geoquiz.app.ui.mode
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.geoquiz.app.domain.mode.ModeIcon
 
@@ -13,4 +15,8 @@ val ModeIcon.imageVector: ImageVector
         ModeIcon.GLOBE -> Icons.Default.Public
         ModeIcon.LANDMARK -> Icons.Default.AccountBalance
         ModeIcon.FLAG -> Icons.Default.Flag
+        // An outline silhouette shape: closest available in the Material set.
+        ModeIcon.SILHOUETTE -> Icons.Default.Terrain
+        // A pin dropped on a map: matches "tap the map" better than a plain location marker.
+        ModeIcon.MAP_PIN -> Icons.Default.PinDrop
     }

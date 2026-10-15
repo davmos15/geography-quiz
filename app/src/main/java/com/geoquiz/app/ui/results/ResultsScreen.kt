@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
@@ -64,6 +65,7 @@ import com.geoquiz.app.ui.components.TWO_PANE_MAX_WIDTH
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.readableWidth
 import com.geoquiz.app.ui.components.WindowLayout
+import com.geoquiz.app.ui.navigation.ModeRoutes
 import com.geoquiz.app.ui.quiz.components.inlineIconSize
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
@@ -71,15 +73,16 @@ import java.util.Locale
 
 @Composable
 fun ResultsScreen(
-    /** [difficultyId]: the finished quiz's tier, so "Play again" replays at the same tier. */
-    onPlayAgain: (quizMode: String, categoryType: String, categoryValue: String, difficultyId: String) -> Unit,
+    /** A route built by [com.geoquiz.app.ui.navigation.ModeRoutes.playAgain]. */
+    onPlayAgain: (route: String) -> Unit,
     onGoHome: (quizMode: String) -> Unit,
     onViewAnswers: (resultId: String) -> Unit,
     /**
      * "Practise the ones you missed" (3.5c): a quiz of the same mode and tier with exactly the
-     * missed items, as a [com.geoquiz.app.domain.model.QuizCategory.Practice] route.
+     * missed items, as a [com.geoquiz.app.domain.model.QuizCategory.Practice] route, built by
+     * [com.geoquiz.app.ui.navigation.ModeRoutes.practise].
      */
-    onPractiseMissed: (quizMode: String, categoryType: String, categoryValue: String, difficultyId: String) -> Unit,
+    onPractiseMissed: (route: String) -> Unit,
     viewModel: ResultsViewModel = hiltViewModel()
 ) {
     when (val state = viewModel.uiState.collectAsStateWithLifecycle().value) {
@@ -104,6 +107,8 @@ fun ResultsScreen(
                 categoryType = result.categoryType,
                 categoryValue = result.categoryValue,
                 quizMode = result.quizModeId,
+                modeSpec = state.modeSpec,
+                showChallenge = state.showChallenge,
                 incorrectGuesses = result.incorrectGuesses,
                 newAchievements = result.newAchievements,
                 isPractice = result.isPractice,
@@ -111,12 +116,26 @@ fun ResultsScreen(
                 onPractiseMissed = {
                     if (practice != null) {
                         onPractiseMissed(
-                            result.quizModeId, practice.typeKey, practice.valueKey, result.difficulty.id
+                            ModeRoutes.practise(
+                                modeId = result.quizModeId,
+                                categoryType = practice.typeKey,
+                                categoryValue = practice.valueKey,
+                                difficulty = result.difficulty.id,
+                                variantId = result.variantId
+                            )
                         )
                     }
                 },
                 onPlayAgain = {
-                    onPlayAgain(result.quizModeId, result.categoryType, result.categoryValue, result.difficulty.id)
+                    onPlayAgain(
+                        ModeRoutes.playAgain(
+                            modeId = result.quizModeId,
+                            categoryType = result.categoryType,
+                            categoryValue = result.categoryValue,
+                            difficulty = result.difficulty.id,
+                            variantId = result.variantId
+                        )
+                    )
                 },
                 onGoHome = { onGoHome(result.quizModeId) },
                 onViewAnswers = { onViewAnswers(result.id) },
@@ -154,6 +173,8 @@ private fun ResultsContent(
     categoryType: String,
     categoryValue: String,
     quizMode: String,
+    modeSpec: GameModeSpec,
+    showChallenge: Boolean,
     incorrectGuesses: Int,
     newAchievements: List<Achievement>,
     isPractice: Boolean,
@@ -235,14 +256,12 @@ private fun ResultsContent(
             Column(
                 modifier = Modifier.padding(20.dp)
             ) {
-                val resultLabel = stringResource(QuizMode.fromId(quizMode).spec.labels.name)
+                val resultLabel = stringResource(modeSpec.labels.name)
                 val res = a11yResources()
                 ResultRow(
                     resultLabel,
                     "$correctAnswers / $totalCountries",
-                    valueDescription = A11yText.progress(
-                        res, QuizMode.fromId(quizMode), correctAnswers, totalCountries
-                    )
+                    valueDescription = A11yText.progress(res, modeSpec, correctAnswers, totalCountries)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ResultRow("Percentage", String.format(Locale.US, "%.1f%%", percentage))
@@ -299,19 +318,26 @@ private fun ResultsContent(
             // Side by side when both labels fit on one line, otherwise stacked (3.6).
             modifier = Modifier.fillMaxWidth(widthFraction)
         ) {
+            val itemsNoun = stringResource(modeSpec.labels.itemsNoun)
             OutlinedButton(
                 onClick = {
                     ShareUtils.shareResults(
                         context = context,
                         categoryName = categoryName,
-                        quizMode = quizMode,
+                        itemsNoun = itemsNoun,
                         score = correctAnswers,
                         total = totalCountries,
                         time = timeElapsedSeconds,
-                        deepLink = viewModel.createChallengeShareUrl(
-                            categoryType, categoryValue, quizMode,
-                            score = correctAnswers, total = totalCountries, time = timeElapsedSeconds
-                        )
+                        // D35: new modes have no challenge links, so their share text has none
+                        // (createChallengeShareUrl returns null for them).
+                        deepLink = if (showChallenge) {
+                            viewModel.createChallengeShareUrl(
+                                categoryType, categoryValue, quizMode,
+                                score = correctAnswers, total = totalCountries, time = timeElapsedSeconds
+                            )
+                        } else {
+                            null
+                        }
                     )
                 },
                 // Material's padding for a button with an icon: a little more room for the label.
@@ -320,16 +346,20 @@ private fun ResultsContent(
                 Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
                 Text("Share", textAlign = TextAlign.Center)
             }
-            OutlinedButton(
+            // D35: no Challenge button for a new (non-classic) mode.
+            if (showChallenge) OutlinedButton(
                 onClick = {
-                    ShareUtils.shareChallenge(
-                        context = context,
-                        categoryName = categoryName,
-                        deepLink = viewModel.createChallengeShareUrl(
-                            categoryType, categoryValue, quizMode,
-                            score = null, total = null, time = null
-                        )
+                    val deepLink = viewModel.createChallengeShareUrl(
+                        categoryType, categoryValue, quizMode,
+                        score = null, total = null, time = null
                     )
+                    if (deepLink != null) {
+                        ShareUtils.shareChallenge(
+                            context = context,
+                            categoryName = categoryName,
+                            deepLink = deepLink
+                        )
+                    }
                 },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {

@@ -2,10 +2,11 @@ package com.geoquiz.app.ui.results
 
 import androidx.lifecycle.SavedStateHandle
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.model.QuizCategory
-import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
+import com.geoquiz.app.testutil.TestGameModes
 import com.geoquiz.app.testutil.TestQuizData
 import com.geoquiz.app.testutil.TestQuizData.AUSTRIA
 import com.geoquiz.app.testutil.TestQuizData.FRANCE
@@ -23,7 +24,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -52,9 +55,12 @@ class AnswerReviewViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(resultId: String?): AnswerReviewViewModel {
+    private fun viewModel(resultId: String?, extraModes: Set<GameMode> = emptySet()): AnswerReviewViewModel {
         val handle = SavedStateHandle(if (resultId != null) mapOf("resultId" to resultId) else emptyMap())
-        val vm = AnswerReviewViewModel(handle, completedQuizzes, countryRepository, settingsRepository)
+        val vm = AnswerReviewViewModel(
+            handle, completedQuizzes, countryRepository, settingsRepository,
+            TestGameModes.registry(extraModes = extraModes)
+        )
         dispatcher.scheduler.advanceUntilIdle()
         return vm
     }
@@ -75,7 +81,7 @@ class AnswerReviewViewModelTest {
         assertEquals(setOf("FRA", "AUT"), state.answeredCodes)
         assertEquals(2, state.answeredCount)
         assertEquals("All Countries", state.categoryName)
-        assertEquals(QuizMode.COUNTRIES, state.quizMode)
+        assertFalse(state.isCapitals)
         assertEquals(QuizCategory.AllCountries, state.category)
         coVerify(exactly = 1) { countryRepository.getCountriesByCodes(listOf("FRA", "DEU", "AUT")) }
     }
@@ -88,7 +94,24 @@ class AnswerReviewViewModelTest {
 
         // Berlin, Paris, Vienna
         assertEquals(listOf(GERMANY, FRANCE, AUSTRIA), state.countries)
-        assertEquals(QuizMode.CAPITALS, state.quizMode)
+        assertTrue(state.isCapitals)
+    }
+
+    @Test
+    fun `a new mode (silhouettes) behaves like Countries, not Capitals, and uses its own spec`() {
+        completedQuizzes.stored = TestQuizData.completedQuiz(
+            id = "r1",
+            quizModeId = "silhouettes",
+            countryCodes = listOf("FRA", "DEU", "AUT")
+        )
+
+        val state = viewModel("r1", extraModes = setOf(TestGameModes.silhouettes())).loaded()
+
+        // Sorted by name (Austria, France, Germany), not by capital.
+        assertEquals(listOf(AUSTRIA, FRANCE, GERMANY), state.countries)
+        assertFalse(state.isCapitals)
+        // The real Silhouettes spec, not GameModeRegistry.findOrDefault's Countries fallback.
+        assertEquals(com.geoquiz.app.R.string.mode_silhouettes_name, state.modeSpec.labels.name)
     }
 
     @Test

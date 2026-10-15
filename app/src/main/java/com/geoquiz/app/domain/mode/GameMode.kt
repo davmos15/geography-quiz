@@ -7,6 +7,7 @@ import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.QuizCategory
+import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.model.QuizResult
 import com.geoquiz.app.domain.model.QuizState
 
@@ -37,7 +38,11 @@ enum class HintType {
 enum class ModeIcon {
     GLOBE,
     LANDMARK,
-    FLAG
+    FLAG,
+    /** Country silhouettes (Phase 5). */
+    SILHOUETTE,
+    /** Tap the map (Phase 5). */
+    MAP_PIN
 }
 
 /** User-facing text for a mode, as resource ids. */
@@ -110,4 +115,14 @@ interface GameMode {
     val choiceGenerator: ChoiceQuestionGenerator
 
     val id: String get() = spec.id
+
+    /**
+     * Whether this mode offers [category] in its own category list (task 5.0: used by
+     * Silhouettes' and Tap the map's own setup screens; pins and challenge links stay
+     * classic-only via [QuizCategory.isOfferedIn] and never call this). The default matches the
+     * classic rule for this mode's id; modes with different category rules override it (see
+     * `domain/mode/silhouettes/SilhouettesGameMode.kt`, `domain/mode/tapmap/TapMapGameMode.kt`).
+     */
+    fun offers(category: QuizCategory): Boolean =
+        category.isOfferedIn(QuizMode.entries.find { it.id == id } ?: QuizMode.COUNTRIES)
 }

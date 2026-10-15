@@ -44,7 +44,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.QuizCategory
-import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.FlagImage
 import com.geoquiz.app.ui.components.WrappingTopAppBar
@@ -81,7 +80,8 @@ private fun AnswerReviewContent(
     val sorted = state.countries
     val answeredCodes = state.answeredCodes
     val categoryName = state.categoryName
-    val quizMode = state.quizMode
+    val modeSpec = state.modeSpec
+    val isCapitals = state.isCapitals
     val incorrectGuesses = state.incorrectGuesses
     val category = state.category
 
@@ -113,7 +113,7 @@ private fun AnswerReviewContent(
                 contentPadding = PaddingValues(horizontal = 16.dp + sideInset, vertical = 8.dp)
             ) {
                 item {
-                    val summaryDescription = A11yText.progress(a11yResources(), quizMode, answeredCount, sorted.size)
+                    val summaryDescription = A11yText.progress(a11yResources(), modeSpec, answeredCount, sorted.size)
                     Text(
                         text = "$answeredCount / ${sorted.size} answered",
                         style = MaterialTheme.typography.bodyLarge,
@@ -150,7 +150,7 @@ private fun AnswerReviewContent(
                         val guess = incorrect.guess
                         val matchedCountry = incorrect.matchedCountry
                         val hint = if (matchedCountry != null) {
-                            getContextHint(matchedCountry, category, quizMode)
+                            getContextHint(matchedCountry, category, isCapitals)
                         } else null
 
                         // One item for TalkBack: "Incorrect, <guess>, <hint>".
@@ -192,7 +192,12 @@ private fun AnswerReviewContent(
                         val isAnswered = country.code in answeredCodes
                         // One item for TalkBack: "Brazil, missed" (the status icon and flag are
                         // covered by this description).
-                        val rowDescription = A11yText.reviewRow(a11yResources(), quizMode, country, isAnswered)
+                        val rowDescription = A11yText.reviewRow(
+                            a11yResources(),
+                            isCapitals = isCapitals,
+                            country,
+                            isAnswered = isAnswered
+                        )
 
                         Row(
                             modifier = Modifier
@@ -219,35 +224,32 @@ private fun AnswerReviewContent(
                                 Spacer(modifier = Modifier.width(12.dp))
                             }
 
-                            when (quizMode) {
-                                QuizMode.CAPITALS -> {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = country.capital,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = FontWeight.Medium,
-                                            color = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
-                                        )
-                                        Text(
-                                            text = country.name,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-
-                                QuizMode.FLAGS, QuizMode.COUNTRIES -> {
+                            // D37: every mode but Capitals (classic or new) shows the country name.
+                            if (isCapitals) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = country.capital,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isAnswered) MaterialTheme.geoColors.correct else MaterialTheme.geoColors.wrong
+                                    )
                                     Text(
                                         text = country.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
-                                        color = if (isAnswered) {
-                                            MaterialTheme.colorScheme.onSurface
-                                        } else {
-                                            MaterialTheme.geoColors.wrong
-                                        }
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                            } else {
+                                Text(
+                                    text = country.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isAnswered) FontWeight.Medium else FontWeight.Normal,
+                                    color = if (isAnswered) {
+                                        MaterialTheme.colorScheme.onSurface
+                                    } else {
+                                        MaterialTheme.geoColors.wrong
+                                    }
+                                )
                             }
                         }
                         HorizontalDivider(
@@ -260,24 +262,24 @@ private fun AnswerReviewContent(
     }
 }
 
-private fun getContextHint(country: Country, category: QuizCategory, quizMode: QuizMode): String? {
+private fun getContextHint(country: Country, category: QuizCategory, isCapitals: Boolean): String? {
     return when (category) {
         is QuizCategory.StartingWithLetter -> {
-            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val actual = if (isCapitals) country.capital else country.name
             "Starts with '${actual.first().uppercaseChar()}'"
         }
         is QuizCategory.EndingWithLetter -> {
-            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val actual = if (isCapitals) country.capital else country.name
             "Ends with '${actual.last().uppercaseChar()}'"
         }
         is QuizCategory.ByRegion -> "In ${country.region}"
         is QuizCategory.BySubregion -> "In ${country.subregion}"
         is QuizCategory.ByNameLengthRange -> {
-            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val actual = if (isCapitals) country.capital else country.name
             "${actual.length} letters"
         }
         is QuizCategory.ContainingLetter -> {
-            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val actual = if (isCapitals) country.capital else country.name
             if (!actual.contains(category.letter, ignoreCase = true)) {
                 "Doesn't contain '${category.letter.uppercaseChar()}'"
             } else null
@@ -296,12 +298,12 @@ private fun getContextHint(country: Country, category: QuizCategory, quizMode: Q
             if (!hasDirection) "No cardinal direction in name" else null
         }
         is QuizCategory.EndingInVowel -> {
-            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val actual = if (isCapitals) country.capital else country.name
             val lastChar = actual.last().lowercaseChar()
             if (lastChar !in setOf('a', 'e', 'i', 'o', 'u')) "Ends with '${lastChar.uppercaseChar()}'" else null
         }
         is QuizCategory.SingleVowelType -> {
-            val actual = if (quizMode == QuizMode.CAPITALS) country.capital else country.name
+            val actual = if (isCapitals) country.capital else country.name
             val dv = actual.lowercase().filter { it in setOf('a', 'e', 'i', 'o', 'u') }.toSet()
             if (dv.size != 1) "${dv.size} vowel types (${dv.sorted().joinToString(", ")})" else null
         }

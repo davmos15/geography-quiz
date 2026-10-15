@@ -84,7 +84,9 @@ fun DifficultySelector(
     selected: Difficulty,
     onSelect: (Difficulty) -> Unit,
     modifier: Modifier = Modifier,
-    options: List<Difficulty> = Difficulty.entries
+    options: List<Difficulty> = Difficulty.entries,
+    /** The line under the selector; a mode whose tiers work differently passes its own (Phase 5). */
+    summaryRes: (Difficulty) -> Int = { it.summaryRes }
 ) {
     val labels = options.map { stringResource(it.labelRes) }
     val measurer = rememberTextMeasurer()
@@ -118,7 +120,7 @@ fun DifficultySelector(
             }
         }
         Text(
-            text = stringResource(selected.summaryRes),
+            text = stringResource(summaryRes(selected)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier

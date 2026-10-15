@@ -90,10 +90,12 @@ interface QuizHistoryDao {
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
     fun getRecentQuizzes(limit: Int = 10): Flow<List<QuizHistoryEntity>>
 
-    // Cumulative totals (for leaderboard submission). Easy quizzes never count (D16).
+    // Cumulative totals (for leaderboard submission). Easy quizzes never count (D16). New modes
+    // (Silhouettes, Tap the map, ...) never submit leaderboard scores (D35), so the overall total
+    // is restricted to classic mode ids, passed in by the repository (QuizMode.entries.map { it.id }).
 
-    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE difficulty != 'easy'")
-    suspend fun getTotalCorrectAnswersSync(): Long
+    @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE difficulty != 'easy' AND quizMode IN (:classicModeIds)")
+    suspend fun getTotalCorrectAnswersSync(classicModeIds: List<String>): Long
 
     @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode AND difficulty != 'easy'")
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long

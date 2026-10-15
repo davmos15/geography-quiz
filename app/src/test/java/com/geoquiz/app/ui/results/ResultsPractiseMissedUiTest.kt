@@ -11,6 +11,7 @@ import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
+import com.geoquiz.app.ui.navigation.ModeRoutes
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -31,24 +32,18 @@ class ResultsPractiseMissedUiTest {
     @get:Rule(order = 1)
     val compose = createComposeRule()
 
-    private data class PractiseCall(val mode: String, val type: String, val value: String, val difficulty: String)
-
-    private val practiseCalls = mutableListOf<PractiseCall>()
-    private val playAgainCalls = mutableListOf<PractiseCall>()
+    private val practiseCalls = mutableListOf<String>()
+    private val playAgainCalls = mutableListOf<String>()
 
     private fun launch(result: CompletedQuiz) {
         val viewModel = ScreenTestFixtures.resultsViewModel(result)
         compose.setContent {
             GeographyQuizTheme(darkTheme = false) {
                 ResultsScreen(
-                    onPlayAgain = { mode, type, value, difficulty ->
-                        playAgainCalls += PractiseCall(mode, type, value, difficulty)
-                    },
+                    onPlayAgain = { route -> playAgainCalls += route },
                     onGoHome = {},
                     onViewAnswers = {},
-                    onPractiseMissed = { mode, type, value, difficulty ->
-                        practiseCalls += PractiseCall(mode, type, value, difficulty)
-                    },
+                    onPractiseMissed = { route -> practiseCalls += route },
                     viewModel = viewModel
                 )
             }
@@ -75,7 +70,7 @@ class ResultsPractiseMissedUiTest {
             .performClick()
 
         assertEquals(
-            listOf(PractiseCall("capitals", "practice", missed.joinToString("+"), "easy")),
+            listOf(ModeRoutes.practise("capitals", "practice", missed.joinToString("+"), "easy")),
             practiseCalls
         )
         // Not a practice result: Share and Challenge stay.
@@ -90,7 +85,10 @@ class ResultsPractiseMissedUiTest {
 
         compose.onNodeWithText("Practise the one you missed").performScrollTo().performClick()
 
-        assertEquals(listOf(codes.first()), practiseCalls.map { it.value })
+        assertEquals(
+            listOf(ModeRoutes.practise("capitals", "practice", codes.first(), "easy")),
+            practiseCalls
+        )
     }
 
     @Test
@@ -127,8 +125,8 @@ class ResultsPractiseMissedUiTest {
         compose.onNodeWithText("Practise the ones you missed (2)").performScrollTo().performClick()
         compose.onNodeWithText("Play Again").performScrollTo().performClick()
 
-        assertEquals(listOf(PractiseCall("capitals", "practice", "JPN+CHL", "hard")), practiseCalls)
-        assertEquals(listOf(PractiseCall("capitals", "practice", "JPN+KEN+CHL", "hard")), playAgainCalls)
-        assertTrue(practiseCalls.none { it.value.contains("KEN") })
+        assertEquals(listOf(ModeRoutes.practise("capitals", "practice", "JPN+CHL", "hard")), practiseCalls)
+        assertEquals(listOf(ModeRoutes.playAgain("capitals", "practice", "JPN+KEN+CHL", "hard")), playAgainCalls)
+        assertTrue(practiseCalls.none { it.contains("KEN") })
     }
 }

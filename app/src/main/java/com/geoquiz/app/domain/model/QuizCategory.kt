@@ -46,6 +46,18 @@ sealed class QuizCategory {
     data class MapRegion(val presetId: String) : QuizCategory()
 
     /**
+     * A fixed, named set of items that is not a classic category and has no classic-category
+     * filter to express (task 6.2, US states and Canadian provinces: "just US states" or "just
+     * Canada", not a region/subregion of countries). [label] is both the route value and the
+     * display name, same as [ByRegion] for an ordinary continent, but [isOfferedIn] is always
+     * false: unlike a real [ByRegion]/[BySubregion] value, a label such as "US states" would
+     * otherwise be indistinguishable from a real region to other modes' `offers()` checks,
+     * [AchievementRepository]'s region tracking, and [AnswerReviewScreen]'s "In {region}" text,
+     * none of which this mode's labels mean anything to.
+     */
+    data class FixedRegion(val label: String) : QuizCategory()
+
+    /**
      * "Practise the ones you missed" (3.5c): exactly these items, in this order. [codes] are
      * distinct upper-case cca3 codes. Built from a finished quiz's misses
      * ([CompletedQuiz.practiceCategoryOrNull]), never offered in a category list and never carried
@@ -96,6 +108,7 @@ sealed class QuizCategory {
             // "world" -> "World", "north_america" -> "North America": matches region_world etc.
             // in strings.xml (no Android resource dependency here, same as every other name above).
             is MapRegion -> presetId.split('_').joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
+            is FixedRegion -> label
             // Same text as R.string.practice_quiz_title, which Results shows instead.
             is Practice -> "Practise your misses"
         }
@@ -148,6 +161,7 @@ sealed class QuizCategory {
             is FlagColorCount -> "flagcount"
             is FlagElement -> "flagelement"
             is MapRegion -> "map_region"
+            is FixedRegion -> "fixed_region"
             is Practice -> Practice.TYPE_KEY
         }
 
@@ -180,6 +194,7 @@ sealed class QuizCategory {
             is FlagColorCount -> count.toString()
             is FlagElement -> element
             is MapRegion -> presetId
+            is FixedRegion -> label
             // Quiz order, not sorted.
             is Practice -> Practice.routeValue(codes)
         }
@@ -232,6 +247,7 @@ sealed class QuizCategory {
                 "flagcount" -> value.toIntOrNull()?.let { FlagColorCount(it) } ?: AllCountries
                 "flagelement" -> FlagElement(value)
                 "map_region" -> RegionPreset.fromId(value)?.let { MapRegion(value) } ?: AllCountries
+                "fixed_region" -> FixedRegion(value)
                 Practice.TYPE_KEY -> Practice.parseCodes(value).takeIf { it.isNotEmpty() }
                     ?.let { Practice(it) } ?: AllCountries
                 else -> AllCountries
@@ -307,6 +323,9 @@ sealed class QuizCategory {
                 // Tap the map resolves this itself (GetRegionMembersUseCase); never a challenge
                 // link, same as Practice below, since a classic mode never offers it (D35).
                 "map_region" -> if (RegionPreset.fromId(value) != null) MapRegion(value) else null
+                // US/CA regions resolves this itself (UsCaRegionSet); never a challenge link,
+                // same reasoning as map_region above - isOfferedIn is always false for it.
+                "fixed_region" -> null
                 // A practice set is the player's own misses: never something to send to a friend.
                 Practice.TYPE_KEY -> null
                 else -> null
@@ -338,6 +357,7 @@ sealed class QuizCategory {
     fun isOfferedIn(mode: QuizMode): Boolean = when {
         this is Practice -> false
         this is MapRegion -> false
+        this is FixedRegion -> false
         isFlagCategory -> mode == QuizMode.FLAGS
         this is CapitalMatchesCountry -> mode == QuizMode.CAPITALS
         else -> mode == QuizMode.COUNTRIES || mode == QuizMode.CAPITALS

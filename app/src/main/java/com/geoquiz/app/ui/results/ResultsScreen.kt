@@ -370,20 +370,23 @@ private fun ResultsContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // View Answers button
-        Button(
-            onClick = onViewAnswers,
-            modifier = Modifier.fillMaxWidth(widthFraction),
-            // Tonal secondary: white on the light amber secondary fill was only 2.3:1.
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        ) {
-            Text("View Answers", textAlign = TextAlign.Center)
-        }
+        // View Answers button: hidden for a mode whose codes can't be resolved back to a real
+        // country (GameModeSpec.supportsAnswerReview).
+        if (modeSpec.supportsAnswerReview) {
+            Button(
+                onClick = onViewAnswers,
+                modifier = Modifier.fillMaxWidth(widthFraction),
+                // Tonal secondary: white on the light amber secondary fill was only 2.3:1.
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Text("View Answers", textAlign = TextAlign.Center)
+            }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         Button(
             onClick = onPlayAgain,

@@ -7,6 +7,7 @@ import com.geoquiz.app.domain.mode.classic.CountriesGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
+import com.geoquiz.app.domain.mode.usca.UsCaRegionsGameMode
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -38,4 +39,7 @@ abstract class GameModeModule {
 
     @Binds @IntoSet
     abstract fun borderHop(mode: BorderHopGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun usCaRegions(mode: UsCaRegionsGameMode): GameMode
 }

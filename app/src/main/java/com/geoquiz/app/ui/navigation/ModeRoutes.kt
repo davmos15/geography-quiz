@@ -3,6 +3,7 @@ package com.geoquiz.app.ui.navigation
 import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
+import com.geoquiz.app.domain.mode.usca.UsCaRegionsGameMode
 
 /**
  * Builds a route to start a quiz for any registered mode, classic or new (task 5.0). Classic ids
@@ -10,9 +11,11 @@ import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
  * map go to their own screen.
  *
  * [variantId] only matters for Tap the map (`TapMapGameMode.VARIANT_FIND` /
- * `VARIANT_NAME_ALL`, carried on [com.geoquiz.app.domain.model.CompletedQuiz.variantId] so a
- * replay uses the same one); every other mode ignores it. A missing variant for Tap the map
- * defaults to "find".
+ * `VARIANT_NAME_ALL`) and US states and Canadian provinces (`UsCaRegionsGameMode.VARIANT_TAP` /
+ * `VARIANT_NAME_ALL` / `VARIANT_CHOICE`), carried on
+ * [com.geoquiz.app.domain.model.CompletedQuiz.variantId] so a replay uses the same one; every
+ * other mode ignores it. A missing variant for Tap the map defaults to "find", for US states and
+ * Canadian provinces to [DEFAULT_US_CA_REGIONS_VARIANT].
  */
 object ModeRoutes {
     /** These ids are persisted (Room, DataStore, routes) and never change. */
@@ -20,6 +23,8 @@ object ModeRoutes {
     const val TAP_MAP_MODE_ID = TapMapGameMode.MODE_ID
     const val DEFAULT_TAP_MAP_VARIANT = TapMapGameMode.VARIANT_FIND
     const val BORDER_HOP_MODE_ID = BorderHopGameMode.MODE_ID
+    const val US_CA_REGIONS_MODE_ID = UsCaRegionsGameMode.MODE_ID
+    const val DEFAULT_US_CA_REGIONS_VARIANT = UsCaRegionsGameMode.VARIANT_TAP
 
     /**
      * A fresh quiz for [modeId] over [categoryType]/[categoryValue] at [difficulty]. [challengeId]
@@ -41,6 +46,12 @@ object ModeRoutes {
             difficulty = difficulty
         )
         BORDER_HOP_MODE_ID -> Screen.BorderHop.createRoute(categoryType, categoryValue, difficulty)
+        US_CA_REGIONS_MODE_ID -> Screen.UsCaRegions.createRoute(
+            variant = variantId ?: DEFAULT_US_CA_REGIONS_VARIANT,
+            categoryType = categoryType,
+            categoryValue = categoryValue,
+            difficulty = difficulty
+        )
         else -> Screen.Quiz.createRoute(modeId, categoryType, categoryValue, challengeId, difficulty)
     }
 

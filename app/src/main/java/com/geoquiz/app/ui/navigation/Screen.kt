@@ -132,4 +132,27 @@ sealed class Screen(val route: String) {
             return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
         }
     }
+
+    /**
+     * US states and Canadian provinces (task 6.2). [variant] is one of
+     * `UsCaRegionsGameMode.VARIANT_TAP`, `VARIANT_NAME_ALL` or `VARIANT_CHOICE`. `categoryType`
+     * is always `"region"` and `categoryValue` one of the three fixed labels
+     * (`UsCaRegionsCategory`), except for a "Practise the ones you missed" round, where
+     * `categoryType` is `"practice"` and `categoryValue` the missed admin1 codes
+     * (`QuizCategory.Practice`'s usual shape). `difficulty` is optional, as in [Quiz].
+     */
+    data object UsCaRegions : Screen("us_ca_regions/{variant}/{categoryType}/{categoryValue}?difficulty={difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(
+            variant: String,
+            categoryType: String,
+            categoryValue: String,
+            difficulty: String? = null
+        ): String {
+            val encoded = Uri.encode(categoryValue)
+            val base = "us_ca_regions/$variant/$categoryType/$encoded"
+            return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
+        }
+    }
 }

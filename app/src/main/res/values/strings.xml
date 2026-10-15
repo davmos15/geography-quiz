@@ -157,6 +157,10 @@
     <string name="credits_regions_body">Regions follow the UN M49 standard country or area codes for statistical use, United Nations Statistics Division.</string>
     <string name="credits_link_un_m49">unstats.un.org</string>
     <string translatable="false" name="credits_url_un_m49">https://unstats.un.org/unsd/methodology/m49/</string>
+    <string name="credits_facts_heading">Facts</string>
+    <string name="credits_facts_body">Currency facts come from Wikidata, and the names and countries of rivers, mountains and lakes are checked against it. Available under CC0.</string>
+    <string name="credits_link_wikidata">wikidata.org</string>
+    <string translatable="false" name="credits_url_wikidata">https://www.wikidata.org</string>
 
     <!-- Open-source licences -->
     <string name="open_source_licences_title">Open-source licences</string>

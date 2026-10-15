@@ -177,6 +177,18 @@ fun CreditsScreen(
             }
 
             CreditsSection(
+                heading = stringResource(R.string.credits_facts_heading),
+                body = stringResource(R.string.credits_facts_body)
+            ) {
+                val wikidataUrl = stringResource(R.string.credits_url_wikidata)
+                LinkRow(
+                    label = stringResource(R.string.credits_link_wikidata),
+                    onClickLabel = openInBrowserLabel,
+                    onClick = { openUrl(wikidataUrl) }
+                )
+            }
+
+            CreditsSection(
                 heading = stringResource(R.string.credits_fonts_heading),
                 body = stringResource(R.string.credits_fonts_body)
             )

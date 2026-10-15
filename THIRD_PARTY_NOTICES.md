@@ -21,8 +21,8 @@ what actually shipped in that build.
 | Source | https://github.com/mledoze/countries |
 | Version | Not recorded (v3-era schema; arrived in the project's initial commit `40a5fd3`) |
 | Licence | Open Database License (ODbL) v1.0, https://opendatacommons.org/licenses/odbl/1-0/ (full text: [`data/LICENSE-ODbL.txt`](data/LICENSE-ODbL.txt)) |
-| Used in | `data/source/countries.json` (names, official names, alternative spellings, capitals, regions, subregions, UN membership), built into the bundled database `app/src/main/assets/databases/static.db` by `tools/data/build_static_db.py`. The emoji `flag` field is not used. |
-| Derived database | `app/src/main/assets/databases/static.db` and [`data/aliases.json`](data/aliases.json), both under ODbL 1.0 (see [`data/README.md`](data/README.md)) |
+| Used in | `data/source/countries.json` (names, official names, alternative spellings, capitals, regions, subregions, UN membership), built into the bundled database `app/src/main/assets/databases/static.db` by `tools/data/build_static_db.py`; land borders (`data/borders.json`, `tools/data/build_borders.py`) and currencies (`data/currencies.json`, `tools/data/build_currencies.py`) for the Border hop and Currencies modes. The emoji `flag` field is not used. |
+| Derived database | `app/src/main/assets/databases/static.db`, [`data/aliases.json`](data/aliases.json), [`data/borders.json`](data/borders.json) and [`data/currencies.json`](data/currencies.json), all under ODbL 1.0 (see [`data/README.md`](data/README.md)) |
 
 Required attribution (shown in the app's Credits screen):
 
@@ -43,6 +43,15 @@ them.
 Credit (to show in the app's Credits screen with the map features):
 
 > Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.
+
+### Wikidata (facts)
+
+| | |
+|---|---|
+| Source | https://www.wikidata.org/ (SPARQL endpoint https://query.wikidata.org/sparql) |
+| Version | Pinned snapshots retrieved 2026-10-13: `data/source/wikidata_currencies.json`, `data/source/wikidata_physical_features.json` (query text and SHA-256 inside each) |
+| Licence | CC0 1.0 (public domain dedication); no attribution required |
+| Used in | Currency facts in `data/currencies.json`; Wikidata ids, countries and aliases in `data/physical_features.json`. Built by `tools/data/build_currencies.py` and `tools/data/build_physical_features.py`. Credited on the app's Credits screen ("Facts"). |
 
 ### flag-icons (flag images)
 

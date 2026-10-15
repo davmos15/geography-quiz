@@ -1,0 +1,1953 @@
+{
+  "countryIso3": {
+    "Q1006": "GIN",
+    "Q1009": "CMR",
+    "Q1013": "LSO",
+    "Q1020": "MWI",
+    "Q1028": "MAR",
+    "Q1029": "MOZ",
+    "Q1030": "NAM",
+    "Q1032": "NER",
+    "Q1033": "NGA",
+    "Q1036": "UGA",
+    "Q1037": "RWA",
+    "Q1049": "SDN",
+    "Q114": "KEN",
+    "Q115": "ETH",
+    "Q117": "GHA",
+    "Q142": "FRA",
+    "Q145": "GBR",
+    "Q148": "CHN",
+    "Q155": "BRA",
+    "Q159": "RUS",
+    "Q16": "CAN",
+    "Q183": "DEU",
+    "Q20": "NOR",
+    "Q212": "UKR",
+    "Q213": "CZE",
+    "Q214": "SVK",
+    "Q215": "SVN",
+    "Q217": "MDA",
+    "Q218": "ROU",
+    "Q219": "BGR",
+    "Q219060": "PSE",
+    "Q224": "HRV",
+    "Q228": "AND",
+    "Q232": "KAZ",
+    "Q235": "MCO",
+    "Q258": "ZAF",
+    "Q262": "DZA",
+    "Q265": "UZB",
+    "Q28": "HUN",
+    "Q29": "ESP",
+    "Q298": "CHL",
+    "Q30": "USA",
+    "Q33": "FIN",
+    "Q34": "SWE",
+    "Q347": "LIE",
+    "Q36": "POL",
+    "Q38": "ITA",
+    "Q39": "CHE",
+    "Q40": "AUT",
+    "Q403": "SRB",
+    "Q408": "AUS",
+    "Q414": "ARG",
+    "Q419": "PER",
+    "Q424": "KHM",
+    "Q43": "TUR",
+    "Q657": "TCD",
+    "Q664": "NZL",
+    "Q668": "IND",
+    "Q717": "VEN",
+    "Q733": "PRY",
+    "Q736": "ECU",
+    "Q739": "COL",
+    "Q750": "BOL",
+    "Q79": "EGY",
+    "Q794": "IRN",
+    "Q796": "IRQ",
+    "Q801": "ISR",
+    "Q810": "JOR",
+    "Q811": "NIC",
+    "Q813": "KGZ",
+    "Q819": "LAO",
+    "Q836": "MMR",
+    "Q837": "NPL",
+    "Q843": "PAK",
+    "Q858": "SYR",
+    "Q863": "TJK",
+    "Q869": "THA",
+    "Q881": "VNM",
+    "Q889": "AFG",
+    "Q902": "BGD",
+    "Q912": "MLI",
+    "Q916": "AGO",
+    "Q917": "BTN",
+    "Q924": "TZA",
+    "Q948": "TUN",
+    "Q953": "ZMB",
+    "Q954": "ZWE",
+    "Q958": "SSD",
+    "Q96": "MEX",
+    "Q962": "BEN",
+    "Q963": "BWA",
+    "Q967": "BDI",
+    "Q971": "COG",
+    "Q974": "COD"
+  },
+  "endpoint": "https://query.wikidata.org/sparql",
+  "items": {
+    "Q104437": {
+      "aliasesEn": [
+        "Yukon"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Yukon River"
+    },
+    "Q1048219": {
+      "aliasesEn": [
+        "Waikato"
+      ],
+      "countries": [
+        "Q664"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Waikato River"
+    },
+    "Q1062": {
+      "aliasesEn": [
+        "Lake America"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 74,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Ontario"
+    },
+    "Q1066": {
+      "aliasesEn": [
+        "Superior"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 183,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Superior"
+    },
+    "Q1169": {
+      "aliasesEn": [
+        "Michigan"
+      ],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": 176,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Michigan"
+    },
+    "Q12431": {
+      "aliasesEn": [
+        "Pyrenean Mountains",
+        "Pyrénées",
+        "The Pyrenees",
+        "The Pyrénées"
+      ],
+      "countries": [
+        "Q142",
+        "Q228",
+        "Q29"
+      ],
+      "elevationM": 3404,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Pyrenees"
+    },
+    "Q125309": {
+      "aliasesEn": [
+        "Chad Lake",
+        "Lac Tchad",
+        "Lake_Chad",
+        "Tchad Lake"
+      ],
+      "countries": [
+        "Q1009",
+        "Q1032",
+        "Q1033",
+        "Q657"
+      ],
+      "elevationM": 100,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Chad"
+    },
+    "Q126307": {
+      "aliasesEn": [],
+      "countries": [
+        "Q43"
+      ],
+      "elevationM": 1640,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Van"
+    },
+    "Q1265": {
+      "aliasesEn": [
+        "Ahan Yava Kothickwa",
+        "Ancon de San Andres",
+        "Big River",
+        "Blue River",
+        "Bunkara River",
+        "Buqui Acqumuri",
+        "Canon of the Colorado River",
+        "El Rio de Buena Guia",
+        "Grand River",
+        "Green River",
+        "Gritetho",
+        "Hah Weal Asientic",
+        "Hahweel",
+        "Javill",
+        "Mar Bermejo",
+        "Nah Oon Kara",
+        "North Fork",
+        "North Fork Colorado River",
+        "North Fork of Grand River",
+        "Pa-na-weap",
+        "Packet-to",
+        "Pagah",
+        "Pocket-to",
+        "Red River of California",
+        "Red River of the West",
+        "Rio Buena Guia",
+        "Rio Colorado",
+        "Rio Colorado Del Norte",
+        "Rio Colorado del Norte",
+        "Rio Cosnina",
+        "Rio Del Norte",
+        "Rio Del Tizon",
+        "Rio Grande De Buena Esperanza",
+        "Rio Grande de Buena Esperanza",
+        "Rio Grande de los Cosninas",
+        "Rio Grande de los Martyres",
+        "Rio de Buena Guia",
+        "Rio de los Martires",
+        "Rio del Norta",
+        "Rio del Norte",
+        "Rio del Tizon",
+        "Seedekeeden",
+        "Seeds Keedee",
+        "Seeds Keeden",
+        "Seeds Keeder",
+        "Seeds-ke-Agie",
+        "Seedskeedee Agie",
+        "Seedskeeden",
+        "Seetes-Ker-Der"
+      ],
+      "countries": [
+        "Q30",
+        "Q96"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Colorado River"
+    },
+    "Q127892": {
+      "aliasesEn": [
+        "Parana",
+        "Parana River"
+      ],
+      "countries": [
+        "Q155",
+        "Q414",
+        "Q733"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Paraná River"
+    },
+    "Q1286": {
+      "aliasesEn": [
+        "Alpeia",
+        "Alpeis",
+        "Alpine",
+        "Central European Alps",
+        "European Alpine Region",
+        "European Alps",
+        "the Alps"
+      ],
+      "countries": [
+        "Q142",
+        "Q183",
+        "Q215",
+        "Q235",
+        "Q28",
+        "Q347",
+        "Q38",
+        "Q39",
+        "Q40"
+      ],
+      "elevationM": 4811,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Alps"
+    },
+    "Q1288": {
+      "aliasesEn": [
+        "Carpathian Mountains"
+      ],
+      "countries": [
+        "Q212",
+        "Q213",
+        "Q214",
+        "Q218",
+        "Q28",
+        "Q36",
+        "Q40",
+        "Q403"
+      ],
+      "elevationM": 2655,
+      "instanceOf": [
+        "Q1437459",
+        "Q46831"
+      ],
+      "label": "Carpathians"
+    },
+    "Q130018": {
+      "aliasesEn": [
+        "Bolshaya Gora",
+        "Mount Denali",
+        "Mount McKinley",
+        "Mt. Denali",
+        "Mt. McKinley",
+        "Tenada"
+      ],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": 6190,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Denali"
+    },
+    "Q130135": {
+      "aliasesEn": [],
+      "countries": [
+        "Q1028",
+        "Q262",
+        "Q948"
+      ],
+      "elevationM": 4165,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Atlas Mountains"
+    },
+    "Q131792": {
+      "aliasesEn": [
+        "Orinoco"
+      ],
+      "countries": [
+        "Q717",
+        "Q739"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Orinoco River"
+    },
+    "Q134485": {
+      "aliasesEn": [
+        "Balkash",
+        "Balkash Lake",
+        "Balkhash",
+        "Balkhash Lake",
+        "Lake Balkash"
+      ],
+      "countries": [
+        "Q232"
+      ],
+      "elevationM": 342,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Balkhash"
+    },
+    "Q134750": {
+      "aliasesEn": [
+        "Fleuve Saint-Laurent",
+        "Saint Lawrence River",
+        "St Lawrence River",
+        "St. Lawrence"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 43,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "St. Lawrence River"
+    },
+    "Q1383": {
+      "aliasesEn": [
+        "Huron"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 176,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Huron"
+    },
+    "Q1471": {
+      "aliasesEn": [
+        "Seine River",
+        "river Seine",
+        "the Seine"
+      ],
+      "countries": [
+        "Q142"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Seine"
+    },
+    "Q1497": {
+      "aliasesEn": [
+        "The Mississippi"
+      ],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Mississippi River"
+    },
+    "Q15288": {
+      "aliasesEn": [
+        "Ladoga"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 5,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Ladoga"
+    },
+    "Q160636": {
+      "aliasesEn": [
+        "Rio Bravo",
+        "Rio Bravo del Norte",
+        "Rio Grande River",
+        "Río Bravo",
+        "Río Bravo del Norte",
+        "Río Grande"
+      ],
+      "countries": [
+        "Q30",
+        "Q96"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Rio Grande"
+    },
+    "Q163758": {
+      "aliasesEn": [
+        "Mount Vinson"
+      ],
+      "countries": [],
+      "elevationM": 4892,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Vinson Massif"
+    },
+    "Q1653": {
+      "aliasesEn": [
+        "Danube River",
+        "Donau",
+        "River Danube"
+      ],
+      "countries": [
+        "Q183",
+        "Q214",
+        "Q217",
+        "Q218",
+        "Q219",
+        "Q224",
+        "Q28",
+        "Q40",
+        "Q403"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Danube"
+    },
+    "Q166162": {
+      "aliasesEn": [
+        "Lake Onego",
+        "Onega Lake",
+        "Onego",
+        "Onezhskoye Ozero"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 33,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Onega"
+    },
+    "Q167021": {
+      "aliasesEn": [
+        "Zagros"
+      ],
+      "countries": [
+        "Q43",
+        "Q794",
+        "Q796"
+      ],
+      "elevationM": 4409,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Zagros Mountains"
+    },
+    "Q173017": {
+      "aliasesEn": [
+        "Limpopo"
+      ],
+      "countries": [
+        "Q1029",
+        "Q258",
+        "Q954",
+        "Q963"
+      ],
+      "elevationM": 513,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Limpopo River"
+    },
+    "Q173862": {
+      "aliasesEn": [
+        "Lake Cocibolca"
+      ],
+      "countries": [
+        "Q811"
+      ],
+      "elevationM": 32,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Nicaragua"
+    },
+    "Q178167": {
+      "aliasesEn": [
+        "Kunama Namadgi"
+      ],
+      "countries": [
+        "Q408"
+      ],
+      "elevationM": 2228,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Mount Kosciuszko"
+    },
+    "Q178741": {
+      "aliasesEn": [],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": 1283,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Great Salt Lake"
+    },
+    "Q181475": {
+      "aliasesEn": [
+        "Gariep",
+        "Groote River",
+        "Senqu River"
+      ],
+      "countries": [
+        "Q1013",
+        "Q1030",
+        "Q258"
+      ],
+      "elevationM": 1400,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Orange River"
+    },
+    "Q181482": {
+      "aliasesEn": [],
+      "countries": [
+        "Q408"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Darling River"
+    },
+    "Q182719": {
+      "aliasesEn": [
+        "Aman Lake",
+        "Anam Lake",
+        "Bas Lake",
+        "Baso Lake",
+        "Basso Narok",
+        "Basso Norok",
+        "Fuchich",
+        "Galanaboy",
+        "Gallop Lake",
+        "Gulanabol",
+        "Gullopp",
+        "Jade Sea",
+        "Lago Rodolfo",
+        "Lake Rudolf",
+        "Rudolf Bahir",
+        "Rudolf Lake",
+        "Rudolph Lake"
+      ],
+      "countries": [
+        "Q114",
+        "Q115"
+      ],
+      "elevationM": 360,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Turkana"
+    },
+    "Q183078": {
+      "aliasesEn": [
+        "Indi Miky",
+        "River Murray",
+        "the Murray River",
+        "the River Murray"
+      ],
+      "countries": [
+        "Q408"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Murray River"
+    },
+    "Q183295": {
+      "aliasesEn": [
+        "Drakenberg",
+        "Drakenberg Mountains",
+        "Ukhahlamba"
+      ],
+      "countries": [
+        "Q1013",
+        "Q258"
+      ],
+      "elevationM": 3482,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Drakensberg"
+    },
+    "Q186547": {
+      "aliasesEn": [
+        "Scandes"
+      ],
+      "countries": [
+        "Q20",
+        "Q33",
+        "Q34"
+      ],
+      "elevationM": 2469,
+      "instanceOf": [
+        "Q1437459"
+      ],
+      "label": "Scandinavian Mountains"
+    },
+    "Q192583": {
+      "aliasesEn": [
+        "Dividing Range",
+        "East Australian Cordillera",
+        "Eastern Highlands",
+        "the Great Dividing Range"
+      ],
+      "countries": [
+        "Q408"
+      ],
+      "elevationM": 2228,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Great Dividing Range"
+    },
+    "Q19686": {
+      "aliasesEn": [
+        "Tamesis",
+        "Thames",
+        "the River Thames",
+        "the Thames"
+      ],
+      "countries": [
+        "Q145"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "River Thames"
+    },
+    "Q199903": {
+      "aliasesEn": [
+        "Lake Taupo",
+        "Lake Taupō / Taupōmoana"
+      ],
+      "countries": [
+        "Q664"
+      ],
+      "elevationM": 356,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Taupō"
+    },
+    "Q201294": {
+      "aliasesEn": [
+        "Ch'ing-hai L.",
+        "Ch'ing-hai Lake",
+        "Ch'ing-hai Sea",
+        "Ching-hai L.",
+        "Ching-hai Lake",
+        "Chinghai Lake",
+        "Koko Nor",
+        "Kokonor L.",
+        "Kokonor Lake",
+        "Kokonor Sea",
+        "L. Ch'ing-hai",
+        "L. Ching-hai",
+        "L. Kokonor",
+        "L. Qinghai",
+        "L. Tsongön",
+        "Lake Ch'ing-hai",
+        "Lake Ching-hai",
+        "Lake Kokonor",
+        "Lake Qinghai",
+        "Lake Tsongön",
+        "Qinghai",
+        "Qinghai Hu",
+        "Qinghai L.",
+        "Qinghai Sea",
+        "Tsongön",
+        "Tsongön L.",
+        "Tsongön Lake"
+      ],
+      "countries": [
+        "Q148"
+      ],
+      "elevationM": 3266,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Qinghai Lake"
+    },
+    "Q201679": {
+      "aliasesEn": [
+        "Volta Lake"
+      ],
+      "countries": [
+        "Q117"
+      ],
+      "elevationM": 85,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Volta"
+    },
+    "Q21890573": {
+      "aliasesEn": [
+        "Eyre North"
+      ],
+      "countries": [
+        "Q408"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Eyre North"
+    },
+    "Q2251": {
+      "aliasesEn": [],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 406,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Columbia River"
+    },
+    "Q23883": {
+      "aliasesEn": [
+        "Asphaltic Lake",
+        "Asphaltic Pool",
+        "Death sea",
+        "Lake Asphaltites",
+        "Lake Asphaltitis",
+        "Palus Asphaltites",
+        "Salt Sea",
+        "Sea of Arava",
+        "Sea of Lot",
+        "Sea of Zoar",
+        "Sea of the Arabah",
+        "Sea of the Dead",
+        "The Dead Sea"
+      ],
+      "countries": [
+        "Q219060",
+        "Q801",
+        "Q810"
+      ],
+      "elevationM": -442,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Dead Sea"
+    },
+    "Q26076": {
+      "aliasesEn": [
+        "Ayeyarwadi River",
+        "Irawadi"
+      ],
+      "countries": [
+        "Q836"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Irrawaddy River"
+    },
+    "Q26777": {
+      "aliasesEn": [
+        "Blaue Berge",
+        "California Range",
+        "Cordilleras of California",
+        "High Sierra",
+        "Kay-o-pha",
+        "Santa Lucia Range",
+        "Sierra Neauados",
+        "Sierra Neuado",
+        "Sierra Nevada Mountains",
+        "Sierra Nevadas",
+        "Sierra San Marcos",
+        "Sierras Nevadas",
+        "Skye Mountains",
+        "Snowy Mountains",
+        "The Sierras"
+      ],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": 14505,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Sierra Nevada"
+    },
+    "Q319288": {
+      "aliasesEn": [
+        "Abyssinian Highlands",
+        "Roof of Africa"
+      ],
+      "countries": [
+        "Q115"
+      ],
+      "elevationM": 4550,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Ethiopian Highlands"
+    },
+    "Q319671": {
+      "aliasesEn": [],
+      "countries": [],
+      "elevationM": 4528,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Transantarctic Mountains"
+    },
+    "Q3272": {
+      "aliasesEn": [],
+      "countries": [
+        "Q16"
+      ],
+      "elevationM": 217,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Winnipeg"
+    },
+    "Q3392": {
+      "aliasesEn": [
+        "Bahr en Nīl",
+        "Nahr an Nil",
+        "Nahr an Nīl",
+        "Nile River",
+        "Nilus River",
+        "Nīl River",
+        "River Nile",
+        "Shihor",
+        "The Nile"
+      ],
+      "countries": [
+        "Q1036",
+        "Q1037",
+        "Q1049",
+        "Q115",
+        "Q79",
+        "Q958",
+        "Q967"
+      ],
+      "elevationM": 2700,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Nile"
+    },
+    "Q3411": {
+      "aliasesEn": [
+        "Deh Cho",
+        "Dehcho",
+        "Fleuve Mackenzie",
+        "Kuukpak",
+        "Mackenzie (Severozápadní teritoria : řeka)"
+      ],
+      "countries": [
+        "Q16"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Mackenzie River"
+    },
+    "Q34589": {
+      "aliasesEn": [],
+      "countries": [
+        "Q43",
+        "Q796",
+        "Q858"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Euphrates"
+    },
+    "Q3503": {
+      "aliasesEn": [
+        "Congo River",
+        "Zaire",
+        "Zaire River"
+      ],
+      "countries": [
+        "Q916",
+        "Q953",
+        "Q971",
+        "Q974"
+      ],
+      "elevationM": 32,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "River Congo"
+    },
+    "Q35342": {
+      "aliasesEn": [
+        "Lake Titicaca",
+        "Lake Titiqaqa",
+        "Titiqaqa"
+      ],
+      "countries": [
+        "Q419",
+        "Q750"
+      ],
+      "elevationM": 3812,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Titicaca"
+    },
+    "Q3542": {
+      "aliasesEn": [
+        "Niger",
+        "Quorra",
+        "River Niger",
+        "fleuve Niger"
+      ],
+      "countries": [
+        "Q1006",
+        "Q1032",
+        "Q1033",
+        "Q912",
+        "Q962"
+      ],
+      "elevationM": 200,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Niger River"
+    },
+    "Q35591": {
+      "aliasesEn": [
+        "Tigris River"
+      ],
+      "countries": [
+        "Q43",
+        "Q796",
+        "Q858"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Tigris"
+    },
+    "Q35600": {
+      "aliasesEn": [
+        "Urals",
+        "the Urals"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 1895,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Ural Mountains"
+    },
+    "Q35883": {
+      "aliasesEn": [
+        "the sea of Aral"
+      ],
+      "countries": [
+        "Q232",
+        "Q265"
+      ],
+      "elevationM": 31,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Aral Sea"
+    },
+    "Q3783": {
+      "aliasesEn": [
+        "Amazonian River",
+        "River Amazon",
+        "The Amazon",
+        "The Amazon River"
+      ],
+      "countries": [
+        "Q155",
+        "Q419",
+        "Q739"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Amazon River"
+    },
+    "Q39739": {
+      "aliasesEn": [],
+      "countries": [
+        "Q414"
+      ],
+      "elevationM": 6962,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Aconcagua"
+    },
+    "Q41179": {
+      "aliasesEn": [
+        "Lancang Jiang",
+        "Lancang R.",
+        "Lancang River",
+        "Lantzan Kiang",
+        "Lantzan R.",
+        "Lantzan River",
+        "Lantzan-kiang",
+        "Mekhong",
+        "Mekhong R.",
+        "Mekong R.",
+        "Mékong"
+      ],
+      "countries": [
+        "Q148",
+        "Q424",
+        "Q819",
+        "Q836",
+        "Q869",
+        "Q881"
+      ],
+      "elevationM": 1,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Mekong River"
+    },
+    "Q4127": {
+      "aliasesEn": [
+        "Bodensee",
+        "Lac de Constance",
+        "Lake Boden"
+      ],
+      "countries": [
+        "Q183",
+        "Q39",
+        "Q40"
+      ],
+      "elevationM": 395,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Constance"
+    },
+    "Q43105": {
+      "aliasesEn": [
+        "Elbrus",
+        "Elbruz",
+        "Mingi Tau",
+        "Mount Elbruz"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 5642,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Mount Elbrus"
+    },
+    "Q43106": {
+      "aliasesEn": [
+        "Zambesi",
+        "Zambeze",
+        "Zambezi"
+      ],
+      "countries": [
+        "Q1029",
+        "Q1030",
+        "Q916",
+        "Q953",
+        "Q954"
+      ],
+      "elevationM": 329,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Zambezi River"
+    },
+    "Q43512": {
+      "aliasesEn": [
+        "Chhogori",
+        "Mount Godwin-Austen",
+        "Mount K2",
+        "Mt. Qogir"
+      ],
+      "countries": [
+        "Q843"
+      ],
+      "elevationM": 8611,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "K2"
+    },
+    "Q4527": {
+      "aliasesEn": [
+        "Sahayadri",
+        "Sahayadri Hills",
+        "Sahya Mountains",
+        "Sahya Parvat",
+        "Sahya Parvatam",
+        "Sahya Parvatham",
+        "Sahyadri",
+        "Sahyadri Mountains",
+        "Sahyadri mountain range",
+        "Sahyadri mountain ranges",
+        "Sahyadris",
+        "Tamhini Ghat",
+        "The Western Ghats",
+        "West coast mountain range of India",
+        "Western Ghat mountain range",
+        "Western Ghat mountain ranges",
+        "Western Ghat mountains",
+        "Western Ghats of Maharashtra",
+        "Western Ghauts",
+        "Western Ghâts",
+        "Western Ghāts",
+        "Western coast mountain range of india"
+      ],
+      "countries": [
+        "Q668"
+      ],
+      "elevationM": 2695,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Western Ghats"
+    },
+    "Q45403": {
+      "aliasesEn": [
+        "Brahmapoutra",
+        "Brahmapoutra R.",
+        "Brahmapoutra River",
+        "Brahmaputra",
+        "Brahmaputra R.",
+        "Dihong",
+        "Sky river",
+        "Tsangpo-Brahmaputra"
+      ],
+      "countries": [
+        "Q148",
+        "Q668",
+        "Q837",
+        "Q902"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Brahmaputra River"
+    },
+    "Q46841": {
+      "aliasesEn": [
+        "Lena"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 1466,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Lena River"
+    },
+    "Q4814791": {
+      "aliasesEn": [
+        "Albert Nile",
+        "An Nīl al Abyaḑ",
+        "El Bahr el Abyad River",
+        "Mountain Nile",
+        "White Nile River",
+        "بحر العرب في السودان"
+      ],
+      "countries": [
+        "Q1036",
+        "Q1037",
+        "Q1049",
+        "Q924",
+        "Q958",
+        "Q974"
+      ],
+      "elevationM": 350,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "White Nile"
+    },
+    "Q5089": {
+      "aliasesEn": [
+        "Ganga",
+        "Ganga Nadi",
+        "Ganges River",
+        "River Ganges"
+      ],
+      "countries": [
+        "Q668"
+      ],
+      "elevationM": 9,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Ganges"
+    },
+    "Q513": {
+      "aliasesEn": [
+        "Chomolangma",
+        "Himalaya Peak XV",
+        "Mount Chomolubutangma",
+        "Mount Qomolangma",
+        "Mount Sagarmatha",
+        "Mt Everest",
+        "Peak XV",
+        "Qomolangma Feng",
+        "World highest peak"
+      ],
+      "countries": [
+        "Q148",
+        "Q837"
+      ],
+      "elevationM": 8849,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Mount Everest"
+    },
+    "Q5413": {
+      "aliasesEn": [
+        "Blue River",
+        "Ch'ang Chiang",
+        "Chang Jiang",
+        "Chang Jiang River",
+        "Changjiang",
+        "Changjiang River",
+        "Jiang",
+        "Jiang River",
+        "Kian",
+        "Kiang",
+        "Kiang River",
+        "Kyang",
+        "Kyang River",
+        "Yan-tse",
+        "Yan-tse-kian",
+        "Yang-tse",
+        "Yang-tse River",
+        "Yang-tse-kiang",
+        "Yang-tsze",
+        "Yang-tsze-kiang",
+        "Yang-tze",
+        "Yang-tze River",
+        "Yangtse River",
+        "Yangtse-chiang",
+        "Yangtsze River",
+        "Yangtze",
+        "Yangtzekiang",
+        "Yangzi",
+        "Yangzi River",
+        "Yantse Kiang"
+      ],
+      "countries": [
+        "Q148"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Yangtze River"
+    },
+    "Q5419": {
+      "aliasesEn": [
+        "Missouri",
+        "The Missouri"
+      ],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Missouri River"
+    },
+    "Q5451": {
+      "aliasesEn": [
+        "Himalaya",
+        "Himalaya Mountains",
+        "Himalayan Mountains",
+        "Himmaleh",
+        "Himálaya",
+        "Himálaya Mountains",
+        "Snowy Mountains",
+        "the Himalaya",
+        "the Himalayas",
+        "the Himálaya"
+      ],
+      "countries": [
+        "Q148",
+        "Q668",
+        "Q836",
+        "Q837",
+        "Q843",
+        "Q889",
+        "Q917"
+      ],
+      "elevationM": 8849,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Himalayas"
+    },
+    "Q5456": {
+      "aliasesEn": [
+        "Andes Mountains",
+        "Andes mountain range",
+        "Andes mountains",
+        "Ecuadorian Andes"
+      ],
+      "countries": [
+        "Q298",
+        "Q414",
+        "Q419",
+        "Q717",
+        "Q736",
+        "Q739",
+        "Q750"
+      ],
+      "elevationM": 6962,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Andes"
+    },
+    "Q5463": {
+      "aliasesEn": [
+        "Rockies",
+        "The Rockies"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 4401,
+      "instanceOf": [
+        "Q1437459",
+        "Q46831"
+      ],
+      "label": "Rocky Mountains"
+    },
+    "Q5469": {
+      "aliasesEn": [
+        "Karakoram Mountains",
+        "Karakoram Range",
+        "Karakoroum",
+        "Karakoroum Mountains",
+        "Karakorum",
+        "Karakorum Mountains"
+      ],
+      "countries": [
+        "Q148",
+        "Q668",
+        "Q843",
+        "Q863",
+        "Q889"
+      ],
+      "elevationM": 8611,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Karakoram"
+    },
+    "Q5472": {
+      "aliasesEn": [
+        "Caucasus",
+        "Hindukush",
+        "Paropamisadae",
+        "Pāriyātra Parvata"
+      ],
+      "countries": [
+        "Q843",
+        "Q889"
+      ],
+      "elevationM": 7708,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Hindu Kush"
+    },
+    "Q5474": {
+      "aliasesEn": [
+        "Celestial Mountains",
+        "Heavenly Mountains",
+        "Mountains of Heaven",
+        "T'han-Shan",
+        "T'han-Shañ",
+        "T'ien-shan",
+        "T'ien-shan Mountains",
+        "T'ien-shan Range",
+        "Tengir-Too",
+        "Tengri Tagh",
+        "Than-Shan",
+        "Tian Shan",
+        "Tian Shan Mountains",
+        "Tianshan",
+        "Tianshan Range",
+        "Tien-Shan",
+        "Tien-Shan Mountains",
+        "Tien-Shan Range"
+      ],
+      "countries": [
+        "Q148",
+        "Q232",
+        "Q265",
+        "Q813"
+      ],
+      "elevationM": 7439,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Tianshan Mountains"
+    },
+    "Q5477": {
+      "aliasesEn": [
+        "Caucasus"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 5642,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Caucasus Mountains"
+    },
+    "Q5492": {
+      "aliasesEn": [
+        "Erie"
+      ],
+      "countries": [
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 173,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Erie"
+    },
+    "Q5505": {
+      "aliasesEn": [
+        "Lake Nyanza",
+        "Victoria Nyanza"
+      ],
+      "countries": [
+        "Q1036",
+        "Q114",
+        "Q924"
+      ],
+      "elevationM": 1133,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Victoria"
+    },
+    "Q5511": {
+      "aliasesEn": [
+        "Tanganyika"
+      ],
+      "countries": [
+        "Q924",
+        "Q953",
+        "Q967",
+        "Q974"
+      ],
+      "elevationM": 773,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Tanganyika"
+    },
+    "Q5513": {
+      "aliasesEn": [
+        "Baikal",
+        "Baikal Sea",
+        "Bajkal",
+        "Baykal",
+        "Ozero Bajkal"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": 456,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Baikal"
+    },
+    "Q5532": {
+      "aliasesEn": [
+        "Lago Niassa",
+        "Lake Nyasa",
+        "Lake Nyassa"
+      ],
+      "countries": [
+        "Q1020",
+        "Q1029",
+        "Q924"
+      ],
+      "elevationM": 474,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Malawi"
+    },
+    "Q583": {
+      "aliasesEn": [
+        "Il Bianco",
+        "La Dame blanche",
+        "Mt Blanc",
+        "Mt. Blanc"
+      ],
+      "countries": [
+        "Q142",
+        "Q38"
+      ],
+      "elevationM": 4806,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Mont Blanc"
+    },
+    "Q584": {
+      "aliasesEn": [
+        "Rhine River"
+      ],
+      "countries": [
+        "Q142",
+        "Q183",
+        "Q347",
+        "Q39",
+        "Q40",
+        "Q55"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Rhine"
+    },
+    "Q602": {
+      "aliasesEn": [
+        "Rhone",
+        "Rhone River",
+        "Rhône River"
+      ],
+      "countries": [
+        "Q142",
+        "Q39"
+      ],
+      "elevationM": 2209,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Rhône"
+    },
+    "Q626": {
+      "aliasesEn": [
+        "Oares (in Greek)",
+        "R. Volga",
+        "R. Wolga",
+        "Rha river (in Scythian)",
+        "River Volga",
+        "River Wolga",
+        "Rā (in Scythian)",
+        "Volga R.",
+        "Volga River",
+        "Wolga",
+        "Wolga R.",
+        "Wolga River"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Volga"
+    },
+    "Q6383": {
+      "aliasesEn": [
+        "Balaton",
+        "Platten-See"
+      ],
+      "countries": [
+        "Q28"
+      ],
+      "elevationM": 104,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Balaton"
+    },
+    "Q6403": {
+      "aliasesEn": [
+        "Geneva Lake",
+        "Lake Leman",
+        "Lake Léman",
+        "Lake of Geneva",
+        "Léman"
+      ],
+      "countries": [
+        "Q142",
+        "Q39"
+      ],
+      "elevationM": 372,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Geneva"
+    },
+    "Q643": {
+      "aliasesEn": [
+        "Po River",
+        "River Po"
+      ],
+      "countries": [
+        "Q38"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Po"
+    },
+    "Q667507": {
+      "aliasesEn": [
+        "Escalante Lake",
+        "Glen Canyon Reservoir"
+      ],
+      "countries": [
+        "Q30"
+      ],
+      "elevationM": 3704,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Lake Powell"
+    },
+    "Q6862": {
+      "aliasesEn": [
+        "Amur",
+        "Black Dragon River",
+        "Black River",
+        "Heilong Jiang",
+        "Heilong River",
+        "Heilongjiang River",
+        "Saghalien Oula",
+        "Saghalien River",
+        "Saghalien-Oula"
+      ],
+      "countries": [
+        "Q148",
+        "Q159"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Amur River"
+    },
+    "Q7296": {
+      "aliasesEn": [
+        "Kilima-Njaro",
+        "Kilimanjaro",
+        "Mount Kilimawn",
+        "Mt Kilimanjaro",
+        "Mt. Kilimanjaro"
+      ],
+      "countries": [
+        "Q924"
+      ],
+      "elevationM": 5895,
+      "instanceOf": [
+        "Q8502"
+      ],
+      "label": "Mount Kilimanjaro"
+    },
+    "Q7348": {
+      "aliasesEn": [
+        "Indus",
+        "Indus R.",
+        "Mehran River",
+        "R. Indus",
+        "River Indus",
+        "Sindh River",
+        "Sindhu River"
+      ],
+      "countries": [
+        "Q148",
+        "Q668",
+        "Q843"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Indus River"
+    },
+    "Q7355": {
+      "aliasesEn": [
+        "Hoan-ho",
+        "Hoan-ho R.",
+        "Hoan-ho River",
+        "Hoang ho",
+        "Hoang-ho",
+        "Hoang-ho R.",
+        "Hoang-ho River",
+        "Hoangho",
+        "Huang He",
+        "Huang He R.",
+        "Huang He River",
+        "Huang-ho",
+        "Huang-ho R.",
+        "Huang-ho River",
+        "Huanghe",
+        "Huanghe R.",
+        "Huanghe River",
+        "Whang-ho River",
+        "Yellow R."
+      ],
+      "countries": [
+        "Q148"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Yellow River"
+    },
+    "Q753898": {
+      "aliasesEn": [
+        "Lake Argentino"
+      ],
+      "countries": [
+        "Q414"
+      ],
+      "elevationM": 187,
+      "instanceOf": [
+        "Q23397"
+      ],
+      "label": "Argentino Lake"
+    },
+    "Q882739": {
+      "aliasesEn": [
+        "Abai (river)",
+        "Abai River",
+        "Abai river",
+        "Abay (river)",
+        "Abay River",
+        "Abbai River",
+        "Abbay River",
+        "Al-Bahr al-azraq",
+        "Al-bahr al-Azraq",
+        "Blue Nile River",
+        "El Bahr el Azraq",
+        "El Bahr el Azraq River"
+      ],
+      "countries": [
+        "Q1049",
+        "Q115"
+      ],
+      "elevationM": 1786,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Blue Nile"
+    },
+    "Q93332": {
+      "aliasesEn": [
+        "Apalaches",
+        "Appalachians",
+        "The Appalachians"
+      ],
+      "countries": [
+        "Q142",
+        "Q16",
+        "Q30"
+      ],
+      "elevationM": 2037,
+      "instanceOf": [
+        "Q46831"
+      ],
+      "label": "Appalachian Mountains"
+    },
+    "Q973": {
+      "aliasesEn": [
+        "Ob R.",
+        "Ob River",
+        "Obi",
+        "Obi R.",
+        "Obi River",
+        "R. Ob",
+        "R. Obi",
+        "River Ob",
+        "River Obi"
+      ],
+      "countries": [
+        "Q159"
+      ],
+      "elevationM": null,
+      "instanceOf": [
+        "Q4022"
+      ],
+      "label": "Ob"
+    }
+  },
+  "queries": {
+    "aliasesEn": "SELECT ?item ?alias WHERE {\n  VALUES ?item { wd:Q104437 wd:Q1048219 wd:Q1062 wd:Q1066 wd:Q1169 wd:Q12431 wd:Q125309 wd:Q126307 wd:Q1265 wd:Q127892 wd:Q1286 wd:Q1288 wd:Q130018 wd:Q130135 wd:Q131792 wd:Q134485 wd:Q134750 wd:Q1383 wd:Q1471 wd:Q1497 wd:Q15288 wd:Q160636 wd:Q163758 wd:Q1653 wd:Q166162 wd:Q167021 wd:Q173017 wd:Q173862 wd:Q178167 wd:Q178741 wd:Q181475 wd:Q181482 wd:Q182719 wd:Q183078 wd:Q183295 wd:Q186547 wd:Q192583 wd:Q19686 wd:Q199903 wd:Q201294 wd:Q201679 wd:Q21890573 wd:Q2251 wd:Q23883 wd:Q26076 wd:Q26777 wd:Q319288 wd:Q319671 wd:Q3272 wd:Q3392 wd:Q3411 wd:Q34589 wd:Q3503 wd:Q35342 wd:Q3542 wd:Q35591 wd:Q35600 wd:Q35883 wd:Q3783 wd:Q39739 wd:Q41179 wd:Q4127 wd:Q43105 wd:Q43106 wd:Q43512 wd:Q4527 wd:Q45403 wd:Q46841 wd:Q4814791 wd:Q5089 wd:Q513 wd:Q5413 wd:Q5419 wd:Q5451 wd:Q5456 wd:Q5463 wd:Q5469 wd:Q5472 wd:Q5474 wd:Q5477 wd:Q5492 wd:Q5505 wd:Q5511 wd:Q5513 wd:Q5532 wd:Q583 wd:Q584 wd:Q602 wd:Q626 wd:Q6383 wd:Q6403 wd:Q643 wd:Q667507 wd:Q6862 wd:Q7296 wd:Q7348 wd:Q7355 wd:Q753898 wd:Q882739 wd:Q93332 wd:Q973 }\n  ?item skos:altLabel ?alias .\n  FILTER(LANG(?alias) = \"en\")\n}",
+    "countries": "SELECT ?item ?country WHERE {\n  VALUES ?item { wd:Q104437 wd:Q1048219 wd:Q1062 wd:Q1066 wd:Q1169 wd:Q12431 wd:Q125309 wd:Q126307 wd:Q1265 wd:Q127892 wd:Q1286 wd:Q1288 wd:Q130018 wd:Q130135 wd:Q131792 wd:Q134485 wd:Q134750 wd:Q1383 wd:Q1471 wd:Q1497 wd:Q15288 wd:Q160636 wd:Q163758 wd:Q1653 wd:Q166162 wd:Q167021 wd:Q173017 wd:Q173862 wd:Q178167 wd:Q178741 wd:Q181475 wd:Q181482 wd:Q182719 wd:Q183078 wd:Q183295 wd:Q186547 wd:Q192583 wd:Q19686 wd:Q199903 wd:Q201294 wd:Q201679 wd:Q21890573 wd:Q2251 wd:Q23883 wd:Q26076 wd:Q26777 wd:Q319288 wd:Q319671 wd:Q3272 wd:Q3392 wd:Q3411 wd:Q34589 wd:Q3503 wd:Q35342 wd:Q3542 wd:Q35591 wd:Q35600 wd:Q35883 wd:Q3783 wd:Q39739 wd:Q41179 wd:Q4127 wd:Q43105 wd:Q43106 wd:Q43512 wd:Q4527 wd:Q45403 wd:Q46841 wd:Q4814791 wd:Q5089 wd:Q513 wd:Q5413 wd:Q5419 wd:Q5451 wd:Q5456 wd:Q5463 wd:Q5469 wd:Q5472 wd:Q5474 wd:Q5477 wd:Q5492 wd:Q5505 wd:Q5511 wd:Q5513 wd:Q5532 wd:Q583 wd:Q584 wd:Q602 wd:Q626 wd:Q6383 wd:Q6403 wd:Q643 wd:Q667507 wd:Q6862 wd:Q7296 wd:Q7348 wd:Q7355 wd:Q753898 wd:Q882739 wd:Q93332 wd:Q973 }\n  ?item wdt:P17 ?country .\n}",
+    "countryIso3": "SELECT ?country ?iso3 WHERE {\n  VALUES ?country { wd:Q1006 wd:Q1009 wd:Q1013 wd:Q1020 wd:Q1028 wd:Q1029 wd:Q1030 wd:Q1032 wd:Q1033 wd:Q1036 wd:Q1037 wd:Q1049 wd:Q114 wd:Q115 wd:Q117 wd:Q142 wd:Q145 wd:Q148 wd:Q155 wd:Q159 wd:Q16 wd:Q183 wd:Q20 wd:Q212 wd:Q213 wd:Q214 wd:Q215 wd:Q217 wd:Q218 wd:Q219 wd:Q219060 wd:Q224 wd:Q228 wd:Q232 wd:Q235 wd:Q258 wd:Q262 wd:Q265 wd:Q28 wd:Q29 wd:Q298 wd:Q30 wd:Q33 wd:Q34 wd:Q347 wd:Q36 wd:Q38 wd:Q39 wd:Q40 wd:Q403 wd:Q408 wd:Q414 wd:Q419 wd:Q424 wd:Q43 wd:Q55 wd:Q657 wd:Q664 wd:Q668 wd:Q717 wd:Q733 wd:Q736 wd:Q739 wd:Q750 wd:Q79 wd:Q794 wd:Q796 wd:Q801 wd:Q810 wd:Q811 wd:Q813 wd:Q819 wd:Q836 wd:Q837 wd:Q843 wd:Q858 wd:Q863 wd:Q869 wd:Q881 wd:Q889 wd:Q902 wd:Q912 wd:Q916 wd:Q917 wd:Q924 wd:Q948 wd:Q953 wd:Q954 wd:Q958 wd:Q96 wd:Q962 wd:Q963 wd:Q967 wd:Q971 wd:Q974 }\n  OPTIONAL { ?country wdt:P298 ?iso3 }\n}",
+    "instanceOf": "SELECT ?item ?class WHERE {\n  VALUES ?item { wd:Q104437 wd:Q1048219 wd:Q1062 wd:Q1066 wd:Q1169 wd:Q12431 wd:Q125309 wd:Q126307 wd:Q1265 wd:Q127892 wd:Q1286 wd:Q1288 wd:Q130018 wd:Q130135 wd:Q131792 wd:Q134485 wd:Q134750 wd:Q1383 wd:Q1471 wd:Q1497 wd:Q15288 wd:Q160636 wd:Q163758 wd:Q1653 wd:Q166162 wd:Q167021 wd:Q173017 wd:Q173862 wd:Q178167 wd:Q178741 wd:Q181475 wd:Q181482 wd:Q182719 wd:Q183078 wd:Q183295 wd:Q186547 wd:Q192583 wd:Q19686 wd:Q199903 wd:Q201294 wd:Q201679 wd:Q21890573 wd:Q2251 wd:Q23883 wd:Q26076 wd:Q26777 wd:Q319288 wd:Q319671 wd:Q3272 wd:Q3392 wd:Q3411 wd:Q34589 wd:Q3503 wd:Q35342 wd:Q3542 wd:Q35591 wd:Q35600 wd:Q35883 wd:Q3783 wd:Q39739 wd:Q41179 wd:Q4127 wd:Q43105 wd:Q43106 wd:Q43512 wd:Q4527 wd:Q45403 wd:Q46841 wd:Q4814791 wd:Q5089 wd:Q513 wd:Q5413 wd:Q5419 wd:Q5451 wd:Q5456 wd:Q5463 wd:Q5469 wd:Q5472 wd:Q5474 wd:Q5477 wd:Q5492 wd:Q5505 wd:Q5511 wd:Q5513 wd:Q5532 wd:Q583 wd:Q584 wd:Q602 wd:Q626 wd:Q6383 wd:Q6403 wd:Q643 wd:Q667507 wd:Q6862 wd:Q7296 wd:Q7348 wd:Q7355 wd:Q753898 wd:Q882739 wd:Q93332 wd:Q973 }\n  VALUES ?class { wd:Q4022 wd:Q23397 wd:Q46831 wd:Q8502 wd:Q1437459 }\n  ?item wdt:P31/wdt:P279* ?class .\n}",
+    "labelsElevation": "SELECT ?item ?label ?elevation WHERE {\n  VALUES ?item { wd:Q104437 wd:Q1048219 wd:Q1062 wd:Q1066 wd:Q1169 wd:Q12431 wd:Q125309 wd:Q126307 wd:Q1265 wd:Q127892 wd:Q1286 wd:Q1288 wd:Q130018 wd:Q130135 wd:Q131792 wd:Q134485 wd:Q134750 wd:Q1383 wd:Q1471 wd:Q1497 wd:Q15288 wd:Q160636 wd:Q163758 wd:Q1653 wd:Q166162 wd:Q167021 wd:Q173017 wd:Q173862 wd:Q178167 wd:Q178741 wd:Q181475 wd:Q181482 wd:Q182719 wd:Q183078 wd:Q183295 wd:Q186547 wd:Q192583 wd:Q19686 wd:Q199903 wd:Q201294 wd:Q201679 wd:Q21890573 wd:Q2251 wd:Q23883 wd:Q26076 wd:Q26777 wd:Q319288 wd:Q319671 wd:Q3272 wd:Q3392 wd:Q3411 wd:Q34589 wd:Q3503 wd:Q35342 wd:Q3542 wd:Q35591 wd:Q35600 wd:Q35883 wd:Q3783 wd:Q39739 wd:Q41179 wd:Q4127 wd:Q43105 wd:Q43106 wd:Q43512 wd:Q4527 wd:Q45403 wd:Q46841 wd:Q4814791 wd:Q5089 wd:Q513 wd:Q5413 wd:Q5419 wd:Q5451 wd:Q5456 wd:Q5463 wd:Q5469 wd:Q5472 wd:Q5474 wd:Q5477 wd:Q5492 wd:Q5505 wd:Q5511 wd:Q5513 wd:Q5532 wd:Q583 wd:Q584 wd:Q602 wd:Q626 wd:Q6383 wd:Q6403 wd:Q643 wd:Q667507 wd:Q6862 wd:Q7296 wd:Q7348 wd:Q7355 wd:Q753898 wd:Q882739 wd:Q93332 wd:Q973 }\n  OPTIONAL { ?item rdfs:label ?label . FILTER(STRSTARTS(LANG(?label), \"en\")) }\n  OPTIONAL { ?item wdt:P2044 ?elevation }\n}"
+  },
+  "retrievedAt": "2026-10-13",
+  "sha256": "8144884cd8f1114913314a2292cd46f846e36717e54e70270bb75d1b97c58310",
+  "userAgent": "GeoQuiz-dataprep/1.0 (https://github.com/davmos15/geography-quiz)"
+}

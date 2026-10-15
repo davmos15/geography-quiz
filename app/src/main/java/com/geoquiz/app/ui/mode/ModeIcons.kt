@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.geoquiz.app.domain.mode.ModeIcon
@@ -19,4 +20,6 @@ val ModeIcon.imageVector: ImageVector
         ModeIcon.SILHOUETTE -> Icons.Default.Terrain
         // A pin dropped on a map: matches "tap the map" better than a plain location marker.
         ModeIcon.MAP_PIN -> Icons.Default.PinDrop
+        // A path from one place to another: matches hopping across borders (task 6.1).
+        ModeIcon.BORDER_HOP -> Icons.Default.Route
     }

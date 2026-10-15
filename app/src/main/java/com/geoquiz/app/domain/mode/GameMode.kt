@@ -28,7 +28,13 @@ enum class HintType {
     FIRST_LETTER,
     SHOW_REGION,
     SHOW_NEIGHBOURS,
-    FLASH_REGION
+    FLASH_REGION,
+
+    /**
+     * Border hop (task 6.1, D44): reveals one of the current country's neighbours that is still
+     * on a shortest path to the target.
+     */
+    SHOW_VALID_HOP
 }
 
 /**
@@ -42,7 +48,9 @@ enum class ModeIcon {
     /** Country silhouettes (Phase 5). */
     SILHOUETTE,
     /** Tap the map (Phase 5). */
-    MAP_PIN
+    MAP_PIN,
+    /** Border hop (task 6.1). */
+    BORDER_HOP
 }
 
 /** User-facing text for a mode, as resource ids. */
@@ -78,7 +86,15 @@ data class GameModeSpec(
     val supportedDifficulties: Set<Difficulty>,
     val hintTypes: Set<HintType>,
     val featureFlag: FeatureFlag?,
-    val sortOrder: Int
+    val sortOrder: Int,
+    /**
+     * Whether Results' "View Answers" button makes sense for this mode. `AnswerReviewViewModel`
+     * resolves [com.geoquiz.app.domain.model.CompletedQuiz.countryCodes] against the real
+     * `CountryRepository` (cca3 codes); a mode whose codes are not cca3 at all (US/CA regions'
+     * admin1 ids) gets an empty, blank review screen rather than just an odd-looking one, so it
+     * sets this `false` until Answer Review gets a non-`CountryRepository` lookup path.
+     */
+    val supportsAnswerReview: Boolean = true
 )
 
 /** Builds the set of items a quiz asks about. Only called for categories offered in the mode. */

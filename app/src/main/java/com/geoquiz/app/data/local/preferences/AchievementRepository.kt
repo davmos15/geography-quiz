@@ -97,6 +97,8 @@ class AchievementRepository @Inject constructor(
                 // Never reached: achievements are classic-only (D35, CompleteQuizUseCase) and
                 // MapRegion is only offered by Tap the map, a new (non-classic) mode.
                 is QuizCategory.MapRegion -> "mapregion"
+                // Never reached: same reasoning as MapRegion above (D35/D43, US/CA regions).
+                is QuizCategory.FixedRegion -> "fixedregion"
                 // Never reached: practice quizzes record no achievements (D21, CompleteQuizUseCase).
                 is QuizCategory.Practice -> "practice"
             }

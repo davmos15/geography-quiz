@@ -126,6 +126,10 @@ class GetCountriesForQuizUseCase @Inject constructor(
                 }
             }
 
+            // US/CA regions only (task 6.2): never reached, since that mode resolves its own
+            // members (UsCaRegionSet) and never calls this use case.
+            is QuizCategory.FixedRegion -> emptyList()
+
             is QuizCategory.Practice -> practiceItems(allCountries, category)
         }
     }

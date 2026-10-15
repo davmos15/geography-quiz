@@ -17,7 +17,7 @@ import org.robolectric.RobolectricTestRunner
 
 /**
  * Credits screen (L1, task 4.6): the maps section credits Natural Earth and UN M49 now that
- * Phase 4 bundles that data.
+ * Phase 4 bundles that data; the facts section credits Wikidata (Phase 6-7 data prep).
  */
 @RunWith(RobolectricTestRunner::class)
 class CreditsScreenTest {
@@ -67,5 +67,18 @@ class CreditsScreenTest {
 
         compose.onNodeWithText("unstats.un.org").performScrollTo().performClick()
         assertEquals(listOf("https://unstats.un.org/unsd/methodology/m49/"), openedUrls)
+    }
+
+    @Test
+    fun `credits Wikidata with a working link`() {
+        launch()
+        compose.onNodeWithText("Facts").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(
+            "Currency facts come from Wikidata, and the names and countries of rivers, " +
+                "mountains and lakes are checked against it. Available under CC0."
+        ).performScrollTo().assertIsDisplayed()
+
+        compose.onNodeWithText("wikidata.org").performScrollTo().performClick()
+        assertEquals(listOf("https://www.wikidata.org"), openedUrls)
     }
 }

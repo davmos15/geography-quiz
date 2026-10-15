@@ -30,6 +30,8 @@ import androidx.navigation.navArgument
 import com.geoquiz.app.BuildConfig
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.ui.achievements.AchievementsScreen
+import com.geoquiz.app.ui.borderhop.BorderHopGameScreen
+import com.geoquiz.app.ui.borderhop.BorderHopSetupScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
 import com.geoquiz.app.ui.challenges.ChallengeAcceptScreen
 import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
@@ -49,6 +51,8 @@ import com.geoquiz.app.ui.silhouettes.SilhouettesSetupScreen
 import com.geoquiz.app.ui.stats.StatsScreen
 import com.geoquiz.app.ui.tapmap.TapMapGameScreen
 import com.geoquiz.app.ui.tapmap.TapMapSetupScreen
+import com.geoquiz.app.ui.usca.UsCaRegionsGameScreen
+import com.geoquiz.app.ui.usca.UsCaRegionsSetupScreen
 
 /** A display cutout on the left or right edge. */
 private val HORIZONTAL_CUTOUT: WindowInsets
@@ -378,6 +382,10 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                                 SilhouettesSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
                             ModeRoutes.TAP_MAP_MODE_ID ->
                                 TapMapSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.BORDER_HOP_MODE_ID ->
+                                BorderHopSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.US_CA_REGIONS_MODE_ID ->
+                                UsCaRegionsSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
                             else -> LaunchedEffect(Unit) { navController.popBackStack() }
                         }
                     }
@@ -427,6 +435,57 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             onFinished = { resultId ->
                                 navController.navigate(Screen.Results.createRoute(resultId)) {
                                     popUpTo(Screen.TapMap.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.BorderHop.route,
+                    arguments = listOf(
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.BorderHop.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.BORDER_HOP_MODE_ID)
+                    if (available == true) {
+                        BorderHopGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.BorderHop.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.UsCaRegions.route,
+                    arguments = listOf(
+                        navArgument("variant") { type = NavType.StringType },
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.UsCaRegions.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.US_CA_REGIONS_MODE_ID)
+                    if (available == true) {
+                        UsCaRegionsGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.UsCaRegions.route) { inclusive = true }
                                 }
                             },
                             onNavigateBack = { navController.popBackStack() }

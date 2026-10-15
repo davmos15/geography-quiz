@@ -100,7 +100,17 @@ data class GameModeSpec(
      * admin1 ids) gets an empty, blank review screen rather than just an odd-looking one, so it
      * sets this `false` until Answer Review gets a non-`CountryRepository` lookup path.
      */
-    val supportsAnswerReview: Boolean = true
+    val supportsAnswerReview: Boolean = true,
+    /**
+     * Whether Results' "Practise the ones you missed" button makes sense for this mode (task
+     * 7.2). `QuizCategory.Practice`'s route value is a plain `+`-joined code list with no format
+     * check, so unlike [supportsAnswerReview] a mismatched code shape doesn't fail loudly: it
+     * just gets silently misread by whatever parses `categoryValue` back (for Rivers, mountains
+     * and lakes, `PhysicalFeaturesCategory.filterFromLabel`'s safe "unknown label" default), so a
+     * mode whose codes aren't real quiz items the normal way sets this `false` rather than start
+     * a wrong, unrelated round when the player taps it.
+     */
+    val supportsPractice: Boolean = true
 )
 
 /** Builds the set of items a quiz asks about. Only called for categories offered in the mode. */

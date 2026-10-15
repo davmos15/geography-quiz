@@ -1,9 +1,13 @@
 package com.geoquiz.app.ui.navigation
 
 import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
+import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
+import com.geoquiz.app.domain.mode.flagspeed.FlagSpeedGameMode
+import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeaturesGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.mode.usca.UsCaRegionsGameMode
+import com.geoquiz.app.domain.model.Difficulty
 
 /**
  * Builds a route to start a quiz for any registered mode, classic or new (task 5.0). Classic ids
@@ -25,6 +29,9 @@ object ModeRoutes {
     const val BORDER_HOP_MODE_ID = BorderHopGameMode.MODE_ID
     const val US_CA_REGIONS_MODE_ID = UsCaRegionsGameMode.MODE_ID
     const val DEFAULT_US_CA_REGIONS_VARIANT = UsCaRegionsGameMode.VARIANT_TAP
+    const val CURRENCIES_MODE_ID = CurrencyGameMode.MODE_ID
+    const val PHYSICAL_FEATURES_MODE_ID = PhysicalFeaturesGameMode.MODE_ID
+    const val FLAG_SPEED_ROUND_MODE_ID = FlagSpeedGameMode.MODE_ID
 
     /**
      * A fresh quiz for [modeId] over [categoryType]/[categoryValue] at [difficulty]. [challengeId]
@@ -52,6 +59,9 @@ object ModeRoutes {
             categoryValue = categoryValue,
             difficulty = difficulty
         )
+        CURRENCIES_MODE_ID -> Screen.Currencies.createRoute(categoryType, categoryValue, difficulty)
+        PHYSICAL_FEATURES_MODE_ID -> Screen.PhysicalFeatures.createRoute(categoryType, categoryValue, difficulty)
+        FLAG_SPEED_ROUND_MODE_ID -> Screen.FlagSpeed.createRoute(difficulty ?: Difficulty.DEFAULT.id)
         else -> Screen.Quiz.createRoute(modeId, categoryType, categoryValue, challengeId, difficulty)
     }
 

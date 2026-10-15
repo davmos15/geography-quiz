@@ -5,6 +5,9 @@ import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.classic.CapitalsGameMode
 import com.geoquiz.app.domain.mode.classic.CountriesGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsGameMode
+import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
+import com.geoquiz.app.domain.mode.flagspeed.FlagSpeedGameMode
+import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeaturesGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.mode.usca.UsCaRegionsGameMode
@@ -42,4 +45,13 @@ abstract class GameModeModule {
 
     @Binds @IntoSet
     abstract fun usCaRegions(mode: UsCaRegionsGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun currencies(mode: CurrencyGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun physicalFeatures(mode: PhysicalFeaturesGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun flagSpeedRound(mode: FlagSpeedGameMode): GameMode
 }

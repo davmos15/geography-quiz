@@ -1,0 +1,2877 @@
+{
+  "attribution": "Contains information from mledoze/countries (https://github.com/mledoze/countries), made available under the Open Database License (ODbL) v1.0.",
+  "currencies": [
+    {
+      "code": "AED",
+      "countries": [
+        "ARE"
+      ],
+      "fact": "Introduced in 1973.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q200294"
+      },
+      "name": "United Arab Emirates dirham",
+      "shared": false,
+      "symbol": "د.إ"
+    },
+    {
+      "code": "AFN",
+      "countries": [
+        "AFG"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Afghan afghani",
+      "shared": false,
+      "symbol": "؋"
+    },
+    {
+      "code": "ALL",
+      "countries": [
+        "ALB"
+      ],
+      "fact": "Introduced in 1926.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q125999"
+      },
+      "name": "Albanian lek",
+      "shared": false,
+      "symbol": "L"
+    },
+    {
+      "code": "AMD",
+      "countries": [
+        "ARM"
+      ],
+      "fact": "Introduced in 1993.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q130498"
+      },
+      "name": "Armenian dram",
+      "shared": false,
+      "symbol": "֏"
+    },
+    {
+      "code": "AOA",
+      "countries": [
+        "AGO"
+      ],
+      "fact": "Introduced in 1999.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q200337"
+      },
+      "name": "Angolan kwanza",
+      "shared": false,
+      "symbol": "Kz"
+    },
+    {
+      "code": "ARS",
+      "countries": [
+        "ARG"
+      ],
+      "fact": "Introduced in 1992, replacing the Argentine austral.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q199578"
+      },
+      "name": "Argentine peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "AUD",
+      "countries": [
+        "AUS",
+        "KIR",
+        "NRU",
+        "TUV"
+      ],
+      "fact": "Introduced in 1966, replacing the Australian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q259502"
+      },
+      "name": "Australian dollar",
+      "shared": true,
+      "symbol": "$"
+    },
+    {
+      "code": "AZN",
+      "countries": [
+        "AZE"
+      ],
+      "fact": "Introduced in 1992.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q483725"
+      },
+      "name": "Azerbaijani manat",
+      "shared": false,
+      "symbol": "₼"
+    },
+    {
+      "code": "BAM",
+      "countries": [
+        "BIH"
+      ],
+      "fact": "Introduced in 1998, replacing the Bosnia and Herzegovina dinar.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q179620"
+      },
+      "name": "Bosnia and Herzegovina convertible mark",
+      "shared": false,
+      "symbol": "KM"
+    },
+    {
+      "code": "BBD",
+      "countries": [
+        "BRB"
+      ],
+      "fact": "Introduced in 1973.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q194351"
+      },
+      "name": "Barbadian dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "BDT",
+      "countries": [
+        "BGD"
+      ],
+      "fact": "Introduced in 1972.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q194453"
+      },
+      "name": "Bangladeshi taka",
+      "shared": false,
+      "symbol": "৳"
+    },
+    {
+      "code": "BGN",
+      "countries": [
+        "BGR"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Bulgarian lev",
+      "shared": false,
+      "symbol": "лв"
+    },
+    {
+      "code": "BHD",
+      "countries": [
+        "BHR"
+      ],
+      "fact": "Introduced in 1965, replacing the Gulf rupee.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q201871"
+      },
+      "name": "Bahraini dinar",
+      "shared": false,
+      "symbol": ".د.ب"
+    },
+    {
+      "code": "BIF",
+      "countries": [
+        "BDI"
+      ],
+      "fact": "Introduced in 1964.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q238007"
+      },
+      "name": "Burundian franc",
+      "shared": false,
+      "symbol": "Fr"
+    },
+    {
+      "code": "BND",
+      "countries": [
+        "BRN"
+      ],
+      "fact": "Introduced in 1967.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q206319"
+      },
+      "name": "Brunei dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "BOB",
+      "countries": [
+        "BOL"
+      ],
+      "fact": "Introduced in 1986, replacing the Bolivian peso.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q200737"
+      },
+      "name": "Bolivian boliviano",
+      "shared": false,
+      "symbol": "Bs."
+    },
+    {
+      "code": "BRL",
+      "countries": [
+        "BRA"
+      ],
+      "fact": "Introduced in 1994.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q173117"
+      },
+      "name": "Brazilian real",
+      "shared": false,
+      "symbol": "R$"
+    },
+    {
+      "code": "BSD",
+      "countries": [
+        "BHS"
+      ],
+      "fact": "Introduced in 1966, replacing the Bahamian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q194339"
+      },
+      "name": "Bahamian dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "BTN",
+      "countries": [
+        "BTN"
+      ],
+      "fact": "Introduced in 1974.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P571"
+        ],
+        "wikidata": "Q201799"
+      },
+      "name": "Bhutanese ngultrum",
+      "shared": false,
+      "symbol": "Nu."
+    },
+    {
+      "code": "BWP",
+      "countries": [
+        "BWA"
+      ],
+      "fact": "Introduced in 1976.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q186794"
+      },
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "Botswana pula",
+      "shared": false,
+      "symbol": "P"
+    },
+    {
+      "code": "BYN",
+      "countries": [
+        "BLR"
+      ],
+      "fact": "Introduced in 2016.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q21531507"
+      },
+      "name": "Belarusian ruble",
+      "shared": false,
+      "symbol": "Br"
+    },
+    {
+      "code": "BZD",
+      "countries": [
+        "BLZ"
+      ],
+      "fact": "Introduced in 1885.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q275112"
+      },
+      "name": "Belize dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "CAD",
+      "countries": [
+        "CAN"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Canadian dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "CDF",
+      "countries": [
+        "COD"
+      ],
+      "fact": "Introduced in 1998.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4734"
+      },
+      "name": "Congolese franc",
+      "shared": false,
+      "symbol": "FC"
+    },
+    {
+      "code": "CHF",
+      "countries": [
+        "CHE",
+        "LIE"
+      ],
+      "fact": "Introduced in 1850.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q25344"
+      },
+      "name": "Swiss franc",
+      "note": "mledoze gives more than one symbol for CHF ({'CHE': 'Fr.', 'LIE': 'Fr'}); using 'Fr.' from CHE. mledoze gives 'Fr.' for Switzerland (CHE) and 'Fr' (no full stop) for Liechtenstein (LIE); kept Switzerland's as the franc's originating country.",
+      "questionable": true,
+      "shared": true,
+      "symbol": "Fr."
+    },
+    {
+      "code": "CLP",
+      "countries": [
+        "CHL"
+      ],
+      "fact": "Introduced in 1975, replacing the Chilean escudo.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q200050"
+      },
+      "name": "Chilean peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "CNY",
+      "countries": [
+        "CHN"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "Chinese yuan",
+      "shared": false,
+      "symbol": "¥"
+    },
+    {
+      "code": "COP",
+      "countries": [
+        "COL"
+      ],
+      "fact": "Introduced in 1886, replacing the Colombian real.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q244819"
+      },
+      "name": "Colombian peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "CRC",
+      "countries": [
+        "CRI"
+      ],
+      "fact": "Introduced in 1896.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q242915"
+      },
+      "name": "Costa Rican colón",
+      "shared": false,
+      "symbol": "₡"
+    },
+    {
+      "code": "CUC",
+      "countries": [
+        "CUB"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Cuban convertible peso",
+      "note": "Cuba abolished the convertible peso on 1 January 2021; mledoze's snapshot of data/source/countries.json still lists it for CUB alongside CUP. Kept, not dropped; CUP is primary for CUB (see PRIMARY_OVERRIDES).",
+      "questionable": true,
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "CUP",
+      "countries": [
+        "CUB"
+      ],
+      "fact": "Introduced in 1857.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q201505"
+      },
+      "name": "Cuban peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "CVE",
+      "countries": [
+        "CPV"
+      ],
+      "fact": "Introduced in 1914.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4591"
+      },
+      "name": "Cape Verdean escudo",
+      "shared": false,
+      "symbol": "Esc"
+    },
+    {
+      "code": "CZK",
+      "countries": [
+        "CZE"
+      ],
+      "fact": "Introduced in 1993.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q131016"
+      },
+      "name": "Czech koruna",
+      "shared": false,
+      "symbol": "Kč"
+    },
+    {
+      "code": "DJF",
+      "countries": [
+        "DJI"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Djiboutian franc",
+      "shared": false,
+      "symbol": "Fr"
+    },
+    {
+      "code": "DKK",
+      "countries": [
+        "DNK"
+      ],
+      "fact": "Introduced in 1873.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q25417"
+      },
+      "name": "Danish krone",
+      "shared": false,
+      "symbol": "kr"
+    },
+    {
+      "code": "DOP",
+      "countries": [
+        "DOM"
+      ],
+      "fact": "Introduced in 1947.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q242922"
+      },
+      "name": "Dominican peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "DZD",
+      "countries": [
+        "DZA"
+      ],
+      "fact": "Introduced in 1964, replacing the Algerian franc.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q199674"
+      },
+      "name": "Algerian dinar",
+      "shared": false,
+      "symbol": "د.ج"
+    },
+    {
+      "code": "EGP",
+      "countries": [
+        "EGY",
+        "PSE"
+      ],
+      "fact": "Introduced in 1834.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q199462"
+      },
+      "name": "Egyptian pound",
+      "note": "mledoze gives more than one symbol for EGP ({'EGY': '£', 'PSE': 'E£'}); using '£' from EGY. mledoze gives plain '£' for Egypt (EGY, matching how it also writes GBP) and 'E£' for the Palestinian territories' secondary use (PSE); kept Egypt's own entry.",
+      "questionable": true,
+      "shared": true,
+      "symbol": "£"
+    },
+    {
+      "code": "ERN",
+      "countries": [
+        "ERI"
+      ],
+      "fact": "Introduced in 1997.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q171503"
+      },
+      "name": "Eritrean nakfa",
+      "shared": false,
+      "symbol": "Nfk"
+    },
+    {
+      "code": "ETB",
+      "countries": [
+        "ETH"
+      ],
+      "fact": "Introduced in 1945, replacing the East African shilling.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q206243"
+      },
+      "name": "Ethiopian birr",
+      "shared": false,
+      "symbol": "Br"
+    },
+    {
+      "code": "EUR",
+      "countries": [
+        "AND",
+        "AUT",
+        "BEL",
+        "CYP",
+        "DEU",
+        "ESP",
+        "EST",
+        "FIN",
+        "FRA",
+        "GRC",
+        "HRV",
+        "IRL",
+        "ITA",
+        "LTU",
+        "LUX",
+        "LVA",
+        "MCO",
+        "MLT",
+        "MNE",
+        "NLD",
+        "PRT",
+        "SMR",
+        "SVK",
+        "SVN",
+        "UNK",
+        "VAT"
+      ],
+      "fact": "Introduced in 1999.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P571"
+        ],
+        "wikidata": "Q4916"
+      },
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "Euro",
+      "shared": true,
+      "symbol": "€"
+    },
+    {
+      "code": "FJD",
+      "countries": [
+        "FJI"
+      ],
+      "fact": "Introduced in 1969, replacing the Fijian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q4592"
+      },
+      "name": "Fijian dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "GBP",
+      "countries": [
+        "GBR"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "British pound",
+      "shared": false,
+      "symbol": "£"
+    },
+    {
+      "code": "GEL",
+      "countries": [
+        "GEO"
+      ],
+      "fact": "Introduced in 1995, replacing the Georgian kuponi.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P571",
+          "P1365"
+        ],
+        "wikidata": "Q4608"
+      },
+      "name": "lari",
+      "shared": false,
+      "symbol": "₾"
+    },
+    {
+      "code": "GHS",
+      "countries": [
+        "GHA"
+      ],
+      "fact": "Introduced in 1965, replacing the Ghanaian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P571",
+          "P1365"
+        ],
+        "wikidata": "Q183530"
+      },
+      "name": "Ghanaian cedi",
+      "shared": false,
+      "symbol": "₵"
+    },
+    {
+      "code": "GMD",
+      "countries": [
+        "GMB"
+      ],
+      "fact": "Introduced in 1971, replacing the Gambian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q202885"
+      },
+      "name": "dalasi",
+      "shared": false,
+      "symbol": "D"
+    },
+    {
+      "code": "GNF",
+      "countries": [
+        "GIN"
+      ],
+      "fact": "Introduced in 1959.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q213311"
+      },
+      "name": "Guinean franc",
+      "shared": false,
+      "symbol": "Fr"
+    },
+    {
+      "code": "GTQ",
+      "countries": [
+        "GTM"
+      ],
+      "fact": "Introduced in 1925, replacing the Guatemalan peso.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q207396"
+      },
+      "name": "Guatemalan quetzal",
+      "shared": false,
+      "symbol": "Q"
+    },
+    {
+      "code": "GYD",
+      "countries": [
+        "GUY"
+      ],
+      "fact": "Introduced in 1839.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q213005"
+      },
+      "name": "Guyanese dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "HNL",
+      "countries": [
+        "HND"
+      ],
+      "fact": "Introduced in 1931, replacing the Honduran peso.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q4719"
+      },
+      "name": "Honduran lempira",
+      "shared": false,
+      "symbol": "L"
+    },
+    {
+      "code": "HTG",
+      "countries": [
+        "HTI"
+      ],
+      "fact": "Introduced in 1813, replacing the Haitian livre.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q203955"
+      },
+      "name": "Haitian gourde",
+      "shared": false,
+      "symbol": "G"
+    },
+    {
+      "code": "HUF",
+      "countries": [
+        "HUN"
+      ],
+      "fact": "Introduced in 1946.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q47190"
+      },
+      "name": "Hungarian forint",
+      "shared": false,
+      "symbol": "Ft"
+    },
+    {
+      "code": "IDR",
+      "countries": [
+        "IDN"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Indonesian rupiah",
+      "shared": false,
+      "symbol": "Rp"
+    },
+    {
+      "code": "ILS",
+      "countries": [
+        "ISR",
+        "PSE"
+      ],
+      "fact": "Introduced in 1985.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P571"
+        ],
+        "wikidata": "Q131309"
+      },
+      "name": "Israeli new shekel",
+      "shared": true,
+      "symbol": "₪"
+    },
+    {
+      "code": "INR",
+      "countries": [
+        "BTN",
+        "IND"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "Indian rupee",
+      "shared": true,
+      "symbol": "₹"
+    },
+    {
+      "code": "IQD",
+      "countries": [
+        "IRQ"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Iraqi dinar",
+      "shared": false,
+      "symbol": "ع.د"
+    },
+    {
+      "code": "IRR",
+      "countries": [
+        "IRN"
+      ],
+      "fact": "Introduced in 1932, replacing the Iranian qiran.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q188608"
+      },
+      "name": "Iranian rial",
+      "shared": false,
+      "symbol": "﷼"
+    },
+    {
+      "code": "ISK",
+      "countries": [
+        "ISL"
+      ],
+      "fact": "Introduced in 1918.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q131473"
+      },
+      "name": "Icelandic króna",
+      "shared": false,
+      "symbol": "kr"
+    },
+    {
+      "code": "JMD",
+      "countries": [
+        "JAM"
+      ],
+      "fact": "Introduced in 1969.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q209792"
+      },
+      "name": "Jamaican dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "JOD",
+      "countries": [
+        "JOR",
+        "PSE"
+      ],
+      "fact": "Introduced in 1950, replacing the Palestine pound.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q203722"
+      },
+      "name": "Jordanian dinar",
+      "note": "mledoze gives more than one symbol for JOD ({'JOR': 'د.ا', 'PSE': 'JD'}); using 'د.ا' from JOR. mledoze gives the Arabic symbol for Jordan (JOR, consistent with how it writes several other non-Latin-script currencies in this dataset) and the Latin abbreviation 'JD' for the Palestinian territories' secondary use (PSE); kept Jordan's own entry.",
+      "questionable": true,
+      "shared": true,
+      "symbol": "د.ا"
+    },
+    {
+      "code": "JPY",
+      "countries": [
+        "JPN"
+      ],
+      "fact": "Introduced in 1871, replacing the Tokugawa coinage.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q8146"
+      },
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "Japanese yen",
+      "shared": false,
+      "symbol": "¥"
+    },
+    {
+      "code": "KES",
+      "countries": [
+        "KEN"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Kenyan shilling",
+      "shared": false,
+      "symbol": "Sh"
+    },
+    {
+      "code": "KGS",
+      "countries": [
+        "KGZ"
+      ],
+      "fact": "Introduced in 1993, replacing the Soviet ruble.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q35881"
+      },
+      "name": "Kyrgyzstani som",
+      "shared": false,
+      "symbol": "с"
+    },
+    {
+      "code": "KHR",
+      "countries": [
+        "KHM"
+      ],
+      "fact": "Introduced in 1980.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q204737"
+      },
+      "name": "Cambodian riel",
+      "shared": false,
+      "symbol": "៛"
+    },
+    {
+      "code": "KID",
+      "countries": [
+        "KIR"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Kiribati dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "KMF",
+      "countries": [
+        "COM"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Comorian franc",
+      "shared": false,
+      "symbol": "Fr"
+    },
+    {
+      "code": "KPW",
+      "countries": [
+        "PRK"
+      ],
+      "fact": "Introduced in 1947.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q106720"
+      },
+      "name": "North Korean won",
+      "shared": false,
+      "symbol": "₩"
+    },
+    {
+      "code": "KRW",
+      "countries": [
+        "KOR"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "South Korean won",
+      "shared": false,
+      "symbol": "₩"
+    },
+    {
+      "code": "KWD",
+      "countries": [
+        "KWT"
+      ],
+      "fact": "Introduced in 1961, replacing the Gulf rupee.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q193098"
+      },
+      "name": "Kuwaiti dinar",
+      "shared": false,
+      "symbol": "د.ك"
+    },
+    {
+      "code": "KZT",
+      "countries": [
+        "KAZ"
+      ],
+      "fact": "Introduced in 1993, replacing the Soviet ruble.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q173751"
+      },
+      "name": "Kazakhstani tenge",
+      "shared": false,
+      "symbol": "₸"
+    },
+    {
+      "code": "LAK",
+      "countries": [
+        "LAO"
+      ],
+      "fact": "Introduced in 1952.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q200055"
+      },
+      "name": "Lao kip",
+      "shared": false,
+      "symbol": "₭"
+    },
+    {
+      "code": "LBP",
+      "countries": [
+        "LBN"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Lebanese pound",
+      "shared": false,
+      "symbol": "ل.ل"
+    },
+    {
+      "code": "LKR",
+      "countries": [
+        "LKA"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Sri Lankan rupee",
+      "shared": false,
+      "symbol": "Rs රු"
+    },
+    {
+      "code": "LRD",
+      "countries": [
+        "LBR"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Liberian dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "LSL",
+      "countries": [
+        "LSO"
+      ],
+      "fact": "Introduced in 1980.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q208039"
+      },
+      "name": "Lesotho loti",
+      "shared": false,
+      "symbol": "L"
+    },
+    {
+      "code": "LYD",
+      "countries": [
+        "LBY"
+      ],
+      "fact": "Introduced in 1971, replacing the Libyan pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q190699"
+      },
+      "name": "Libyan dinar",
+      "shared": false,
+      "symbol": "ل.د"
+    },
+    {
+      "code": "MAD",
+      "countries": [
+        "MAR"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Moroccan dirham",
+      "shared": false,
+      "symbol": "د.م."
+    },
+    {
+      "code": "MDL",
+      "countries": [
+        "MDA"
+      ],
+      "fact": "Introduced in 1993.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q181129"
+      },
+      "name": "Moldovan leu",
+      "shared": false,
+      "symbol": "L"
+    },
+    {
+      "code": "MGA",
+      "countries": [
+        "MDG"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Malagasy ariary",
+      "shared": false,
+      "symbol": "Ar"
+    },
+    {
+      "code": "MKD",
+      "countries": [
+        "MKD"
+      ],
+      "fact": "Introduced in 1993, replacing the Yugoslav dinar.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q177875"
+      },
+      "name": "denar",
+      "shared": false,
+      "symbol": "den"
+    },
+    {
+      "code": "MMK",
+      "countries": [
+        "MMR"
+      ],
+      "fact": "Introduced in 1952, replacing the Burmese rupee.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q201875"
+      },
+      "name": "Burmese kyat",
+      "shared": false,
+      "symbol": "Ks"
+    },
+    {
+      "code": "MNT",
+      "countries": [
+        "MNG"
+      ],
+      "fact": "Introduced in 1925, replacing the Mongolian dollar.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q183435"
+      },
+      "name": "Mongolian tögrög",
+      "shared": false,
+      "symbol": "₮"
+    },
+    {
+      "code": "MRU",
+      "countries": [
+        "MRT"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Mauritanian ouguiya",
+      "shared": false,
+      "symbol": "UM"
+    },
+    {
+      "code": "MUR",
+      "countries": [
+        "MUS"
+      ],
+      "fact": "Introduced in 1877.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q212967"
+      },
+      "name": "Mauritian rupee",
+      "shared": false,
+      "symbol": "₨"
+    },
+    {
+      "code": "MVR",
+      "countries": [
+        "MDV"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Maldivian rufiyaa",
+      "shared": false,
+      "symbol": ".ރ"
+    },
+    {
+      "code": "MWK",
+      "countries": [
+        "MWI"
+      ],
+      "fact": "Introduced in 1971, replacing the Malawian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q211694"
+      },
+      "name": "Malawian kwacha",
+      "shared": false,
+      "symbol": "MK"
+    },
+    {
+      "code": "MXN",
+      "countries": [
+        "MEX"
+      ],
+      "fact": "Introduced in 1993.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4730"
+      },
+      "name": "Mexican peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "MYR",
+      "countries": [
+        "MYS"
+      ],
+      "fact": "Introduced in 1967.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q163712"
+      },
+      "name": "Malaysian ringgit",
+      "shared": false,
+      "symbol": "RM"
+    },
+    {
+      "code": "MZN",
+      "countries": [
+        "MOZ"
+      ],
+      "fact": "Introduced in 1980.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q200753"
+      },
+      "name": "Mozambican metical",
+      "shared": false,
+      "symbol": "MT"
+    },
+    {
+      "code": "NAD",
+      "countries": [
+        "NAM"
+      ],
+      "fact": "Introduced in 1993.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q202462"
+      },
+      "name": "Namibian dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "NGN",
+      "countries": [
+        "NGA"
+      ],
+      "fact": "Introduced in 1973, replacing the Nigerian pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q203567"
+      },
+      "name": "Nigerian naira",
+      "shared": false,
+      "symbol": "₦"
+    },
+    {
+      "code": "NIO",
+      "countries": [
+        "NIC"
+      ],
+      "fact": "Introduced in 1991, replacing the Nicaraguan peso.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q207312"
+      },
+      "name": "Nicaraguan córdoba",
+      "shared": false,
+      "symbol": "C$"
+    },
+    {
+      "code": "NOK",
+      "countries": [
+        "NOR"
+      ],
+      "fact": "Introduced in 1875.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q132643"
+      },
+      "name": "Norwegian krone",
+      "shared": false,
+      "symbol": "kr"
+    },
+    {
+      "code": "NPR",
+      "countries": [
+        "NPL"
+      ],
+      "fact": "Introduced in 1932, replacing the Nepalese mohar.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q202895"
+      },
+      "name": "Nepalese rupee",
+      "shared": false,
+      "symbol": "₨"
+    },
+    {
+      "code": "NZD",
+      "countries": [
+        "NZL"
+      ],
+      "fact": "Introduced in 1967, replacing the New Zealand pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q1472704"
+      },
+      "name": "New Zealand dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "OMR",
+      "countries": [
+        "OMN"
+      ],
+      "fact": "Introduced in 1974.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q272290"
+      },
+      "name": "Omani rial",
+      "shared": false,
+      "symbol": "ر.ع."
+    },
+    {
+      "code": "PAB",
+      "countries": [
+        "PAN"
+      ],
+      "fact": "Introduced in 1904, replacing the Colombian peso.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q210472"
+      },
+      "name": "Panamanian balboa",
+      "shared": false,
+      "symbol": "B/."
+    },
+    {
+      "code": "PEN",
+      "countries": [
+        "PER"
+      ],
+      "fact": "Introduced in 1991, replacing the Peruvian inti.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q204656"
+      },
+      "name": "Peruvian sol",
+      "shared": false,
+      "symbol": "S/."
+    },
+    {
+      "code": "PGK",
+      "countries": [
+        "PNG"
+      ],
+      "fact": "Introduced in 1975.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q200759"
+      },
+      "name": "Papua New Guinean kina",
+      "shared": false,
+      "symbol": "K"
+    },
+    {
+      "code": "PHP",
+      "countries": [
+        "PHL"
+      ],
+      "fact": "Introduced in 1852.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q17193"
+      },
+      "name": "Philippine peso",
+      "shared": false,
+      "symbol": "₱"
+    },
+    {
+      "code": "PKR",
+      "countries": [
+        "PAK"
+      ],
+      "fact": "Introduced in 1948.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q188289"
+      },
+      "name": "Pakistani rupee",
+      "shared": false,
+      "symbol": "₨"
+    },
+    {
+      "code": "PLN",
+      "countries": [
+        "POL"
+      ],
+      "fact": "Introduced in 1924, replacing the Polish marka.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P571",
+          "P1365"
+        ],
+        "wikidata": "Q123213"
+      },
+      "name": "Polish złoty",
+      "shared": false,
+      "symbol": "zł"
+    },
+    {
+      "code": "PYG",
+      "countries": [
+        "PRY"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Paraguayan guaraní",
+      "shared": false,
+      "symbol": "₲"
+    },
+    {
+      "code": "QAR",
+      "countries": [
+        "QAT"
+      ],
+      "fact": "Introduced in 1973.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q206386"
+      },
+      "name": "Qatari riyal",
+      "shared": false,
+      "symbol": "ر.ق"
+    },
+    {
+      "code": "RON",
+      "countries": [
+        "ROU"
+      ],
+      "fact": "Introduced in 1867.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q131645"
+      },
+      "name": "Romanian leu",
+      "shared": false,
+      "symbol": "lei"
+    },
+    {
+      "code": "RSD",
+      "countries": [
+        "SRB"
+      ],
+      "fact": "Introduced in 2003.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q172524"
+      },
+      "name": "Serbian dinar",
+      "shared": false,
+      "symbol": "дин."
+    },
+    {
+      "code": "RUB",
+      "countries": [
+        "RUS"
+      ],
+      "fact": "Introduced in 1992.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q41044"
+      },
+      "name": "Russian ruble",
+      "shared": false,
+      "symbol": "₽"
+    },
+    {
+      "code": "RWF",
+      "countries": [
+        "RWA"
+      ],
+      "fact": "Introduced in 1964.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4741"
+      },
+      "name": "Rwandan franc",
+      "shared": false,
+      "symbol": "Fr"
+    },
+    {
+      "code": "SAR",
+      "countries": [
+        "SAU"
+      ],
+      "fact": "Introduced in 1935.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q199857"
+      },
+      "name": "Saudi riyal",
+      "shared": false,
+      "symbol": "ر.س"
+    },
+    {
+      "code": "SBD",
+      "countries": [
+        "SLB"
+      ],
+      "fact": "Introduced in 1977.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4597"
+      },
+      "name": "Solomon Islands dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "SCR",
+      "countries": [
+        "SYC"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Seychellois rupee",
+      "shared": false,
+      "symbol": "₨"
+    },
+    {
+      "code": "SDG",
+      "countries": [
+        "SDN"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Sudanese pound",
+      "shared": false,
+      "symbol": "PT"
+    },
+    {
+      "code": "SEK",
+      "countries": [
+        "SWE"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Swedish krona",
+      "shared": false,
+      "symbol": "kr"
+    },
+    {
+      "code": "SGD",
+      "countries": [
+        "BRN",
+        "SGP"
+      ],
+      "fact": "Introduced in 1967.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q190951"
+      },
+      "name": "Singapore dollar",
+      "shared": true,
+      "symbol": "$"
+    },
+    {
+      "code": "SLL",
+      "countries": [
+        "SLE"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Sierra Leonean leone",
+      "note": "Sierra Leone redenominated its currency on 1 July 2022 (1,000 old leones = 1 new leone, new ISO code SLE, coincidentally the same three letters as Sierra Leone's cca3); mledoze's snapshot still lists only the pre-2022 SLL for SLE, and the Wikidata snapshot has no P498=SLL match either. Kept as mledoze gives it -- this pipeline only uses currencies mledoze actually lists, and does not add SLE since mledoze doesn't; accepted by the owner (2026-10-13).",
+      "questionable": true,
+      "shared": false,
+      "symbol": "Le"
+    },
+    {
+      "code": "SOS",
+      "countries": [
+        "SOM"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Somali shilling",
+      "shared": false,
+      "symbol": "Sh"
+    },
+    {
+      "code": "SRD",
+      "countries": [
+        "SUR"
+      ],
+      "fact": "Introduced in 2004, replacing the Surinamese guilder.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q202036"
+      },
+      "name": "Surinamese dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "SSP",
+      "countries": [
+        "SSD"
+      ],
+      "fact": "Introduced in 2011.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q244366"
+      },
+      "name": "South Sudanese pound",
+      "shared": false,
+      "symbol": "£"
+    },
+    {
+      "code": "STN",
+      "countries": [
+        "STP"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "São Tomé and Príncipe dobra",
+      "shared": false,
+      "symbol": "Db"
+    },
+    {
+      "code": "SYP",
+      "countries": [
+        "SYR"
+      ],
+      "fact": "Introduced in 1920.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q240468"
+      },
+      "name": "Syrian pound",
+      "shared": false,
+      "symbol": "£"
+    },
+    {
+      "code": "SZL",
+      "countries": [
+        "SWZ"
+      ],
+      "fact": "Introduced in 1974.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4823"
+      },
+      "name": "Swazi lilangeni",
+      "shared": false,
+      "symbol": "L"
+    },
+    {
+      "code": "THB",
+      "countries": [
+        "THA"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Thai baht",
+      "shared": false,
+      "symbol": "฿"
+    },
+    {
+      "code": "TJS",
+      "countries": [
+        "TJK"
+      ],
+      "fact": "Introduced in 2000.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q199886"
+      },
+      "name": "Tajikistani somoni",
+      "shared": false,
+      "symbol": "ЅМ"
+    },
+    {
+      "code": "TMT",
+      "countries": [
+        "TKM"
+      ],
+      "fact": "Introduced in 2009.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q486637"
+      },
+      "name": "Turkmenistan manat",
+      "shared": false,
+      "symbol": "m"
+    },
+    {
+      "code": "TND",
+      "countries": [
+        "TUN"
+      ],
+      "fact": "Introduced in 1960, replacing the Tunisian franc.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q4602"
+      },
+      "name": "Tunisian dinar",
+      "shared": false,
+      "symbol": "د.ت"
+    },
+    {
+      "code": "TOP",
+      "countries": [
+        "TON"
+      ],
+      "fact": "Introduced in 1967, replacing the Tongan pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q4613"
+      },
+      "name": "Tongan paʻanga",
+      "shared": false,
+      "symbol": "T$"
+    },
+    {
+      "code": "TRY",
+      "countries": [
+        "TUR"
+      ],
+      "fact": "Introduced in 1923.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q172872"
+      },
+      "name": "Turkish lira",
+      "shared": false,
+      "symbol": "₺"
+    },
+    {
+      "code": "TTD",
+      "countries": [
+        "TTO"
+      ],
+      "fact": "Introduced in 1964.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q242890"
+      },
+      "name": "Trinidad and Tobago dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "TVD",
+      "countries": [
+        "TUV"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Tuvaluan dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "TWD",
+      "countries": [
+        "TWN"
+      ],
+      "fact": "Introduced in 1949.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q208526"
+      },
+      "name": "New Taiwan dollar",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "TZS",
+      "countries": [
+        "TZA"
+      ],
+      "fact": "Introduced in 1966.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4589"
+      },
+      "name": "Tanzanian shilling",
+      "shared": false,
+      "symbol": "Sh"
+    },
+    {
+      "code": "UAH",
+      "countries": [
+        "UKR"
+      ],
+      "fact": "Introduced in 1996, replacing the Ukrainian karbovanets.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q81893"
+      },
+      "name": "Ukrainian hryvnia",
+      "shared": false,
+      "symbol": "₴"
+    },
+    {
+      "code": "UGX",
+      "countries": [
+        "UGA"
+      ],
+      "fact": "Introduced in 1966.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4598"
+      },
+      "name": "Ugandan shilling",
+      "shared": false,
+      "symbol": "Sh"
+    },
+    {
+      "code": "USD",
+      "countries": [
+        "BHS",
+        "ECU",
+        "FSM",
+        "KHM",
+        "MHL",
+        "PAN",
+        "PLW",
+        "SLV",
+        "TLS",
+        "USA",
+        "ZWE"
+      ],
+      "fact": "Introduced in 1792.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q4917"
+      },
+      "name": "United States dollar",
+      "shared": true,
+      "symbol": "$"
+    },
+    {
+      "code": "UYU",
+      "countries": [
+        "URY"
+      ],
+      "fact": "Introduced in 1993.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q209272"
+      },
+      "name": "Uruguayan peso",
+      "shared": false,
+      "symbol": "$"
+    },
+    {
+      "code": "UZS",
+      "countries": [
+        "UZB"
+      ],
+      "fact": "Introduced in 1994, replacing the Soviet ruble.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q487888"
+      },
+      "name": "Uzbekistani soʻm",
+      "shared": false,
+      "symbol": "so'm"
+    },
+    {
+      "code": "VES",
+      "countries": [
+        "VEN"
+      ],
+      "fact": "Introduced in 2018, replacing the hard bolívar.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q56349362"
+      },
+      "name": "Venezuelan bolívar soberano",
+      "shared": false,
+      "symbol": "Bs.S."
+    },
+    {
+      "code": "VND",
+      "countries": [
+        "VNM"
+      ],
+      "fact": "Introduced in 1978.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q192090"
+      },
+      "name": "Vietnamese đồng",
+      "shared": false,
+      "symbol": "₫"
+    },
+    {
+      "code": "VUV",
+      "countries": [
+        "VUT"
+      ],
+      "fact": "Introduced in 1982, replacing the New Hebrides franc.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q207523"
+      },
+      "name": "Vanuatu vatu",
+      "shared": false,
+      "symbol": "Vt"
+    },
+    {
+      "code": "WST",
+      "countries": [
+        "WSM"
+      ],
+      "fact": "Introduced in 1967, replacing the Western Samoan pound.",
+      "fact_reveals_country": true,
+      "fact_source": {
+        "properties": [
+          "P580",
+          "P1365"
+        ],
+        "wikidata": "Q4588"
+      },
+      "name": "Samoan tālā",
+      "shared": false,
+      "symbol": "T"
+    },
+    {
+      "code": "XAF",
+      "countries": [
+        "CAF",
+        "CMR",
+        "COG",
+        "GAB",
+        "GNQ",
+        "TCD"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Central African CFA franc",
+      "shared": true,
+      "symbol": "Fr"
+    },
+    {
+      "code": "XCD",
+      "countries": [
+        "ATG",
+        "DMA",
+        "GRD",
+        "KNA",
+        "LCA",
+        "VCT"
+      ],
+      "fact": "Introduced in 1965.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q26365"
+      },
+      "name": "Eastern Caribbean dollar",
+      "shared": true,
+      "symbol": "$"
+    },
+    {
+      "code": "XOF",
+      "countries": [
+        "BEN",
+        "BFA",
+        "CIV",
+        "GNB",
+        "MLI",
+        "NER",
+        "SEN",
+        "TGO"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "West African CFA franc",
+      "shared": true,
+      "symbol": "Fr"
+    },
+    {
+      "code": "YER",
+      "countries": [
+        "YEM"
+      ],
+      "fact": null,
+      "fact_reveals_country": false,
+      "fact_source": null,
+      "name": "Yemeni rial",
+      "shared": false,
+      "symbol": "﷼"
+    },
+    {
+      "code": "ZAR",
+      "countries": [
+        "LSO",
+        "NAM",
+        "SWZ",
+        "ZAF"
+      ],
+      "fact": "Introduced in 1961.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q181907"
+      },
+      "listedInBasketBy": [
+        "ZWE"
+      ],
+      "name": "South African rand",
+      "shared": true,
+      "symbol": "R"
+    },
+    {
+      "code": "ZMW",
+      "countries": [
+        "ZMB"
+      ],
+      "fact": "Introduced in 2013.",
+      "fact_reveals_country": false,
+      "fact_source": {
+        "properties": [
+          "P580"
+        ],
+        "wikidata": "Q73408"
+      },
+      "name": "Zambian kwacha",
+      "shared": false,
+      "symbol": "ZK"
+    }
+  ],
+  "groups": [
+    {
+      "code": "AUD",
+      "count": 4,
+      "countries": [
+        "AUS",
+        "KIR",
+        "NRU",
+        "TUV"
+      ],
+      "group": "australian-dollar"
+    },
+    {
+      "code": "CHF",
+      "count": 2,
+      "countries": [
+        "CHE",
+        "LIE"
+      ],
+      "group": "swiss-franc"
+    },
+    {
+      "code": "EGP",
+      "count": 2,
+      "countries": [
+        "EGY",
+        "PSE"
+      ],
+      "group": "egyptian-pound"
+    },
+    {
+      "code": "EUR",
+      "count": 26,
+      "countries": [
+        "AND",
+        "AUT",
+        "BEL",
+        "CYP",
+        "DEU",
+        "ESP",
+        "EST",
+        "FIN",
+        "FRA",
+        "GRC",
+        "HRV",
+        "IRL",
+        "ITA",
+        "LTU",
+        "LUX",
+        "LVA",
+        "MCO",
+        "MLT",
+        "MNE",
+        "NLD",
+        "PRT",
+        "SMR",
+        "SVK",
+        "SVN",
+        "UNK",
+        "VAT"
+      ],
+      "group": "euro"
+    },
+    {
+      "code": "ILS",
+      "count": 2,
+      "countries": [
+        "ISR",
+        "PSE"
+      ],
+      "group": "israeli-new-shekel"
+    },
+    {
+      "code": "INR",
+      "count": 2,
+      "countries": [
+        "BTN",
+        "IND"
+      ],
+      "group": "indian-rupee"
+    },
+    {
+      "code": "JOD",
+      "count": 2,
+      "countries": [
+        "JOR",
+        "PSE"
+      ],
+      "group": "jordanian-dinar"
+    },
+    {
+      "code": "SGD",
+      "count": 2,
+      "countries": [
+        "BRN",
+        "SGP"
+      ],
+      "group": "singapore-dollar"
+    },
+    {
+      "code": "USD",
+      "count": 11,
+      "countries": [
+        "BHS",
+        "ECU",
+        "FSM",
+        "KHM",
+        "MHL",
+        "PAN",
+        "PLW",
+        "SLV",
+        "TLS",
+        "USA",
+        "ZWE"
+      ],
+      "group": "us-dollar"
+    },
+    {
+      "code": "XAF",
+      "count": 6,
+      "countries": [
+        "CAF",
+        "CMR",
+        "COG",
+        "GAB",
+        "GNQ",
+        "TCD"
+      ],
+      "group": "cfa-franc-central"
+    },
+    {
+      "code": "XCD",
+      "count": 6,
+      "countries": [
+        "ATG",
+        "DMA",
+        "GRD",
+        "KNA",
+        "LCA",
+        "VCT"
+      ],
+      "group": "east-caribbean-dollar"
+    },
+    {
+      "code": "XOF",
+      "count": 8,
+      "countries": [
+        "BEN",
+        "BFA",
+        "CIV",
+        "GNB",
+        "MLI",
+        "NER",
+        "SEN",
+        "TGO"
+      ],
+      "group": "cfa-franc-west"
+    },
+    {
+      "code": "ZAR",
+      "count": 4,
+      "countries": [
+        "LSO",
+        "NAM",
+        "SWZ",
+        "ZAF"
+      ],
+      "group": "south-african-rand"
+    }
+  ],
+  "licence": "ODbL-1.0",
+  "licenceUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "primaryCurrency": {
+    "AFG": "AFN",
+    "AGO": "AOA",
+    "ALB": "ALL",
+    "AND": "EUR",
+    "ARE": "AED",
+    "ARG": "ARS",
+    "ARM": "AMD",
+    "ATG": "XCD",
+    "AUS": "AUD",
+    "AUT": "EUR",
+    "AZE": "AZN",
+    "BDI": "BIF",
+    "BEL": "EUR",
+    "BEN": "XOF",
+    "BFA": "XOF",
+    "BGD": "BDT",
+    "BGR": "BGN",
+    "BHR": "BHD",
+    "BHS": "BSD",
+    "BIH": "BAM",
+    "BLR": "BYN",
+    "BLZ": "BZD",
+    "BOL": "BOB",
+    "BRA": "BRL",
+    "BRB": "BBD",
+    "BRN": "BND",
+    "BTN": "BTN",
+    "BWA": "BWP",
+    "CAF": "XAF",
+    "CAN": "CAD",
+    "CHE": "CHF",
+    "CHL": "CLP",
+    "CHN": "CNY",
+    "CIV": "XOF",
+    "CMR": "XAF",
+    "COD": "CDF",
+    "COG": "XAF",
+    "COL": "COP",
+    "COM": "KMF",
+    "CPV": "CVE",
+    "CRI": "CRC",
+    "CUB": "CUP",
+    "CYP": "EUR",
+    "CZE": "CZK",
+    "DEU": "EUR",
+    "DJI": "DJF",
+    "DMA": "XCD",
+    "DNK": "DKK",
+    "DOM": "DOP",
+    "DZA": "DZD",
+    "ECU": "USD",
+    "EGY": "EGP",
+    "ERI": "ERN",
+    "ESP": "EUR",
+    "EST": "EUR",
+    "ETH": "ETB",
+    "FIN": "EUR",
+    "FJI": "FJD",
+    "FRA": "EUR",
+    "FSM": "USD",
+    "GAB": "XAF",
+    "GBR": "GBP",
+    "GEO": "GEL",
+    "GHA": "GHS",
+    "GIN": "GNF",
+    "GMB": "GMD",
+    "GNB": "XOF",
+    "GNQ": "XAF",
+    "GRC": "EUR",
+    "GRD": "XCD",
+    "GTM": "GTQ",
+    "GUY": "GYD",
+    "HND": "HNL",
+    "HRV": "EUR",
+    "HTI": "HTG",
+    "HUN": "HUF",
+    "IDN": "IDR",
+    "IND": "INR",
+    "IRL": "EUR",
+    "IRN": "IRR",
+    "IRQ": "IQD",
+    "ISL": "ISK",
+    "ISR": "ILS",
+    "ITA": "EUR",
+    "JAM": "JMD",
+    "JOR": "JOD",
+    "JPN": "JPY",
+    "KAZ": "KZT",
+    "KEN": "KES",
+    "KGZ": "KGS",
+    "KHM": "KHR",
+    "KIR": "AUD",
+    "KNA": "XCD",
+    "KOR": "KRW",
+    "KWT": "KWD",
+    "LAO": "LAK",
+    "LBN": "LBP",
+    "LBR": "LRD",
+    "LBY": "LYD",
+    "LCA": "XCD",
+    "LIE": "CHF",
+    "LKA": "LKR",
+    "LSO": "LSL",
+    "LTU": "EUR",
+    "LUX": "EUR",
+    "LVA": "EUR",
+    "MAR": "MAD",
+    "MCO": "EUR",
+    "MDA": "MDL",
+    "MDG": "MGA",
+    "MDV": "MVR",
+    "MEX": "MXN",
+    "MHL": "USD",
+    "MKD": "MKD",
+    "MLI": "XOF",
+    "MLT": "EUR",
+    "MMR": "MMK",
+    "MNE": "EUR",
+    "MNG": "MNT",
+    "MOZ": "MZN",
+    "MRT": "MRU",
+    "MUS": "MUR",
+    "MWI": "MWK",
+    "MYS": "MYR",
+    "NAM": "NAD",
+    "NER": "XOF",
+    "NGA": "NGN",
+    "NIC": "NIO",
+    "NLD": "EUR",
+    "NOR": "NOK",
+    "NPL": "NPR",
+    "NRU": "AUD",
+    "NZL": "NZD",
+    "OMN": "OMR",
+    "PAK": "PKR",
+    "PAN": "PAB",
+    "PER": "PEN",
+    "PHL": "PHP",
+    "PLW": "USD",
+    "PNG": "PGK",
+    "POL": "PLN",
+    "PRK": "KPW",
+    "PRT": "EUR",
+    "PRY": "PYG",
+    "PSE": null,
+    "QAT": "QAR",
+    "ROU": "RON",
+    "RUS": "RUB",
+    "RWA": "RWF",
+    "SAU": "SAR",
+    "SDN": "SDG",
+    "SEN": "XOF",
+    "SGP": "SGD",
+    "SLB": "SBD",
+    "SLE": "SLL",
+    "SLV": "USD",
+    "SMR": "EUR",
+    "SOM": "SOS",
+    "SRB": "RSD",
+    "SSD": "SSP",
+    "STP": "STN",
+    "SUR": "SRD",
+    "SVK": "EUR",
+    "SVN": "EUR",
+    "SWE": "SEK",
+    "SWZ": "SZL",
+    "SYC": "SCR",
+    "SYR": "SYP",
+    "TCD": "XAF",
+    "TGO": "XOF",
+    "THA": "THB",
+    "TJK": "TJS",
+    "TKM": "TMT",
+    "TLS": "USD",
+    "TON": "TOP",
+    "TTO": "TTD",
+    "TUN": "TND",
+    "TUR": "TRY",
+    "TUV": "AUD",
+    "TWN": "TWD",
+    "TZA": "TZS",
+    "UGA": "UGX",
+    "UKR": "UAH",
+    "UNK": "EUR",
+    "URY": "UYU",
+    "USA": "USD",
+    "UZB": "UZS",
+    "VAT": "EUR",
+    "VCT": "XCD",
+    "VEN": "VES",
+    "VNM": "VND",
+    "VUT": "VUV",
+    "WSM": "WST",
+    "YEM": "YER",
+    "ZAF": "ZAR",
+    "ZMB": "ZMW",
+    "ZWE": "USD"
+  },
+  "primaryCurrencyNotes": {
+    "BHS": "The Bahamian dollar is pegged 1:1 to, and co-circulates with, the US dollar.",
+    "BRN": "The Brunei dollar is Brunei's own currency. The Brunei-Singapore Currency Interchangeability Agreement (1967) makes SGD interchangeable and also legal tender, but BND is Brunei's own.",
+    "BTN": "The ngultrum is Bhutan's own currency (its ISO 4217 code happens to be the same three letters as Bhutan's cca3, BTN), pegged 1:1 to and co-circulating with the Indian rupee.",
+    "CUB": "Cuba abolished the convertible peso (CUC) on 1 January 2021, unifying to the Cuban peso (CUP); mledoze's snapshot still lists both for CUB. CUP is chosen as primary; CUC is kept in the output, marked questionable/obsolete (see QUESTIONABLE_CODES), not dropped.",
+    "KHM": "The riel is Cambodia's own, central-bank-issued currency; the US dollar circulates widely alongside it, but KHR remains the official legal tender.",
+    "KIR": "Same arrangement as Tuvalu: the Kiribati dollar (KID) is coins only, pegged 1:1 to and co-circulating with AUD.",
+    "LSO": "Same arrangement as Eswatini and Namibia: the loti is pegged 1:1 to and co-circulates with the South African rand.",
+    "NAM": "Same arrangement as Eswatini: the Namibian dollar is pegged 1:1 to and co-circulates with the South African rand.",
+    "PAN": "The balboa is Panama's own currency by name and the one normally given as the answer, but Panama mints only balboa coins and uses US dollar banknotes for paper money, so USD is the currency actually seen day to day -- flagged as uncertain.",
+    "PSE": "No official currency; usage differs by area (ILS and JOD mainly in the West Bank, EGP mainly in Gaza) and mledoze's data gives no signal either way. Reported, not guessed: primaryCurrency is null for PSE.",
+    "SWZ": "The lilangeni is Eswatini's own currency, pegged 1:1 to and co-circulating with the South African rand.",
+    "TUV": "Tuvalu issues no banknotes; the Tuvaluan dollar (TVD) exists only as coins pegged 1:1 to, and used alongside, the Australian dollar, which is the currency actually used in everyday transactions.",
+    "ZWE": "Of the multi-currency basket mledoze lists (legalised 2009-2019 and still widely used in practice), the US dollar has been the dominant transaction currency for most of that period; no Zimbabwean-dollar code (ZWL/ZWG) appears in this mledoze snapshot to prefer instead. Low confidence -- flagged."
+  },
+  "sources": [
+    {
+      "field": "currencies",
+      "file": "data/source/countries.json",
+      "licence": "ODbL-1.0",
+      "name": "mledoze/countries",
+      "role": "primary: ISO 4217 code, name, symbol and which app countries use it",
+      "url": "https://github.com/mledoze/countries",
+      "version": "not recorded; see data/SOURCES.md (sha256 9c5b9005e0230a4bc218a9a2b3b9640fe25dc34ad774b2f13018284bba15528b)"
+    },
+    {
+      "file": "data/source/wikidata_currencies.json",
+      "licence": "CC0-1.0",
+      "name": "Wikidata",
+      "role": "one short fact per currency code, from a pinned snapshot retrieved 2026-10-13",
+      "sha256": "5c48f5dee2de8eae0ab6ec4bebda71ed420923e48aec289960bbc84d78894a35",
+      "url": "https://www.wikidata.org/"
+    }
+  ],
+  "stats": {
+    "codeCount": 146,
+    "countryCount": 197,
+    "factCount": 113,
+    "factRevealsCountryCount": 30,
+    "multiCurrencyCountryCount": 13,
+    "noFactCount": 33,
+    "primaryUnresolvedCountryCount": 1,
+    "questionableCodeCount": 5,
+    "sharedCodeCount": 13
+  },
+  "version": 1
+}

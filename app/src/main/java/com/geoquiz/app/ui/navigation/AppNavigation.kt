@@ -38,8 +38,14 @@ import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
 import com.geoquiz.app.ui.components.rememberWindowLayout
 import com.geoquiz.app.ui.credits.CreditsScreen
 import com.geoquiz.app.ui.credits.OpenSourceLicencesScreen
+import com.geoquiz.app.ui.currencies.CurrenciesGameScreen
+import com.geoquiz.app.ui.currencies.CurrenciesSetupScreen
 import com.geoquiz.app.ui.debug.DebugMenuScreen
 import com.geoquiz.app.ui.debug.MapPreviewScreen
+import com.geoquiz.app.ui.flagspeed.FlagSpeedGameScreen
+import com.geoquiz.app.ui.flagspeed.FlagSpeedSetupScreen
+import com.geoquiz.app.ui.physicalfeatures.PhysicalFeaturesGameScreen
+import com.geoquiz.app.ui.physicalfeatures.PhysicalFeaturesSetupScreen
 import com.geoquiz.app.ui.play.PlayScreen
 import com.geoquiz.app.ui.play.PlayViewModel
 import com.geoquiz.app.ui.quiz.QuizScreen
@@ -386,6 +392,17 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                                 BorderHopSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
                             ModeRoutes.US_CA_REGIONS_MODE_ID ->
                                 UsCaRegionsSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.CURRENCIES_MODE_ID ->
+                                CurrenciesSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.PHYSICAL_FEATURES_MODE_ID ->
+                                PhysicalFeaturesSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.FLAG_SPEED_ROUND_MODE_ID ->
+                                FlagSpeedSetupScreen(
+                                    onStart = { difficulty ->
+                                        navController.navigate(Screen.FlagSpeed.createRoute(difficulty.id))
+                                    },
+                                    onNavigateBack = onNavigateBack
+                                )
                             else -> LaunchedEffect(Unit) { navController.popBackStack() }
                         }
                     }
@@ -486,6 +503,75 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             onFinished = { resultId ->
                                 navController.navigate(Screen.Results.createRoute(resultId)) {
                                     popUpTo(Screen.UsCaRegions.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.Currencies.route,
+                    arguments = listOf(
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.Currencies.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.CURRENCIES_MODE_ID)
+                    if (available == true) {
+                        CurrenciesGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.Currencies.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.PhysicalFeatures.route,
+                    arguments = listOf(
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.PhysicalFeatures.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.PHYSICAL_FEATURES_MODE_ID)
+                    if (available == true) {
+                        PhysicalFeaturesGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.PhysicalFeatures.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.FlagSpeed.route,
+                    arguments = listOf(
+                        navArgument(Screen.FlagSpeed.ARG_DIFFICULTY) { type = NavType.StringType }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.FLAG_SPEED_ROUND_MODE_ID)
+                    if (available == true) {
+                        FlagSpeedGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.FlagSpeed.route) { inclusive = true }
                                 }
                             },
                             onNavigateBack = { navController.popBackStack() }

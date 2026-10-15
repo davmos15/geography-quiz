@@ -1,0 +1,2483 @@
+{
+  "features": [
+    {
+      "aliases": [],
+      "bbox": [
+        57.2222,
+        43.4245,
+        62.5306,
+        47.7831
+      ],
+      "continent": "Asia",
+      "countries": [
+        "KAZ",
+        "UZB"
+      ],
+      "id": "aral-sea",
+      "layer": "lakes_50m",
+      "name": "Aral Sea",
+      "neIds": [
+        "1159126555",
+        "1729982865"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q35883"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        34.3765,
+        30.0967,
+        36.5852,
+        32.7662
+      ],
+      "continent": "Asia",
+      "countries": [
+        "ISR",
+        "JOR",
+        "PSE"
+      ],
+      "id": "dead-sea",
+      "layer": "lakes_50m",
+      "name": "Dead Sea",
+      "neIds": [
+        "1159126747",
+        "1159126865"
+      ],
+      "tier": 1,
+      "type": "lake",
+      "wikidata": "Q23883"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -114.0162,
+        39.6987,
+        -110.9517,
+        42.6595
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "great-salt-lake",
+      "layer": "lakes_50m",
+      "name": "Great Salt Lake",
+      "neIds": [
+        "1159126421"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q178741"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -74.2998,
+        -51.62,
+        -70.9795,
+        -48.9829
+      ],
+      "continent": "South America",
+      "countries": [
+        "ARG"
+      ],
+      "id": "lago-argentino",
+      "layer": "lakes_50m",
+      "name": "Lago Argentino",
+      "neIds": [
+        "1159113621"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q753898"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        102.4671,
+        50.4819,
+        111.2047,
+        56.7742
+      ],
+      "continent": "Asia",
+      "countries": [
+        "RUS"
+      ],
+      "id": "lake-baikal",
+      "layer": "lakes_50m",
+      "name": "Lake Baikal",
+      "neIds": [
+        "1159113127"
+      ],
+      "tier": 1,
+      "type": "lake",
+      "wikidata": "Q5513"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        16.269,
+        45.7204,
+        19.1613,
+        48.0541
+      ],
+      "continent": "Europe",
+      "countries": [
+        "HUN"
+      ],
+      "id": "lake-balaton",
+      "layer": "lakes_50m",
+      "name": "Lake Balaton",
+      "neIds": [
+        "1159114609"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q6383"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        72.2772,
+        43.9889,
+        80.4083,
+        47.8175
+      ],
+      "continent": "Asia",
+      "countries": [
+        "KAZ"
+      ],
+      "id": "lake-balkhash",
+      "layer": "lakes_50m",
+      "name": "Lake Balkhash",
+      "neIds": [
+        "1159113111"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q134485"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        13.2581,
+        11.8759,
+        15.7434,
+        14.2379
+      ],
+      "continent": "Africa",
+      "countries": [
+        "CMR",
+        "NER",
+        "NGA",
+        "TCD"
+      ],
+      "id": "lake-chad",
+      "layer": "lakes_50m",
+      "name": "Lake Chad",
+      "neIds": [
+        "1159113219"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q125309"
+    },
+    {
+      "aliases": [
+        "Bodensee"
+      ],
+      "bbox": [
+        8.1128,
+        46.5072,
+        10.7286,
+        48.7823
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AUT",
+        "CHE",
+        "DEU"
+      ],
+      "id": "lake-constance",
+      "layer": "lakes_50m",
+      "name": "Lake Constance",
+      "neIds": [
+        "1159114259"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q4127"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -84.4546,
+        40.3985,
+        -77.8729,
+        44.1057
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "lake-erie",
+      "layer": "lakes_50m",
+      "name": "Lake Erie",
+      "neIds": [
+        "1159106757"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q5492"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        135.7837,
+        -30.1001,
+        139.0152,
+        -26.8581
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "AUS"
+      ],
+      "id": "lake-eyre",
+      "layer": "lakes_50m",
+      "name": "Lake Eyre",
+      "neIds": [
+        "1159126091"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q21890573"
+    },
+    {
+      "aliases": [
+        "Lake Léman"
+      ],
+      "bbox": [
+        5.1332,
+        45.2046,
+        7.8742,
+        47.5282
+      ],
+      "continent": "Europe",
+      "countries": [
+        "CHE",
+        "FRA"
+      ],
+      "id": "lake-geneva",
+      "layer": "lakes_50m",
+      "name": "Lake Geneva",
+      "neIds": [
+        "1159114143"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q6403"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -85.7819,
+        42.0167,
+        -78.659,
+        47.5626
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "lake-huron",
+      "layer": "lakes_50m",
+      "name": "Lake Huron",
+      "neIds": [
+        "1159113021"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q1383"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        28.8242,
+        58.9066,
+        33.9448,
+        62.7756
+      ],
+      "continent": "Europe",
+      "countries": [
+        "RUS"
+      ],
+      "id": "lake-ladoga",
+      "layer": "lakes_50m",
+      "name": "Lake Ladoga",
+      "neIds": [
+        "1159113095"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q15288"
+    },
+    {
+      "aliases": [
+        "Lake Nyasa"
+      ],
+      "bbox": [
+        32.905,
+        -15.4028,
+        36.2826,
+        -8.4957
+      ],
+      "continent": "Africa",
+      "countries": [
+        "MOZ",
+        "MWI",
+        "TZA"
+      ],
+      "id": "lake-malawi",
+      "layer": "lakes_50m",
+      "name": "Lake Malawi",
+      "neIds": [
+        "1159113163"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q5532"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -89.0258,
+        40.6433,
+        -83.7592,
+        47.1075
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "lake-michigan",
+      "layer": "lakes_50m",
+      "name": "Lake Michigan",
+      "neIds": [
+        "1159113005"
+      ],
+      "tier": 1,
+      "type": "lake",
+      "wikidata": "Q1169"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -86.9124,
+        10.0352,
+        -83.7696,
+        13.1072
+      ],
+      "continent": "North America",
+      "countries": [
+        "NIC"
+      ],
+      "id": "lake-nicaragua",
+      "layer": "lakes_50m",
+      "name": "Lake Nicaragua",
+      "neIds": [
+        "1159106791"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q173862"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        32.9415,
+        59.8674,
+        37.4254,
+        63.9165
+      ],
+      "continent": "Europe",
+      "countries": [
+        "RUS"
+      ],
+      "id": "lake-onega",
+      "layer": "lakes_50m",
+      "name": "Lake Onega",
+      "neIds": [
+        "1159113251"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q166162"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -80.7757,
+        42.1967,
+        -74.7733,
+        45.4893
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "lake-ontario",
+      "layer": "lakes_50m",
+      "name": "Lake Ontario",
+      "neIds": [
+        "1159106765"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q1062"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -112.529,
+        35.9182,
+        -109.3654,
+        38.9053
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "lake-powell",
+      "layer": "lakes_50m",
+      "name": "Lake Powell",
+      "neIds": [
+        "1159123979"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q667507"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -93.6595,
+        45.4352,
+        -82.7887,
+        50.002
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "lake-superior",
+      "layer": "lakes_50m",
+      "name": "Lake Superior",
+      "neIds": [
+        "1159112991"
+      ],
+      "tier": 1,
+      "type": "lake",
+      "wikidata": "Q1066"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        28.0572,
+        -9.8751,
+        32.1967,
+        -2.249
+      ],
+      "continent": "Africa",
+      "countries": [
+        "BDI",
+        "COD",
+        "TZA",
+        "ZMB"
+      ],
+      "id": "lake-tanganyika",
+      "layer": "lakes_50m",
+      "name": "Lake Tanganyika",
+      "neIds": [
+        "1159113185"
+      ],
+      "tier": 2,
+      "type": "lake",
+      "wikidata": "Q5511"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        174.7487,
+        -39.9488,
+        177.0827,
+        -37.6778
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "NZL"
+      ],
+      "id": "lake-taupo",
+      "layer": "lakes_50m",
+      "name": "Lake Taupo",
+      "neIds": [
+        "1159127099"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q199903"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -71.0227,
+        -17.5894,
+        -67.5877,
+        -14.2645
+      ],
+      "continent": "South America",
+      "countries": [
+        "BOL",
+        "PER"
+      ],
+      "id": "lake-titicaca",
+      "layer": "lakes_50m",
+      "name": "Lake Titicaca",
+      "neIds": [
+        "1159113279"
+      ],
+      "tier": 1,
+      "type": "lake",
+      "wikidata": "Q35342"
+    },
+    {
+      "aliases": [
+        "Lake Rudolf"
+      ],
+      "bbox": [
+        34.8462,
+        1.4061,
+        37.6967,
+        5.6534
+      ],
+      "continent": "Africa",
+      "countries": [
+        "ETH",
+        "KEN"
+      ],
+      "id": "lake-turkana",
+      "layer": "lakes_50m",
+      "name": "Lake Turkana",
+      "neIds": [
+        "1159126669"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q182719"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        41.3534,
+        37.326,
+        44.611,
+        39.9874
+      ],
+      "continent": "Asia",
+      "countries": [
+        "TUR"
+      ],
+      "id": "lake-van",
+      "layer": "lakes_50m",
+      "name": "Lake Van",
+      "neIds": [
+        "1159126829"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q126307"
+    },
+    {
+      "aliases": [
+        "Lake Nyanza"
+      ],
+      "bbox": [
+        30.6663,
+        -3.9845,
+        35.8129,
+        1.4724
+      ],
+      "continent": "Africa",
+      "countries": [
+        "KEN",
+        "TZA",
+        "UGA"
+      ],
+      "id": "lake-victoria",
+      "layer": "lakes_50m",
+      "name": "Lake Victoria",
+      "neIds": [
+        "1159113191"
+      ],
+      "tier": 1,
+      "type": "lake",
+      "wikidata": "Q5505"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -2.7152,
+        5.3384,
+        1.32,
+        10.1176
+      ],
+      "continent": "Africa",
+      "countries": [
+        "GHA"
+      ],
+      "id": "lake-volta",
+      "layer": "lakes_50m",
+      "name": "Lake Volta",
+      "neIds": [
+        "1159125149"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q201679"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -100.2399,
+        49.3977,
+        -95.2864,
+        55.4108
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN"
+      ],
+      "id": "lake-winnipeg",
+      "layer": "lakes_50m",
+      "name": "Lake Winnipeg",
+      "neIds": [
+        "1159106747"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q3272"
+    },
+    {
+      "aliases": [
+        "Koko Nor"
+      ],
+      "bbox": [
+        98.6503,
+        35.5561,
+        101.7514,
+        38.2175
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN"
+      ],
+      "id": "qinghai-lake",
+      "layer": "lakes_50m",
+      "name": "Qinghai Lake",
+      "neIds": [
+        "1159126725"
+      ],
+      "tier": 3,
+      "type": "lake",
+      "wikidata": "Q201294"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -74.0155,
+        -35.6559,
+        -66.0155,
+        -29.6559
+      ],
+      "continent": "South America",
+      "countries": [
+        "ARG"
+      ],
+      "id": "aconcagua",
+      "layer": "geo_points_50m",
+      "name": "Aconcagua",
+      "neIds": [
+        "1159108719"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q39739"
+    },
+    {
+      "aliases": [
+        "Mount McKinley"
+      ],
+      "bbox": [
+        -155.0084,
+        60.0689,
+        -147.0084,
+        66.0689
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "denali",
+      "layer": "geo_points_50m",
+      "name": "Denali",
+      "neIds": [
+        "1159106297"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q130018"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        72.5143,
+        32.8825,
+        80.5143,
+        38.8825
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN",
+        "PAK"
+      ],
+      "id": "k2",
+      "layer": "geo_points_50m",
+      "name": "K2",
+      "neIds": [
+        "1159105729"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q43512"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        2.8655,
+        42.8324,
+        10.8655,
+        48.8324
+      ],
+      "continent": "Europe",
+      "countries": [
+        "FRA",
+        "ITA"
+      ],
+      "id": "mont-blanc",
+      "layer": "geo_points_50m",
+      "name": "Mont Blanc",
+      "neIds": [
+        "1159105949"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q583"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        38.439,
+        40.3546,
+        46.439,
+        46.3546
+      ],
+      "continent": "Europe",
+      "countries": [
+        "RUS"
+      ],
+      "id": "mount-elbrus",
+      "layer": "geo_points_50m",
+      "name": "Mount Elbrus",
+      "neIds": [
+        "1159105953"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q43105"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        82.883,
+        24.9798,
+        90.883,
+        30.9798
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN",
+        "NPL"
+      ],
+      "id": "mount-everest",
+      "layer": "geo_points_50m",
+      "name": "Mount Everest",
+      "neIds": [
+        "1159105715"
+      ],
+      "tier": 1,
+      "type": "peak",
+      "wikidata": "Q513"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        33.3517,
+        -6.0768,
+        41.3517,
+        -0.0768
+      ],
+      "continent": "Africa",
+      "countries": [
+        "TZA"
+      ],
+      "id": "mount-kilimanjaro",
+      "layer": "geo_points_50m",
+      "name": "Mount Kilimanjaro",
+      "neIds": [
+        "1159105301"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q7296"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        144.2649,
+        -39.4564,
+        152.2649,
+        -33.4564
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "AUS"
+      ],
+      "id": "mount-kosciuszko",
+      "layer": "geo_points_50m",
+      "name": "Mount Kosciuszko",
+      "neIds": [
+        "1159106753"
+      ],
+      "tier": 2,
+      "type": "peak",
+      "wikidata": "Q178167"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        2.9493,
+        42.6647,
+        18.3919,
+        49.154
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AUT",
+        "CHE",
+        "DEU",
+        "FRA",
+        "ITA",
+        "LIE",
+        "MCO",
+        "SVN"
+      ],
+      "id": "alps",
+      "layer": "regions_50m",
+      "name": "Alps",
+      "neIds": [
+        "1159104297"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q1286"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -84.1022,
+        -68.6286,
+        -59.5847,
+        24.7304
+      ],
+      "continent": "South America",
+      "countries": [
+        "ARG",
+        "BOL",
+        "CHL",
+        "COL",
+        "ECU",
+        "PER",
+        "VEN"
+      ],
+      "id": "andes",
+      "layer": "regions_50m",
+      "name": "Andes",
+      "neIds": [
+        "1159104309"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q5456"
+    },
+    {
+      "aliases": [
+        "The Appalachians"
+      ],
+      "bbox": [
+        -93.4099,
+        29.2807,
+        -59.3408,
+        52.5508
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "appalachian-mountains",
+      "layer": "regions_50m",
+      "name": "Appalachian Mountains",
+      "neIds": [
+        "1159104191"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q93332"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -15.2806,
+        26.515,
+        14.7587,
+        39.0959
+      ],
+      "continent": "Africa",
+      "countries": [
+        "DZA",
+        "MAR",
+        "TUN"
+      ],
+      "id": "atlas-mountains",
+      "layer": "regions_50m",
+      "name": "Atlas Mountains",
+      "neIds": [
+        "1159104189"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q130135"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        15.5475,
+        43.5118,
+        29.0906,
+        51.1607
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AUT",
+        "CZE",
+        "HUN",
+        "POL",
+        "ROU",
+        "SRB",
+        "SVK",
+        "UKR"
+      ],
+      "id": "carpathian-mountains",
+      "layer": "regions_50m",
+      "name": "Carpathian Mountains",
+      "neIds": [
+        "1159103937"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q1288"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        34.7574,
+        39.3702,
+        51.915,
+        46.0983
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AZE",
+        "GEO",
+        "RUS"
+      ],
+      "id": "caucasus-mountains",
+      "layer": "regions_50m",
+      "name": "Caucasus Mountains",
+      "neIds": [
+        "1159104305"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q5477"
+    },
+    {
+      "aliases": [
+        "Ukhahlamba"
+      ],
+      "bbox": [
+        21.7626,
+        -35.7344,
+        34.0982,
+        -20.1579
+      ],
+      "continent": "Africa",
+      "countries": [
+        "LSO",
+        "ZAF"
+      ],
+      "id": "drakensberg",
+      "layer": "regions_50m",
+      "name": "Drakensberg",
+      "neIds": [
+        "1159103881"
+      ],
+      "tier": 3,
+      "type": "range",
+      "wikidata": "Q183295"
+    },
+    {
+      "aliases": [
+        "Roof of Africa"
+      ],
+      "bbox": [
+        32.0668,
+        1.3176,
+        45.2561,
+        20.8189
+      ],
+      "continent": "Africa",
+      "countries": [
+        "ERI",
+        "ETH"
+      ],
+      "id": "ethiopian-highlands",
+      "layer": "regions_50m",
+      "name": "Ethiopian Highlands",
+      "neIds": [
+        "1159104165"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q319288"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        140.5552,
+        -43.095,
+        155.421,
+        -7.586
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "AUS"
+      ],
+      "id": "great-dividing-range",
+      "layer": "regions_50m",
+      "name": "Great Dividing Range",
+      "neIds": [
+        "1159104295"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q192583"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        71.504,
+        25.4499,
+        99.6821,
+        35.3214
+      ],
+      "continent": "Asia",
+      "countries": [
+        "BTN",
+        "CHN",
+        "IND",
+        "MMR",
+        "NPL",
+        "PAK"
+      ],
+      "id": "himalayas",
+      "layer": "regions_50m",
+      "name": "Himalayas",
+      "neIds": [
+        "1159104307"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q5451"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        64.8659,
+        33.1049,
+        77.5246,
+        38.5243
+      ],
+      "continent": "Asia",
+      "countries": [
+        "AFG",
+        "PAK",
+        "TJK"
+      ],
+      "id": "hindu-kush",
+      "layer": "regions_50m",
+      "name": "Hindu Kush",
+      "neIds": [
+        "1159104183"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q5472"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        73.9306,
+        32.3749,
+        80.8416,
+        38.9013
+      ],
+      "continent": "Asia",
+      "countries": [
+        "AFG",
+        "CHN",
+        "IND",
+        "PAK",
+        "TJK"
+      ],
+      "id": "karakoram",
+      "layer": "regions_50m",
+      "name": "Karakoram",
+      "neIds": [
+        "1159104185"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q5469"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -3.3811,
+        40.9551,
+        4.271,
+        44.4736
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AND",
+        "ESP",
+        "FRA"
+      ],
+      "id": "pyrenees",
+      "layer": "regions_50m",
+      "name": "Pyrenees",
+      "neIds": [
+        "1159103941"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q12431"
+    },
+    {
+      "aliases": [
+        "The Rockies"
+      ],
+      "bbox": [
+        -131.8077,
+        30.3824,
+        -99.5074,
+        64.5981
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "rocky-mountains",
+      "layer": "regions_50m",
+      "name": "Rocky Mountains",
+      "neIds": [
+        "1159104311"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q5463"
+    },
+    {
+      "aliases": [
+        "Scandes"
+      ],
+      "bbox": [
+        1.8177,
+        56.2159,
+        28.2194,
+        72.3314
+      ],
+      "continent": "Europe",
+      "countries": [
+        "FIN",
+        "NOR",
+        "SWE"
+      ],
+      "id": "scandinavian-mountains",
+      "layer": "regions_50m",
+      "name": "Scandinavian Mountains",
+      "neIds": [
+        "1159103935"
+      ],
+      "tier": 3,
+      "type": "range",
+      "wikidata": "Q186547"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -122.7881,
+        33.729,
+        -116.8824,
+        41.731
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "sierra-nevada-us",
+      "layer": "regions_50m",
+      "name": "Sierra Nevada",
+      "neIds": [
+        "1159103951"
+      ],
+      "tier": 3,
+      "type": "range",
+      "wikidata": "Q26777"
+    },
+    {
+      "aliases": [
+        "Celestial Mountains"
+      ],
+      "bbox": [
+        68.5453,
+        38.6614,
+        99.6689,
+        45.1745
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN",
+        "KAZ",
+        "KGZ",
+        "UZB"
+      ],
+      "id": "tian-shan",
+      "layer": "regions_50m",
+      "name": "Tian Shan",
+      "neIds": [
+        "1159104299"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q5474"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -180.0,
+        -90.0,
+        180.0,
+        -67.6065
+      ],
+      "continent": "Antarctica",
+      "countries": [],
+      "id": "transantarctic-mountains",
+      "layer": "regions_50m",
+      "name": "Transantarctic Mountains",
+      "neIds": [
+        "1159104505"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q319671"
+    },
+    {
+      "aliases": [
+        "The Urals"
+      ],
+      "bbox": [
+        54.0827,
+        48.2134,
+        69.0485,
+        71.6953
+      ],
+      "continent": "Europe",
+      "countries": [
+        "RUS"
+      ],
+      "id": "ural-mountains",
+      "layer": "regions_50m",
+      "name": "Ural Mountains",
+      "neIds": [
+        "1159104301"
+      ],
+      "tier": 1,
+      "type": "range",
+      "wikidata": "Q35600"
+    },
+    {
+      "aliases": [
+        "Mount Vinson"
+      ],
+      "bbox": [
+        -89.6331,
+        -81.5304,
+        -81.6331,
+        -75.5304
+      ],
+      "continent": "Antarctica",
+      "countries": [],
+      "id": "vinson-massif",
+      "layer": "geo_points_50m",
+      "name": "Vinson Massif",
+      "neIds": [
+        "1159105413"
+      ],
+      "tier": 2,
+      "type": "range",
+      "wikidata": "Q163758"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        71.8542,
+        8.5003,
+        78.3971,
+        22.8615
+      ],
+      "continent": "Asia",
+      "countries": [
+        "IND"
+      ],
+      "id": "western-ghats",
+      "layer": "regions_50m",
+      "name": "Western Ghats",
+      "neIds": [
+        "1159103915"
+      ],
+      "tier": 3,
+      "type": "range",
+      "wikidata": "Q4527"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        44.0344,
+        24.9439,
+        58.6234,
+        37.7069
+      ],
+      "continent": "Asia",
+      "countries": [
+        "IRN",
+        "IRQ",
+        "TUR"
+      ],
+      "id": "zagros-mountains",
+      "layer": "regions_50m",
+      "name": "Zagros Mountains",
+      "neIds": [
+        "1159104167"
+      ],
+      "tier": 3,
+      "type": "range",
+      "wikidata": "Q167021"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -77.6507,
+        -5.4456,
+        -48.4999,
+        -0.5512
+      ],
+      "continent": "South America",
+      "countries": [
+        "BRA",
+        "COL",
+        "PER"
+      ],
+      "id": "amazon",
+      "layer": "rivers_50m",
+      "name": "Amazon",
+      "neIds": [
+        "1159116655"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q3783"
+    },
+    {
+      "aliases": [
+        "Heilong Jiang"
+      ],
+      "bbox": [
+        117.5207,
+        46.5057,
+        144.7232,
+        54.7316
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN",
+        "RUS"
+      ],
+      "id": "amur",
+      "layer": "rivers_50m",
+      "name": "Amur",
+      "neIds": [
+        "1159126525",
+        "1159126543",
+        "1159128755"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q6862"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        31.2847,
+        8.7331,
+        39.7198,
+        16.7847
+      ],
+      "continent": "Africa",
+      "countries": [
+        "ETH",
+        "SDN"
+      ],
+      "id": "blue-nile",
+      "layer": "rivers_50m",
+      "name": "Blue Nile",
+      "neIds": [
+        "1159126685",
+        "1159126701",
+        "1159128181"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q882739"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        88.447,
+        22.1765,
+        96.6121,
+        31.1601
+      ],
+      "continent": "Asia",
+      "countries": [
+        "BGD",
+        "CHN",
+        "IND",
+        "NPL"
+      ],
+      "id": "brahmaputra",
+      "layer": "rivers_50m",
+      "name": "Brahmaputra",
+      "neIds": [
+        "1159121213",
+        "1159121927"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q45403"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -116.523,
+        33.0668,
+        -104.0381,
+        41.3719
+      ],
+      "continent": "North America",
+      "countries": [
+        "MEX",
+        "USA"
+      ],
+      "id": "colorado-river",
+      "layer": "rivers_50m",
+      "name": "Colorado River",
+      "neIds": [
+        "1159112837"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q1265"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -124.6903,
+        44.2916,
+        -114.3944,
+        53.4045
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "columbia-river",
+      "layer": "rivers_50m",
+      "name": "Columbia River",
+      "neIds": [
+        "1159124363",
+        "1159124377"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q2251"
+    },
+    {
+      "aliases": [
+        "Zaire"
+      ],
+      "bbox": [
+        10.274,
+        -10.3612,
+        29.8441,
+        4.2664
+      ],
+      "continent": "Africa",
+      "countries": [
+        "AGO",
+        "COD",
+        "COG",
+        "ZMB"
+      ],
+      "id": "congo",
+      "layer": "rivers_50m",
+      "name": "Congo",
+      "neIds": [
+        "1159120849"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q3503"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        4.1081,
+        42.5987,
+        32.8722,
+        50.0986
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AUT",
+        "BGR",
+        "DEU",
+        "HRV",
+        "HUN",
+        "MDA",
+        "ROU",
+        "SRB",
+        "SVK",
+        "UKR"
+      ],
+      "id": "danube",
+      "layer": "rivers_50m",
+      "name": "Danube",
+      "neIds": [
+        "1159115307",
+        "1159118769"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q1653"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        140.8163,
+        -35.1161,
+        148.5145,
+        -28.9281
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "AUS"
+      ],
+      "id": "darling-river",
+      "layer": "rivers_50m",
+      "name": "Darling River",
+      "neIds": [
+        "1159128253"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q181482"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        35.9296,
+        29.047,
+        49.3923,
+        42.0353
+      ],
+      "continent": "Asia",
+      "countries": [
+        "IRQ",
+        "SYR",
+        "TUR"
+      ],
+      "id": "euphrates",
+      "layer": "rivers_50m",
+      "name": "Euphrates",
+      "neIds": [
+        "1159123947",
+        "1159124657",
+        "1159124669",
+        "1159125935",
+        "1159125949"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q34589"
+    },
+    {
+      "aliases": [
+        "Ganga"
+      ],
+      "bbox": [
+        75.5389,
+        19.8877,
+        92.9199,
+        32.7229
+      ],
+      "continent": "Asia",
+      "countries": [
+        "BGD",
+        "IND"
+      ],
+      "id": "ganges",
+      "layer": "rivers_50m",
+      "name": "Ganges",
+      "neIds": [
+        "1159122643"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q5089"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        64.995,
+        21.4505,
+        82.1936,
+        38.235
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN",
+        "IND",
+        "PAK"
+      ],
+      "id": "indus",
+      "layer": "rivers_50m",
+      "name": "Indus",
+      "neIds": [
+        "1159122813",
+        "1159122839"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q7348"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        93.6587,
+        13.8677,
+        98.5201,
+        27.6743
+      ],
+      "continent": "Asia",
+      "countries": [
+        "MMR"
+      ],
+      "id": "irrawaddy",
+      "layer": "rivers_50m",
+      "name": "Irrawaddy",
+      "neIds": [
+        "1159109417",
+        "1159112315"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q26076"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        100.076,
+        50.162,
+        135.0497,
+        75.9827
+      ],
+      "continent": "Asia",
+      "countries": [
+        "RUS"
+      ],
+      "id": "lena",
+      "layer": "rivers_50m",
+      "name": "Lena",
+      "neIds": [
+        "1159112191"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q46841"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        25.6255,
+        -26.1895,
+        34.9654,
+        -21.1461
+      ],
+      "continent": "Africa",
+      "countries": [
+        "BWA",
+        "MOZ",
+        "ZAF",
+        "ZWE"
+      ],
+      "id": "limpopo",
+      "layer": "rivers_50m",
+      "name": "Limpopo",
+      "neIds": [
+        "1159117383"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q173017"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -140.0271,
+        59.3929,
+        -109.3148,
+        70.9794
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN"
+      ],
+      "id": "mackenzie-river",
+      "layer": "rivers_50m",
+      "name": "Mackenzie",
+      "neIds": [
+        "1159117649",
+        "1159117661"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q3411"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        95.1027,
+        5.6071,
+        107.9743,
+        36.3591
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN",
+        "KHM",
+        "LAO",
+        "MMR",
+        "THA",
+        "VNM"
+      ],
+      "id": "mekong",
+      "layer": "rivers_50m",
+      "name": "Mekong",
+      "neIds": [
+        "1159119517",
+        "1159121023"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q41179"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -96.2295,
+        25.2806,
+        -87.8163,
+        51.1832
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "mississippi",
+      "layer": "rivers_50m",
+      "name": "Mississippi",
+      "neIds": [
+        "1159112609",
+        "1159119147"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q1497"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -116.3583,
+        36.6646,
+        -85.7627,
+        50.0647
+      ],
+      "continent": "North America",
+      "countries": [
+        "USA"
+      ],
+      "id": "missouri-river",
+      "layer": "rivers_50m",
+      "name": "Missouri",
+      "neIds": [
+        "1159128475",
+        "1159128481"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q5419"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        137.5077,
+        -37.9672,
+        149.978,
+        -32.9992
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "AUS"
+      ],
+      "id": "murray-river",
+      "layer": "rivers_50m",
+      "name": "Murray River",
+      "neIds": [
+        "1159122485",
+        "1159128979"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q183078"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -14.3351,
+        1.7374,
+        10.2917,
+        19.6094
+      ],
+      "continent": "Africa",
+      "countries": [
+        "BEN",
+        "GIN",
+        "MLI",
+        "NER",
+        "NGA"
+      ],
+      "id": "niger",
+      "layer": "rivers_50m",
+      "name": "Niger",
+      "neIds": [
+        "1159123295",
+        "1159123305"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q3542"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        29.3163,
+        12.7374,
+        34.9699,
+        33.017
+      ],
+      "continent": "Africa",
+      "countries": [
+        "BDI",
+        "EGY",
+        "ETH",
+        "RWA",
+        "SDN",
+        "SSD",
+        "UGA"
+      ],
+      "id": "nile",
+      "layer": "rivers_50m",
+      "name": "Nile",
+      "neIds": [
+        "1159121573",
+        "1159121589"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q3392"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        61.1537,
+        49.4341,
+        89.0422,
+        69.7111
+      ],
+      "continent": "Asia",
+      "countries": [
+        "RUS"
+      ],
+      "id": "ob",
+      "layer": "rivers_50m",
+      "name": "Ob",
+      "neIds": [
+        "1159111921",
+        "1159111937",
+        "1159114911"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q973"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        13.9255,
+        -31.6786,
+        31.5765,
+        -27.0311
+      ],
+      "continent": "Africa",
+      "countries": [
+        "LSO",
+        "NAM",
+        "ZAF"
+      ],
+      "id": "orange-river",
+      "layer": "rivers_50m",
+      "name": "Orange River",
+      "neIds": [
+        "1159129067"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q181475"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -69.2093,
+        0.6248,
+        -59.7454,
+        11.3164
+      ],
+      "continent": "South America",
+      "countries": [
+        "COL",
+        "VEN"
+      ],
+      "id": "orinoco",
+      "layer": "rivers_50m",
+      "name": "Orinoco",
+      "neIds": [
+        "1159127013"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q131792"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -55.6084,
+        -26.5856,
+        -49.9965,
+        -18.5155
+      ],
+      "continent": "South America",
+      "countries": [
+        "ARG",
+        "BRA",
+        "PRY"
+      ],
+      "id": "parana",
+      "layer": "rivers_50m",
+      "name": "Paraná",
+      "neIds": [
+        "1159129191"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q127892"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        6.0303,
+        43.6657,
+        13.6044,
+        46.2201
+      ],
+      "continent": "Europe",
+      "countries": [
+        "ITA"
+      ],
+      "id": "po-river",
+      "layer": "rivers_50m",
+      "name": "Po",
+      "neIds": [
+        "1159129663"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q643"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        3.9859,
+        45.6334,
+        10.6246,
+        52.9301
+      ],
+      "continent": "Europe",
+      "countries": [
+        "AUT",
+        "CHE",
+        "DEU",
+        "FRA",
+        "LIE",
+        "NLD"
+      ],
+      "id": "rhine",
+      "layer": "rivers_50m",
+      "name": "Rhine",
+      "neIds": [
+        "1159110393",
+        "1159110403",
+        "1159112359",
+        "1159112519"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q584"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        3.3708,
+        42.4023,
+        9.2486,
+        47.4816
+      ],
+      "continent": "Europe",
+      "countries": [
+        "CHE",
+        "FRA"
+      ],
+      "id": "rhone",
+      "layer": "rivers_50m",
+      "name": "Rhône",
+      "neIds": [
+        "1159115093",
+        "1159115107"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q602"
+    },
+    {
+      "aliases": [
+        "Rio Bravo"
+      ],
+      "bbox": [
+        -109.4837,
+        23.4818,
+        -95.087,
+        40.1975
+      ],
+      "continent": "North America",
+      "countries": [
+        "MEX",
+        "USA"
+      ],
+      "id": "rio-grande",
+      "layer": "rivers_50m",
+      "name": "Rio Grande",
+      "neIds": [
+        "1159111297",
+        "1159111317"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q160636"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -76.79,
+        43.4979,
+        -73.7111,
+        46.0032
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "saint-lawrence",
+      "layer": "rivers_50m",
+      "name": "Saint Lawrence",
+      "neIds": [
+        "1159114637"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q134750"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -0.559,
+        46.5771,
+        5.7096,
+        50.4929
+      ],
+      "continent": "Europe",
+      "countries": [
+        "FRA"
+      ],
+      "id": "seine",
+      "layer": "rivers_50m",
+      "name": "Seine",
+      "neIds": [
+        "1159112177"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q1471"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -3.0243,
+        50.3918,
+        1.4253,
+        52.7632
+      ],
+      "continent": "Europe",
+      "countries": [
+        "GBR"
+      ],
+      "id": "thames",
+      "layer": "rivers_50m",
+      "name": "Thames",
+      "neIds": [
+        "1159116709"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q19686"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        38.0801,
+        29.5154,
+        49.0034,
+        39.8981
+      ],
+      "continent": "Asia",
+      "countries": [
+        "IRQ",
+        "SYR",
+        "TUR"
+      ],
+      "id": "tigris",
+      "layer": "rivers_50m",
+      "name": "Tigris",
+      "neIds": [
+        "1159112059",
+        "1159112275"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q35591"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        29.0894,
+        43.1316,
+        53.6578,
+        60.8135
+      ],
+      "continent": "Europe",
+      "countries": [
+        "RUS"
+      ],
+      "id": "volga",
+      "layer": "rivers_50m",
+      "name": "Volga",
+      "neIds": [
+        "1159125617",
+        "1159125629"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q626"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        173.7674,
+        -40.0715,
+        177.3258,
+        -36.2877
+      ],
+      "continent": "Oceania",
+      "countries": [
+        "NZL"
+      ],
+      "id": "waikato-river",
+      "layer": "rivers_50m",
+      "name": "Waikato River",
+      "neIds": [
+        "1159129609",
+        "1159129617"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q1048219"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        29.2016,
+        -4.2506,
+        34.2611,
+        18.9487
+      ],
+      "continent": "Africa",
+      "countries": [
+        "COD",
+        "RWA",
+        "SDN",
+        "SSD",
+        "TZA",
+        "UGA"
+      ],
+      "id": "white-nile",
+      "layer": "rivers_50m",
+      "name": "White Nile",
+      "neIds": [
+        "1159113063",
+        "1159113335",
+        "1159123321",
+        "1159123335",
+        "1159129205",
+        "1159129211"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q4814791"
+    },
+    {
+      "aliases": [
+        "Chang Jiang"
+      ],
+      "bbox": [
+        100.6087,
+        27.6265,
+        123.3164,
+        33.2356
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN"
+      ],
+      "id": "yangtze",
+      "layer": "rivers_50m",
+      "name": "Yangtze",
+      "neIds": [
+        "1159113509",
+        "1159113707"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q5413"
+    },
+    {
+      "aliases": [
+        "Huang He"
+      ],
+      "bbox": [
+        91.5909,
+        31.8517,
+        123.6093,
+        42.3796
+      ],
+      "continent": "Asia",
+      "countries": [
+        "CHN"
+      ],
+      "id": "yellow-river",
+      "layer": "rivers_50m",
+      "name": "Yellow River",
+      "neIds": [
+        "1159128895"
+      ],
+      "tier": 1,
+      "type": "river",
+      "wikidata": "Q7355"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        -171.3191,
+        60.2003,
+        -128.7932,
+        67.6791
+      ],
+      "continent": "North America",
+      "countries": [
+        "CAN",
+        "USA"
+      ],
+      "id": "yukon-river",
+      "layer": "rivers_50m",
+      "name": "Yukon",
+      "neIds": [
+        "1159122327"
+      ],
+      "tier": 3,
+      "type": "river",
+      "wikidata": "Q104437"
+    },
+    {
+      "aliases": [],
+      "bbox": [
+        19.7546,
+        -20.3909,
+        39.2882,
+        -9.5515
+      ],
+      "continent": "Africa",
+      "countries": [
+        "AGO",
+        "BWA",
+        "MOZ",
+        "NAM",
+        "ZMB",
+        "ZWE"
+      ],
+      "id": "zambezi",
+      "layer": "rivers_50m",
+      "name": "Zambezi",
+      "neIds": [
+        "1159126201",
+        "1159126215"
+      ],
+      "tier": 2,
+      "type": "river",
+      "wikidata": "Q43106"
+    }
+  ],
+  "licence": "Public domain (Natural Earth) and CC0 (Wikidata)",
+  "licenceNote": "Confirmed by the owner (2026-10-13): this file carries no mledoze/ODbL content beyond the 197 app cca3 ids used to key country membership (D31: not a substantial extract), so it is licensed as public domain (Natural Earth geometry and attributes) and CC0 (Wikidata facts), not ODbL.",
+  "sources": {
+    "naturalEarth": {
+      "files": [
+        "app/src/main/assets/geo/geo_points_50m.bin",
+        "app/src/main/assets/geo/lakes_50m.bin",
+        "app/src/main/assets/geo/regions_50m.bin",
+        "app/src/main/assets/geo/rivers_50m.bin"
+      ],
+      "layers": [
+        "geo_points_50m",
+        "lakes_50m",
+        "regions_50m",
+        "rivers_50m"
+      ],
+      "licence": "Public domain",
+      "release": "5.1.2"
+    },
+    "wikidata": {
+      "endpoint": "https://query.wikidata.org/sparql",
+      "licence": "CC0",
+      "snapshot": "data/source/wikidata_physical_features.json",
+      "snapshotRetrievedAt": "2026-10-13",
+      "snapshotSha256": "8144884cd8f1114913314a2292cd46f846e36717e54e70270bb75d1b97c58310"
+    }
+  },
+  "stats": {
+    "byType": {
+      "lake": 30,
+      "peak": 8,
+      "range": 22,
+      "river": 41
+    },
+    "featureCount": 101
+  },
+  "version": 1
+}

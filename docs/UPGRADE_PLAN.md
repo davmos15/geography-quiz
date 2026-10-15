@@ -45,7 +45,7 @@ where you stopped, commit, and tell me to start a new session.
 | 2 | Code and architecture | Done (merged) | `upgrade/p2-architecture` | #5 |
 | 3 | Game engine and UX foundation | Done – PR open | `upgrade/p3-ux-engine` | #6 |
 | 4 | Map engine and geodata pipeline | Done – PR open | `upgrade/p4-maps` | #7 |
-| 5 | New modes A: Silhouettes, Tap the map | Done – PR open | `upgrade/p5-modes-a` | |
+| 5 | New modes A: Silhouettes, Tap the map | Done – PR open | `upgrade/p5-modes-a` | #8 |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Not started | `upgrade/p6-modes-b` | |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Not started | `upgrade/p7-modes-c` | |
 | 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Not started | `upgrade/p8-engagement` | |
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 6 (New modes B: Border hop, US states and Canadian provinces) on a new branch `upgrade/p6-modes-b` from `upgrade/p5-modes-a` (D30; PRs #6, #7 and the Phase 5 PR are open, not merged – expected). Merge `upgrade/data-prep` into it first (border graph for 6.1; see its notes commit `1a3671f`). Read the session 8 log first (carry-overs, device checks, agent lessons).
+> Phase 6 (New modes B: Border hop, US states and Canadian provinces) on a new branch `upgrade/p6-modes-b` from `upgrade/p5-modes-a` (D30; PRs #6, #7 and #8 are open, not merged – expected). Merge `upgrade/data-prep` into it first (border graph for 6.1; see its notes commit `1a3671f`). Read the session 8 log first (carry-overs, device checks, agent lessons).
 
 ---
 

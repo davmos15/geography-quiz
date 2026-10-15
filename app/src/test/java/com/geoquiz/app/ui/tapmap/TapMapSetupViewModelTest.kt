@@ -95,6 +95,75 @@ class TapMapSetupViewModelTest {
     }
 
     @Test
+    fun `starts on the find variant with every difficulty offered`() = runTest {
+        viewModel().uiState.test {
+            val state = awaitItem()
+            assertEquals(TapMapGameMode.VARIANT_FIND, state.variant)
+            assertEquals(Difficulty.entries, state.availableDifficulties)
+        }
+    }
+
+    @Test
+    fun `selecting name all updates the start route's variant segment`() = runTest {
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitItem()
+            vm.onVariantSelected(TapMapGameMode.VARIANT_NAME_ALL)
+            val state = awaitItem()
+            assertEquals(TapMapGameMode.VARIANT_NAME_ALL, state.variant)
+        }
+        val route = vm.buildStartRoute()
+        assertTrue(route.startsWith("tap_map/${TapMapGameMode.VARIANT_NAME_ALL}/map_region/world"))
+    }
+
+    @Test
+    fun `name all hides easy from the available difficulties`() = runTest {
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitItem()
+            vm.onVariantSelected(TapMapGameMode.VARIANT_NAME_ALL)
+            val state = awaitItem()
+            assertEquals(listOf(Difficulty.NORMAL, Difficulty.HARD), state.availableDifficulties)
+            assertTrue(Difficulty.EASY !in state.availableDifficulties)
+        }
+    }
+
+    @Test
+    fun `an easy default is shown as normal while name all is selected, display only`() = runTest {
+        difficultyFlow.value = Difficulty.EASY
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitItem()
+            vm.onVariantSelected(TapMapGameMode.VARIANT_NAME_ALL)
+            val nameAllState = awaitItem()
+            assertEquals(Difficulty.NORMAL, nameAllState.difficulty)
+
+            // Switching the same view model back to find offers Easy again: the stored default
+            // was never overwritten.
+            vm.onVariantSelected(TapMapGameMode.VARIANT_FIND)
+            val findState = awaitItem()
+            assertEquals(Difficulty.EASY, findState.difficulty)
+        }
+    }
+
+    @Test
+    fun `the selected variant survives process death via the saved state handle`() = runTest {
+        val handle = SavedStateHandle()
+        val vm = viewModel(handle)
+        vm.uiState.test {
+            awaitItem()
+            vm.onVariantSelected(TapMapGameMode.VARIANT_NAME_ALL)
+            awaitItem()
+        }
+
+        val restoredHandle = SavedStateHandle(handle.keys().associateWith { handle.get<Any?>(it) })
+        val restored = viewModel(restoredHandle)
+        restored.uiState.test {
+            assertEquals(TapMapGameMode.VARIANT_NAME_ALL, awaitItem().variant)
+        }
+    }
+
+    @Test
     fun `the selected preset survives process death via the saved state handle`() = runTest {
         val handle = SavedStateHandle()
         val vm = viewModel(handle)

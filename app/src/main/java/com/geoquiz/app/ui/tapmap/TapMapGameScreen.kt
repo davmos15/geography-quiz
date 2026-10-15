@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.map.MapHit
+import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizState
@@ -92,9 +93,28 @@ import com.geoquiz.app.ui.quiz.feedback.rememberHapticFeedbackPlayer
 import com.geoquiz.app.ui.theme.geoColors
 
 /**
- * Tap the map's game screen (task 5.2, review fixes 5.2a). Normal and Hard answer by tapping the
- * map (or, with TalkBack on, selecting a row in [MapListAlternative]); Easy shows the target
- * highlighted and four name options ([MultipleChoicePanel], `showPrompt = false`), with no
+ * Tap the map's game screen entry point (task 5.2, 5.2b). Dispatches on the route's `variant`
+ * (read via [TapMapVariantViewModel], before either real screen's view model is created): "find"
+ * keeps [TapMapFindGameScreen] (the original screen, unchanged); "name_all" shows
+ * [TapMapNameAllScreen] instead. Both share the Give up dialog shape, the paused overlay and the
+ * map-loading error text ([TapMapPausedOverlay], [MapLoadError]).
+ */
+@Composable
+fun TapMapGameScreen(
+    onFinished: (resultId: String) -> Unit,
+    onNavigateBack: () -> Unit,
+    variantViewModel: TapMapVariantViewModel = hiltViewModel()
+) {
+    when (variantViewModel.variant) {
+        TapMapGameMode.VARIANT_NAME_ALL -> TapMapNameAllScreen(onFinished = onFinished, onNavigateBack = onNavigateBack)
+        else -> TapMapFindGameScreen(onFinished = onFinished, onNavigateBack = onNavigateBack)
+    }
+}
+
+/**
+ * Tap the map's "Find" game screen (task 5.2, review fixes 5.2a). Normal and Hard answer by
+ * tapping the map (or, with TalkBack on, selecting a row in [MapListAlternative]); Easy shows the
+ * target highlighted and four name options ([MultipleChoicePanel], `showPrompt = false`), with no
  * map/list toggle and no list (D39: a list would mark the highlighted answer for TalkBack).
  * Finishing navigates to Results exactly like the classic quiz, popping this screen off the back
  * stack. Backgrounding pauses, exactly like the classic quiz ([LifecycleEventEffect]); back
@@ -103,7 +123,7 @@ import com.geoquiz.app.ui.theme.geoColors
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TapMapGameScreen(
+private fun TapMapFindGameScreen(
     onFinished: (resultId: String) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: TapMapGameViewModel = hiltViewModel(),
@@ -243,7 +263,7 @@ fun TapMapGameScreen(
  * back in is [onResume] (S6).
  */
 @Composable
-private fun TapMapPausedOverlay(
+internal fun TapMapPausedOverlay(
     answeredCount: Int,
     totalCount: Int,
     pausedProgressRes: Int,
@@ -462,7 +482,7 @@ private fun MapArea(
 }
 
 @Composable
-private fun MapLoadError() {
+internal fun MapLoadError() {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
         Text(
             text = stringResource(R.string.mode_tap_map_map_error),
@@ -541,7 +561,7 @@ private fun ControlsBlock(
 }
 
 @Composable
-private fun StatusRow(qs: QuizState, difficulty: Difficulty, timerVisible: Boolean, timerSeconds: Int) {
+internal fun StatusRow(qs: QuizState, difficulty: Difficulty, timerVisible: Boolean, timerSeconds: Int) {
     val found = qs.answeredCountries.size
     val total = qs.quiz.countries.size
 
@@ -645,14 +665,14 @@ private fun ControlsRow(isEasy: Boolean, hintUsed: Boolean, onSkip: () -> Unit, 
     }
 }
 
-private val FEEDBACK_ICON_SIZE = 18.dp
-private const val HARD_STRIKE_LIMIT = 3
+internal val FEEDBACK_ICON_SIZE = 18.dp
+internal const val HARD_STRIKE_LIMIT = 3
 
 /** A floor on the map pane's height in the one-pane layout (S5), so a tall controls column never squeezes it away. */
-private val MAP_MIN_HEIGHT = 160.dp
+internal val MAP_MIN_HEIGHT = 160.dp
 
 /** Gap between the map, the details and the controls row in the one-pane layout. */
-private val SECTION_GAP = 8.dp
+internal val SECTION_GAP = 8.dp
 
 /**
  * Found = blue tick, revealed-missed = orange cross (D36: [MapFeatureState.Wrong] doubles as "a

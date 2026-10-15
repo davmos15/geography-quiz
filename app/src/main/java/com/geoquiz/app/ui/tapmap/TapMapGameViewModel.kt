@@ -7,12 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.di.DefaultDispatcher
 import com.geoquiz.app.domain.map.GeoLayer
-import com.geoquiz.app.domain.map.GeoLayerId
 import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.map.MapRepository
 import com.geoquiz.app.domain.map.PlaneRect
 import com.geoquiz.app.domain.map.RegionPreset
-import com.geoquiz.app.domain.map.frame
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.mode.HintType
@@ -43,7 +41,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
@@ -76,8 +73,18 @@ class TapMapGameViewModel @Inject constructor(
     /** Labels and icon for this mode (Give up dialog message, items noun, etc.). */
     val modeSpec: GameModeSpec get() = gameMode.spec
 
-    /** "find" today (5.2b adds "name all"); carried into the completed quiz as is. */
-    val variantId: String = savedStateHandle[ARG_VARIANT] ?: TapMapGameMode.VARIANT_FIND
+    /**
+     * "find" or "name_all" (task 5.2b); carried into the completed quiz. Normalised: only
+     * [TapMapGameMode.VARIANT_NAME_ALL] is ever kept as is - anything else (missing, or a
+     * value from some future or malformed route) falls back to "find", matching
+     * [TapMapGameScreen]'s own `when (variant) { VARIANT_NAME_ALL -> ...; else -> Find }`.
+     */
+    val variantId: String =
+        if (savedStateHandle.get<String>(ARG_VARIANT) == TapMapGameMode.VARIANT_NAME_ALL) {
+            TapMapGameMode.VARIANT_NAME_ALL
+        } else {
+            TapMapGameMode.VARIANT_FIND
+        }
 
     private val categoryType: String =
         savedStateHandle[ARG_CATEGORY_TYPE] ?: QuizCategory.MapRegion(RegionPreset.WORLD.id).typeKey
@@ -205,32 +212,15 @@ class TapMapGameViewModel @Inject constructor(
      * work (see [com.geoquiz.app.domain.usecase.GetCountryOutlineUseCase]), so it runs on
      * [defaultDispatcher], off the caller's dispatcher. [mapRepository] decodes and caches each
      * layer once for the life of the process, so this is cheap on every call after the first.
+     * Shared with [TapMapNameAllViewModel] ([loadTapMapMapState], task 5.2b).
      */
     private suspend fun loadMapLayers(preset: RegionPreset, members: Set<String>) {
-        val coarse = runCatching { mapRepository.layer(GeoLayerId.ADMIN0_110M) }.getOrNull()
-        val detail = runCatching { mapRepository.layer(GeoLayerId.ADMIN0_50M) }.getOrNull()
-        val tapZones = runCatching { mapRepository.layer(GeoLayerId.TAP_ZONES) }.getOrNull()
-        val layer = detail ?: coarse
-        val frame = if (layer == null) {
-            null
-        } else {
-            withContext(defaultDispatcher) {
-                if (preset == RegionPreset.WORLD && category !is QuizCategory.Practice) {
-                    null
-                } else {
-                    preset.frame(layer, members)?.withMinimumSize(PRACTICE_MIN_FRAME_WIDTH, PRACTICE_MIN_FRAME_HEIGHT)
-                }
-            }
-        }
-        _mapState.value = TapMapMapState(
+        _mapState.value = loadTapMapMapState(
+            mapRepository = mapRepository,
+            defaultDispatcher = defaultDispatcher,
             preset = preset,
             members = members,
-            coarse = coarse,
-            detail = detail,
-            tapZones = tapZones,
-            frame = frame,
-            // Nit: an error instead of an endless spinner if every layer fails to load.
-            loadFailed = coarse == null && detail == null
+            isPractice = category is QuizCategory.Practice
         )
     }
 
@@ -613,25 +603,6 @@ class TapMapGameViewModel @Inject constructor(
         private const val HARD_STRIKE_LIMIT_FALLBACK = 3
 
         private const val FEEDBACK_EVENT_BUFFER = 8
-
-        /**
-         * A floor on a round's map frame, in [com.geoquiz.app.domain.map.EqualEarthProjection]
-         * plane units (world: x spans about 5.4, y about 2.6), so a practice set of one tiny
-         * country is not zoomed in absurdly far (S7).
-         */
-        private const val PRACTICE_MIN_FRAME_WIDTH = 0.6f
-        private const val PRACTICE_MIN_FRAME_HEIGHT = 0.3f
-    }
-}
-
-/** [this] grown to at least [minWidth] by [minHeight], about its own centre, if it is smaller. */
-private fun PlaneRect.withMinimumSize(minWidth: Float, minHeight: Float): PlaneRect {
-    val extraWidth = (minWidth - width).coerceAtLeast(0f) / 2f
-    val extraHeight = (minHeight - height).coerceAtLeast(0f) / 2f
-    return if (extraWidth == 0f && extraHeight == 0f) {
-        this
-    } else {
-        PlaneRect(minX - extraWidth, minY - extraHeight, maxX + extraWidth, maxY + extraHeight)
     }
 }
 

@@ -19,9 +19,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Tap the map's region and difficulty picker (task 5.2). Only the "find" variant exists yet
- * (5.2b adds "name all"): there is nothing to pick, so the screen shows no variant control
- * (D37, spec: "no disabled control").
+ * Tap the map's region, variant and difficulty picker (task 5.2, 5.2b). The variant choice
+ * (Find / Name all) sits above the difficulty selector: Name all offers Normal and Hard only
+ * (D40, Easy is Find's multiple-choice tier), so switching to it hides Easy from the difficulty
+ * options. If the remembered default tier is Easy, the selector shows Normal instead while Name
+ * all is picked (display only - the stored default is not overwritten, so switching back to Find
+ * still offers Easy).
  */
 @HiltViewModel
 class TapMapSetupViewModel @Inject constructor(
@@ -34,15 +37,38 @@ class TapMapSetupViewModel @Inject constructor(
         RegionPreset.fromId(savedStateHandle.get<String>(KEY_PRESET) ?: RegionPreset.WORLD.id) ?: RegionPreset.WORLD
     )
 
+    private val _selectedVariant = MutableStateFlow(
+        savedStateHandle.get<String>(KEY_VARIANT).takeIf { it == TapMapGameMode.VARIANT_NAME_ALL }
+            ?: TapMapGameMode.VARIANT_FIND
+    )
+
     val uiState: StateFlow<TapMapSetupUiState> = combine(
         _selectedPreset,
+        _selectedVariant,
         settingsRepository.difficulty
-    ) { preset, difficulty -> TapMapSetupUiState(selectedPreset = preset, difficulty = difficulty) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TapMapSetupUiState())
+    ) { preset, variant, difficulty ->
+        val availableDifficulties = if (variant == TapMapGameMode.VARIANT_NAME_ALL) {
+            NAME_ALL_DIFFICULTIES
+        } else {
+            Difficulty.entries
+        }
+        val effectiveDifficulty = difficulty.takeIf { it in availableDifficulties } ?: Difficulty.NORMAL
+        TapMapSetupUiState(
+            selectedPreset = preset,
+            variant = variant,
+            availableDifficulties = availableDifficulties,
+            difficulty = effectiveDifficulty
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TapMapSetupUiState())
 
     fun onPresetSelected(preset: RegionPreset) {
         _selectedPreset.value = preset
         savedStateHandle[KEY_PRESET] = preset.id
+    }
+
+    fun onVariantSelected(variant: String) {
+        _selectedVariant.value = variant
+        savedStateHandle[KEY_VARIANT] = variant
     }
 
     /** Also remembered as the player's default tier (same as the classic category list). */
@@ -59,17 +85,23 @@ class TapMapSetupViewModel @Inject constructor(
             categoryType = category.typeKey,
             categoryValue = category.valueKey,
             difficulty = state.difficulty.id,
-            variantId = TapMapGameMode.VARIANT_FIND
+            variantId = state.variant
         )
     }
 
     companion object {
         const val KEY_PRESET = "tap_map_setup_preset"
+        const val KEY_VARIANT = "tap_map_setup_variant"
+
+        /** D40: Name all offers Normal and Hard only. */
+        val NAME_ALL_DIFFICULTIES = listOf(Difficulty.NORMAL, Difficulty.HARD)
     }
 }
 
 data class TapMapSetupUiState(
     val presets: List<RegionPreset> = RegionPreset.entries,
     val selectedPreset: RegionPreset = RegionPreset.WORLD,
+    val variant: String = TapMapGameMode.VARIANT_FIND,
+    val availableDifficulties: List<Difficulty> = Difficulty.entries,
     val difficulty: Difficulty = Difficulty.DEFAULT
 )

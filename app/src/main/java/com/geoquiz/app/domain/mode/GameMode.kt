@@ -50,7 +50,13 @@ enum class ModeIcon {
     /** Tap the map (Phase 5). */
     MAP_PIN,
     /** Border hop (task 6.1). */
-    BORDER_HOP
+    BORDER_HOP,
+
+    /** Currencies (task 7.1). */
+    CURRENCY,
+
+    /** Rivers, mountains and lakes (task 7.2). */
+    TERRAIN_FEATURE
 }
 
 /** User-facing text for a mode, as resource ids. */

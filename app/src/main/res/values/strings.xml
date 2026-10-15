@@ -293,6 +293,8 @@
     <string name="choice_prompt_in_set">Which of these fits “%1$s”?</string>
     <string name="choice_prompt_capital_of">What is the capital of %1$s?</string>
     <string name="choice_prompt_flag">Which country does this flag belong to?</string>
+    <string name="choice_prompt_currency_of">Which of these uses %1$s?</string>
+    <string name="choice_prompt_feature_of">Which of these is %1$s?</string>
     <!-- Must never name the country: it is the answer -->
     <string name="choice_flag_description">Flag to identify</string>
     <string name="choice_feedback_correct">Correct</string>

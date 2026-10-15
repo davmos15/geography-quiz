@@ -117,4 +117,19 @@ sealed class Screen(val route: String) {
             return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
         }
     }
+
+    /**
+     * Border hop (task 6.1): its own screen picks a fresh start/target pair from
+     * `categoryType`/`categoryValue` every time it is navigated to (no fixed pair in the route,
+     * unlike [Silhouettes]' fixed 15-country round). `difficulty` is optional, as in [Quiz].
+     */
+    data object BorderHop : Screen("border_hop/{categoryType}/{categoryValue}?difficulty={difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(categoryType: String, categoryValue: String, difficulty: String? = null): String {
+            val encoded = Uri.encode(categoryValue)
+            val base = "border_hop/$categoryType/$encoded"
+            return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
+        }
+    }
 }

@@ -14,6 +14,8 @@ object HintCosts {
         HintType.FIRST_LETTER -> 0.5
         HintType.SHOW_NEIGHBOURS -> 0.5
         HintType.FLASH_REGION -> 0.25
+        // Hands the player a working move, same tier as SHOW_NEIGHBOURS/FIRST_LETTER (D44).
+        HintType.SHOW_VALID_HOP -> 0.5
     }
 
     /** Total cost of [hintsUsed] (one entry per use). */

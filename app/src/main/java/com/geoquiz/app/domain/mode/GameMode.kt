@@ -28,7 +28,13 @@ enum class HintType {
     FIRST_LETTER,
     SHOW_REGION,
     SHOW_NEIGHBOURS,
-    FLASH_REGION
+    FLASH_REGION,
+
+    /**
+     * Border hop (task 6.1, D44): reveals one of the current country's neighbours that is still
+     * on a shortest path to the target.
+     */
+    SHOW_VALID_HOP
 }
 
 /**
@@ -42,7 +48,9 @@ enum class ModeIcon {
     /** Country silhouettes (Phase 5). */
     SILHOUETTE,
     /** Tap the map (Phase 5). */
-    MAP_PIN
+    MAP_PIN,
+    /** Border hop (task 6.1). */
+    BORDER_HOP
 }
 
 /** User-facing text for a mode, as resource ids. */

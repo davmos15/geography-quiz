@@ -30,6 +30,8 @@ import androidx.navigation.navArgument
 import com.geoquiz.app.BuildConfig
 import com.geoquiz.app.domain.model.ChallengeDeepLink
 import com.geoquiz.app.ui.achievements.AchievementsScreen
+import com.geoquiz.app.ui.borderhop.BorderHopGameScreen
+import com.geoquiz.app.ui.borderhop.BorderHopSetupScreen
 import com.geoquiz.app.ui.category.CategoryListScreen
 import com.geoquiz.app.ui.challenges.ChallengeAcceptScreen
 import com.geoquiz.app.ui.challenges.ChallengeLeaderboardScreen
@@ -378,6 +380,8 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                                 SilhouettesSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
                             ModeRoutes.TAP_MAP_MODE_ID ->
                                 TapMapSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
+                            ModeRoutes.BORDER_HOP_MODE_ID ->
+                                BorderHopSetupScreen(onStart = onStart, onNavigateBack = onNavigateBack)
                             else -> LaunchedEffect(Unit) { navController.popBackStack() }
                         }
                     }
@@ -427,6 +431,31 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             onFinished = { resultId ->
                                 navController.navigate(Screen.Results.createRoute(resultId)) {
                                     popUpTo(Screen.TapMap.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.BorderHop.route,
+                    arguments = listOf(
+                        navArgument("categoryType") { type = NavType.StringType },
+                        navArgument("categoryValue") { type = NavType.StringType },
+                        navArgument(Screen.BorderHop.ARG_DIFFICULTY) {
+                            type = NavType.StringType
+                            defaultValue = null
+                            nullable = true
+                        }
+                    )
+                ) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.BORDER_HOP_MODE_ID)
+                    if (available == true) {
+                        BorderHopGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.BorderHop.route) { inclusive = true }
                                 }
                             },
                             onNavigateBack = { navController.popBackStack() }

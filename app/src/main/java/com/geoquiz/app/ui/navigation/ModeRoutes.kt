@@ -1,5 +1,6 @@
 package com.geoquiz.app.ui.navigation
 
+import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 
@@ -18,6 +19,7 @@ object ModeRoutes {
     const val SILHOUETTES_MODE_ID = SilhouettesGameMode.MODE_ID
     const val TAP_MAP_MODE_ID = TapMapGameMode.MODE_ID
     const val DEFAULT_TAP_MAP_VARIANT = TapMapGameMode.VARIANT_FIND
+    const val BORDER_HOP_MODE_ID = BorderHopGameMode.MODE_ID
 
     /**
      * A fresh quiz for [modeId] over [categoryType]/[categoryValue] at [difficulty]. [challengeId]
@@ -38,6 +40,7 @@ object ModeRoutes {
             categoryValue = categoryValue,
             difficulty = difficulty
         )
+        BORDER_HOP_MODE_ID -> Screen.BorderHop.createRoute(categoryType, categoryValue, difficulty)
         else -> Screen.Quiz.createRoute(modeId, categoryType, categoryValue, challengeId, difficulty)
     }
 

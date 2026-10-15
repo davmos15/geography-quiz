@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.QuizState
+import com.geoquiz.app.ui.components.AdaptiveTrailingRow
 import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 import com.geoquiz.app.ui.quiz.components.FeedbackLine
@@ -178,21 +179,29 @@ internal fun UsCaNameAllContent(
     val total = state.quiz.countries.size
 
     Column(modifier = modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = pluralStringResource(R.plurals.a11y_progress_us_ca_regions, total, found, total),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (difficulty == com.geoquiz.app.domain.model.Difficulty.HARD) {
-                    val limit = com.geoquiz.app.domain.model.Difficulty.HARD.strikeLimit ?: 3
-                    val shown = state.incorrectGuesses.coerceAtMost(limit)
-                    Text(text = "$shown/$limit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.geoColors.wrong)
+        // Code review (task 6.2): same fix as UsCaStatusRow (UsCaTapScreen) - a plain
+        // Row(SpaceBetween) overlapped at 200% font scale (D29); AdaptiveTrailingRow wraps the
+        // trailing group to its own line instead, matching Tap the map's own status row.
+        AdaptiveTrailingRow(
+            modifier = Modifier.fillMaxWidth(),
+            main = {
+                Text(
+                    text = pluralStringResource(R.plurals.a11y_progress_us_ca_regions, total, found, total),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            trailing = {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (difficulty == com.geoquiz.app.domain.model.Difficulty.HARD) {
+                        val limit = com.geoquiz.app.domain.model.Difficulty.HARD.strikeLimit ?: 3
+                        val shown = state.incorrectGuesses.coerceAtMost(limit)
+                        Text(text = "$shown/$limit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.geoColors.wrong)
+                    }
+                    TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
+                    DifficultyLabel(difficulty = difficulty)
                 }
-                TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
-                DifficultyLabel(difficulty = difficulty)
             }
-        }
+        )
 
         val remaining = remember(state.quiz.countries, state.answeredCountries) {
             state.quiz.countries.filter { it.code !in state.answeredCountries }.sortedBy { it.name }

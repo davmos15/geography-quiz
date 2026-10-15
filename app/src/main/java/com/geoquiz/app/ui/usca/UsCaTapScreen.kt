@@ -58,6 +58,7 @@ import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizState
 import com.geoquiz.app.ui.components.AdaptiveButtonRow
+import com.geoquiz.app.ui.components.AdaptiveTrailingRow
 import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 import com.geoquiz.app.ui.components.a11yResources
@@ -305,29 +306,34 @@ internal fun UsCaMapLoadError() {
 internal fun UsCaStatusRow(qs: QuizState, difficulty: Difficulty, timerVisible: Boolean, timerSeconds: Int) {
     val found = qs.answeredCountries.size
     val total = qs.quiz.countries.size
-    androidx.compose.foundation.layout.Row(
+    // Code review (task 6.2): a plain Row(SpaceBetween) let the strikes/timer/tier group overlap
+    // the progress text at 200% font scale (D29). AdaptiveTrailingRow is Tap the map's own fix
+    // for the same row shape (TapMapGameScreen.StatusRow): the trailing group wraps to its own
+    // line first, rather than squeezing or clipping.
+    AdaptiveTrailingRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = androidx.compose.ui.res.pluralStringResource(R.plurals.a11y_progress_us_ca_regions, total, found, total),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (difficulty == Difficulty.HARD) {
-                val limit = Difficulty.HARD.strikeLimit ?: 3
-                val shown = qs.incorrectGuesses.coerceAtMost(limit)
-                Text(
-                    text = "$shown/$limit",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.geoColors.wrong
-                )
+        main = {
+            Text(
+                text = androidx.compose.ui.res.pluralStringResource(R.plurals.a11y_progress_us_ca_regions, total, found, total),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        trailing = {
+            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (difficulty == Difficulty.HARD) {
+                    val limit = Difficulty.HARD.strikeLimit ?: 3
+                    val shown = qs.incorrectGuesses.coerceAtMost(limit)
+                    Text(
+                        text = "$shown/$limit",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.geoColors.wrong
+                    )
+                }
+                if (timerVisible) TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
+                DifficultyLabel(difficulty = difficulty)
             }
-            if (timerVisible) TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
-            DifficultyLabel(difficulty = difficulty)
         }
-    }
+    )
 }
 
 @Composable

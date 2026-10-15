@@ -53,4 +53,8 @@
         <item quantity="one">%1$d country left to find</item>
         <item quantity="other">%1$d countries left to find</item>
     </plurals>
+    <!-- Difficulty summaries under the setup selector for the Find variant (taps, not typing). -->
+    <string name="mode_tap_map_find_easy_summary">Name the highlighted country from 4 options.</string>
+    <string name="mode_tap_map_find_normal_summary">Tap each country. Three wrong taps on one country show you where it is.</string>
+    <string name="mode_tap_map_find_hard_summary">Three wrong taps in total end the round, and the timer is always on.</string>
 </resources>

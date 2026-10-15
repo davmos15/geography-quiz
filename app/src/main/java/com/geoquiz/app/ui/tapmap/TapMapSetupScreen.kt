@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.ui.components.summaryRes
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.ui.components.DifficultySelector
 import com.geoquiz.app.ui.components.WrappingTopAppBar
@@ -119,7 +121,18 @@ fun TapMapSetupScreen(
                 DifficultySelector(
                     selected = state.difficulty,
                     onSelect = viewModel::onDifficultySelected,
-                    options = state.availableDifficulties
+                    options = state.availableDifficulties,
+                    summaryRes = { difficulty ->
+                        if (state.variant == TapMapGameMode.VARIANT_FIND) {
+                            when (difficulty) {
+                                Difficulty.EASY -> R.string.mode_tap_map_find_easy_summary
+                                Difficulty.NORMAL -> R.string.mode_tap_map_find_normal_summary
+                                Difficulty.HARD -> R.string.mode_tap_map_find_hard_summary
+                            }
+                        } else {
+                            difficulty.summaryRes
+                        }
+                    }
                 )
             }
 

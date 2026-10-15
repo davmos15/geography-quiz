@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.ui.components.summaryRes
 import com.geoquiz.app.ui.category.QuizOptionInfo
 import com.geoquiz.app.ui.components.DifficultySelector
 import com.geoquiz.app.ui.components.ReadableWidthFrame
@@ -103,7 +105,10 @@ fun SilhouettesSetupScreen(
                             )
                             DifficultySelector(
                                 selected = state.difficulty,
-                                onSelect = viewModel::onDifficultySelected
+                                onSelect = viewModel::onDifficultySelected,
+                                summaryRes = { difficulty ->
+                                    if (difficulty == Difficulty.HARD) R.string.silhouettes_hard_summary else difficulty.summaryRes
+                                }
                             )
                         }
                     }

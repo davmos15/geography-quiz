@@ -288,16 +288,18 @@ private fun SilhouettesActiveContent(
                 if (isTyped) {
                     GuessedSoFarChips(names = round.wrongGuessNamesForCurrent, modifier = Modifier.fillMaxWidth())
                 }
-                SilhouetteHintsRow(
-                    available = round.availableHints,
-                    used = round.hintsUsedForCurrent,
-                    revealedSubregion = round.current?.subregion,
-                    revealedFirstLetter = round.current?.name?.firstOrNull(),
-                    neighbourNames = round.neighbourNames,
-                    enabled = !round.isComplete && !round.isAdvancing && !round.paused,
-                    onHint = viewModel::onHint,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                if (round.availableHints.isNotEmpty()) {
+                    SilhouetteHintsRow(
+                        available = round.availableHints,
+                        used = round.hintsUsedForCurrent,
+                        revealedSubregion = round.current?.subregion,
+                        revealedFirstLetter = round.current?.name?.firstOrNull(),
+                        neighbourNames = round.neighbourNames,
+                        enabled = !round.isComplete && !round.isAdvancing && !round.paused,
+                        onHint = viewModel::onHint,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
@@ -415,16 +417,18 @@ private fun SilhouettesActiveContent(
                     } else {
                         choicePanel()
                     }
-                    SilhouetteHintsRow(
-                        available = round.availableHints,
-                        used = round.hintsUsedForCurrent,
-                        revealedSubregion = round.current?.subregion,
-                        revealedFirstLetter = round.current?.name?.firstOrNull(),
-                        neighbourNames = round.neighbourNames,
-                        enabled = !round.isComplete && !round.isAdvancing && !round.paused,
-                        onHint = viewModel::onHint,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    if (round.availableHints.isNotEmpty()) {
+                        SilhouetteHintsRow(
+                            available = round.availableHints,
+                            used = round.hintsUsedForCurrent,
+                            revealedSubregion = round.current?.subregion,
+                            revealedFirstLetter = round.current?.name?.firstOrNull(),
+                            neighbourNames = round.neighbourNames,
+                            enabled = !round.isComplete && !round.isAdvancing && !round.paused,
+                            onHint = viewModel::onHint,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     if (isTyped) {
                         SilhouetteSecondaryActions(
                             onPass = viewModel::onPass,

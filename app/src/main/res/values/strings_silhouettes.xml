@@ -70,4 +70,6 @@
     <!-- D38: names the land neighbours too, sorted, so the hint helps a screen-reader user as well. -->
     <string name="silhouettes_hint_show_neighbours_revealed">Neighbours: %1$s</string>
     <string name="silhouettes_hint_no_neighbours">No land neighbours</string>
+    <!-- Hard summary under the setup selector: lives apply at every tier (D34), so Hard only adds exact spelling and the timer. -->
+    <string name="silhouettes_hard_summary">Type the exact spelling, and the timer is always on.</string>
 </resources>

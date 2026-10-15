@@ -104,6 +104,8 @@ data class SilhouetteState(
      */
     val availableHints: Set<HintType>
         get() {
+            // D41: no hints at Easy; the four names are the help (as Tap the map's Easy, D39).
+            if (difficulty == Difficulty.EASY) return emptySet()
             val all = SilhouettesGameMode.SPEC.hintTypes
             return if (category is QuizCategory.BySubregion) {
                 all - HintType.SHOW_REGION

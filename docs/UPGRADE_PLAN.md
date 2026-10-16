@@ -48,7 +48,7 @@ where you stopped, commit, and tell me to start a new session.
 | 5 | New modes A: Silhouettes, Tap the map | Done – PR open | `upgrade/p5-modes-a` | #8 |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Done – PR open | `upgrade/p6-modes-b` | #9 |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Done – PR open | `upgrade/p7-modes-c` | #10 |
-| 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Done – PR open | `upgrade/p8-engagement` | #PRNUM |
+| 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Done – PR open | `upgrade/p8-engagement` | #11 |
 | 9 | Release readiness | Not started | `upgrade/p9-release` | |
 
 Statuses: Not started, In progress, Done – PR open, Done (merged).
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 9 (Release readiness) on a new branch `upgrade/p9-release` from `upgrade/p8-engagement` (D30; PRs #6–#PRNUM are open, not merged – expected). Read the session 12 log first (Wave 2/3, the gate, carry-overs and device checks), and get Dav's answers on D53–D61 before 9.1 flips any flag defaults.
+> Phase 9 (Release readiness) on a new branch `upgrade/p9-release` from `upgrade/p8-engagement` (D30; PRs #6–#11 are open, not merged – expected). Read the session 12 log first (Wave 2/3, the gate, carry-overs and device checks), and get Dav's answers on D53–D61 before 9.1 flips any flag defaults.
 
 ---
 

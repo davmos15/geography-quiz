@@ -148,8 +148,65 @@ class CurrencyItemsTest {
         assertEquals(listOf("ONE"), filtered.map { it.country.code })
     }
 
+    // --- Per-round representative scoping (task 7.1 review item 1) -----------------------------
+
     @Test
-    fun `a shared entry with no true member not already taken falls back to the alphabetically-first member`() {
+    fun `a shared entry's representative is re-chosen within the candidate set, not fixed globally`() {
+        // THREE's own currency owns nothing; ONE and TWO both use the shared code.
+        val shared = CurrencyEntry("SSS", "S", "s", listOf("ONE", "TWO"), shared = true, fact = null)
+        val data = CurrencyData(listOf(shared), primaryCurrency = emptyMap())
+        val byCode = mapOf("ONE" to synthetic("ONE"), "TWO" to synthetic("TWO"))
+
+        // Globally (both candidates in scope), ONE is the alphabetically-first representative.
+        assertEquals("ONE", CurrencyItems.build(data, byCode, setOf("ONE", "TWO")).single().country.code)
+        // Restricted to only TWO, the representative becomes TWO - not dropped, and not ONE.
+        assertEquals("TWO", CurrencyItems.build(data, byCode, setOf("TWO")).single().country.code)
+    }
+
+    @Test
+    fun `a filter that excludes every shared currency's old global representative is no longer empty (review item 1)`() {
+        val data = realData()
+        val allCountries = data.primaryCurrency.keys.associateWith { synthetic(it) }
+        // Micronesia (review's named worst case): FSM/MHL/PLW use USD (old global rep: ECU, not
+        // Micronesian), KIR/NRU use AUD. With the old global-representative scheme this filter
+        // produced zero items at all, despite advertising 5 real countries.
+        val micronesia = setOf("FSM", "KIR", "MHL", "NRU", "PLW")
+
+        val items = CurrencyItems.build(data, allCountries, micronesia)
+
+        assertTrue("Micronesia must never produce an empty round", items.isNotEmpty())
+        val usd = items.find { it.entry.code == "USD" }?.country?.code
+        assertTrue("FSM/MHL/PLW use USD", usd != null && usd in setOf("FSM", "MHL", "PLW"))
+        val aud = items.find { it.entry.code == "AUD" }?.country?.code
+        assertTrue("KIR/NRU use AUD - this is also how Kiribati/Tuvalu stay askable (review item 6)", aud != null && aud in setOf("KIR", "NRU"))
+    }
+
+    @Test
+    fun `North America gets USD when USA is a candidate, not the globally-chosen Ecuador (review item 1)`() {
+        val data = realData()
+        val allCountries = data.primaryCurrency.keys.associateWith { synthetic(it) }
+        val northAmerica = setOf("USA", "CAN", "MEX")
+
+        val items = CurrencyItems.build(data, allCountries, northAmerica)
+
+        val usd = items.find { it.entry.code == "USD" }
+        assertEquals("USA", usd?.country?.code)
+    }
+
+    @Test
+    fun `a region with real countries but zero askable currencies produces no items, not a crash`() {
+        // A country whose primary currency code has no entry in this data at all (an orphan, like
+        // the real KID/TVD) and is not a member of any shared entry either.
+        val data = CurrencyData(entries = emptyList(), primaryCurrency = mapOf("ONE" to "NOPE"))
+        val byCode = mapOf("ONE" to synthetic("ONE"))
+
+        val items = CurrencyItems.build(data, byCode, candidateCodes = setOf("ONE"))
+
+        assertTrue(items.isEmpty())
+    }
+
+    @Test
+    fun `a shared entry with every in-scope member already taken is dropped, never duplicates a representative (review item 7)`() {
         // Every member of this shared code already owns its own non-shared currency.
         val ownX = CurrencyEntry("XXX", "X", "x", listOf("ONE"), shared = false, fact = null)
         val ownY = CurrencyEntry("YYY", "Y", "y", listOf("TWO"), shared = false, fact = null)
@@ -162,10 +219,12 @@ class CurrencyItemsTest {
 
         val items = CurrencyItems.buildAll(data, byCode)
 
-        val zItem = items.find { it.entry.code == "ZZZ" }
-        // Falls back to the alphabetically-first member even though it's already taken, rather
-        // than disappearing outright; this never happens in the real data (checked above).
-        assertEquals("ONE", zItem?.country?.code)
+        // Tightened from a previous version that reused "ONE" as a duplicate representative
+        // (task 7.1 review item 7): a duplicate would make two items collide under one cca3 code,
+        // so the shared entry is dropped entirely instead. XXX and YYY still get their own items.
+        assertTrue(items.none { it.entry.code == "ZZZ" })
+        assertEquals(setOf("XXX", "YYY"), items.map { it.entry.code }.toSet())
+        assertEquals(items.size, items.map { it.country.code }.distinct().size)
     }
 
     @Test

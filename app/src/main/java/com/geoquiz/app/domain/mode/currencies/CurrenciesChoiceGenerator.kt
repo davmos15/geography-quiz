@@ -24,11 +24,23 @@ fun currencyLabel(entry: CurrencyEntry): String = "the ${entry.name} (${entry.sy
  * KDoc for why this is safe here) gives back the real [CurrencyEntry] to build the prompt and,
  * for a shared currency, the full membership list the one correct option must come from.
  *
+ * The entry lookup is scoped to [quizSet] - the round's own items, i.e. exactly one
+ * representative per currency already (task 7.1 review: looking the target up in a freshly
+ * *global* [CurrencyItems.buildAll] call could pick a different representative than the one this
+ * round actually has, since representative assignment is scoped to a candidate set - see
+ * [CurrencyItems]'s KDoc). [quizSet] is always a safe, unambiguous universe for this: it already
+ * contains exactly one true member per shared item in the round, so re-deriving against it just
+ * confirms that same pick.
+ *
  * - Shared: the correct option is [target] itself (always a true member, by construction); the
- *   three distractors are countries that are *not* in [CurrencyEntry.countries] (D50: "exactly
- *   one valid option"), the target's region preferred where that still leaves three.
- * - Not shared: a plain four-name question, like every other mode's Easy tier - there is exactly
- *   one country in the data for a non-shared code, so no membership exclusion is needed.
+ *   three distractors are countries that are neither in [CurrencyEntry.countries] (D50: "exactly
+ *   one valid option") nor in [CurrencyEntry.listedInBasketBy] (task 7.1 review: a basket country
+ *   - currently only Zimbabwe - genuinely also circulates this currency unofficially, so it would
+ *   be an ambiguous "wrong" option, not a safely wrong one); the target's region preferred where
+ *   that still leaves three.
+ * - Not shared: the same exclusion rule, for the same reason - a non-shared currency can still
+ *   have a basket country (e.g. Zimbabwe also unofficially uses the Botswana pula), so the
+ *   generic "exclude true members and basket countries" rule covers both cases with one path.
  *
  * Falls back to the target's own name as the label if the cache is somehow cold or the item
  * cannot be found (should never happen once a round has loaded), rather than crashing mid-quiz.
@@ -45,16 +57,13 @@ class CurrenciesChoiceGenerator(
         random: Random
     ): ChoiceQuestion {
         val entry = currencyRepository.cachedOrNull()?.let { data ->
-            val allCountriesByCode = allCountries.associateBy { it.code }
-            CurrencyItems.buildAll(data, allCountriesByCode).find { it.country.code == target.code }?.entry
+            val quizCodes = quizSet.mapTo(mutableSetOf()) { it.code }
+            val quizCountriesByCode = quizSet.associateBy { it.code }
+            CurrencyItems.build(data, quizCountriesByCode, quizCodes).find { it.country.code == target.code }?.entry
         }
         val prompt = ChoicePrompt.CurrencyOf(entry?.let(::currencyLabel) ?: target.name)
-        val distractorPool = if (entry != null && entry.shared) {
-            val members = entry.countries.toSet()
-            allCountries.filter { it.code !in members }
-        } else {
-            allCountries
-        }
+        val excluded = entry?.let { it.countries.toSet() + it.listedInBasketBy.toSet() } ?: emptySet()
+        val distractorPool = if (excluded.isEmpty()) allCountries else allCountries.filter { it.code !in excluded }
         val distractors = pickSameRegionFirst(target, distractorPool, CHOICE_OPTION_COUNT - 1, random)
         return buildQuestion(target, distractors, prompt, random) { it.name }
     }

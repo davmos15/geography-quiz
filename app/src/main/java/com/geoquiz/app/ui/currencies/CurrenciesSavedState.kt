@@ -1,38 +1,66 @@
 package com.geoquiz.app.ui.currencies
 
 import androidx.lifecycle.SavedStateHandle
+import com.geoquiz.app.domain.mode.ChoiceOption
+import com.geoquiz.app.domain.mode.ChoicePrompt
+import com.geoquiz.app.domain.mode.ChoiceQuestion
 import com.geoquiz.app.domain.model.Difficulty
 
 /**
  * Keeps a running Currencies round in the screen's [SavedStateHandle] (task 7.1, D37): survives
  * process death and activity recreation; rotation keeps the same ViewModel.
  *
- * Only each item's representative country code is stored (in round order), never which currency
- * entry backed it: [com.geoquiz.app.domain.mode.currencies.CurrencyItems.buildAll]'s
- * representative assignment is global and fixed, so
- * `CurrencyQuestionGenerator.itemsForCodes` can always rebuild the exact same items from the
- * codes alone. The current item's choice question (if any) is not restored byte for byte: a
- * recreated screen asks about the same target but may show a freshly drawn set of options.
+ * Each item's *currency* code is stored (in round order), not a representative country code
+ * (task 7.1 review fix): [com.geoquiz.app.domain.mode.currencies.CurrencyItems]'s representative
+ * assignment is scoped to a category filter, not fixed globally, so a representative country
+ * code alone cannot be rebuilt reliably outside the round's own category -
+ * `CurrencyQuestionGenerator.itemsForCurrencyCodes` rebuilds the category's items afresh and
+ * picks these currency codes back out, which always reproduces the exact same representatives.
+ *
+ * The current item's choice question, if any, *is* restored byte for byte (also a review fix):
+ * target, every option's code and label, and the prompt's currency label are all saved, so a
+ * recreated screen shows the identical four options, not a freshly drawn set.
  */
 class CurrenciesSavedState(private val handle: SavedStateHandle) {
 
     data class Snapshot(
-        val countryCodes: List<String>,
+        val currencyCodes: List<String>,
         val currentIndex: Int,
         val answeredCodes: List<String>,
         val incorrectGuesses: Int,
         val incorrectGuessStrings: List<String>,
         val currentInput: String,
         val isComplete: Boolean,
-        /** True if the round died while waiting for the player to tap Next: restore re-shows it. */
+        /**
+         * True if the round died while waiting for the player to tap Next: restore catches up
+         * past the already-answered item immediately, rather than re-showing it (matches
+         * `SilhouettesSavedState`'s `pendingAdvance`; this field's name is a leftover from an
+         * earlier draft and is kept only for the saved key, not for its literal meaning here).
+         */
         val pendingAdvance: Boolean,
-        val elapsedMillis: Long
-    )
+        val elapsedMillis: Long,
+        private val choiceTargetCode: String?,
+        private val choiceOptionCodes: List<String>,
+        private val choiceOptionLabels: List<String>,
+        private val choicePromptLabel: String?
+    ) {
+        /** The exact [ChoiceQuestion] this round had before death, or null if there was none. */
+        fun restoreChoice(): ChoiceQuestion? {
+            val target = choiceTargetCode ?: return null
+            val label = choicePromptLabel ?: return null
+            if (choiceOptionCodes.size != choiceOptionLabels.size || target !in choiceOptionCodes) return null
+            return ChoiceQuestion(
+                targetCode = target,
+                options = choiceOptionCodes.zip(choiceOptionLabels) { code, lbl -> ChoiceOption(code, lbl) },
+                prompt = ChoicePrompt.CurrencyOf(label)
+            )
+        }
+    }
 
-    val hasSnapshot: Boolean get() = handle.contains(KEY_COUNTRY_CODES)
+    val hasSnapshot: Boolean get() = handle.contains(KEY_CURRENCY_CODES)
 
     fun save(state: CurrencyRoundState, elapsedMillis: Long) {
-        handle[KEY_COUNTRY_CODES] = ArrayList(state.items.map { it.country.code })
+        handle[KEY_CURRENCY_CODES] = ArrayList(state.items.map { it.entry.code })
         handle[KEY_CURRENT_INDEX] = state.currentIndex
         handle[KEY_ANSWERED] = ArrayList(state.answeredCodes)
         handle[KEY_INCORRECT_COUNT] = state.incorrectGuesses
@@ -41,6 +69,10 @@ class CurrenciesSavedState(private val handle: SavedStateHandle) {
         handle[KEY_COMPLETE] = state.isComplete
         handle[KEY_PENDING_ADVANCE] = state.isAdvancing
         handle[KEY_ELAPSED_MILLIS] = elapsedMillis
+        handle[KEY_CHOICE_TARGET] = state.choice?.targetCode
+        handle[KEY_CHOICE_OPTION_CODES] = state.choice?.options?.mapTo(ArrayList()) { it.code }
+        handle[KEY_CHOICE_OPTION_LABELS] = state.choice?.options?.mapTo(ArrayList()) { it.label }
+        handle[KEY_CHOICE_PROMPT_LABEL] = (state.choice?.prompt as? ChoicePrompt.CurrencyOf)?.currencyLabel
     }
 
     /** A keystroke only changes the input (same nit Silhouettes fixed): no full [save] on every key. */
@@ -51,7 +83,7 @@ class CurrenciesSavedState(private val handle: SavedStateHandle) {
     fun restore(): Snapshot? {
         if (!hasSnapshot) return null
         return Snapshot(
-            countryCodes = handle.get<ArrayList<String>>(KEY_COUNTRY_CODES).orEmpty(),
+            currencyCodes = handle.get<ArrayList<String>>(KEY_CURRENCY_CODES).orEmpty(),
             currentIndex = handle[KEY_CURRENT_INDEX] ?: 0,
             answeredCodes = handle.get<ArrayList<String>>(KEY_ANSWERED).orEmpty(),
             incorrectGuesses = handle[KEY_INCORRECT_COUNT] ?: 0,
@@ -59,7 +91,11 @@ class CurrenciesSavedState(private val handle: SavedStateHandle) {
             currentInput = handle[KEY_INPUT] ?: "",
             isComplete = handle[KEY_COMPLETE] ?: false,
             pendingAdvance = handle[KEY_PENDING_ADVANCE] ?: false,
-            elapsedMillis = handle[KEY_ELAPSED_MILLIS] ?: 0L
+            elapsedMillis = handle[KEY_ELAPSED_MILLIS] ?: 0L,
+            choiceTargetCode = handle[KEY_CHOICE_TARGET],
+            choiceOptionCodes = handle.get<ArrayList<String>>(KEY_CHOICE_OPTION_CODES).orEmpty(),
+            choiceOptionLabels = handle.get<ArrayList<String>>(KEY_CHOICE_OPTION_LABELS).orEmpty(),
+            choicePromptLabel = handle[KEY_CHOICE_PROMPT_LABEL]
         )
     }
 
@@ -75,7 +111,7 @@ class CurrenciesSavedState(private val handle: SavedStateHandle) {
 
     companion object {
         const val KEY_DIFFICULTY = "currencies_difficulty"
-        const val KEY_COUNTRY_CODES = "currencies_country_codes"
+        const val KEY_CURRENCY_CODES = "currencies_currency_codes"
         const val KEY_CURRENT_INDEX = "currencies_current_index"
         const val KEY_ANSWERED = "currencies_answered_codes"
         const val KEY_INCORRECT_COUNT = "currencies_incorrect_count"
@@ -85,5 +121,9 @@ class CurrenciesSavedState(private val handle: SavedStateHandle) {
         const val KEY_PENDING_ADVANCE = "currencies_pending_advance"
         const val KEY_ELAPSED_MILLIS = "currencies_elapsed_millis"
         const val KEY_RESULT_ID = "currencies_result_id"
+        const val KEY_CHOICE_TARGET = "currencies_choice_target"
+        const val KEY_CHOICE_OPTION_CODES = "currencies_choice_option_codes"
+        const val KEY_CHOICE_OPTION_LABELS = "currencies_choice_option_labels"
+        const val KEY_CHOICE_PROMPT_LABEL = "currencies_choice_prompt_label"
     }
 }

@@ -89,4 +89,16 @@ class AssetCurrencyRepositoryTest {
 
         assertEquals(13, data.entries.count { it.shared })
     }
+
+    @Test
+    fun `listedInBasketBy is parsed - Zimbabwe's unofficial basket currencies (review item 3)`() = runTest {
+        val repo = AssetCurrencyRepository(FakeAssetSource(), StandardTestDispatcher(testScheduler))
+        val data = repo.currencies()
+        val byCode = data.entries.associateBy { it.code }
+
+        assertEquals(listOf("ZWE"), byCode["ZAR"]?.listedInBasketBy)
+        assertEquals(listOf("ZWE"), byCode["EUR"]?.listedInBasketBy)
+        // A currency with no basket listing parses to an empty list, not null/crashing.
+        assertEquals(emptyList<String>(), byCode["USD"]?.listedInBasketBy)
+    }
 }

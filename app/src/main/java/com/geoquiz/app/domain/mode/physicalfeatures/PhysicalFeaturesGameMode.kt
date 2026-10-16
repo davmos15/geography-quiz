@@ -33,17 +33,11 @@ import javax.inject.Inject
  * "country" in that state, [PhysicalFeature.toQuizCountry]'s synthetic-Country convention,
  * exactly like Tap the map, Silhouettes and US/CA regions).
  *
- * Integration note (task 7.2 report, for the lead's integration pass): this class is **not**
- * registered in `di/GameModeModule.kt` (a shared file outside this task's file list). Until a
- * `@Binds @IntoSet` line is added there,
- * [com.geoquiz.app.domain.mode.GameModeRegistry.findOrDefault] falls back to the Countries mode's
- * scoring for this mode's id - which happens to compute an identical result today, since this
- * mode never uses hints ([HintCosts.applyTo] is a no-op) and both scoring rules are the same
- * [CalculateScoreUseCase] - but registration is still required before release so a future change
- * to either mode's scoring can't silently drift. This mode's route also needs a case in
- * `ui/navigation/ModeRoutes.kt` (`start`/`playAgain`/`practise` all currently fall through to the
- * classic `Screen.Quiz` route for any unrecognised mode id, which cannot show this mode's
- * screens) and a destination in `Screen.kt`/`AppNavigation.kt`.
+ * Integration note (task 7.2 report, L4 review fix: this note was stale - the lead's integration
+ * pass has since wired this mode in everywhere it needs to be): registered in
+ * `di/GameModeModule.kt` (`@Binds @IntoSet`), routed in `ui/navigation/ModeRoutes.kt`
+ * (`start`/`playAgain`/`practise`) and given its own destination in `Screen.kt`/
+ * `AppNavigation.kt`.
  */
 class PhysicalFeaturesGameMode @Inject constructor(
     calculateScore: CalculateScoreUseCase

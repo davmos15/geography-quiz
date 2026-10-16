@@ -57,10 +57,10 @@ import com.geoquiz.app.ui.components.WrappingTopAppBar
 /**
  * Currencies' game screen (task 7.1), mirroring `SilhouettesGameScreen.kt`'s shape: one item at a
  * time, typed (Normal/Hard, [CurrencyInputRow]) or four choices with flags
- * ([CurrencyChoiceOptions], Easy or any shared currency, D50). Not yet registered in
- * `ui/navigation/AppNavigation.kt` (see [CurrenciesRoutes]'s KDoc). Finishing (every item
- * answered, give-up, or a Hard strike-out) navigates to Results via [onFinished]. Backgrounding
- * pauses the round; a paused overlay with Resume is the only way back.
+ * ([CurrencyChoiceOptions], Easy or any shared currency, D50). Registered in
+ * `ui/navigation/AppNavigation.kt` as `Screen.Currencies`. Finishing (every item answered,
+ * give-up, or a Hard strike-out) navigates to Results via [onFinished]. Backgrounding pauses the
+ * round; a paused overlay with Resume is the only way back.
  *
  * Unlike Silhouettes/Tap the map, this screen is a single scrolling column at every window size
  * (no two-pane layout for wide screens): a deliberate scope reduction for this first version,

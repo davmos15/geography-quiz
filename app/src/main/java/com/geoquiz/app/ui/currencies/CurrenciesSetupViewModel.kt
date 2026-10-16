@@ -24,8 +24,17 @@ import kotlinx.coroutines.launch
 /** One filter group on the setup screen, with the options [CurrencyGameMode.offers]. */
 data class CurrenciesSetupSection(
     @StringRes val titleRes: Int,
-    val options: List<QuizOptionInfo>
+    val options: List<CurrenciesFilterOption>
 )
+
+/**
+ * One filter, paired with the real number of currencies it asks about (task 7.1 review fix):
+ * [option]'s own `countryCount` is a raw country count, which can overstate or understate how
+ * many currencies a round actually has (several countries can share one currency, and a filter
+ * can even have countries but zero askable currencies - [CurrenciesSetupViewModel] drops those
+ * entirely rather than show a filter that would start a 0/0 round).
+ */
+data class CurrenciesFilterOption(val option: QuizOptionInfo, val currencyCount: Int)
 
 data class CurrenciesSetupUiState(
     val isLoading: Boolean = true,
@@ -37,9 +46,14 @@ data class CurrenciesSetupUiState(
  * Builds Currencies' own filter list (task 7.1): the same country groups the Countries category
  * list shows ([CategoryOptionsBuilder], read-only), filtered to what [CurrencyGameMode.offers]
  * (every country, a region or a subregion - no letter, word-pattern or flag groups, which say
- * nothing about currencies) and with empty groups left out. The option counts are country
- * counts, same as `SilhouettesSetupViewModel` (a precise currency count per filter is not worth
- * the extra lookup). `CurrenciesSetupScreen`'s `onStart` turns a pick into a route with [routeFor].
+ * nothing about currencies) and with empty groups left out.
+ *
+ * Each option is paired with its *real* currency-item count (task 7.1 review fix), computed by
+ * actually asking [CurrencyGameMode.generator] for that category's items rather than reusing the
+ * option's raw country count: several countries can share one currency (so the real count can be
+ * lower), and a filter whose countries all turn out to have zero askable currencies is dropped
+ * entirely - starting one would otherwise silently complete a 0/0 round and record it in history.
+ * `CurrenciesSetupScreen`'s `onStart` turns a pick into a route with [routeFor].
  */
 @HiltViewModel
 class CurrenciesSetupViewModel @Inject constructor(
@@ -58,8 +72,13 @@ class CurrenciesSetupViewModel @Inject constructor(
                 .takeIf { it in currencyGameMode.spec.supportedDifficulties } ?: Difficulty.DEFAULT
             val allCountries = optionsBuilder.countriesFor(QuizMode.COUNTRIES, countryRepository.getAllCountries().first())
             val sections = GROUPS.mapNotNull { (group, titleRes) ->
-                val options = optionsBuilder.build(QuizMode.COUNTRIES, group.id, allCountries)
+                val rawOptions = optionsBuilder.build(QuizMode.COUNTRIES, group.id, allCountries)
                     .filter { option -> currencyGameMode.offers(QuizCategory.fromRoute(option.categoryType, option.categoryValue)) }
+                val options = rawOptions.mapNotNull { option ->
+                    val category = QuizCategory.fromRoute(option.categoryType, option.categoryValue)
+                    val currencyCount = currencyGameMode.generator.currencyItems(category).size
+                    if (currencyCount == 0) null else CurrenciesFilterOption(option, currencyCount)
+                }
                 if (options.isEmpty()) null else CurrenciesSetupSection(titleRes, options)
             }
             _uiState.value = CurrenciesSetupUiState(isLoading = false, difficulty = difficulty, sections = sections)

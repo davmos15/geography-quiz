@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.ChoiceQuestion
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
 import com.geoquiz.app.domain.mode.currencies.CurrencyItem
@@ -113,7 +114,7 @@ class CurrenciesGameViewModel @Inject constructor(
         val snapshot = savedState.restore()
         val state = if (snapshot != null) {
             quizTimer.restore(snapshot.elapsedMillis)
-            val items = currencyGameMode.generator.itemsForCodes(snapshot.countryCodes)
+            val items = currencyGameMode.generator.itemsForCurrencyCodes(category, snapshot.currencyCodes)
             CurrencyRoundState(
                 category = category,
                 difficulty = difficulty,
@@ -138,22 +139,23 @@ class CurrenciesGameViewModel @Inject constructor(
             // index not yet moved on): catch up immediately instead of re-asking the same item,
             // same reasoning as `SilhouettesGameViewModel`'s `pendingAdvance` (task 5.1 review, S2).
             snapshot?.pendingAdvance == true -> performAdvance()
-            else -> loadQuestionForCurrent(state)
+            // Restoring the identical choice question, not a freshly drawn one (task 7.1 review).
+            else -> loadQuestionForCurrent(state, restoredChoice = snapshot?.restoreChoice())
         }
     }
 
-    private fun loadQuestionForCurrent(state: CurrencyRoundState) {
+    private fun loadQuestionForCurrent(state: CurrencyRoundState, restoredChoice: ChoiceQuestion? = null) {
         val item = state.current ?: return
-        val question = if (state.isCurrentChoice) {
-            currencyGameMode.choiceGenerator.question(
+        val question = if (!state.isCurrentChoice) {
+            null
+        } else {
+            restoredChoice?.takeIf { it.targetCode == item.country.code } ?: currencyGameMode.choiceGenerator.question(
                 target = item.country,
                 quizSet = state.items.map { it.country },
                 allCountries = allCountries,
                 category = category,
                 random = random
             )
-        } else {
-            null
         }
         commit(state.copy(choice = question, choiceFeedback = null))
     }

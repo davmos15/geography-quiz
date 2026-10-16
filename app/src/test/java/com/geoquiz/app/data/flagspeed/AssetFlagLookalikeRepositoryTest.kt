@@ -85,7 +85,9 @@ class AssetFlagLookalikeRepositoryTest {
     }
 
     @Test
-    fun `an unknown in_app value falls back to clear rather than failing to load`() = runTest {
+    fun `an unknown in_app value fails safe to near_identical rather than failing to load`() = runTest {
+        // Task 7.3 fix round, item 6: an unrecognised value must never become askable by
+        // accident, so it reads as near_identical (never drawn), not clear (never excluded).
         val json = """
             {"sets": [{"id": "x", "countries": ["AAA", "BBB"], "tier": 2, "in_app": "mystery", "explanation": "e", "cues": {}}]}
         """.trimIndent()
@@ -94,7 +96,7 @@ class AssetFlagLookalikeRepositoryTest {
         val sets = repo.sets()
 
         assertEquals(1, sets.size)
-        assertEquals(FlagLookalikeVisibility.CLEAR, sets.single().visibility)
+        assertEquals(FlagLookalikeVisibility.NEAR_IDENTICAL, sets.single().visibility)
     }
 
     @Test(expected = SerializationException::class)

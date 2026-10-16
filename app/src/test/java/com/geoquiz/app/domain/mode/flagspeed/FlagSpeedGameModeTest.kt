@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,6 +39,13 @@ class FlagSpeedGameModeTest {
     @Test
     fun `the round length constant is 60 seconds`() {
         assertEquals(60, FlagSpeedGameMode.ROUND_DURATION_SECONDS)
+    }
+
+    @Test
+    fun `supportsPractice is false - the route only ever takes a difficulty, no category`() {
+        // Task 7.3 fix round, item 2: ModeRoutes.start/practise for this mode's id drop the
+        // practice category entirely, so "Practise the ones you missed" must not be offered.
+        assertFalse(FlagSpeedGameMode.SPEC.supportsPractice)
     }
 
     @Test

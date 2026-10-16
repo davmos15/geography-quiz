@@ -40,15 +40,16 @@ class CurrencyQuestionGenerator(
     }
 
     /**
-     * Rebuilds the exact items for [codes] (in that order), by looking each one up as a
-     * representative in the globally-built item set - used to restore a saved round
-     * (`ui/currencies/CurrenciesSavedState.kt` only stores representative codes, never which
-     * currency entry backed them, since [CurrencyItems.buildAll]'s assignment is fixed and global).
+     * Rebuilds the exact items for [category], then picks out [currencyCodes] (each a
+     * [CurrencyEntry.code], in that order) - used to restore a saved round
+     * (`ui/currencies/CurrenciesSavedState.kt` stores currency codes, never a representative
+     * country, since [CurrencyItems]'s representative assignment is scoped to [category]: looking
+     * codes up against [currencyItems] for the *same* category reproduces the exact same
+     * representatives the original round had, rather than a different global assignment that
+     * might not even include one of them (the task 7.1 review's main finding).
      */
-    suspend fun itemsForCodes(codes: List<String>): List<CurrencyItem> {
-        val allCountriesByCode = countryRepository.getAllCountries().first().associateBy { it.code }
-        val data = currencyRepository.currencies()
-        val byCode = CurrencyItems.buildAll(data, allCountriesByCode).associateBy { it.country.code }
-        return codes.mapNotNull { byCode[it] }
+    suspend fun itemsForCurrencyCodes(category: QuizCategory, currencyCodes: List<String>): List<CurrencyItem> {
+        val byCurrencyCode = currencyItems(category).associateBy { it.entry.code }
+        return currencyCodes.mapNotNull { byCurrencyCode[it] }
     }
 }

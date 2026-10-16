@@ -49,6 +49,7 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.ChoiceOption
 import com.geoquiz.app.domain.mode.ChoiceQuestion
 import com.geoquiz.app.domain.mode.currencies.CurrencyEntry
+import com.geoquiz.app.domain.mode.currencies.currencyLabel
 import com.geoquiz.app.domain.model.ChoiceFeedback
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.ui.components.DifficultyLabel
@@ -78,7 +79,16 @@ fun CurrenciesHeader(
     }
 }
 
-/** The currency's clue: name, big symbol and ISO code. Shown for both typed and choice items. */
+/**
+ * The currency's clue: name, big symbol and ISO code. Shown for both typed and choice items.
+ *
+ * The heading text itself depends on whether [entry] is shared (task 7.1 review, D50): a shared
+ * currency's question is genuinely "which of these" (the euro has 26 valid-looking countries to
+ * weigh up), so it gets [R.string.choice_prompt_currency_of] - the same wording
+ * `MultipleChoicePanel` already shows for the classic quiz's own currency practice sets - rather
+ * than the generic "which country" text, which was previously shown unconditionally here even
+ * for a shared currency.
+ */
 @Composable
 fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
     Card(
@@ -90,8 +100,13 @@ fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            val prompt = if (entry.shared) {
+                stringResource(R.string.choice_prompt_currency_of, currencyLabel(entry))
+            } else {
+                stringResource(R.string.currencies_prompt_which_country)
+            }
             Text(
-                text = stringResource(R.string.currencies_prompt_which_country),
+                text = prompt,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.semantics { heading() }
@@ -241,9 +256,12 @@ private fun CurrencyOptionButton(
         )
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // Decorative only: the option's name is already read by the button text right next
+            // to it, so a separate "Flag" description would just be noise for TalkBack (task 7.1
+            // review item 9).
             FlagImage(
                 countryCode = option.code,
-                contentDescription = stringResource(R.string.currencies_option_flag_description),
+                contentDescription = null,
                 height = 20.dp
             )
             Spacer(modifier = Modifier.width(8.dp))

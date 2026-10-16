@@ -194,7 +194,11 @@ fun FlagSpeedGameScreen(
                     }
                 }
 
-                if (showGiveUpDialog) {
+                // Gated on the round still being in progress (task 7.3 fix round, item 4): the
+                // round can finish itself (time-up) while this dialog is open, and showing "End
+                // the round now?" over the post-round review would be stuck - its Confirm button
+                // returns early once the round is already complete (onGiveUp).
+                if (showGiveUpDialog && !round.isComplete) {
                     AlertDialog(
                         onDismissRequest = { showGiveUpDialog = false },
                         title = { Text(stringResource(R.string.quiz_give_up_title)) },

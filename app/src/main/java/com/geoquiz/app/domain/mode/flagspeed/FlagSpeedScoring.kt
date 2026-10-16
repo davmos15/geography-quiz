@@ -37,7 +37,10 @@ import com.geoquiz.app.domain.model.QuizState
  *   [incorrectGuesses] already holds the wrong-pick count above), so - exactly like Border hop
  *   repurposing this same field for its reached/gave-up flag - the combo is stashed in
  *   [currentInput] with a documented, parseable convention instead. A missing or malformed value
- *   reads as zero.
+ *   reads as zero; a value greater than the round's own correct count is clamped to that count
+ *   (task 7.3 fix round, item 6) - only [com.geoquiz.app.ui.flagspeed.FlagSpeedGameViewModel]
+ *   writes this field today, and it never can exceed `correct`, so this is hardening against a
+ *   future or hand-built [QuizState], not a live bug.
  *
  * Every question asked and answered is either correct or incorrect (there is no near miss or
  * "already answered" in a multiple-choice round), so the correct count is always
@@ -84,7 +87,7 @@ object FlagSpeedScoring {
         val correct = asked - incorrect
         val percentage = correct.toDouble() / asked
         val baseScore = percentage * correct
-        val longestStreak = longestStreakOf(state)
+        val longestStreak = longestStreakOf(state).coerceAtMost(correct)
         val comboBonus = (longestStreak - 1).coerceAtLeast(0) * COMBO_BONUS_PER_EXTRA_STREAK
         val isPerfect = incorrect == 0
         val finalScore = (baseScore + comboBonus) * (if (isPerfect) PERFECT_MULTIPLIER else 1.0)

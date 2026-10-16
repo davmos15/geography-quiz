@@ -31,7 +31,9 @@ private data class CurrencyAssetEntry(
     val symbol: String,
     val countries: List<String>,
     val shared: Boolean,
-    val fact: String? = null
+    val fact: String? = null,
+    /** Countries that unofficially also use this currency (currently only Zimbabwe, D48). */
+    val listedInBasketBy: List<String> = emptyList()
 )
 
 @Serializable
@@ -92,7 +94,8 @@ class AssetCurrencyRepository(
                 symbol = it.symbol,
                 countries = it.countries,
                 shared = it.shared,
-                fact = it.fact
+                fact = it.fact,
+                listedInBasketBy = it.listedInBasketBy
             )
         }
         return CurrencyData(entries, asset.primaryCurrency)

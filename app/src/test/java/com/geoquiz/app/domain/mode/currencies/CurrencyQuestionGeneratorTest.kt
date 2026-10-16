@@ -47,9 +47,10 @@ class CurrencyQuestionGeneratorTest {
     }
 
     @Test
-    fun `currencyItems restricts representatives to the category's filtered pool`() = runBlocking {
-        // Only France is offered by this category; Germany (EUR's alphabetical representative)
-        // is filtered out, so the euro is not asked about at all here.
+    fun `currencyItems re-picks a shared currency's representative from the category's own pool (review item 1)`() = runBlocking {
+        // Only France is offered by this category; Germany (the full-game alphabetical
+        // representative) is filtered out. Before the review fix this dropped the euro
+        // entirely - now France itself becomes the representative instead.
         coEvery { pool.items(QuizCategory.ByRegion("Europe")) } returns listOf(france)
         coEvery { currencyRepository.currencies() } returns CurrencyData(
             entries = listOf(eur, pen),
@@ -58,30 +59,49 @@ class CurrencyQuestionGeneratorTest {
 
         val items = generator().currencyItems(QuizCategory.ByRegion("Europe"))
 
-        assertEquals(emptyList<CurrencyItem>(), items)
+        assertEquals(listOf("FRA"), items.map { it.country.code })
+        assertEquals(listOf("EUR"), items.map { it.entry.code })
     }
 
     @Test
-    fun `itemsForCodes rebuilds the exact items for stored codes, regardless of category`() = runBlocking {
+    fun `a category offering no member of a shared currency still has no item for it`() = runBlocking {
+        // Peru alone: no EUR member is offered at all, so the euro has no representative here.
+        coEvery { pool.items(QuizCategory.ByRegion("Americas")) } returns listOf(peru)
         coEvery { currencyRepository.currencies() } returns CurrencyData(
             entries = listOf(eur, pen),
             primaryCurrency = mapOf("DEU" to "EUR", "FRA" to "EUR", "PER" to "PEN")
         )
 
-        val items = generator().itemsForCodes(listOf("PER", "DEU"))
+        val items = generator().currencyItems(QuizCategory.ByRegion("Americas"))
+
+        assertEquals(listOf("PEN"), items.map { it.entry.code })
+    }
+
+    @Test
+    fun `itemsForCurrencyCodes rebuilds the exact items for stored currency codes, scoped to their category`() = runBlocking {
+        coEvery { pool.items(QuizCategory.AllCountries) } returns listOf(peru, germany, france)
+        coEvery { currencyRepository.currencies() } returns CurrencyData(
+            entries = listOf(eur, pen),
+            primaryCurrency = mapOf("DEU" to "EUR", "FRA" to "EUR", "PER" to "PEN")
+        )
+
+        val items = generator().itemsForCurrencyCodes(QuizCategory.AllCountries, listOf("PEN", "EUR"))
 
         assertEquals(listOf("PEN", "EUR"), items.map { it.entry.code })
+        // EUR's representative within the full {DEU, FRA} pool is DEU (alphabetically first) -
+        // the exact same pick `currencyItems` itself would make for this category.
         assertEquals(listOf("PER", "DEU"), items.map { it.country.code })
     }
 
     @Test
-    fun `itemsForCodes skips a code with no matching item rather than failing`() = runBlocking {
+    fun `itemsForCurrencyCodes skips a currency code with no matching item rather than failing`() = runBlocking {
+        coEvery { pool.items(QuizCategory.AllCountries) } returns listOf(peru)
         coEvery { currencyRepository.currencies() } returns CurrencyData(
             entries = listOf(pen),
             primaryCurrency = mapOf("PER" to "PEN")
         )
 
-        val items = generator().itemsForCodes(listOf("PER", "UNKNOWN"))
+        val items = generator().itemsForCurrencyCodes(QuizCategory.AllCountries, listOf("PEN", "UNKNOWN"))
 
         assertEquals(listOf("PER"), items.map { it.country.code })
     }

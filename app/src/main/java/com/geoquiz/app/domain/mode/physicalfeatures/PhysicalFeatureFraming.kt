@@ -44,3 +44,28 @@ fun physicalFeatureFrame(
  */
 fun physicalFeatureLayerIds(feature: PhysicalFeature, layer: GeoLayer): Set<String> =
     feature.neIds.filterTo(HashSet()) { layer.feature(it) != null }
+
+/**
+ * A synthetic, single-feature (or few-feature) copy of [layer] holding only the parts whose id
+ * is in [ids] (task 7.2 review fix C2, [ids] from [physicalFeatureLayerIds]): [layer] itself can
+ * carry hundreds of unrelated features (e.g. `regions_50m`'s 517 polygons, including
+ * whole-continent shapes) that would otherwise draw over the highlighted target later in the
+ * same layer's draw order, or - for a line layer - get a fill pass that makes no sense for an
+ * open polyline. Filtering to just the target's own ids before handing anything to
+ * [com.geoquiz.app.ui.map.MapCanvas] (as the scene's `overlay`) removes that z-order fighting
+ * entirely, rather than relying on draw-order tricks. Null if [ids] is empty (a data mismatch,
+ * same case [physicalFeatureLayerIds] already tolerates).
+ */
+fun physicalFeatureOverlayLayer(layer: GeoLayer, ids: Set<String>): GeoLayer? {
+    if (ids.isEmpty()) return null
+    val parts = layer.features.filter { it.id in ids }
+    if (parts.isEmpty()) return null
+    return GeoLayer(
+        id = layer.id,
+        kind = layer.kind,
+        bounds = layer.bounds,
+        source = layer.source,
+        properties = layer.properties,
+        features = parts,
+    )
+}

@@ -24,6 +24,10 @@ sealed class PhysicalFeatureFeedback {
 
     /** The name of an already-answered feature, typed again: harmless, no strike. */
     data object AlreadyAnswered : PhysicalFeatureFeedback()
+
+    /** Passed (task 7.2 review fix H3): reveals the current feature's name, counts as missed
+     * (never added to [PhysicalFeaturesRoundState.answeredIds]), no strike. */
+    data class Revealed(val name: String) : PhysicalFeatureFeedback()
 }
 
 /**

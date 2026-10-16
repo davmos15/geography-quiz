@@ -214,7 +214,7 @@ class PhysicalFeaturesGameViewModel @Inject constructor(
                 quiz = Quiz(category = category, countries = state.features.map { it.toQuizCountry() }),
                 answeredCountries = state.answeredIds
             )
-            val result = answerValidator.validate(input, quizState, allowFuzzy, aliasesByCode)
+            val result = answerValidator.validate(input, quizState, allowFuzzy, aliasesByCode, target.id)
 
             val latest = activeState() ?: return@launch
             if (latest.isComplete || latest.isAdvancing || latest.paused || latest.current?.id != target.id) return@launch
@@ -316,6 +316,30 @@ class PhysicalFeaturesGameViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Reveals the current feature's name, counts it as missed (never added to
+     * [PhysicalFeaturesRoundState.answeredIds]) and moves on after a longer pause than a correct
+     * answer's, so the player has time to read it (task 7.2 review fix H3, same shape as
+     * [com.geoquiz.app.ui.silhouettes.SilhouettesGameViewModel.onPass]): unlike Normal before this
+     * fix, a player who doesn't know one feature no longer has to Give Up and lose every
+     * remaining one just to move past it.
+     */
+    fun onPass() {
+        val state = activeState() ?: return
+        if (state.isComplete || state.isAdvancing || state.paused) return
+        val target = state.current ?: return
+        commit(
+            state.copy(
+                feedback = PhysicalFeatureFeedback.Revealed(target.name),
+                currentInput = "",
+                isAdvancing = true,
+                pendingAdvance = true
+            ),
+            announce = true
+        )
+        scheduleAdvance(REVEAL_DELAY_MILLIS)
+    }
+
     fun onGiveUp() {
         val state = activeState() ?: return
         if (state.isComplete) return
@@ -409,6 +433,11 @@ class PhysicalFeaturesGameViewModel @Inject constructor(
 
         /** Easy only: how long a pick's result stays on the options before the next question. */
         const val CHOICE_FEEDBACK_MILLIS = 900L
+
+        /** How long a Pass's revealed name stays before the next feature (task 7.2 review fix
+         * H3): longer than [ADVANCE_DELAY_MILLIS], the same reasoning as Country silhouettes'
+         * `REVEAL_DELAY_MILLIS` - there is more to read than a brief "Correct". */
+        const val REVEAL_DELAY_MILLIS = 1_500L
 
         private const val FEEDBACK_EVENT_BUFFER = 8
     }

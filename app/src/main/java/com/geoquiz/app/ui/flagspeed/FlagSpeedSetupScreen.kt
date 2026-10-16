@@ -37,8 +37,8 @@ import com.geoquiz.app.ui.components.WrappingTopAppBar
 
 /**
  * Flag speed's setup screen (task 7.3, D52): difficulty only, then Start. [onStart] hands the
- * chosen difficulty to the caller, which is responsible for navigating to the game screen (this
- * mode has no route of its own yet, see the handback notes).
+ * chosen difficulty to the caller, which is responsible for navigating to the game screen
+ * (`AppNavigation.kt` builds `Screen.FlagSpeed.createRoute(difficulty.id)` from it).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

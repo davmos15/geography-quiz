@@ -92,6 +92,15 @@ class FlagSpeedScoringTest {
     }
 
     @Test
+    fun `a combo larger than the round's own correct count is clamped, never inflating the bonus`() {
+        // 4 asked, 2 incorrect -> 2 correct, but currentInput claims an impossible streak of 100.
+        val state = stateFor(asked = 4, incorrect = 2, longestStreak = 100)
+        val result = FlagSpeedScoring.score(state)
+        // base = (2/4) * 2 = 1.0, comboBonus clamped to (2 - 1) * 0.5 = 0.5, not perfect.
+        assertEquals(1.5, result.score, 1e-9)
+    }
+
+    @Test
     fun `the category is carried through from the quiz state`() {
         val state = stateFor(asked = 2, incorrect = 0, longestStreak = 2)
             .let { it.copy(quiz = it.quiz.copy(category = QuizCategory.ByRegion("Europe"))) }

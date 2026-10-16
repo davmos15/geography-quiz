@@ -100,6 +100,18 @@ class MapScene(
     val members: Set<String>? = null,
     /** How far past [contentBounds] the camera may pan, as a fraction of its size. */
     val panMarginFraction: Float = 0f,
+    /**
+     * An extra, independent layer composited on top of [land] (task 7.2, C2 review fix): drawn
+     * with the same per-feature fill/border/outline/marker rules as [land] (see [MapCanvas]'s
+     * `drawMap`), honouring its own [com.geoquiz.app.domain.map.GeometryKind], but with no
+     * member/context concept, no tap zones and no exclusion of its own - every feature in it is
+     * always drawn. Meant for a view with no answerable country at all (Rivers, mountains and
+     * lakes highlights one feature over a non-playable country basemap this way, see
+     * `PhysicalFeaturesGameScreen`), so a single synthetic feature can sit over [coarse]/[detail]
+     * without disturbing their own two-level, member/tap-zone machinery (which assumes "the
+     * country layer", singular). Null for every other caller - zero behaviour change.
+     */
+    val overlay: MapLayerPaths? = null,
 ) {
     init {
         require(coarse != null || detail != null) { "A map scene needs at least one country layer" }
@@ -260,14 +272,19 @@ fun rememberMapScene(
     tapZones: GeoLayer? = null,
     members: Set<String>? = null,
     panMarginFraction: Float = 0f,
+    /** See [MapScene.overlay]. */
+    overlay: GeoLayer? = null,
 ): MapScene? {
     val coarsePaths = rememberMapLayerPaths(coarse, projection)
     val detailPaths = rememberMapLayerPaths(detail, projection)
     val lakePaths = rememberMapLayerPaths(lakes, projection)
     val riverPaths = rememberMapLayerPaths(rivers, projection)
     val tapZonePaths = rememberMapLayerPaths(tapZones, projection)
-    return remember(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths, members, panMarginFraction) {
+    val overlayPaths = rememberMapLayerPaths(overlay, projection)
+    return remember(
+        projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths, members, panMarginFraction, overlayPaths
+    ) {
         if (coarsePaths == null && detailPaths == null) null
-        else MapScene(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths, members, panMarginFraction)
+        else MapScene(projection, coarsePaths, detailPaths, lakePaths, riverPaths, bounds, tapZonePaths, members, panMarginFraction, overlayPaths)
     }
 }

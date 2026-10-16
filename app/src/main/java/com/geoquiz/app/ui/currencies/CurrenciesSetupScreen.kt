@@ -42,7 +42,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Difficulty
-import com.geoquiz.app.ui.category.QuizOptionInfo
 import com.geoquiz.app.ui.components.DifficultySelector
 import com.geoquiz.app.ui.components.ReadableWidthFrame
 import com.geoquiz.app.ui.components.WrappingTopAppBar
@@ -134,10 +133,13 @@ fun CurrenciesSetupScreen(
                             )
                         }
                         if (isExpanded) {
-                            items(section.options, key = { "${section.titleRes}-${it.categoryType}-${it.categoryValue}" }) { option ->
+                            items(
+                                section.options,
+                                key = { "${section.titleRes}-${it.option.categoryType}-${it.option.categoryValue}" }
+                            ) { filterOption ->
                                 CurrencyFilterCard(
-                                    option = option,
-                                    onClick = { onStart(viewModel.routeFor(option)) }
+                                    filterOption = filterOption,
+                                    onClick = { onStart(viewModel.routeFor(filterOption.option)) }
                                 )
                             }
                         }
@@ -178,8 +180,10 @@ private fun SectionHeader(titleRes: Int, expanded: Boolean, onToggle: () -> Unit
 }
 
 @Composable
-private fun CurrencyFilterCard(option: QuizOptionInfo, onClick: () -> Unit) {
-    val countDescription = pluralStringResource(R.plurals.currencies_filter_country_count, option.countryCount, option.countryCount)
+private fun CurrencyFilterCard(filterOption: CurrenciesFilterOption, onClick: () -> Unit) {
+    val countDescription = pluralStringResource(
+        R.plurals.currencies_filter_currency_count, filterOption.currencyCount, filterOption.currencyCount
+    )
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -189,7 +193,7 @@ private fun CurrencyFilterCard(option: QuizOptionInfo, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(text = option.name, style = MaterialTheme.typography.bodyLarge)
+            Text(text = filterOption.option.name, style = MaterialTheme.typography.bodyLarge)
             Text(
                 text = countDescription,
                 style = MaterialTheme.typography.bodySmall,

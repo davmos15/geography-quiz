@@ -17,21 +17,26 @@ class FlagSpeedRoundDrawerTest {
     private val tier1 = set("t1", listOf("AAA", "BBB"), tier = 1)
     private val tier2 = set("t2", listOf("CCC", "DDD"), tier = 2)
     private val tier3 = set("t3", listOf("EEE", "FFF"), tier = 3)
-    private val nearIdenticalTier3 = set("near", listOf("GGG", "HHH"), tier = 3, visibility = FlagLookalikeVisibility.NEAR_IDENTICAL)
-    private val allSets = listOf(tier1, tier2, tier3, nearIdenticalTier3)
 
-    // Pool tiers
+    // near_identical sets at both ends of the tier range, so the exclusion is exercised whether
+    // the test uses Easy (tier 1) or Hard (tier 3) - see the corrected D52 direction below.
+    private val nearIdenticalTier1 = set("near1", listOf("GGG", "HHH"), tier = 1, visibility = FlagLookalikeVisibility.NEAR_IDENTICAL)
+    private val nearIdenticalTier3 = set("near3", listOf("III", "JJJ"), tier = 3, visibility = FlagLookalikeVisibility.NEAR_IDENTICAL)
+    private val allSets = listOf(tier1, tier2, tier3, nearIdenticalTier1, nearIdenticalTier3)
+
+    // Pool tiers (D52, corrected 2026-10-16 code review: Easy = tier 1, the `clear`/easiest
+    // pairs, not tier 3 - the original direction had this backwards).
 
     @Test
-    fun `Easy pool is tier 3 only, excluding near-identical sets`() {
+    fun `Easy pool is tier 1 only, excluding near-identical sets`() {
         val pool = FlagSpeedRoundDrawer.poolFor(allSets, Difficulty.EASY)
-        assertEquals(listOf(tier3), pool)
+        assertEquals(listOf(tier1), pool)
     }
 
     @Test
-    fun `Normal pool is tiers 2 and 3, excluding near-identical sets`() {
+    fun `Normal pool is tiers 1 and 2, excluding near-identical sets`() {
         val pool = FlagSpeedRoundDrawer.poolFor(allSets, Difficulty.NORMAL)
-        assertEquals(setOf(tier2, tier3), pool.toSet())
+        assertEquals(setOf(tier1, tier2), pool.toSet())
         assertEquals(2, pool.size)
     }
 
@@ -51,9 +56,16 @@ class FlagSpeedRoundDrawerTest {
     }
 
     @Test
-    fun `a near-identical set is excluded even if it were the only set at its tier`() {
-        val onlyNearIdentical = listOf(nearIdenticalTier3)
+    fun `a near-identical set is excluded even if it were the only set at its tier - Easy, tier 1`() {
+        val onlyNearIdentical = listOf(nearIdenticalTier1)
         val pool = FlagSpeedRoundDrawer.poolFor(onlyNearIdentical, Difficulty.EASY)
+        assertTrue(pool.isEmpty())
+    }
+
+    @Test
+    fun `a near-identical set is excluded even if it were the only set at its tier - Hard, tier 3`() {
+        val onlyNearIdentical = listOf(nearIdenticalTier3)
+        val pool = FlagSpeedRoundDrawer.poolFor(onlyNearIdentical, Difficulty.HARD)
         assertTrue(pool.isEmpty())
     }
 

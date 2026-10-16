@@ -28,4 +28,10 @@
     <string name="physical_features_map_a11y">Map showing the highlighted feature.</string>
     <string name="physical_features_incorrect_feedback">Not quite — try again</string>
     <string name="physical_features_correct_feedback">Correct — %1$s</string>
+    <!-- Task 7.2 review fix H3: Pass, Normal/Hard only, same shape as Country silhouettes'. -->
+    <string name="physical_features_pass">Pass</string>
+    <string name="physical_features_revealed_feedback">This was %1$s</string>
+    <!-- Task 7.2 review fix H2: the only clue a TalkBack user gets (there is no list fallback
+         for a one-off highlighted feature); never the feature's own name. -->
+    <string name="physical_features_clue">Found in %1$s</string>
 </resources>

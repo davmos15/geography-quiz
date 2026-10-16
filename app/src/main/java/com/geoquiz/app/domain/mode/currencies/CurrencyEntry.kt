@@ -7,6 +7,13 @@ import com.geoquiz.app.domain.model.Country
  * see `data/SOURCES.md`'s `data/currencies.json` row). [countries] is every cca3 among the app's
  * 197 that uses it (sorted); [shared] is true for the 13 codes used by two or more of them (D50).
  * [fact] is a one-line Wikidata fact to show after answering, or null when none passed review.
+ *
+ * [listedInBasketBy] (code review round, task 7.1 follow-up): countries that unofficially also
+ * circulate this currency (currently only Zimbabwe, D48's basket decision) but are never a true
+ * `countries` member - excluded from this currency's true-member set on purpose, since counting
+ * them would break "exactly one valid option". They must still be excluded from the *wrong*-option
+ * pool too (a basket country is a genuinely ambiguous distractor, not a safely-wrong one) -
+ * see [CurrenciesChoiceGenerator].
  */
 data class CurrencyEntry(
     val code: String,
@@ -14,7 +21,8 @@ data class CurrencyEntry(
     val symbol: String,
     val countries: List<String>,
     val shared: Boolean,
-    val fact: String?
+    val fact: String?,
+    val listedInBasketBy: List<String> = emptyList()
 )
 
 /** Every currency entry plus the country-to-primary-currency map (task 7.1, D48). */
@@ -41,28 +49,44 @@ data class CurrencyItem(val country: Country, val entry: CurrencyEntry)
  * [Country], and [com.geoquiz.app.domain.model.QuizState] tracks progress by `cca3` code. A
  * currency can stand for many countries (shared, e.g. the euro) or exactly one (e.g. the Albanian
  * lek), so each eligible currency code needs exactly one *representative* country to carry all of
- * that bookkeeping. [buildAll] computes this once, over every country in the game, so a
- * representative never changes between calls or category filters:
+ * that bookkeeping.
+ *
+ * [build] computes this **per call, scoped to [candidateCodes]** (code review round, task 7.1
+ * follow-up: the original version assigned a shared currency's representative once, globally,
+ * over every country in the game - so a category filter that happened not to contain that one
+ * global representative lost the currency entirely, sometimes losing *every* currency a filter
+ * had (e.g. Micronesia: FSM/MHL/PLW use USD, KIR/NRU use AUD, and neither global representative
+ * was ever a Micronesian country), even though the setup screen still advertised real countries.
+ * [buildAll] is the full-game case ([candidateCodes] = every known country), used where no
+ * category filter is in play:
  *
  * - **Not shared**: the one country whose [CurrencyData.primaryCurrency] actually names this
- *   code. Most non-shared codes are simply their one listed country's official currency, but
- *   three in this data are not: `CUC` (Cuba's convertible peso, obsolete since 2021 - Cuba's real
- *   primary is `CUP`), `KID` (the Kiribati dollar, coins only, pegged to and overshadowed by
- *   `AUD`) and `TVD` (the Tuvaluan dollar, same arrangement with `AUD`) are real codes with one
- *   listed country each but are nobody's actual primary currency in this data
- *   (`data/currencies_report.md`'s `primaryCurrencyNotes`). These three have no representative
- *   and are never asked about - the same spirit as D48's Panama/Zimbabwe/Palestine calls, applied
- *   here to three more codes the decision log does not name explicitly (flagged for the lead).
- * - **Shared**: the alphabetically-first cca3 in [CurrencyEntry.countries] that is not already
- *   the representative of a non-shared code, falling back to the alphabetically-first member if
- *   every member is already taken (never happens in this data, checked in
- *   `CurrencyItemsTest`). The "not already taken" rule matters: four countries - Bhutan, Brunei,
- *   The Bahamas and Lesotho - each have their own non-shared currency (`BTN`, `BND`, `BSD`,
- *   `LSL`) *and* are the alphabetically-first member of a different shared currency they also use
- *   day to day (`INR`, `SGD`, `USD`, `ZAR` respectively). Picking the same country as the
- *   representative of two different items would make two quiz items collide under one `cca3`
- *   code, which [com.geoquiz.app.domain.model.QuizState]'s `Set<String>` bookkeeping cannot tell
- *   apart; skipping to the next member keeps every representative in the whole game unique.
+ *   code, if that country is in [candidateCodes]. Most non-shared codes are simply their one
+ *   listed country's official currency, but three in this data are not: `CUC` (Cuba's convertible
+ *   peso, obsolete since 2021 - Cuba's real primary is `CUP`), `KID` (the Kiribati dollar, coins
+ *   only, pegged to and overshadowed by `AUD`) and `TVD` (the Tuvaluan dollar, same arrangement
+ *   with `AUD`) are real codes with one listed country each but are nobody's actual primary
+ *   currency in this data (`data/currencies_report.md`'s `primaryCurrencyNotes`). These three have
+ *   no representative in any round and are never typed-asked about directly - the same spirit as
+ *   D48's Panama/Zimbabwe/Palestine calls, applied here to three more codes the decision log does
+ *   not name explicitly (flagged for the lead). Kiribati and Tuvalu are not excluded from the mode
+ *   altogether, though: both are true members of the shared `AUD` entry, so a filter that includes
+ *   either of them (and does not also include a "closer" AUD member) can still ask about them via
+ *   `AUD`'s multiple-choice question - this was already true before this fix and needed no change.
+ * - **Shared**: the alphabetically-first cca3 in [CurrencyEntry.countries] that is both in
+ *   [candidateCodes] and not already the representative of another item *in this same call*. If
+ *   every in-scope member is already taken, the entry has no representative in this call (dropped
+ *   entirely, never a duplicate) - tightened from a previous version that fell back to reusing an
+ *   already-taken code; a duplicate representative would make two quiz items collide under one
+ *   `cca3` code, which [com.geoquiz.app.domain.model.QuizState]'s `Set<String>` bookkeeping cannot
+ *   tell apart, so dropping the item is strictly safer than a collision. Never happens in the real
+ *   data at the full-game scope (checked in `CurrencyItemsTest`), and a per-category scope can only
+ *   ever have *fewer* candidates competing for the same representative, not more, so this remains
+ *   just as unreachable in practice as it always was. The "not already taken" rule still matters
+ *   at full scope: four countries - Bhutan, Brunei, The Bahamas and Lesotho - each have their own
+ *   non-shared currency (`BTN`, `BND`, `BSD`, `LSL`) *and* are the alphabetically-first member of
+ *   a different shared currency they also use day to day (`INR`, `SGD`, `USD`, `ZAR`
+ *   respectively); skipping to the next in-scope member avoids the same collision.
  *
  * The representative is used only for bookkeeping. The real question
  * ([CurrenciesChoiceGenerator], [CurrencyAnswerValidator]) always goes back to the
@@ -72,31 +96,38 @@ data class CurrencyItem(val country: Country, val entry: CurrencyEntry)
  */
 object CurrencyItems {
 
+    /** [build], scoped to every country in [allCountriesByCode] - the full-game case. */
+    fun buildAll(data: CurrencyData, allCountriesByCode: Map<String, Country>): List<CurrencyItem> =
+        build(data, allCountriesByCode, allCountriesByCode.keys)
+
     /**
-     * Every eligible [CurrencyItem], computed over [allCountriesByCode] (every country in the
-     * game, keyed by `cca3`) so representative assignment never depends on a category filter.
+     * Every eligible [CurrencyItem] whose representative can be chosen from [candidateCodes]
+     * (looked up in [allCountriesByCode]). See the class KDoc: representative assignment is
+     * scoped to this one call, not fixed globally, so the same currency can have a different
+     * representative in a different [candidateCodes] - that is by design, since the
+     * representative is bookkeeping-only and the real question always goes back to the
+     * [CurrencyEntry] itself.
      */
-    fun buildAll(data: CurrencyData, allCountriesByCode: Map<String, Country>): List<CurrencyItem> {
+    fun build(
+        data: CurrencyData,
+        allCountriesByCode: Map<String, Country>,
+        candidateCodes: Set<String>
+    ): List<CurrencyItem> {
         val nonSharedItems = data.entries.filter { !it.shared }.mapNotNull { entry ->
             val code = data.primaryCurrency.entries.firstOrNull { it.value == entry.code }?.key
                 ?: return@mapNotNull null
+            if (code !in candidateCodes) return@mapNotNull null
             val country = allCountriesByCode[code] ?: return@mapNotNull null
             CurrencyItem(country, entry)
         }
         val usedCodes = nonSharedItems.mapTo(mutableSetOf()) { it.country.code }
         val sharedItems = data.entries.filter { it.shared }.mapNotNull { entry ->
-            val sorted = entry.countries.sorted()
-            val code = sorted.firstOrNull { it !in usedCodes } ?: sorted.firstOrNull()
-            val country = code?.let { allCountriesByCode[it] } ?: return@mapNotNull null
+            val sorted = entry.countries.filter { it in candidateCodes }.sorted()
+            val code = sorted.firstOrNull { it !in usedCodes } ?: return@mapNotNull null
+            val country = allCountriesByCode[code] ?: return@mapNotNull null
+            usedCodes += code
             CurrencyItem(country, entry)
         }
         return nonSharedItems + sharedItems
     }
-
-    /** [buildAll], restricted to the items whose representative's code is in [candidateCodes]. */
-    fun build(
-        data: CurrencyData,
-        allCountriesByCode: Map<String, Country>,
-        candidateCodes: Set<String>
-    ): List<CurrencyItem> = buildAll(data, allCountriesByCode).filter { it.country.code in candidateCodes }
 }

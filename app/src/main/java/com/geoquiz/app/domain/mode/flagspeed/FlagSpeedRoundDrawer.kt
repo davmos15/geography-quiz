@@ -11,9 +11,12 @@ data class FlagSpeedDraw(val setId: String, val targetCode: String)
  * 7.3, D52): there is no fixed quiz set in this mode, so a question is drawn fresh, live, for as
  * long as the 60-second round runs.
  *
- * [poolFor] is the tier's draw pool: Easy = tier 3 only, Normal = tiers 2-3, Hard = tiers 1-3
- * (D52), always excluding [FlagLookalikeVisibility.NEAR_IDENTICAL] sets at every tier regardless
- * of their tier number - the data file's own note is that these are not a fair question at this
+ * [poolFor] is the tier's draw pool: Easy = tier 1 only, Normal = tiers 1-2, Hard = tiers 1-3
+ * (D52, corrected 2026-10-16 code review: tier 1 in `data/flag_lookalikes.json` is the `clear`,
+ * easiest-to-tell-apart pairs, e.g. Italy/Mexico, Belgium/Germany; tier 3 is `subtle`, the
+ * hardest, e.g. Chad/Romania, Netherlands/Luxembourg - the original D52 text had this backwards),
+ * always excluding [FlagLookalikeVisibility.NEAR_IDENTICAL] sets at every tier regardless of
+ * their tier number - the data file's own note is that these are not a fair question at this
  * app's flag size.
  *
  * [next] avoids repeating the exact same (set, target) pair as [previous] back to back: "a set
@@ -23,10 +26,13 @@ data class FlagSpeedDraw(val setId: String, val targetCode: String)
  */
 object FlagSpeedRoundDrawer {
 
-    /** Lookalike-set tiers in the draw pool for [difficulty] (D52). */
+    /**
+     * Lookalike-set tiers in the draw pool for [difficulty] (D52, corrected 2026-10-16: Easy is
+     * tier 1 - the `clear`, easiest pairs - not tier 3).
+     */
     fun tiersFor(difficulty: Difficulty): Set<Int> = when (difficulty) {
-        Difficulty.EASY -> setOf(3)
-        Difficulty.NORMAL -> setOf(2, 3)
+        Difficulty.EASY -> setOf(1)
+        Difficulty.NORMAL -> setOf(1, 2)
         Difficulty.HARD -> setOf(1, 2, 3)
     }
 

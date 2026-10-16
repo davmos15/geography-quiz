@@ -23,9 +23,12 @@
     <string name="currencies_expand_section">Expand this section</string>
     <string name="currencies_collapse_section">Collapse this section</string>
     <string name="currencies_start_action">Start round</string>
-    <plurals name="currencies_filter_country_count">
-        <item quantity="one">%1$d country</item>
-        <item quantity="other">%1$d countries</item>
+    <!-- The real number of currencies a filter asks about (task 7.1 review item 1), which can
+         differ from its raw country count: several countries can share one currency. Replaces an
+         earlier "N countries" count that was misleading for a shared-currency filter. -->
+    <plurals name="currencies_filter_currency_count">
+        <item quantity="one">%1$d currency</item>
+        <item quantity="other">%1$d currencies</item>
     </plurals>
     <!-- Normal/Hard summaries note the one exception to typing the answer (D50). -->
     <string name="currencies_normal_summary">Type the country\'s name; typos are forgiven. A currency shared by more than one country is always a multiple-choice question.</string>
@@ -39,8 +42,10 @@
     <string name="currencies_feedback_correct">%1$s – Correct!</string>
     <string name="currencies_feedback_incorrect">Not quite. The answer was %1$s.</string>
     <string name="currencies_feedback_near_miss">Close – check the spelling</string>
-    <string name="currencies_feedback_not_recognised">Not recognised. Try again!</string>
-    <string name="currencies_feedback_already_answered">Already answered</string>
+    <!-- Covers both "not a country at all" and "a real but wrong country" (the validator reports
+         both as AnswerResult.Incorrect, task 7.1 review item 8): neutral wording that reads fine
+         for either case, rather than "Not recognised", which only fits the first. -->
+    <string name="currencies_feedback_not_recognised">Not quite. Try again!</string>
     <string name="currencies_next_action">Next</string>
     <!-- A fact's source credit, shown underneath it. -->
     <string name="currencies_fact_source">Source: Wikidata</string>

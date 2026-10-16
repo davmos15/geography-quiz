@@ -95,6 +95,15 @@ class FlagSpeedGameViewModel @Inject constructor(
     private var setsById: Map<String, FlagLookalikeSet> = emptyMap()
     private var pool: List<FlagLookalikeSet> = emptyList()
 
+    /**
+     * True if the screen went to the background before the round's first
+     * [FlagSpeedUiState.Active] state committed (task 7.3 fix round, item 7): the asset load runs
+     * on a background dispatcher, so [onBackgrounded] before it finishes would otherwise be a
+     * no-op (there is no active round yet to pause) and the round's 60-second clock could start
+     * while the screen is still backgrounded.
+     */
+    private var backgroundedBeforeLoad = false
+
     init {
         viewModelScope.launch {
             _vibration.value = settingsRepository.vibration.first()
@@ -125,7 +134,7 @@ class FlagSpeedGameViewModel @Inject constructor(
             when {
                 state.isComplete -> finishIfComplete()
                 state.pendingAdvance -> advanceAfterFeedback()
-                else -> drawNextQuestion(state)
+                else -> restoreQuestion(state)
             }
             return
         }
@@ -134,9 +143,28 @@ class FlagSpeedGameViewModel @Inject constructor(
             _uiState.value = FlagSpeedUiState.Unavailable
             return
         }
-        val state = FlagSpeedRoundState(difficulty = difficulty)
+        // Starts already paused if the screen was backgrounded before this load finished (task
+        // 7.3 fix round, item 7), so the clock does not start running unseen.
+        val state = FlagSpeedRoundState(difficulty = difficulty, paused = backgroundedBeforeLoad)
         commit(state)
         drawNextQuestion(state)
+    }
+
+    /**
+     * Rebuilds the exact question an unfinished, non-pending round was showing before process
+     * death ([FlagSpeedSavedState]'s documented contract): same target, same lookalike set,
+     * freshly shuffled option order - not a fresh draw, which could land on a different question
+     * entirely. Falls back to a fresh [drawNextQuestion] only if the restored round has no last
+     * draw recorded at all (should not happen: a committed round always has one).
+     */
+    private fun restoreQuestion(state: FlagSpeedRoundState) {
+        val setId = state.lastDrawSetId
+        val targetCode = state.lastDrawTargetCode
+        if (setId == null || targetCode == null) {
+            drawNextQuestion(state)
+            return
+        }
+        commitDraw(state, FlagSpeedDraw(setId, targetCode))
     }
 
     private fun activeState(): FlagSpeedRoundState? = (_uiState.value as? FlagSpeedUiState.Active)?.state
@@ -179,11 +207,30 @@ class FlagSpeedGameViewModel @Inject constructor(
             endRound(gaveUp = false)
             return
         }
-        val lookalikeSet = setsById[draw.setId] ?: return
-        val target = allCountriesByCode[draw.targetCode] ?: return
-        val otherMembers = lookalikeSet.countries
-            .filter { it != draw.targetCode }
-            .mapNotNull { allCountriesByCode[it] }
+        commitDraw(state, draw)
+    }
+
+    /**
+     * Builds the question for [draw] and commits it onto [state], adding [draw]'s set to
+     * [FlagSpeedRoundState.encounteredSetIds] (a no-op if it is already there - see
+     * [restoreQuestion], which deliberately re-commits the same draw). Ends the round gracefully
+     * (task 7.3 fix round, item 5) rather than a silent no-op if [draw]'s codes cannot resolve to
+     * real [Country]s, or its set has no other resolvable member - either would otherwise leave
+     * `pendingAdvance` true forever with every further pick silently ignored. Neither should
+     * happen with the real, `validate_flag_lookalikes.py`-checked data file, but a stalled round
+     * is a worse failure mode than ending one slightly early.
+     */
+    private fun commitDraw(state: FlagSpeedRoundState, draw: FlagSpeedDraw) {
+        val lookalikeSet = setsById[draw.setId]
+        val target = allCountriesByCode[draw.targetCode]
+        val otherMembers = lookalikeSet?.countries
+            ?.filter { it != draw.targetCode }
+            ?.mapNotNull { allCountriesByCode[it] }
+            .orEmpty()
+        if (lookalikeSet == null || target == null || otherMembers.isEmpty()) {
+            endRound(gaveUp = false)
+            return
+        }
         val question = FlagSpeedChoiceGenerator.question(target, otherMembers, emptyList(), category, random)
         commit(
             state.copy(
@@ -271,15 +318,24 @@ class FlagSpeedGameViewModel @Inject constructor(
         finishIfComplete()
     }
 
-    /** Pauses on backgrounding, like the classic quiz and the other new modes (D37). */
+    /**
+     * Pauses on backgrounding, like the classic quiz and the other new modes (D37). If the asset
+     * load is still in flight (no [FlagSpeedUiState.Active] yet), remembers that instead (task
+     * 7.3 fix round, item 7), so the round starts already paused once [loadRound] finishes.
+     */
     fun onBackgrounded() {
-        val state = activeState() ?: return
+        val state = activeState()
+        if (state == null) {
+            backgroundedBeforeLoad = true
+            return
+        }
         if (state.isComplete || state.paused) return
         advanceJob?.cancel()
         commit(state.copy(paused = true))
     }
 
     fun onResume() {
+        backgroundedBeforeLoad = false
         val state = activeState() ?: return
         if (!state.paused) return
         val resumed = state.copy(paused = false)
@@ -327,7 +383,10 @@ class FlagSpeedGameViewModel @Inject constructor(
         val request = CompleteQuizUseCase.Request(
             resultId = resultId,
             state = quizState,
-            timeElapsedSeconds = quizTimer.elapsedSeconds(),
+            // Capped at the fixed round length (task 7.3 fix round, item 6): a late tick or a
+            // main-thread stall must never record more than the 60 seconds D52 fixes this round
+            // at.
+            timeElapsedSeconds = quizTimer.elapsedSeconds().coerceAtMost(FlagSpeedGameMode.ROUND_DURATION_SECONDS),
             modeId = FlagSpeedGameMode.MODE_ID,
             routeCategoryType = category.typeKey,
             routeCategoryValue = category.valueKey,

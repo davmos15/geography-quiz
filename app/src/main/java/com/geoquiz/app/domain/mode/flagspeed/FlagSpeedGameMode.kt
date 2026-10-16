@@ -61,7 +61,15 @@ class FlagSpeedGameMode @Inject constructor(
             supportedDifficulties = Difficulty.entries.toSet(),
             hintTypes = emptySet(),
             featureFlag = FeatureFlag.FLAG_SPEED_ROUND,
-            sortOrder = 16
+            sortOrder = 16,
+            // Task 7.3 fix round, item 2: `ModeRoutes.start`/`practise` only ever build
+            // `Screen.FlagSpeed.createRoute(difficulty)` for this mode's id - there is no category
+            // argument on that route at all, so a `QuizCategory.Practice` route value from
+            // "Practise the ones you missed" would be silently dropped and this mode would start
+            // an ordinary full 60-second round instead (and that round would get recorded,
+            // breaking D21). Same precedent and reasoning as `PhysicalFeaturesGameMode`: hide the
+            // button entirely rather than let it quietly do the wrong thing.
+            supportsPractice = false
         )
     }
 }

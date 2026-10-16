@@ -21,9 +21,9 @@ data class FlagSpeedSetupUiState(
 /**
  * Flag speed's own setup screen (task 7.3, D52): a difficulty tier only. No region or category
  * filter makes sense for a timed flag-lookalike round, unlike every other mode's own setup
- * screen. Starting the round itself is left to the caller ([FlagSpeedSetupScreen]'s `onStart`):
- * this mode has no `ModeRoutes`/`Screen` entry yet (see the handback notes for the integration
- * the lead still needs to do), so there is no route to build here.
+ * screen. Starting the round itself is left to the caller ([FlagSpeedSetupScreen]'s `onStart`,
+ * wired in `AppNavigation.kt` to `Screen.FlagSpeed.createRoute`): this ViewModel only ever hands
+ * off the chosen difficulty, never builds a route itself.
  */
 @HiltViewModel
 class FlagSpeedSetupViewModel @Inject constructor(

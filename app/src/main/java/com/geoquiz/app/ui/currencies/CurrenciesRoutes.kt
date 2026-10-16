@@ -3,16 +3,11 @@ package com.geoquiz.app.ui.currencies
 import android.net.Uri
 
 /**
- * Currencies' own route (task 7.1), built the same way `Screen.Silhouettes`/`Screen.TapMap` are:
- * this mode has no entry yet in `ui/navigation/Screen.kt`/`AppNavigation.kt`/`ui/navigation/ModeRoutes.kt`
- * (shared files for the lead's later integration wave, see the task brief), so this screen
- * navigates with a plain route string of its own rather than `ModeRoutes.start` (whose `when`
- * has no `CurrencyGameMode.MODE_ID` case yet and would wrongly fall back to the classic
- * `Screen.Quiz` route).
- *
- * Suggested wiring for that pass: a `Screen.Currencies` data object with
- * [ROUTE_PATTERN], and one `CurrencyGameMode.MODE_ID -> Screen.Currencies.createRoute(...)` case
- * in `ModeRoutes.start`/`playAgain`/`practise`, exactly like `Screen.Silhouettes`'s.
+ * Currencies' own route (task 7.1), built the same way `Screen.Silhouettes`/`Screen.TapMap` are.
+ * Now mirrored by `Screen.Currencies` in `ui/navigation/Screen.kt` and the
+ * `CurrencyGameMode.MODE_ID -> Screen.Currencies.createRoute(...)` case in
+ * `ui/navigation/ModeRoutes.kt`, which the lead wired in after this mode's first pass; this
+ * object remains the one [CurrenciesSetupViewModel] itself builds routes from.
  */
 object CurrenciesRoutes {
     const val ARG_DIFFICULTY = "difficulty"

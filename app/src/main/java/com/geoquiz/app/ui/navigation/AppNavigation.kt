@@ -40,6 +40,8 @@ import com.geoquiz.app.ui.credits.CreditsScreen
 import com.geoquiz.app.ui.credits.OpenSourceLicencesScreen
 import com.geoquiz.app.ui.currencies.CurrenciesGameScreen
 import com.geoquiz.app.ui.currencies.CurrenciesSetupScreen
+import com.geoquiz.app.ui.dailychallenge.DailyChallengeGameScreen
+import com.geoquiz.app.ui.dailychallenge.DailyChallengeSetupScreen
 import com.geoquiz.app.ui.debug.DebugMenuScreen
 import com.geoquiz.app.ui.debug.MapPreviewScreen
 import com.geoquiz.app.ui.flagspeed.FlagSpeedGameScreen
@@ -403,6 +405,11 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                                     },
                                     onNavigateBack = onNavigateBack
                                 )
+                            ModeRoutes.DAILY_CHALLENGE_MODE_ID ->
+                                DailyChallengeSetupScreen(
+                                    onStart = { navController.navigate(Screen.DailyChallenge.createRoute()) },
+                                    onNavigateBack = onNavigateBack
+                                )
                             else -> LaunchedEffect(Unit) { navController.popBackStack() }
                         }
                     }
@@ -572,6 +579,20 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
                             onFinished = { resultId ->
                                 navController.navigate(Screen.Results.createRoute(resultId)) {
                                     popUpTo(Screen.FlagSpeed.route) { inclusive = true }
+                                }
+                            },
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+
+                composable(route = Screen.DailyChallenge.route) {
+                    val available = rememberModeIsAvailable(navController, ModeRoutes.DAILY_CHALLENGE_MODE_ID)
+                    if (available == true) {
+                        DailyChallengeGameScreen(
+                            onFinished = { resultId ->
+                                navController.navigate(Screen.Results.createRoute(resultId)) {
+                                    popUpTo(Screen.DailyChallenge.route) { inclusive = true }
                                 }
                             },
                             onNavigateBack = { navController.popBackStack() }

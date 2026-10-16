@@ -1,10 +1,13 @@
 package com.geoquiz.app.domain.mode
 
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizResult
 
 /**
- * Placeholder hint costs (D37) until the Phase 8 hints economy replaces them. Every mode reads
- * its costs from here, so Phase 8 changes one place. Hints cost points, never money.
+ * The hints economy (task 8.4): per-hint point costs plus a per-difficulty cap on how many hints
+ * one round may use, read by every mode that has hints (Country silhouettes, Tap the map Find,
+ * Border hop). Hints cost points, never money. Replaces the D37 placeholder; the costs below are
+ * unchanged from that placeholder (D37/D44), only [maxHintsPerRound] is new.
  */
 object HintCosts {
 
@@ -16,6 +19,19 @@ object HintCosts {
         HintType.FLASH_REGION -> 0.25
         // Hands the player a working move, same tier as SHOW_NEIGHBOURS/FIRST_LETTER (D44).
         HintType.SHOW_VALID_HOP -> 0.5
+    }
+
+    /**
+     * How many hints one round may use at [difficulty], whatever the mode (task 8.4): Easy 0
+     * (Country silhouettes and Tap the map already show no hints at Easy, D39/D41 - their four
+     * multiple-choice names are the help instead - so this makes that fact enforceable at the one
+     * mode, Border hop, whose Easy tier has no multiple-choice variant and so previously had no
+     * cap on Easy hints at all), Normal 2, Hard 3.
+     */
+    fun maxHintsPerRound(difficulty: Difficulty): Int = when (difficulty) {
+        Difficulty.EASY -> 0
+        Difficulty.NORMAL -> 2
+        Difficulty.HARD -> 3
     }
 
     /** Total cost of [hintsUsed] (one entry per use). */

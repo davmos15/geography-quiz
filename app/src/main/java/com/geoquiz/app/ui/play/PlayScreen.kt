@@ -22,8 +22,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Today
@@ -56,10 +58,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGenerator
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.ui.ads.BannerAd
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.MasteryStarsRow
@@ -72,10 +77,14 @@ import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
 import com.geoquiz.app.ui.components.readableWidth
 import com.geoquiz.app.ui.mode.imageVector
+import com.geoquiz.app.ui.navigation.ModeRoutes
+import com.geoquiz.app.ui.quiz.components.inlineIconSize
+import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
 
 /**
- * The Play tab. Top to bottom: "Today's challenge" (placeholder, only behind its feature flag),
+ * The Play tab. Header: the app name and, while one runs, the daily challenge streak. Top to
+ * bottom: "Today's challenge" (8.6, only while the daily challenge is available),
  * "Continue" (the saved quiz), "Recommended next" (for the selected mode), "Pinned" (every mode), the
  * classic-mode switch, that mode's "All" tile and category groups, and the "New modes" grid
  * (hidden while no new mode is available).
@@ -106,9 +115,16 @@ fun PlayScreen(
                             stringResource(R.string.app_name),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
+                            // The bar is a fixed height: with the streak chip beside it at large
+                            // text sizes, ellipsise rather than wrap and clip.
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.semantics { heading() }
                         )
                     }
+                },
+                actions = {
+                    state.todayChallenge?.streak?.takeIf { it.current > 0 }?.let { StreakChip(it) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -147,7 +163,7 @@ fun PlayScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz)
+                        playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz, onOpenMode)
                     }
                     LazyVerticalGrid(
                         columns = UpToTwoColumns(
@@ -183,7 +199,7 @@ fun PlayScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz)
+                    playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz, onOpenMode)
                     playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode)
                 }
             }
@@ -196,10 +212,13 @@ private fun LazyGridScope.playCards(
     state: PlayUiState,
     onResume: (SavedQuizInfo) -> Unit,
     onDismissSaved: () -> Unit,
-    onStartQuiz: (modeId: String, categoryType: String, categoryValue: String) -> Unit
+    onStartQuiz: (modeId: String, categoryType: String, categoryValue: String) -> Unit,
+    onOpenMode: (modeId: String) -> Unit
 ) {
-    if (state.showTodayChallenge) {
-        fullWidth("today") { TodayChallengeCard() }
+    state.todayChallenge?.let { today ->
+        fullWidth("today") {
+            TodayChallengeCard(today, onOpen = { onOpenMode(ModeRoutes.DAILY_CHALLENGE_MODE_ID) })
+        }
     }
 
     state.savedQuiz?.let { saved ->
@@ -408,36 +427,108 @@ private fun ModeSwitch(
 /** Narrowest group tile before the grid drops to one column... */
 private val MIN_TILE_WIDTH = 120.dp
 
+/** The header streak chip drops its flame above this font scale (8.6). */
+private const val CHIP_ICON_MAX_FONT_SCALE = 1.5f
+
 /** ...scaled with the text only above this font scale, so 100–130% keeps two columns on phones. */
 private const val TILE_SCALE_ABOVE = 1.3f
 
 /**
- * Placeholder for the daily challenge (D24): shown only while its feature flag is on, not
- * clickable and with no made-up content. Phase 8 wires it up. Read as one item.
+ * Today's challenge (8.6): opens the daily challenge's Setup screen. Says whether today's round
+ * is done (tick + words, never colour alone) and shows the streak. Read as one button.
  */
 @Composable
-private fun TodayChallengeCard() {
+private fun TodayChallengeCard(today: TodayChallengeInfo, onOpen: () -> Unit) {
+    val actionLabel = stringResource(R.string.play_today_action)
     Card(
+        onClick = onOpen,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+            .buttonSemantics(actionLabel, onOpen),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     ) {
-        CardRow(icon = { Icon(Icons.Default.Today, contentDescription = null, modifier = Modifier.size(32.dp)) }) {
+        CardRow(
+            icon = {
+                if (today.playedToday) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.geoColors.correct,
+                        modifier = Modifier.size(32.dp)
+                    )
+                } else {
+                    Icon(Icons.Default.Today, contentDescription = null, modifier = Modifier.size(32.dp))
+                }
+            }
+        ) {
             Text(
                 text = stringResource(R.string.play_today_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = stringResource(R.string.play_today_body),
+                text = if (today.playedToday) {
+                    stringResource(R.string.play_today_body_done)
+                } else {
+                    pluralStringResource(
+                        R.plurals.play_today_body_ready,
+                        DailyChallengeGenerator.QUESTION_COUNT,
+                        DailyChallengeGenerator.QUESTION_COUNT
+                    )
+                },
                 style = MaterialTheme.typography.bodySmall
             )
+            if (today.streak.current > 0) {
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.daily_challenge_streak_current, today.streak.current, today.streak.current
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+    }
+}
+
+/**
+ * The streak in the Play header (8.6): a flame and the day count, read as "5-day streak, 1 streak
+ * freeze saved". Only shown while a streak is running.
+ */
+@Composable
+private fun StreakChip(streak: StreakStatus) {
+    val description = stringResource(
+        R.string.play_streak_chip_a11y,
+        pluralStringResource(R.plurals.play_streak_chip_description, streak.current, streak.current),
+        pluralStringResource(R.plurals.daily_challenge_streak_freezes, streak.freezesHeld, streak.freezesHeld)
+    )
+    // At very large text the flame is dropped so the count alone leaves the title room.
+    val showIcon = LocalDensity.current.fontScale <= CHIP_ICON_MAX_FONT_SCALE
+    Row(
+        modifier = Modifier
+            .padding(end = 12.dp)
+            .heightIn(min = 48.dp)
+            .clearAndSetSemantics { contentDescription = description },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (showIcon) {
+            Icon(
+                Icons.Default.LocalFireDepartment,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(inlineIconSize(24.dp))
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+        Text(
+            text = streak.current.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 

@@ -1,5 +1,6 @@
 package com.geoquiz.app.domain.mode
 
+import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizResult
 import org.junit.Assert.assertEquals
@@ -42,5 +43,20 @@ class HintCostsTest {
     fun `score never goes below zero`() {
         val r = HintCosts.applyTo(result(0.1, perfect = false), listOf(HintType.SHOW_NEIGHBOURS))
         assertEquals(0.0, r.score, 0.0)
+    }
+
+    @Test
+    fun `Easy allows no hints per round`() {
+        assertEquals(0, HintCosts.maxHintsPerRound(Difficulty.EASY))
+    }
+
+    @Test
+    fun `Normal allows 2 hints per round`() {
+        assertEquals(2, HintCosts.maxHintsPerRound(Difficulty.NORMAL))
+    }
+
+    @Test
+    fun `Hard allows 3 hints per round`() {
+        assertEquals(3, HintCosts.maxHintsPerRound(Difficulty.HARD))
     }
 }

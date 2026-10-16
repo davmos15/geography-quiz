@@ -7,6 +7,8 @@ import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.local.db.SavedQuizEntity
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
+import com.geoquiz.app.data.service.SoundEffectPlayer
+import com.geoquiz.app.domain.feedback.ComboTracker
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.ChoiceFeedback
 import com.geoquiz.app.domain.model.Country
@@ -48,7 +50,8 @@ class QuizViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val savedQuizRepository: SavedQuizRepository,
     private val adManager: AdManager,
-    clock: MonotonicClock,
+    private val soundEffectPlayer: SoundEffectPlayer,
+    private val clock: MonotonicClock,
     private val countryRepository: CountryRepository,
     quizRandom: QuizRandom
 ) : ViewModel() {
@@ -123,6 +126,19 @@ class QuizViewModel @Inject constructor(
      * so a recreated screen never buzzes for an old answer.
      */
     val feedbackEvents: SharedFlow<AnswerFeedbackEvent> = _feedbackEvents.asSharedFlow()
+
+    /** Game feel only (8.5): tracks fast, consecutive correct answers. Never read by scoring. */
+    private val comboTracker = ComboTracker()
+
+    private val _comboCount = MutableStateFlow(0)
+
+    /**
+     * Consecutive fast correct answers right now ([ComboTracker]). 0 or 1 is not shown: the quiz
+     * screen only shows the counter from [ComboTracker.VISIBLE_THRESHOLD]. Feel only, exactly
+     * like [feedbackEvents]'s haptic and pulse/shake: never read by [CompleteQuizUseCase] or any
+     * scoring, and no score bonus for it anywhere.
+     */
+    val comboCount: StateFlow<Int> = _comboCount.asStateFlow()
 
     private val savedState = QuizSavedState(savedStateHandle)
     private val quizTimer = QuizTimer(clock)
@@ -295,9 +311,19 @@ class QuizViewModel @Inject constructor(
         }
         _uiState.value = QuizUiState.Active(updated)
         onStateChanged()
+        val isCorrect = code == target
         _feedbackEvents.tryEmit(
-            if (code == target) AnswerFeedbackEvent.CORRECT else AnswerFeedbackEvent.INCORRECT
+            if (isCorrect) AnswerFeedbackEvent.CORRECT else AnswerFeedbackEvent.INCORRECT
         )
+        _comboCount.value = if (isCorrect) {
+            comboTracker.onCorrect(clock.elapsedRealtimeMillis())
+        } else {
+            comboTracker.onIncorrect()
+            comboTracker.count
+        }
+        viewModelScope.launch {
+            if (isCorrect) soundEffectPlayer.playCorrect() else soundEffectPlayer.playWrong()
+        }
         feedbackJob?.cancel()
         feedbackJob = viewModelScope.launch {
             delay(CHOICE_FEEDBACK_MILLIS)
@@ -464,6 +490,18 @@ class QuizViewModel @Inject constructor(
             }
             onStateChanged()
             AnswerFeedbackEvent.from(result)?.let { _feedbackEvents.tryEmit(it) }
+            when (result) {
+                is AnswerResult.Correct -> {
+                    _comboCount.value = comboTracker.onCorrect(clock.elapsedRealtimeMillis())
+                    soundEffectPlayer.playCorrect()
+                }
+                AnswerResult.Incorrect -> {
+                    comboTracker.onIncorrect()
+                    _comboCount.value = comboTracker.count
+                    soundEffectPlayer.playWrong()
+                }
+                AnswerResult.NearMiss, AnswerResult.AlreadyAnswered, AnswerResult.None -> Unit
+            }
             finishQuizIfComplete()
         }
     }

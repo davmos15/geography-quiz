@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Original share card (task 8.3). Australian spelling. Never name another game or app.
+-->
+<resources>
+    <!-- Share-sheet chooser titles (ui/share/ShareUtils.kt, ui/share/ShareCardRenderer.kt) -->
+    <string name="share_chooser_title_text">Share Results</string>
+    <string name="share_chooser_title_image">Share Results</string>
+    <string name="share_chooser_title_challenge">Challenge a Friend</string>
+
+    <!-- The share card's wording (ui/share/ShareCardContent.kt). The card's heading is the
+         launcher name (R.string.app_name), the name people will find in the store. -->
+    <string name="share_card_title_format">%1$s: %2$s</string>
+    <string name="share_card_daily_title_format">Daily challenge – %1$s</string>
+    <string name="share_card_time_format">%1$dm %2$ds</string>
+    <string name="share_card_percentage_format">%1$d%%</string>
+    <string name="share_card_meta_format">%1$s · %2$s</string>
+
+    <!-- Share card preview dialog (ui/share/ShareCardDialog.kt, Results' Share button) -->
+    <string name="share_dialog_title">Share your result</string>
+    <string name="share_dialog_preparing">Preparing your share card…</string>
+    <string name="share_dialog_share_image">Share image</string>
+    <string name="share_dialog_share_text">Share text</string>
+    <!-- "Share card: 8 of 10, 16 Oct 2026, 1 minute 42 seconds" (time spelt out for TalkBack) -->
+    <string name="share_card_content_description">Share card: %1$d of %2$d, %3$s, %4$s</string>
+    <plurals name="share_card_spoken_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <plurals name="share_card_spoken_seconds">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <!-- Shown if the image can't be prepared; the text share opens instead. -->
+    <string name="share_image_failed">Couldn\'t prepare the image, so sharing as text instead.</string>
+</resources>

@@ -282,8 +282,11 @@ class SilhouettesGameViewModelTest {
 
     @Test
     fun `each hint type is usable once per silhouette and recorded for scoring`() {
+        // Hard (hint cap 3, task 8.4): Normal's cap of 2 would stop the third of these three
+        // distinct hint types, which is not what this test is about (per-silhouette hint-type
+        // de-duplication, not the round cap - that has its own test below).
         val mode = silhouettesMode(listOf(france))
-        val vm = viewModel(routeHandle(), mode)
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD), mode)
 
         vm.onHint(HintType.SHOW_REGION)
         vm.onHint(HintType.SHOW_REGION) // ignored: already used on this silhouette
@@ -294,6 +297,41 @@ class SilhouettesGameViewModelTest {
         assertEquals(listOf(HintType.SHOW_REGION, HintType.FIRST_LETTER, HintType.SHOW_NEIGHBOURS), state.hintsUsed)
         assertEquals(setOf(HintType.SHOW_REGION, HintType.FIRST_LETTER, HintType.SHOW_NEIGHBOURS), state.hintsUsedForCurrent)
         assertTrue(state.showNeighbours)
+    }
+
+    @Test
+    fun `onHint is a no-op once the round reaches Normal's hint cap, even on a later silhouette`() {
+        val mode = silhouettesMode(listOf(france, germany))
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL), mode)
+
+        vm.onHint(HintType.SHOW_REGION)
+        vm.onHint(HintType.FIRST_LETTER)
+        assertEquals(2, vm.active().hintsUsed.size)
+
+        // Move to the second silhouette: the per-silhouette set resets, but the round-wide cap
+        // (task 8.4, HintCosts.maxHintsPerRound) does not.
+        vm.onPass()
+        runCurrent()
+        advanceTime(SilhouettesGameViewModel.REVEAL_DELAY_MILLIS)
+        assertEquals("DEU", vm.active().current?.code)
+        assertTrue(vm.active().hintsUsedForCurrent.isEmpty())
+
+        vm.onHint(HintType.SHOW_NEIGHBOURS)
+
+        val state = vm.active()
+        assertEquals("the cap already reached: no third hint", 2, state.hintsUsed.size)
+        assertTrue(state.hintsUsedForCurrent.isEmpty())
+        assertFalse(state.showNeighbours)
+    }
+
+    @Test
+    fun `onHint is always a no-op at Easy, which has no hint cap headroom (D41)`() {
+        val mode = silhouettesMode(listOf(france))
+        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY), mode)
+
+        vm.onHint(HintType.SHOW_REGION)
+
+        assertTrue(vm.active().hintsUsed.isEmpty())
     }
 
     @Test

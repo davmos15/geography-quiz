@@ -113,6 +113,17 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `sound effects default to on and round-trip`() = runTest {
+        assertTrue(repository.soundEffects.first())
+
+        repository.setSoundEffects(false)
+        assertEquals(false, repository.soundEffects.first())
+
+        repository.setSoundEffects(true)
+        assertTrue(repository.soundEffects.first())
+    }
+
+    @Test
     fun `other settings are untouched by the difficulty`() = runTest {
         repository.setShowTimer(false)
         repository.setAdsRemoved(true)

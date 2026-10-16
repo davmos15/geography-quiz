@@ -332,6 +332,47 @@ class BorderHopGameViewModelTest {
     }
 
     @Test
+    fun `onHint is a no-op once the round reaches Normal's hint cap (task 8_4)`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+
+        vm.onHint()
+        runCurrent()
+        assertEquals(1, vm.active().hintsUsed.size)
+        val firstHinted = vm.active().revealedHopCode!!
+
+        // Moving clears the reveal, so a second hint at the new position is a fresh use: Normal's
+        // cap (HintCosts.maxHintsPerRound) is 2.
+        vm.onHop(firstHinted)
+        runCurrent()
+        vm.onHint()
+        runCurrent()
+        assertEquals(2, vm.active().hintsUsed.size)
+        val secondHinted = vm.active().revealedHopCode!!
+
+        // A third hint, after moving again, is a no-op: the round-wide cap is already spent.
+        vm.onHop(secondHinted)
+        runCurrent()
+        vm.onHint()
+        runCurrent()
+
+        val state = vm.active()
+        assertEquals("the cap already reached: no third hint", 2, state.hintsUsed.size)
+        assertNull("nothing new revealed", state.revealedHopCode)
+    }
+
+    @Test
+    fun `onHint is always a no-op at Easy, which has no hint cap headroom (task 8_4)`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
+
+        vm.onHint()
+        runCurrent()
+
+        val state = vm.active()
+        assertTrue(state.hintsUsed.isEmpty())
+        assertNull(state.revealedHopCode)
+    }
+
+    @Test
     fun `giving up ends the round without reaching the target and scores zero`() {
         val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
         val start = vm.active()
@@ -379,7 +420,9 @@ class BorderHopGameViewModelTest {
 
     @Test
     fun `process death mid-round restores the path, puzzle and hints used`() {
-        val handle = routeHandle(difficulty = Difficulty.EASY)
+        // Normal, not Easy (task 8.4): Easy's hint cap is now 0 (HintCosts.maxHintsPerRound), so
+        // this test's onHint() call needs a tier that still allows one.
+        val handle = routeHandle(difficulty = Difficulty.NORMAL)
         val vm = viewModel(handle)
         val start = vm.active()
         val next = lineGraph.neighboursOf(start.currentCode).first()
@@ -404,7 +447,8 @@ class BorderHopGameViewModelTest {
 
     @Test
     fun `a hint reveal survives process death, so re-tapping Hint after restore does not double-charge`() {
-        val handle = routeHandle(difficulty = Difficulty.EASY)
+        // Normal, not Easy (task 8.4): Easy's hint cap is now 0.
+        val handle = routeHandle(difficulty = Difficulty.NORMAL)
         val vm = viewModel(handle)
         vm.onHint()
         runCurrent()
@@ -435,7 +479,8 @@ class BorderHopGameViewModelTest {
 
     @Test
     fun `hints used reduce the score and drop the perfect bonus even on an optimal path`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
+        // Normal, not Easy (task 8.4): Easy's hint cap is now 0.
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
         val start = vm.active()
         val path = lineGraph.shortestPath(start.startCode, start.targetCode)!!
 

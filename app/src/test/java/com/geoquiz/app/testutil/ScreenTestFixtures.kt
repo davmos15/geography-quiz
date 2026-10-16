@@ -18,7 +18,9 @@ import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.data.service.SoundEffectPlayer
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
+import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.Country
@@ -30,6 +32,8 @@ import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
+import com.geoquiz.app.domain.streak.ObserveStreakUseCase
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
@@ -170,6 +174,7 @@ object ScreenTestFixtures {
             settingsRepository = settingsRepository(showTimer = showTimer, vibration = vibration),
             savedQuizRepository = savedQuizRepository,
             adManager = mockk<AdManager>(relaxed = true),
+            soundEffectPlayer = mockk<SoundEffectPlayer>(relaxed = true),
             clock = FrozenClock,
             countryRepository = countryRepository(allCountries),
             quizRandom = QuizRandom(Random(42))
@@ -249,7 +254,10 @@ object ScreenTestFixtures {
         savedStateHandle: SavedStateHandle = SavedStateHandle(),
         savedQuizRepository: SavedQuizRepository = savedQuizRepository(savedQuiz),
         history: QuizHistoryRepository = quizHistoryRepository(),
-        pins: Flow<List<PinnedCategory>> = flowOf(emptyList())
+        pins: Flow<List<PinnedCategory>> = flowOf(emptyList()),
+        /** The daily challenge streak behind the Today's challenge card and header chip (8.6). */
+        streak: Flow<StreakStatus> =
+            flowOf(StreakStatus.NONE)
     ): PlayViewModel {
         val flags = mockk<FeatureFlagRepository> {
             every { states } returns flagStates
@@ -258,7 +266,8 @@ object ScreenTestFixtures {
         val flagElementDao = mockk<FlagElementDao> { coEvery { getAllMappings() } returns FLAG_ELEMENTS }
         return PlayViewModel(
             savedStateHandle = savedStateHandle,
-            registry = TestGameModes.registry(extraModes = extraModes),
+            // The real app registers the daily challenge; its Today's card follows the registry (8.6).
+            registry = TestGameModes.registry(extraModes = extraModes + DailyChallengeGameMode()),
             featureFlagRepository = flags,
             countryRepository = countryRepository(countries),
             savedQuizRepository = savedQuizRepository,
@@ -266,7 +275,10 @@ object ScreenTestFixtures {
             optionsBuilder = CategoryOptionsBuilder(flagColorDao, flagElementDao),
             quizHistoryRepository = history,
             recommendNext = RecommendNextCategoryUseCase(),
-            pinnedCategoriesRepository = pinnedCategoriesRepository(pins)
+            pinnedCategoriesRepository = pinnedCategoriesRepository(pins),
+            observeStreak = mockk<ObserveStreakUseCase> {
+                every { this@mockk.invoke() } returns streak
+            }
         )
     }
 

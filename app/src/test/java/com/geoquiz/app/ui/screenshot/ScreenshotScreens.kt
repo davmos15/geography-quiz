@@ -19,6 +19,7 @@ import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
 import com.geoquiz.app.domain.model.PinnedCategory
 import com.geoquiz.app.domain.repository.CountryRepository
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
 import com.geoquiz.app.testutil.TestQuizData
@@ -136,13 +137,17 @@ object ScreenshotScreens {
     )
 
     /**
-     * The Play tab, Countries selected, with every top card: Today's challenge (flag on),
-     * Continue (the saved starting-letter quiz), Recommended next and two Pinned rows.
+     * The Play tab, Countries selected, with every top card: Today's challenge (flag on, a
+     * 12-day streak, so the header chip shows too), Continue (the saved starting-letter quiz),
+     * Recommended next and two Pinned rows. [playedToday] switches the card to "Done for today".
      */
-    fun play(): @Composable () -> Unit {
+    fun play(playedToday: Boolean = false): @Composable () -> Unit {
         val viewModel = ScreenTestFixtures.playViewModel(
             flagStates = flowOf(dailyChallengeOn()),
-            pins = flowOf(PINS)
+            pins = flowOf(PINS),
+            streak = flowOf(
+                StreakStatus(current = 12, best = 12, freezesHeld = 1, daysToNextFreeze = 2, playedToday = playedToday)
+            )
         )
         return {
             NoAds {

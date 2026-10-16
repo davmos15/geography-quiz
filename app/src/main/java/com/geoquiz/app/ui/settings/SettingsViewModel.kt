@@ -38,6 +38,9 @@ class SettingsViewModel @Inject constructor(
     val vibration: StateFlow<Boolean> = settingsRepository.vibration
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val soundEffects: StateFlow<Boolean> = settingsRepository.soundEffects
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val showCountryHint: StateFlow<Boolean> = settingsRepository.showCountryHint
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -69,6 +72,12 @@ class SettingsViewModel @Inject constructor(
     fun onToggleVibration(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setVibration(enabled)
+        }
+    }
+
+    fun onToggleSoundEffects(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setSoundEffects(enabled)
         }
     }
 

@@ -88,6 +88,8 @@
     <string name="quiz_setting_show_timer_summary">Display count-up timer during quizzes</string>
     <string name="setting_vibration">Vibration</string>
     <string name="setting_vibration_summary">Vibrate on correct and wrong answers</string>
+    <string name="setting_sound_effects">Sound effects</string>
+    <string name="setting_sound_effects_summary">Play a short sound for correct, wrong and perfect-score answers</string>
     <string name="quiz_setting_show_flags">Show Flags</string>
     <string name="quiz_setting_show_flags_summary">Show flags next to countries</string>
     <string name="quiz_setting_country_hint">Country Hint</string>
@@ -204,6 +206,10 @@
     <plurals name="a11y_incorrect_guesses">
         <item quantity="one">%d incorrect guess</item>
         <item quantity="other">%d incorrect guesses</item>
+    </plurals>
+    <plurals name="a11y_combo">
+        <item quantity="one">Combo of %d correct answer</item>
+        <item quantity="other">Combo of %d correct answers</item>
     </plurals>
     <string name="a11y_row_number">Row %1$d</string>
     <string name="a11y_capital_of">%1$s, capital of %2$s</string>
@@ -358,9 +364,8 @@
     <string name="play_resume_dismiss">Dismiss saved quiz</string>
     <!-- Recommended next card: one tap starts the suggested category -->
     <string name="play_recommended_title">Recommended next</string>
-    <!-- Today's challenge placeholder, shown only behind the daily challenge feature flag -->
+    <!-- Today's challenge card (8.6), shown while the daily challenge is available -->
     <string name="play_today_title">Today’s challenge</string>
-    <string name="play_today_body">A new set of questions every day. Coming soon.</string>
     <string name="action_open_mode">Open mode</string>
     <!-- Pinned categories (3.4c): pinned from a category row; one tap starts the quiz -->
     <string name="play_pinned_heading">Pinned</string>

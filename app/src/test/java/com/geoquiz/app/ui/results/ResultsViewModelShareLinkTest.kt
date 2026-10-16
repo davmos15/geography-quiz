@@ -156,4 +156,69 @@ class ResultsViewModelShareLinkTest {
 
         assertNull(url)
     }
+
+    private fun loadedViewModel(quizModeId: String, handle: SavedStateHandle = SavedStateHandle()): ResultsViewModel {
+        val quiz = com.geoquiz.app.testutil.TestQuizData.completedQuiz(quizModeId = quizModeId)
+        handle[com.geoquiz.app.ui.navigation.Screen.Results.ARG_RESULT_ID] = quiz.id
+        return ResultsViewModel(
+            handle,
+            playGames,
+            challengeRepository,
+            FakeCompletedQuizRepository(quiz),
+            mockk<AdManager>(relaxed = true),
+            mockk<InterstitialPolicy>(relaxed = true),
+            signer,
+            com.geoquiz.app.testutil.TestGameModes.registry()
+        ).also { dispatcher.scheduler.advanceUntilIdle() }
+    }
+
+    @Test
+    fun `opening the share preview twice records one outgoing challenge`() {
+        val vm = loadedViewModel("countries")
+
+        vm.openSharePreview()
+        val link = vm.shareLink.value
+        vm.closeSharePreview()
+        vm.openSharePreview()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.sharePreviewOpen.value)
+        assertTrue(link != null)
+        assertEquals(link, vm.shareLink.value)
+        coVerify(exactly = 1) {
+            challengeRepository.createOutgoingChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `the share preview and its link survive recreation`() {
+        val handle = SavedStateHandle()
+        val first = loadedViewModel("countries", handle)
+        first.openSharePreview()
+        val link = first.shareLink.value
+
+        val recreated = loadedViewModel("countries", handle)
+        recreated.openSharePreview()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(recreated.sharePreviewOpen.value)
+        assertEquals(link, recreated.shareLink.value)
+        coVerify(exactly = 1) {
+            challengeRepository.createOutgoingChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `a new mode's share preview has no challenge link and records nothing`() {
+        val vm = loadedViewModel("silhouettes")
+
+        vm.openSharePreview()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.sharePreviewOpen.value)
+        assertNull(vm.shareLink.value)
+        coVerify(exactly = 0) {
+            challengeRepository.createOutgoingChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
+        }
+    }
 }

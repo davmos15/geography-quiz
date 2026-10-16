@@ -9,6 +9,8 @@ import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.AdManager
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.data.service.SoundEffectPlayer
+import com.geoquiz.app.domain.feedback.ComboTracker
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.AnswerResult
 import com.geoquiz.app.domain.model.Difficulty
@@ -83,6 +85,7 @@ class QuizViewModelTest {
     private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
     private val savedQuizRepository = mockk<SavedQuizRepository>(relaxed = true)
     private val adManager = mockk<AdManager>(relaxed = true)
+    private val soundEffectPlayer = mockk<SoundEffectPlayer>(relaxed = true)
 
     /** The quiz set (THREE) plus outsiders for Easy distractors. */
     private val allCountries = TestQuizData.THREE + listOf(
@@ -178,6 +181,7 @@ class QuizViewModelTest {
             settingsRepository = settingsRepository,
             savedQuizRepository = savedQuizRepository,
             adManager = adManager,
+            soundEffectPlayer = soundEffectPlayer,
             clock = clock,
             countryRepository = countryRepository,
             quizRandom = QuizRandom(Random(7))
@@ -994,5 +998,96 @@ class QuizViewModelTest {
         }
         coVerify(exactly = 0) { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) }
         verify(exactly = 0) { playGames.submitScore(any(), any()) }
+    }
+
+    // Combo (8.5): game feel only, never score (CalculateScoreUseCase is untouched).
+
+    @Test
+    fun `two fast correct answers in a row raise the combo to 2 and play the correct sound`() {
+        val vm = viewModel(routeHandle())
+
+        vm.answer("France")
+        assertEquals(1, vm.comboCount.value)
+        clock.advance(1_000)
+        vm.answer("Germany")
+
+        assertEquals(2, vm.comboCount.value)
+        coVerify(exactly = 2) { soundEffectPlayer.playCorrect() }
+    }
+
+    @Test
+    fun `a correct answer slower than the fast window restarts the combo at 1`() {
+        val vm = viewModel(routeHandle())
+        vm.answer("France")
+
+        clock.advance(ComboTracker.FAST_ANSWER_WINDOW_MILLIS + 1)
+        vm.answer("Germany")
+
+        assertEquals(1, vm.comboCount.value)
+    }
+
+    @Test
+    fun `a wrong answer resets the combo to zero and plays the wrong sound`() {
+        val vm = viewModel(routeHandle())
+        vm.answer("France")
+        clock.advance(1_000)
+        vm.answer("Germany")
+        assertEquals(2, vm.comboCount.value)
+
+        vm.answer("Narnia")
+
+        assertEquals(0, vm.comboCount.value)
+        coVerify(exactly = 1) { soundEffectPlayer.playWrong() }
+    }
+
+    @Test
+    fun `after a wrong answer the next correct answer starts a fresh combo of 1`() {
+        val vm = viewModel(routeHandle())
+        vm.answer("France")
+        vm.answer("Narnia")
+
+        clock.advance(1_000)
+        vm.answer("Germany")
+
+        assertEquals(1, vm.comboCount.value)
+    }
+
+    @Test
+    fun `easy mode tracks the combo the same way on choice picks`() {
+        val vm = easyViewModel()
+
+        vm.pick(correct = true)
+        assertEquals(1, vm.comboCount.value)
+
+        clock.advance(1_000)
+        finishFeedback()
+        vm.pick(correct = true)
+
+        assertEquals(2, vm.comboCount.value)
+    }
+
+    @Test
+    fun `a wrong easy pick resets the combo and plays the wrong sound, not the correct one`() {
+        val vm = easyViewModel()
+        vm.pick(correct = true)
+
+        finishFeedback()
+        vm.pick(correct = false)
+
+        assertEquals(0, vm.comboCount.value)
+        coVerify(exactly = 1) { soundEffectPlayer.playWrong() }
+    }
+
+    @Test
+    fun `combo state never changes the recorded score or correct count`() {
+        val vm = viewModel(routeHandle())
+        vm.answer("France")
+        clock.advance(1_000)
+        vm.answer("Germany")
+        vm.answer("Austria")
+
+        val stored = completedQuizzes.stored!!
+        assertEquals(3, stored.correct)
+        assertEquals(setOf("FRA", "DEU", "AUT"), stored.countryCodes.toSet())
     }
 }

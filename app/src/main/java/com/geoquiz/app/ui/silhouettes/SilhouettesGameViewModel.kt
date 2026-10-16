@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.HintType
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
@@ -358,12 +359,17 @@ class SilhouettesGameViewModel @Inject constructor(
         scheduleAdvance(CHOICE_FEEDBACK_MILLIS)
     }
 
-    /** One hint type, usable once per silhouette; each use is recorded for the scoring cost. */
+    /**
+     * One hint type, usable once per silhouette; each use is recorded for the scoring cost. A
+     * no-op once this round has already used its difficulty tier's hint cap (task 8.4,
+     * `HintCosts.maxHintsPerRound`).
+     */
     fun onHint(type: HintType) {
         val state = activeState() ?: return
         if (state.isComplete || state.isAdvancing || state.paused) return
         if (type !in state.availableHints) return
         if (type in state.hintsUsedForCurrent) return
+        if (state.hintsUsed.size >= HintCosts.maxHintsPerRound(state.difficulty)) return
         commit(
             state.copy(
                 hintsUsed = state.hintsUsed + type,

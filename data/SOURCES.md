@@ -44,6 +44,9 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Launcher icon (`res/drawable/ic_launcher_*.xml`, `res/mipmap-anydpi-v26/`) | authored for GeoQuiz | `4694f86` | All rights reserved | none |
 | Launcher icon PNGs (`res/mipmap-*dpi/`) | 1x1 transparent placeholders (70 bytes each, no artwork) | `40a5fd3` | n/a | none |
 | `store_assets/*` | drawn in code for GeoQuiz | regenerated per change | All rights reserved | `generate_store_assets.py`, `generate_achievements_zip.py` |
+| `app/src/main/res/raw/sound_correct.wav` | GeoQuiz original (synthesised) | added `7524c43`; deterministic, SHA-256 `043049024525b32d01b295a4cc11b0b8cc2ce1e2726158ca8424da5aab4b7897` | N/A — authored for GeoQuiz | `tools/sound/generate_sound_effects.py` |
+| `app/src/main/res/raw/sound_wrong.wav` | GeoQuiz original (synthesised) | added `7524c43`; deterministic, SHA-256 `cb6cfe6d2f63f22b398cdea6317f864460087f09d4e6cd94056216b0ade4e87a` | N/A — authored for GeoQuiz | `tools/sound/generate_sound_effects.py` |
+| `app/src/main/res/raw/sound_perfect.wav` | GeoQuiz original (synthesised) | added `7524c43`; deterministic, SHA-256 `3e9c2062751e0d436ac1e0469e1771b03625737c71ae90df22f5d5a34366e56b` | N/A — authored for GeoQuiz | `tools/sound/generate_sound_effects.py` |
 
 ## Details
 

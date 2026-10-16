@@ -131,6 +131,11 @@ class GetCountriesForQuizUseCase @Inject constructor(
             is QuizCategory.FixedRegion -> emptyList()
 
             is QuizCategory.Practice -> practiceItems(allCountries, category)
+
+            // Daily challenge only (task 8.1): never reached, since that mode resolves its own
+            // round directly (DailyChallengeGenerator) and never calls this use case - same
+            // reasoning as FixedRegion above.
+            is QuizCategory.DailyChallenge -> emptyList()
         }
     }
 

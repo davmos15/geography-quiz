@@ -77,6 +77,16 @@ class ResultsViewModel @Inject constructor(
     private val _challengeResult = MutableStateFlow<ChallengeEntity?>(null)
     val challengeResult: StateFlow<ChallengeEntity?> = _challengeResult.asStateFlow()
 
+    /**
+     * The share card dialog (8.3): open/closed and the result's share link survive rotation and
+     * process death, and the link (with its outgoing-challenge row) is made once per Results
+     * entry rather than on every open.
+     */
+    val sharePreviewOpen: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_SHARE_OPEN, false)
+
+    /** The signed challenge link for sharing this result, or null (new modes, D35, or not opened yet). */
+    val shareLink: StateFlow<String?> = savedStateHandle.getStateFlow<String?>(KEY_SHARE_LINK, null)
+
     /** True while an interstitial is due; the screen shows it once Results has rendered. */
     private val _interstitialDue = MutableStateFlow(false)
     val interstitialDue: StateFlow<Boolean> = _interstitialDue.asStateFlow()
@@ -121,6 +131,23 @@ class ResultsViewModel @Inject constructor(
         if (!_interstitialDue.value) return
         _interstitialDue.value = false
         adManager.showInterstitial(activity, onShown = interstitialPolicy::onInterstitialShown)
+    }
+
+    /** Results' Share button (8.3): prepares the share link once, then opens the preview. */
+    fun openSharePreview() {
+        val loaded = _uiState.value as? ResultsUiState.Loaded ?: return
+        if (loaded.showChallenge && savedStateHandle.get<String>(KEY_SHARE_LINK) == null) {
+            val result = loaded.result
+            createChallengeShareUrl(
+                result.categoryType, result.categoryValue, result.quizModeId,
+                score = result.correct, total = result.total, time = result.timeSeconds
+            )?.let { savedStateHandle[KEY_SHARE_LINK] = it.toString() }
+        }
+        savedStateHandle[KEY_SHARE_OPEN] = true
+    }
+
+    fun closeSharePreview() {
+        savedStateHandle[KEY_SHARE_OPEN] = false
     }
 
     /**
@@ -180,6 +207,9 @@ class ResultsViewModel @Inject constructor(
     }
 
     companion object {
+        private const val KEY_SHARE_OPEN = "results_share_open"
+        private const val KEY_SHARE_LINK = "results_share_link"
+
         /** Set once the interstitial decision for this Results entry has been made. */
         internal const val KEY_AD_DECIDED = "results_ad_decided"
     }

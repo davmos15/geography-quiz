@@ -155,4 +155,40 @@ sealed class Screen(val route: String) {
             return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
         }
     }
+
+    /** Currencies (task 7.1). `difficulty` is optional, as in [Quiz]. */
+    data object Currencies : Screen("currencies/{categoryType}/{categoryValue}?difficulty={difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(categoryType: String, categoryValue: String, difficulty: String? = null): String {
+            val encoded = Uri.encode(categoryValue)
+            val base = "currencies/$categoryType/$encoded"
+            return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
+        }
+    }
+
+    /**
+     * Rivers, mountains and lakes (task 7.2). `categoryType` is always `"fixed_region"`
+     * ([com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeaturesCategory]) and
+     * `categoryValue` the tab/continent label. `difficulty` is optional, as in [Quiz].
+     */
+    data object PhysicalFeatures : Screen("physical_features/{categoryType}/{categoryValue}?difficulty={difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(categoryType: String, categoryValue: String, difficulty: String? = null): String {
+            val encoded = Uri.encode(categoryValue)
+            val base = "physical_features/$categoryType/$encoded"
+            return difficulty?.let { "$base?$ARG_DIFFICULTY=${Uri.encode(it)}" } ?: base
+        }
+    }
+
+    /**
+     * Flag speed round (task 7.3): a 60-second timed round with no category filter, so
+     * [difficulty] is the only argument, not optional (the setup screen always picks one).
+     */
+    data object FlagSpeed : Screen("flag_speed_round/{difficulty}") {
+        const val ARG_DIFFICULTY = "difficulty"
+
+        fun createRoute(difficulty: String): String = "flag_speed_round/${Uri.encode(difficulty)}"
+    }
 }

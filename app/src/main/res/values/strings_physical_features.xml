@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rivers, mountains and lakes (task 7.2). Australian spelling throughout. -->
+<resources>
+    <string name="mode_physical_features_name">Rivers, mountains and lakes</string>
+    <string name="mode_physical_features_input_label">Enter its name</string>
+    <string name="mode_physical_features_items">features</string>
+    <string name="mode_physical_features_paused_progress">%1$d / %2$d features named</string>
+    <string name="mode_physical_features_give_up">You\'ve named %1$d of %2$d features. Are you sure?</string>
+    <!-- Quantity follows the total (%2$d), like a11y_progress_countries. -->
+    <plurals name="a11y_progress_physical_features">
+        <item quantity="one">%1$d of %2$d feature named</item>
+        <item quantity="other">%1$d of %2$d features named</item>
+    </plurals>
+
+    <!-- Setup screen -->
+    <string name="physical_features_setup_tab_title">What to name</string>
+    <string name="physical_features_tab_rivers">Rivers</string>
+    <string name="physical_features_tab_mountains">Mountains</string>
+    <string name="physical_features_tab_lakes">Lakes</string>
+    <string name="physical_features_setup_continent_title">Continent</string>
+    <string name="physical_features_continent_all">All continents</string>
+    <string name="physical_features_setup_start">Start</string>
+
+    <!-- Game screen -->
+    <string name="physical_features_prompt_heading">What is this one called?</string>
+    <string name="physical_features_choice_heading">Which one is highlighted?</string>
+    <string name="physical_features_map_error">Couldn\'t load the map. Try again later.</string>
+    <string name="physical_features_map_a11y">Map showing the highlighted feature.</string>
+    <string name="physical_features_incorrect_feedback">Not quite — try again</string>
+    <string name="physical_features_correct_feedback">Correct — %1$s</string>
+    <!-- Task 7.2 review fix H3: Pass, Normal/Hard only, same shape as Country silhouettes'. -->
+    <string name="physical_features_pass">Pass</string>
+    <string name="physical_features_revealed_feedback">This was %1$s</string>
+    <!-- Task 7.2 review fix H2: the only clue a TalkBack user gets (there is no list fallback
+         for a one-off highlighted feature); never the feature's own name. -->
+    <string name="physical_features_clue">Found in %1$s</string>
+</resources>

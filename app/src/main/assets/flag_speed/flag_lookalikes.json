@@ -1,0 +1,362 @@
+{
+  "version": 1,
+  "notes": "Authored for GeoQuiz. Every flag in the app is drawn at 4:3 from flag-icons, so differences in official proportions are not visible; 'in_app' rates what a player can actually see: clear (an emblem, star or layout differs), subtle (shade or band width only), near_identical (practically the same picture in the app).",
+  "sets": [
+    {
+      "id": "blue-yellow-red-vertical",
+      "countries": [
+        "TCD",
+        "ROU",
+        "AND",
+        "MDA"
+      ],
+      "tier": 3,
+      "in_app": "subtle",
+      "explanation": "All four are blue, yellow and red vertical stripes. Andorra and Moldova carry a coat of arms in the yellow stripe; Chad and Romania are plain and differ only in the blue, which is darker on Chad's flag.",
+      "cues": {
+        "TCD": "Plain stripes with a deep, navy-like blue.",
+        "ROU": "Plain stripes with a brighter cobalt blue.",
+        "AND": "Coat of arms in the centre, on a yellow stripe slightly wider than the others.",
+        "MDA": "Coat of arms with an eagle holding a cross, on stripes of equal width."
+      }
+    },
+    {
+      "id": "red-over-white",
+      "countries": [
+        "IDN",
+        "MCO"
+      ],
+      "tier": 3,
+      "in_app": "near_identical",
+      "explanation": "Indonesia and Monaco both fly red over white in two equal halves; officially only their proportions differ, so at the same size they look the same.",
+      "cues": {
+        "IDN": "Red over white, officially a longer 2:3 rectangle.",
+        "MCO": "Red over white, officially a squarer 4:5 rectangle."
+      }
+    },
+    {
+      "id": "red-white-halves-reversed",
+      "countries": [
+        "IDN",
+        "POL"
+      ],
+      "tier": 1,
+      "in_app": "clear",
+      "explanation": "Two plain halves in the same colours, in opposite order: Indonesia is red over white, Poland white over red.",
+      "cues": {
+        "IDN": "Red on top, white below.",
+        "POL": "White on top, red below."
+      }
+    },
+    {
+      "id": "green-white-orange-vertical",
+      "countries": [
+        "IRL",
+        "CIV"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "The same three colours in mirror order. Ireland starts with green at the flagpole; Côte d'Ivoire starts with orange.",
+      "cues": {
+        "IRL": "Green next to the flagpole, orange on the outer edge.",
+        "CIV": "Orange next to the flagpole, green on the outer edge."
+      }
+    },
+    {
+      "id": "green-white-red-vertical",
+      "countries": [
+        "ITA",
+        "MEX"
+      ],
+      "tier": 1,
+      "in_app": "clear",
+      "explanation": "Both are green, white and red vertical stripes. Mexico adds its emblem of an eagle on a cactus in the centre; Italy's white stripe is empty.",
+      "cues": {
+        "ITA": "Plain white centre stripe.",
+        "MEX": "Eagle and cactus emblem on the white stripe, with a darker green."
+      }
+    },
+    {
+      "id": "southern-cross-blue-ensign",
+      "countries": [
+        "AUS",
+        "NZL"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Both are dark blue with the Union Jack in the corner and the Southern Cross. Australia's stars are white and include a large seven-pointed star under the Union Jack; New Zealand has four red stars edged in white.",
+      "cues": {
+        "AUS": "Six white stars, including a large one beneath the Union Jack.",
+        "NZL": "Four red stars with white outlines, and no star under the Union Jack."
+      }
+    },
+    {
+      "id": "red-white-blue-horizontal",
+      "countries": [
+        "NLD",
+        "LUX"
+      ],
+      "tier": 3,
+      "in_app": "subtle",
+      "explanation": "Both are red, white and blue horizontal stripes. The difference is the blue: a dark blue for the Netherlands and a light sky blue for Luxembourg.",
+      "cues": {
+        "NLD": "Dark blue bottom stripe.",
+        "LUX": "Light, sky-blue bottom stripe."
+      }
+    },
+    {
+      "id": "green-yellow-red-vertical",
+      "countries": [
+        "SEN",
+        "MLI",
+        "GIN"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "West African tricolours in green, yellow and red. Senegal puts a green star in the centre and Mali is plain; Guinea uses the same colours in reverse, with red at the flagpole.",
+      "cues": {
+        "SEN": "Green star on the yellow centre stripe.",
+        "MLI": "Plain stripes, green at the flagpole.",
+        "GIN": "Plain stripes, red at the flagpole."
+      }
+    },
+    {
+      "id": "white-blue-red-horizontal",
+      "countries": [
+        "SVN",
+        "SVK",
+        "RUS"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Three white, blue and red horizontal stripes. Russia's are plain. Slovakia has a large red shield with a white double cross over blue hills; Slovenia has a smaller blue shield showing a white mountain and three gold stars, placed higher up near the corner.",
+      "cues": {
+        "SVN": "Small blue shield with a white mountain peak and gold stars, high in the corner.",
+        "SVK": "Large red shield with a white double cross, spanning all three stripes.",
+        "RUS": "No emblem at all."
+      }
+    },
+    {
+      "id": "yellow-blue-red-horizontal",
+      "countries": [
+        "COL",
+        "ECU",
+        "VEN"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Yellow, blue and red horizontal stripes. Colombia and Ecuador give yellow the top half; Ecuador adds a coat of arms with a condor. Venezuela's stripes are equal, with an arc of white stars in the blue.",
+      "cues": {
+        "COL": "Yellow fills the top half; no emblem.",
+        "ECU": "Yellow fills the top half, with a coat of arms in the centre.",
+        "VEN": "Three equal stripes with an arc of eight white stars."
+      }
+    },
+    {
+      "id": "nordic-cross-swapped",
+      "countries": [
+        "NOR",
+        "ISL"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Each has a cross outlined in white, with the colours swapped: Norway is a blue cross on red, Iceland a red cross on blue.",
+      "cues": {
+        "NOR": "Red background, blue cross.",
+        "ISL": "Blue background, red cross."
+      }
+    },
+    {
+      "id": "nordic-cross-red",
+      "countries": [
+        "DNK",
+        "NOR"
+      ],
+      "tier": 1,
+      "in_app": "clear",
+      "explanation": "Both are red with a cross set towards the flagpole. Denmark's cross is plain white; Norway's white cross has a blue cross inside it.",
+      "cues": {
+        "DNK": "Plain white cross.",
+        "NOR": "Blue cross bordered in white."
+      }
+    },
+    {
+      "id": "serrated-white-band",
+      "countries": [
+        "QAT",
+        "BHR"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Both have a white band at the flagpole joined by a zigzag edge. Qatar is maroon with nine points; Bahrain is a brighter red with five.",
+      "cues": {
+        "QAT": "Maroon, nine white points.",
+        "BHR": "Red, five white points."
+      }
+    },
+    {
+      "id": "blue-over-red",
+      "countries": [
+        "HTI",
+        "LIE"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Blue over red in two halves. Haiti places its coat of arms on a white panel in the centre; Liechtenstein has a gold crown in the top corner.",
+      "cues": {
+        "HTI": "Coat of arms on a white rectangle in the centre.",
+        "LIE": "Gold crown near the flagpole on the blue half."
+      }
+    },
+    {
+      "id": "red-white-black-horizontal",
+      "countries": [
+        "EGY",
+        "IRQ",
+        "YEM"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Red, white and black horizontal stripes; the emblem on the white stripe tells them apart. Yemen has none, Egypt a gold eagle and Iraq a phrase in green Arabic script.",
+      "cues": {
+        "EGY": "Gold eagle in the centre.",
+        "IRQ": "Green Arabic script.",
+        "YEM": "Plain stripes."
+      }
+    },
+    {
+      "id": "black-white-green-red-triangle",
+      "countries": [
+        "JOR",
+        "PSE"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Black, white and green stripes with a red triangle at the flagpole. Jordan's triangle holds a small white seven-pointed star; Palestine's is empty.",
+      "cues": {
+        "JOR": "White star inside the red triangle.",
+        "PSE": "No star in the red triangle."
+      }
+    },
+    {
+      "id": "blue-white-blue",
+      "countries": [
+        "HND",
+        "NIC",
+        "SLV",
+        "GTM"
+      ],
+      "tier": 3,
+      "in_app": "clear",
+      "explanation": "Central American flags in blue and white. Guatemala's stripes are vertical. Honduras has five blue stars in the centre. Nicaragua and El Salvador both show a triangle emblem: Nicaragua's sits in a ring of lettering, while El Salvador's is framed by a laurel wreath and flags.",
+      "cues": {
+        "HND": "Five blue stars in the centre.",
+        "NIC": "Triangle emblem inside a circle of lettering.",
+        "SLV": "Triangle emblem framed by a green wreath and flags.",
+        "GTM": "Vertical stripes, with an emblem showing a bird and crossed rifles."
+      }
+    },
+    {
+      "id": "red-white-red-horizontal",
+      "countries": [
+        "AUT",
+        "LVA"
+      ],
+      "tier": 2,
+      "in_app": "subtle",
+      "explanation": "Red, white, red. Austria uses a bright red and three equal stripes; Latvia uses a dark carmine and a narrower white stripe.",
+      "cues": {
+        "AUT": "Bright red, equal stripes.",
+        "LVA": "Dark maroon-red, thin white stripe."
+      }
+    },
+    {
+      "id": "black-yellow-red",
+      "countries": [
+        "BEL",
+        "DEU"
+      ],
+      "tier": 1,
+      "in_app": "clear",
+      "explanation": "Similar colours, different direction. Belgium's stripes are vertical in black, yellow and red; Germany's are horizontal in black, red and gold.",
+      "cues": {
+        "BEL": "Vertical stripes, yellow in the middle.",
+        "DEU": "Horizontal stripes, red in the middle."
+      }
+    },
+    {
+      "id": "red-yellow-green",
+      "countries": [
+        "BOL",
+        "GHA",
+        "LTU"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Horizontal stripes in red, yellow and green. Bolivia has red on top, and Ghana does too but adds a black star in the centre. Lithuania starts with yellow and ends with red.",
+      "cues": {
+        "BOL": "Red, yellow, green from the top.",
+        "GHA": "Red, gold, green with a black star.",
+        "LTU": "Yellow, green, red from the top."
+      }
+    },
+    {
+      "id": "white-green-red-horizontal",
+      "countries": [
+        "BGR",
+        "HUN"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "The same three colours in a different order. Bulgaria runs white, green, red from the top; Hungary runs red, white, green.",
+      "cues": {
+        "BGR": "White on top.",
+        "HUN": "Red on top."
+      }
+    },
+    {
+      "id": "crescent-star-on-red",
+      "countries": [
+        "TUR",
+        "TUN"
+      ],
+      "tier": 1,
+      "in_app": "clear",
+      "explanation": "Both show a crescent and star on red. Turkey's are white and set towards the flagpole; Tunisia's are red, inside a white disc in the centre.",
+      "cues": {
+        "TUR": "White crescent and star directly on the red.",
+        "TUN": "Red crescent and star inside a white circle."
+      }
+    },
+    {
+      "id": "gold-star-on-red",
+      "countries": [
+        "CHN",
+        "VNM"
+      ],
+      "tier": 1,
+      "in_app": "clear",
+      "explanation": "Gold stars on red. Vietnam has one large star in the centre; China has one large star and four small ones in the top corner.",
+      "cues": {
+        "CHN": "Five stars grouped in the top corner.",
+        "VNM": "A single large star in the centre."
+      }
+    },
+    {
+      "id": "stripes-and-canton",
+      "countries": [
+        "USA",
+        "LBR",
+        "MYS"
+      ],
+      "tier": 2,
+      "in_app": "clear",
+      "explanation": "Red and white stripes with a blue corner. The United States has 50 stars. Liberia has a single white star. Malaysia has a yellow crescent and a yellow star with 14 points.",
+      "cues": {
+        "USA": "Many small white stars in the corner.",
+        "LBR": "One large white star in the corner.",
+        "MYS": "Yellow crescent and star in the corner."
+      }
+    }
+  ]
+}

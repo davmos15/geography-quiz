@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Currencies (task 7.1). Australian spelling. Never name another game or app.
+-->
+<resources>
+    <!-- Mode spec (domain/mode/currencies/CurrencyGameMode.kt) -->
+    <string name="mode_currencies_name">Currencies</string>
+    <string name="mode_currencies_input_label">Enter a country name</string>
+    <string name="mode_currencies_items">currencies</string>
+    <string name="mode_currencies_paused_progress">%1$d / %2$d currencies answered</string>
+    <string name="mode_currencies_give_up">You\'ve answered %1$d of %2$d currencies. Are you sure?</string>
+    <!-- Quantity follows the total (%2$d), like a11y_progress_silhouettes. -->
+    <plurals name="a11y_progress_currencies">
+        <item quantity="one">%1$d of %2$d currency answered</item>
+        <item quantity="other">%1$d of %2$d currencies answered</item>
+    </plurals>
+
+    <!-- Setup screen (ui/currencies/CurrenciesSetupScreen.kt) -->
+    <string name="currencies_setup_intro">Choose a filter. Each round asks about every currency used by a country in it.</string>
+    <string name="currencies_filter_all_countries">All countries</string>
+    <string name="currencies_filter_by_region">By region</string>
+    <string name="currencies_filter_by_subregion">By subregion</string>
+    <string name="currencies_expand_section">Expand this section</string>
+    <string name="currencies_collapse_section">Collapse this section</string>
+    <string name="currencies_start_action">Start round</string>
+    <!-- The real number of currencies a filter asks about (task 7.1 review item 1), which can
+         differ from its raw country count: several countries can share one currency. Replaces an
+         earlier "N countries" count that was misleading for a shared-currency filter. -->
+    <plurals name="currencies_filter_currency_count">
+        <item quantity="one">%1$d currency</item>
+        <item quantity="other">%1$d currencies</item>
+    </plurals>
+    <!-- Normal/Hard summaries note the one exception to typing the answer (D50). -->
+    <string name="currencies_normal_summary">Type the country\'s name; typos are forgiven. A currency shared by more than one country is always a multiple-choice question.</string>
+    <string name="currencies_hard_summary">Type the exact spelling, 3 strikes, and the timer is always on. A currency shared by more than one country is always a multiple-choice question.</string>
+
+    <!-- Game screen (ui/currencies/CurrenciesGameScreen.kt, CurrenciesGameComponents.kt) -->
+    <!-- Visible header, e.g. "3 of 143". -->
+    <string name="currencies_progress">%1$d of %2$d</string>
+    <string name="currencies_prompt_which_country">Which country uses this currency?</string>
+    <string name="currencies_option_flag_description">Flag</string>
+    <string name="currencies_feedback_correct">%1$s – Correct!</string>
+    <string name="currencies_feedback_incorrect">Not quite. The answer was %1$s.</string>
+    <string name="currencies_feedback_near_miss">Close – check the spelling</string>
+    <!-- Covers both "not a country at all" and "a real but wrong country" (the validator reports
+         both as AnswerResult.Incorrect, task 7.1 review item 8): neutral wording that reads fine
+         for either case, rather than "Not recognised", which only fits the first. -->
+    <string name="currencies_feedback_not_recognised">Not quite. Try again!</string>
+    <string name="currencies_next_action">Next</string>
+    <!-- A fact's source credit, shown underneath it. -->
+    <string name="currencies_fact_source">Source: Wikidata</string>
+</resources>

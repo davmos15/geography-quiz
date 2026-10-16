@@ -29,6 +29,17 @@ sealed interface ChoicePrompt {
 
     /** Shows the flag of [code]; pick its country. The UI must not name the country. */
     data class FlagOf(val code: String) : ChoicePrompt
+
+    /**
+     * "Which of these uses <currencyLabel>?" (Currencies, task 7.1, D50): always used for a
+     * shared currency, at every tier, since more than one country can be a valid typed answer.
+     */
+    data class CurrencyOf(val currencyLabel: String) : ChoicePrompt
+
+    /**
+     * "Which of these is <featureName>?" (Rivers, mountains and lakes, task 7.2, D51 Easy tier).
+     */
+    data class FeatureOf(val featureName: String) : ChoicePrompt
 }
 
 /**

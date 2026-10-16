@@ -90,7 +90,7 @@ fun ResultsScreen(
         ResultsUiState.Missing -> ResultMissing(onGoHome = { onGoHome(QuizMode.COUNTRIES.id) })
         is ResultsUiState.Loaded -> {
             val result = state.result
-            val practice = result.practiceCategoryOrNull()
+            val practice = if (state.modeSpec.supportsPractice) result.practiceCategoryOrNull() else null
             InterstitialAfterFirstFrame(viewModel)
             ResultsContent(
                 score = result.score,

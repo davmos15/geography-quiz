@@ -47,7 +47,7 @@ where you stopped, commit, and tell me to start a new session.
 | 4 | Map engine and geodata pipeline | Done – PR open | `upgrade/p4-maps` | #7 |
 | 5 | New modes A: Silhouettes, Tap the map | Done – PR open | `upgrade/p5-modes-a` | #8 |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Done – PR open | `upgrade/p6-modes-b` | #9 |
-| 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Not started | `upgrade/p7-modes-c` | |
+| 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Done – PR open | `upgrade/p7-modes-c` | #10 |
 | 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Not started | `upgrade/p8-engagement` | |
 | 9 | Release readiness | Not started | `upgrade/p9-release` | |
 
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 7 (New modes C: Currencies, Rivers/mountains/lakes, Flag speed round) on a new branch `upgrade/p7-modes-c` from `upgrade/p6-modes-b` (D30; PRs #6, #7, #8 and #9 are open, not merged – expected). `upgrade/data-prep`'s `currencies.json`/`physical_features.json`/`flag_lookalikes.json` are already merged in (Phase 6 pulled the whole data-prep branch); their licence questions in `docs/DATA_PREP_NOTES.md` (items 1, 4, 5) still need real decision-log entries (D42–D46 only covered the border graph and Phase 6's own two modes). Read the session 9 log first (carry-overs, device checks, agent lessons).
+> Phase 8 (Engagement: daily challenge, streaks, share card, hints, game-feel) on a new branch `upgrade/p8-engagement` from `upgrade/p7-modes-c` (D30; PRs #6–#10 are open, not merged – expected). Read the session 10 log first (the three-mode parallel build, the code-review fix round, carry-overs and device checks).
 
 ---
 
@@ -228,6 +228,10 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Border hop (6.1): `J/domain/mode/borderhop/` (`BorderGraph`: BFS adjacency over `app/src/main/assets/border_hop/borders.json`, a bundled byte-identical copy of `data/borders.json`; `randomPuzzle(candidates, hopRange, random)` excludes islands/too-small components; `BorderHopScoring` packs a path into a plain `QuizState` via a documented field convention, not a new result shape), `J/ui/borderhop/` (own screen/ViewModel, D37; route chips + a tappable neighbour list, no map, D45; "Undo last hop" is free, not a hint; `HintType.SHOW_VALID_HOP` reveals one working next move). `offers()`: AllCountries/ByRegion/BySubregion only. D42, D44, D45.
 - US states and Canadian provinces (6.2): `J/domain/mode/usca/` (`UsCaRegionSet`: fixed ISO 3166-2 member lists per `UsCaRegionGroup`, DC optional for US; `UsCaRegionsAnswerValidator` matches a feature's name or postal code, postal exact-only below `FuzzyAnswerMatcher`'s minimum length; `QuizCategory.FixedRegion(label)`, a new category case for a fixed named set that is never offered in a classic mode, same reasoning as `MapRegion` - an earlier version reused `ByRegion`, which other modes' `offers()`/`AchievementRepository`'s region tracking/`AnswerReviewScreen` all pattern-match on and would have silently mismatched). Three variants, each its own ViewModel/screen (`J/ui/usca/`): Tap (`UsCaTapViewModel`, D36-style wrong-tap rules), Name all (`UsCaNameAllViewModel`, Normal/Hard, a "remaining names" list rather than a map, D46), Choice (`UsCaChoiceViewModel`, Easy-only, 4 names). No hints (`hintTypes = emptySet()`, same as classic Countries/Capitals/Flags). `GameModeSpec.supportsAnswerReview` (new field, default `true`) is `false` here: this mode's codes are admin1 ids, not cca3, so `AnswerReviewViewModel`'s `CountryRepository` lookup would come back blank; Results hides "View Answers" when it's false. D43, D46.
 - Tests: `NewModesBScreenshotTest` (18 goldens; 83 in total). Border hop's fixture uses synthetic country codes (not real cca3): a real flag's `FlagImage` load is not reliably deterministic under Robolectric when several appear in one capture (confirmed by a flaky Spain flag during image review), whereas a code with no bundled SVG renders identical placeholder pixels on every timing outcome (`error`/`fallback`/loading all resolve to the same `ColorPainter`). `AdaptiveTrailingRow` (not a plain `Row(SpaceBetween)`) is required for any status row with a progress text plus a wrapping trailing group (strikes/timer/tier), or it overlaps at 200% font scale (D29) - `TapMapGameScreen.StatusRow` already uses it; `UsCaStatusRow` and `UsCaNameAllScreen`'s header needed the same fix after screenshot review caught the overlap.
+- Currencies (7.1): `J/domain/mode/currencies/` (`CurrencyGameMode`, `CurrencyEntry`/`CurrencyData` from the bundled `assets/currencies/currencies.json`; `CurrencyItems.build(data, allCountriesByCode, candidateCodes)` assigns each currency's bookkeeping "representative" country **scoped to the active category filter**, not globally - a shared currency's representative can differ between categories, which is fine since the real question always goes back to the `CurrencyEntry` itself; `CurrencyItems.buildAll` is the full-game case. D50: a non-shared currency is typed at Normal/Hard, 4-choice at Easy; a shared currency is **always** `ChoicePrompt.CurrencyOf` at every tier, since typing has 2+ valid answers - `CurrencyAnswerValidator` rejects a typed guess for one. `listedInBasketBy` countries (Zimbabwe's basket, D48) are excluded from both the correct-answer and wrong-option pools. `CUC`/`KID`/`TVD` have no typed representative (nobody's real primary currency in this data, a reasoned extension of D48 beyond its literal text, flagged for Dav) but Kiribati/Tuvalu remain askable via the shared `AUD` question. `J/ui/currencies/` (setup + game screen/ViewModel; flags on every choice option; a post-answer fact banner from the currency's `fact` field; `CurrenciesSavedState` persists currency codes keyed by category, not representative country codes, so restore rebuilds the exact same round).
+- Rivers, mountains and lakes (7.2): `J/domain/mode/physicalfeatures/` (own `PhysicalFeature`/`PhysicalFeatureFilter` - no `QuizCategory` fits 101 curated features with no region/subregion structure, D51; `PhysicalFeaturesGameMode`'s `generator`/`validator`/`choiceGenerator` are unused placeholders, D43's pattern, since the screen builds a round directly from `PhysicalFeatureRepository` filtered by tab/continent). Typed answers strip generic geography words ("river"/"lake"/"mount"/"mountains"/"range") before comparing, so "Everest"/"Baikal"/"Amazon River" are all accepted; typo tolerance is scoped to the current target only, never any other round feature. The map highlights one feature via a new, optional `MapScene.overlay`/`MapCanvas` layer (`domain/map`/`ui/map` additions, D51: additive only, defaults to `null` for every existing caller, zero behaviour change for Tap the map/US-CA/Silhouettes) composited over a real `admin0_50m` basemap, sidestepping `regions_50m`'s ~517 overlapping polygons by building a synthetic single-feature layer rather than drawing the whole noisy layer. `MapCanvas.drawMap` also now skips its fill pass for `GeometryKind.LINE` (rivers): filling an open polyline as if closed was a latent, generic bug, not mode-specific. A point feature (a peak) draws via the same fixed-size marker circle a tap zone uses. `supportsPractice` (new `GameModeSpec` field, default `true`, mirrors `supportsAnswerReview`) is `false` here: this mode's feature-id codes would otherwise silently mis-parse back into the wrong filter via `PhysicalFeaturesCategory.filterFromLabel`'s safe default, starting an unrelated round instead of practising the real misses - worse than a blank Answer Review (also `false`, D43's reasoning). A touch-exploration text clue (the feature's continent) is the non-visual fallback, since there is no list alternative for a single highlighted feature the way Tap the map/US-CA have for a whole region.
+- Flag speed round (7.3): `J/domain/mode/flagspeed/` - the one mode with no fixed-size `QuizState` precedent (a hard 60-second clock, open-ended item count). Every question reuses the existing `ChoicePrompt.FlagOf` shape (flag shown large, name options), with distractors drawn only from the target's own lookalike set (`data/flag_lookalikes.json` via `assets/flag_speed/`). D52 (corrected 2026-10-16 after code review checked the real data): Easy draws only tier 1 (`clear`, easiest) sets, Normal tiers 1-2, Hard tiers 1-3; a set marked `in_app: "near_identical"` is never drawn at any tier, shown only in the post-round review. The round packs into a plain `QuizState`/`QuizResult` the way `BorderHopScoring` does: `quiz.countries` = every target actually answered (repeats allowed, an item still open at time-up/give-up is discarded entirely so `correct == asked - incorrectGuesses` always holds), the longest combo streak is stashed in `currentInput` as a parsed string (`FlagSpeedScoring`). `supportsPractice` defaults `true` here (unlike Physical features): the asked codes are real cca3, so a practice round is meaningful.
+- Tests: `NewModesCScreenshotTest` (29 goldens; 112 in total) - the Rivers/mountains/lakes goldens are the first real visual confirmation that the new map-engine overlay/line-fill-skip code actually renders correctly for each of the four geometry kinds (a river, a mountain range, a peak, a lake), since the fix round that wrote it could only verify by code reading.
 
 **Room** (since Phase 2, task 2.1)
 - Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
@@ -452,6 +456,8 @@ Status: 6.1, 6.2 (all three variants) and the gate done in session 9 (2026-10-15
 
 AC as Phase 5. `licence-auditor` checks every new data file.
 
+Status: 7.1, 7.2, 7.3, screenshots and the gate done in session 10 (2026-10-16). PR open. Device checks in the session 10 log.
+
 ### Phase 8 – Engagement
 
 | ID | Task | AC | Group |
@@ -525,6 +531,12 @@ AC as Phase 5. `licence-auditor` checks every new data file.
 | D45 | Border hop's game screen shows route chips and a tappable list of the current country's neighbours, not a map (6.1's original spec said "the map"): `MapScene`/`HitTester` are built for whole-layer rendering with region presets, not a lightweight "one country + its immediate neighbours" view, and a list is simpler and fully accessible without extending the map engine or adding a new screenshot-test surface for a one-off view (Dav, 2026-10-15). | Decided |
 | D46 | US/CA regions' Name all variant has no map, just a "remaining names" list that drops each one as it's typed (task 6.2's spec said "fills in on the map", matching Tap the map's Name all): the list already gives the same progress signal a map fill would, is naturally accessible text with no list/map toggle needed, and avoids re-rendering a 50-feature choropleth on every keystroke for no extra information. Same reasoning as D45 (lead, screenshot review, 2026-10-15). | Decided (lead) |
 | D8 | Ads under D1: every user is treated as child-directed and under the age of consent (TFCD + TFUA, max ad content rating G, so no personalised ads); no age screen, so no age data is collected; `AD_ID` permission removed. Google UMP is still integrated for regional consent and the Privacy options entry. Simplest Families-compliant setup; expect lower ad revenue. | Decided (Phase 1 lead) |
+| D47 | `physical_features.json` is public domain + CC0, not ODbL: it extends D31's reasoning, since the only mledoze input is the 197 cca3 ids used to key features (Dav, 2026-10-13, confirmed in `docs/DATA_PREP_NOTES.md`). | Decided |
+| D48 | Currency answer edge cases (7.1): Panama's typed answer is balboa (USD circulates too but is not asked); Zimbabwe's typed answer is USD only (its current currency isn't in this mledoze copy; the other 8 currencies in its basket are recorded but never asked); Palestine has no primary currency, so it appears only in "which of these uses…" questions, never as a typed target; Sierra Leone shows SLL, since mledoze has no SLE entry (adding one needs a manual entry and its own decision, not done in Phase 7) (Dav, 2026-10-13, confirmed in `docs/DATA_PREP_NOTES.md`). | Decided |
+| D49 | Physical-feature tiers (7.2): tier 1 = Natural Earth scalerank 1, plus Mont Blanc, the Pyrenees and the Carpathians bumped up by judgement; tier 2 = well known; tier 3 = less prominent. "Lake Eyre" is shown for the Lake Eyre North Wikidata item, since no whole-lake item exists. 41 rivers (one more than the spec's "~40") is fine as is (Dav, 2026-10-13, confirmed in `docs/DATA_PREP_NOTES.md`). | Decided |
+| D50 | Currencies (7.1) answer mechanism: a currency with one owning country is typed at Normal/Hard and a standard 4-choice question at Easy, like every other mode. A shared currency (EUR, USD, XOF, XAF, XCD, plus the 8 other shared codes) is never typed at any tier — it is always "Which of these uses the X?" with 4 options and exactly one true member, since a shared currency otherwise has 6–26 valid typed answers, breaking the spec's "exactly one valid option" rule. New `ChoicePrompt.CurrencyOf(currencyLabel)` (lead, 2026-10-16). | Decided (lead) |
+| D51 | Rivers, mountains and lakes (7.2) answer mechanism: type the name at Normal/Hard, 4-choice at Easy (new `ChoicePrompt.FeatureOf(featureName)`, clearer than reusing `InSet`'s "Which of these fits…" template for a feature name). The map highlights the one feature, framed to its stored bbox, on the matching regional layer (`rivers_50m`/`lakes_50m`/`regions_50m`/`geo_points_50m`, bundled since Phase 4 but not yet exercised by any screen), reusing the generic `GeoLayer`/`HitTester`/`MapScene` engine rather than a list-only fallback (D43's precedent). Rivers/Mountains/Lakes are a category filter on one mode, not three separate modes (lead, 2026-10-16). | Decided (lead) |
+| D52 | Flag speed round (7.3) shape, the one piece with no existing precedent (every other mode is a fixed-size quiz with a `QuizState`; this is a hard 60-second clock with an open-ended item count): one continuous timed round reusing the existing `ChoicePrompt.FlagOf` shape for every question (flag shown large, name options as buttons), with distractors drawn from the same lookalike set as the target rather than generic same-region distractors. Difficulty tier picks which lookalike-set tiers are in the draw pool: **Easy = tier 1 only, Normal = tiers 1–2, Hard = tiers 1–3** (corrected 2026-10-16, code review: the lead's original text had this backwards — tier 1 in `data/flag_lookalikes.json` is the `clear`/easiest-to-tell-apart pairs, e.g. Italy/Mexico, Belgium/Germany; tier 3 is `subtle`, the hardest, e.g. Chad/Romania, Netherlands/Luxembourg — so Easy must draw tier 1, not tier 3). Sets marked `in_app: "near_identical"` (currently only Indonesia/Monaco) are never asked at any tier, per the data file's own note, and surface only as a line in the post-round review. The round packs into a plain `QuizState`/`QuizResult` via a documented field convention, the same way `BorderHopScoring` does (D37 precedent): `quiz.countries` = every item asked (repeats allowed), `answeredCountries` = correct ones, `incorrectGuesses` = wrong count, `timeElapsedSeconds` = 60 (fixed; Give up ends it early with whatever elapsed). New `FlagSpeedScoring`: base score from correct/asked percentage, plus a combo bonus for runs of consecutive correct answers that resets on any wrong answer, same spirit as D44's par-based bonus (lead, 2026-10-16; tier direction corrected same day after code review). | Decided (lead) |
 
 ---
 
@@ -740,3 +752,94 @@ Each session appends one entry:
   11. Dark mode on every new screen, including the US/CA map.
   12. TalkBack: Border hop's neighbour list and hop chips are real list items/text (no map to navigate); US/CA Choice's progress-count live region announces a new question; Tap's map falls back to the existing list alternative.
 - Next session starts at: Phase 7 (New modes C: Currencies, Rivers/mountains/lakes, Flag speed round) on `upgrade/p7-modes-c` from `upgrade/p6-modes-b` (D30); the currencies/physical-features/flag-lookalikes data is already merged in from `upgrade/data-prep` (Phase 6 pulled the whole branch) but still needs real decision-log entries for the open items in `docs/DATA_PREP_NOTES.md`.
+
+### Session 10 – 2026-10-16 – Phase 7
+- Done: 7.1 Currencies, 7.2 Rivers/mountains/lakes, 7.3 Flag speed round, each built by an
+  independent Sonnet sub-agent in parallel on fully disjoint new files (own `domain/mode/<mode>/`,
+  `data/<mode>/`, `ui/<mode>/`, `di/<Mode>Module.kt`, `strings_<mode>.xml`, bundled asset copy of
+  its `data/*.json` source), then integrated by the lead (routes in `Screen.kt`, nav graph entries
+  in `AppNavigation.kt`, dispatch in `ModeRoutes.kt`, registration in `GameModeModule.kt`, plus two
+  small shared-interface additions made once up front - `ChoicePrompt.CurrencyOf`/`FeatureOf`,
+  `ModeIcon.CURRENCY`/`TERRAIN_FEATURE` - so neither of the two modes needing them had to touch
+  the shared files themselves). Three parallel Opus `code-reviewer` passes (one per mode) plus one
+  `licence-auditor` pass over the three newly-bundled data files, then a fix round per mode, then
+  one `test-engineer` pass added 29 new screenshot goldens. Gate (`assembleDebug
+  testDebugUnitTest lintDebug`, no clean, then `assembleRelease` alone) all passed this time (no
+  low-memory kill on `assembleRelease`, unlike session 9).
+- Not done / carried over:
+  - Currencies and Rivers/mountains/lakes are single-pane only (no two-pane/large-font adaptive
+    layout the way Silhouettes/Tap the map have) - a documented scope cut, not an oversight,
+    consistent with section 2's "prototype first" principle; revisit in a polish pass if these
+    ship.
+  - Currencies: Answer Review shows the representative country for a shared-currency item (e.g.
+    "Ecuador" for a US dollar question) rather than anything currency-specific - accurate (that
+    country really was the correct option) but a UX nit, not fixed this session.
+  - Currencies: `CUC`/`KID`/`TVD` have no typed representative, a reasoned extension of D48 beyond
+    its literal text (see the Codebase facts entry above) - flagged for Dav to confirm or reverse.
+  - Rivers/mountains/lakes: Normal has no Pass/strike-limit interaction beyond Hard's existing
+    3-strike end, and typed rounds never reveal a missed answer (Answer Review is off for this
+    mode); a player who doesn't know one feature must Give Up and lose the rest of the round.
+    Flagged in review (H3), not fixed this session - a candidate for a quick follow-up.
+  - Phase 3/4/5/6 carry-overs unchanged (classic double-submit race, Silhouettes 200% label wrap,
+    Stats overall totals including new-mode rounds, Tap the map no lakes/rivers, Name all Give-up
+    parity, `MapPathCache.clear()` not wired to `onTrimMemory`, LAEA rim rings, Europe frame with
+    Svalbard, geometry-based neighbours).
+  - Process: all three implementer-fix-round agents hit the same account-wide weekly Sonnet rate
+    limit simultaneously (mid-task) during the review fix round; the lead finished the remaining
+    work directly from each agent's partial diff (one test file needed its call sites updated for
+    a new parameter; the rest of each agent's changes were already complete and correct).
+    `assembleDebug`/`lintDebug` were each killed once for low system memory (the same 8 GB-machine
+    issue sessions 8/9 flagged); both succeeded on retry after `./gradlew --stop`.
+- Decisions: D47-D49 (Dav's 2026-10-13 data-prep answers, given real D-numbers), D50-D52 (lead).
+  D52 was corrected same-day after code review found the lead's original tier-direction text was
+  backwards relative to the real data - verified directly against `data/flag_lookalikes.json`
+  before correcting.
+- Owner actions added: confirm D47-D52 at the end (as usual), including the two Currencies
+  judgement calls beyond D48's literal text and Rivers/mountains/lakes' H3 Pass/strike gap;
+  device-test all three modes (checklist below, also in the PR description).
+- Verification: per-task compile + own package tests during the parallel build wave (3 agents);
+  full `assembleDebug testDebugUnitTest` after integration (1381 tests, 1 pre-existing-fallback
+  test needed updating once real routing replaced it, otherwise 0 failures); code review found
+  real bugs in all three modes (see Decisions and Codebase facts); fix round brought the suite to
+  1418 tests, 0 failures, lint clean; screenshot wave brought it to 1447 tests, 0 failures, lint 0
+  errors/89 warnings (all pre-existing categories). `assembleRelease` passed this session (5.6 MB
+  R8 APK), unlike session 9's low-memory kill.
+- Manual test checklist for Phase 7 (debug build "GeoQuiz Debug"; Settings title x7 -> Debug menu
+  -> turn on "Mode: Currencies", "Mode: Rivers, mountains and lakes" and "Mode: Flag speed round"):
+  1. Play -> New modes shows all three tiles only while their flags are on.
+  2. Currencies: pick a category (All countries, a region, a subregion); a non-shared currency
+     (e.g. Albanian lek) is typed at Normal/Hard, 4-choice at Easy; a shared currency (euro, US
+     dollar, CFA franc, East Caribbean dollar, etc.) is ALWAYS "Which of these uses the X?" with
+     exactly one correct option shown, at every tier, with flags on every option; a one-line fact
+     appears after answering when the currency has one. Panama types "balboa" (not US dollar);
+     Zimbabwe types "US dollar" (never one of its other mledoze-listed currencies); Palestine
+     never appears as a typed target. Try Micronesia (or another small filter) and confirm it
+     never silently gives a 0/0 round.
+  3. Rivers, mountains and lakes: switch the Rivers/Mountains/Lakes tabs and an optional continent
+     filter; each question highlights one real feature on a map with visible country context
+     underneath (not blank, not a filled-in blob for a river, not hidden under other land for a
+     mountain range); "Everest"/"Kilimanjaro"/"Baikal" (without "Mount"/"Lake") are accepted at
+     Normal/Hard; Easy shows 4 names from the same tab. "Practise the ones you missed" does not
+     appear on Results for this mode.
+  4. Flag speed round: a 60-second countdown starts immediately; tapping the correct country name
+     for the shown flag increases the combo counter and a wrong pick resets it to zero; Easy only
+     draws the clearest lookalike pairs, Hard includes the subtlest; Indonesia/Monaco never
+     appears as a question. Post-round review lists each lookalike set actually seen, plus
+     occasionally a "did you know" card for a near-identical set that wasn't asked. "Practise the
+     ones you missed" works normally for this mode when something was missed.
+  5. Both/all: Home mid-round pauses (and for Flag speed round, the countdown genuinely stops, not
+     just visually) and Resume returns to the same state; Back mid-round asks before giving up
+     (Flag speed and Currencies) or is the only way back when paused (Rivers/mountains/lakes, same
+     as Silhouettes/Tap the map's pattern); "Don't keep activities" survives process death for all
+     three, including a Currencies shared-currency question keeping its exact same options.
+  6. 200% text: all three setup screens and game/round screens - the status rows must wrap rather
+     than overlap (watch Rivers/mountains/lakes' header and Flag speed round's countdown/combo/
+     difficulty row especially).
+  7. Dark mode on every new screen, including the Rivers/mountains/lakes map (country context and
+     the highlighted feature should both stay legible).
+  8. TalkBack: Rivers/mountains/lakes announces a continent clue when touch exploration is on
+     (there is no map list alternative for a single highlighted feature); Currencies' flag images
+     are decorative (not separately announced per option, the name is already read); Flag speed
+     round's countdown and combo update as live regions without talking every second.
+- Next session starts at: Phase 8 (Engagement: daily challenge, streaks, share card, hints,
+  game-feel) on `upgrade/p8-engagement` from `upgrade/p7-modes-c` (D30).

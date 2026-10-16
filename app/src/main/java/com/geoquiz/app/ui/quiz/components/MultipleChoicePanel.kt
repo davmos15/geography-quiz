@@ -145,6 +145,8 @@ private fun PromptCard(prompt: ChoicePrompt) {
                 is ChoicePrompt.InSet -> stringResource(R.string.choice_prompt_in_set, prompt.categoryName)
                 is ChoicePrompt.CapitalOf -> stringResource(R.string.choice_prompt_capital_of, prompt.countryName)
                 is ChoicePrompt.FlagOf -> stringResource(R.string.choice_prompt_flag)
+                is ChoicePrompt.CurrencyOf -> stringResource(R.string.choice_prompt_currency_of, prompt.currencyLabel)
+                is ChoicePrompt.FeatureOf -> stringResource(R.string.choice_prompt_feature_of, prompt.featureName)
             }
             Text(
                 text = text,

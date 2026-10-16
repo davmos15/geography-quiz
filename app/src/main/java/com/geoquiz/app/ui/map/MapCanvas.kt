@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.map.GeometryKind
 import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.map.MapHit
 import com.geoquiz.app.ui.components.rememberReducedMotion
@@ -372,6 +373,7 @@ internal fun DrawScope.drawMap(
     val land = scene.land(level) ?: return
     val zones = if (showTapZones) scene.zones(level) else null
     val excluded = scene.excluded(level)
+    val overlay = scene.overlay
     cache.update(scale, density)
 
     // Visible plane rectangle, for culling.
@@ -388,20 +390,26 @@ internal fun DrawScope.drawMap(
         translate(offsetX, offsetY)
         scale(scale, scale, pivot = Offset.Zero)
     }) {
-        // Land fills.
-        for (i in 0 until land.size) {
-            if (!land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
-            if (excluded != null && excluded[i]) continue
-            val featureState = featureStates[land.ids[i]] ?: MapFeatureState.Default
-            val fill = when (featureState) {
-                MapFeatureState.Default -> if (land.playable[i] && scene.isMember(land.ids[i])) palette.land else palette.inactiveLand
-                MapFeatureState.Found -> palette.found
-                MapFeatureState.Highlighted -> palette.highlighted
-                MapFeatureState.Start -> palette.start
-                MapFeatureState.End -> palette.end
-                MapFeatureState.Wrong -> palette.wrong
+        // Land fills. Skipped for a LINE layer (task 7.2 review fix C2): filling an open
+        // polyline as if it were a closed shape (every river/border a filled sliver) makes no
+        // sense for any line layer, not just this one caller - a generically-correct guard, not
+        // a hack for one mode. POLYGON behaviour (every existing country/admin1 screen) is
+        // unchanged.
+        if (land.projected.kind != GeometryKind.LINE) {
+            for (i in 0 until land.size) {
+                if (!land.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+                if (excluded != null && excluded[i]) continue
+                val featureState = featureStates[land.ids[i]] ?: MapFeatureState.Default
+                val fill = when (featureState) {
+                    MapFeatureState.Default -> if (land.playable[i] && scene.isMember(land.ids[i])) palette.land else palette.inactiveLand
+                    MapFeatureState.Found -> palette.found
+                    MapFeatureState.Highlighted -> palette.highlighted
+                    MapFeatureState.Start -> palette.start
+                    MapFeatureState.End -> palette.end
+                    MapFeatureState.Wrong -> palette.wrong
+                }
+                drawPath(land.paths[i], fill)
             }
-            drawPath(land.paths[i], fill)
         }
 
         // Water on top of land.
@@ -448,6 +456,80 @@ internal fun DrawScope.drawMap(
                     MapFeatureState.Highlighted, MapFeatureState.Start -> drawPath(path, palette.outline, style = cache.thick)
                     MapFeatureState.End -> drawPath(path, palette.outline, style = cache.dashed)
                 }
+            }
+        }
+
+        // An extra layer composited on top of land (task 7.2 review fix C2): a single feature
+        // (or a handful, e.g. the Aral Sea's two halves) with no member/context concept of its
+        // own - every id in it just takes its featureState's fill/border/outline, same rules as
+        // land above, honouring its own GeometryKind (no fill pass for a LINE layer, same reason
+        // as land's). Used for a view with no answerable country at all (Rivers, mountains and
+        // lakes highlighting one feature over a non-playable country basemap drawn as `land`
+        // here); every existing caller leaves `overlay` null, so this never runs for them.
+        if (overlay != null) {
+            if (overlay.projected.kind != GeometryKind.LINE) {
+                for (i in 0 until overlay.size) {
+                    if (!overlay.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+                    val featureState = featureStates[overlay.ids[i]] ?: MapFeatureState.Default
+                    val fill = when (featureState) {
+                        MapFeatureState.Default -> palette.land
+                        MapFeatureState.Found -> palette.found
+                        MapFeatureState.Highlighted -> palette.highlighted
+                        MapFeatureState.Start -> palette.start
+                        MapFeatureState.End -> palette.end
+                        MapFeatureState.Wrong -> palette.wrong
+                    }
+                    drawPath(overlay.paths[i], fill)
+                }
+            }
+            for (i in 0 until overlay.size) {
+                if (!overlay.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+                drawPath(overlay.paths[i], palette.border, style = cache.border)
+            }
+            if (featureStates.isNotEmpty()) {
+                for (i in 0 until overlay.size) {
+                    if (!overlay.visible(i, vMinX, vMinY, vMaxX, vMaxY)) continue
+                    val featureState = featureStates[overlay.ids[i]] ?: continue
+                    val path = overlay.paths[i]
+                    when (featureState) {
+                        MapFeatureState.Default -> Unit
+                        MapFeatureState.Found -> drawPath(path, palette.outline, style = cache.medium)
+                        MapFeatureState.Wrong -> {
+                            clipPath(path) {
+                                drawCrossHatch(
+                                    max(overlay.minX[i], vMinX), max(overlay.minY[i], vMinY),
+                                    min(overlay.maxX[i], vMaxX), min(overlay.maxY[i], vMaxY),
+                                    cache.hatchSpacing, cache.hatchWidth, palette.hatch,
+                                )
+                            }
+                            drawPath(path, palette.outline, style = cache.medium)
+                        }
+                        MapFeatureState.Highlighted, MapFeatureState.Start -> drawPath(path, palette.outline, style = cache.thick)
+                        MapFeatureState.End -> drawPath(path, palette.outline, style = cache.dashed)
+                    }
+                }
+            }
+        }
+    }
+
+    // A point-kind overlay (task 7.2 review fix C2, "peaks"): points have no rings to fill, so
+    // the fill/border/outline passes above draw nothing for one - a fixed-size marker circle in
+    // screen space instead, the same visual as a tap zone's Highlighted ring (there is no
+    // playable target here, so there is never a case to show Found/Wrong/Start/End on it).
+    if (overlay != null && overlay.projected.kind == GeometryKind.POINT) {
+        val zr = cache.zoneRadius
+        for (i in 0 until overlay.size) {
+            val x = overlay.labelX[i] * scale + offsetX
+            val y = overlay.labelY[i] * scale + offsetY
+            if (x < -zr || y < -zr || x > size.width + zr || y > size.height + zr) continue
+            val featureState = featureStates[overlay.ids[i]] ?: MapFeatureState.Default
+            val centre = Offset(x, y)
+            val tint = palette.fillFor(featureState)
+            if (tint != null) drawCircle(tint, radius = zr, center = centre, alpha = TAP_ZONE_TINT_ALPHA)
+            if (featureState == MapFeatureState.Highlighted) {
+                drawCircle(palette.outline, radius = zr, center = centre, style = cache.zoneThickStroke)
+            } else {
+                drawCircle(palette.tapZone, radius = zr, center = centre, style = cache.zoneStroke)
             }
         }
     }

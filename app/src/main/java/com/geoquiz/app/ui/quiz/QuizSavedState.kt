@@ -100,12 +100,16 @@ class QuizSavedState(private val handle: SavedStateHandle) {
             is ChoicePrompt.InSet -> PROMPT_IN_SET
             is ChoicePrompt.CapitalOf -> PROMPT_CAPITAL_OF
             is ChoicePrompt.FlagOf -> PROMPT_FLAG_OF
+            // Classic Easy quizzes (this class) never ask a currency or feature question
+            // (tasks 7.1/7.2 use their own ViewModel and saved state, D37); kept exhaustive.
+            is ChoicePrompt.CurrencyOf, is ChoicePrompt.FeatureOf -> null
             null -> null
         }
         handle[KEY_CHOICE_PROMPT_VALUE] = when (val prompt = choice?.prompt) {
             is ChoicePrompt.InSet -> prompt.categoryName
             is ChoicePrompt.CapitalOf -> prompt.countryName
             is ChoicePrompt.FlagOf -> prompt.code
+            is ChoicePrompt.CurrencyOf, is ChoicePrompt.FeatureOf -> null
             null -> null
         }
     }

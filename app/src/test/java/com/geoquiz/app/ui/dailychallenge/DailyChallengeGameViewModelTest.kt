@@ -205,11 +205,15 @@ class DailyChallengeGameViewModelTest {
     @Test
     fun `an incorrect typed attempt still advances the round and counts as a wrong guess`() {
         val vm = viewModel()
-        val question = vm.active().currentQuestion!!
-        check(
-            question.kind == DailyChallengeQuestionKind.TYPED_COUNTRY ||
-                question.kind == DailyChallengeQuestionKind.TYPED_CAPITAL
-        ) { "test fixture's first question must be typed" }
+        // The kind mix is shuffled per date (DailyChallengeGenerator), so the round may not start
+        // on a typed question: answer up to the first one.
+        val typed = setOf(DailyChallengeQuestionKind.TYPED_COUNTRY, DailyChallengeQuestionKind.TYPED_CAPITAL)
+        var index = 0
+        while (vm.active().currentQuestion!!.kind !in typed) {
+            answerCurrentCorrectly(vm)
+            index++
+            check(index < 10) { "fixture has no typed question" }
+        }
 
         vm.onInputChange("definitely wrong")
         vm.onSubmitTyped()
@@ -217,9 +221,9 @@ class DailyChallengeGameViewModelTest {
         advanceByFeedbackDelay()
 
         val after = vm.active()
-        assertEquals(1, after.currentIndex)
+        assertEquals(index + 1, after.currentIndex)
         assertEquals(1, after.incorrectGuesses)
-        assertTrue(after.correctCodes.isEmpty())
+        assertEquals(index, after.correctCodes.size)
     }
 
     @Test

@@ -12,6 +12,8 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withTranslation
 import java.io.File
 import java.io.FileOutputStream
 
@@ -67,7 +69,7 @@ object ShareCardRenderer {
 
     /** Pure drawing, no [Context]: unit-tested directly ([ShareCardRendererTest]). */
     fun render(content: ShareCardContent, palette: ShareCardPalette, appName: String): Bitmap {
-        val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(WIDTH, HEIGHT)
         val canvas = Canvas(bitmap)
         canvas.drawColor(palette.background)
 
@@ -131,13 +133,6 @@ object ShareCardRenderer {
             .setMaxLines(maxLines)
             .setEllipsize(TextUtils.TruncateAt.END)
             .build()
-
-    private inline fun Canvas.withTranslation(dx: Float, dy: Float, block: Canvas.() -> Unit) {
-        save()
-        translate(dx, dy)
-        block()
-        restore()
-    }
 
     /**
      * Writes [bitmap] to a new `cacheDir/share/share_card_<time>.png`, deleting older cards first,

@@ -48,7 +48,7 @@ where you stopped, commit, and tell me to start a new session.
 | 5 | New modes A: Silhouettes, Tap the map | Done – PR open | `upgrade/p5-modes-a` | #8 |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Done – PR open | `upgrade/p6-modes-b` | #9 |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Done – PR open | `upgrade/p7-modes-c` | #10 |
-| 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | In progress | `upgrade/p8-engagement` | |
+| 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Done – PR open | `upgrade/p8-engagement` | #PRNUM |
 | 9 | Release readiness | Not started | `upgrade/p9-release` | |
 
 Statuses: Not started, In progress, Done – PR open, Done (merged).
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 8, Wave 2 (8.2 Streaks, 8.3 Share card) on `upgrade/p8-engagement` (branch already exists, session 11 committed Wave 1: `7524c43`). Read the session 11 log first (daily challenge/hints/game-feel design decisions D53–D58, the rate-limit recovery, and the memory-constrained verification gate). 8.2 and 8.3 both depend on 8.1 (done) and are independent of each other. Then Wave 3 (8.6 Home wiring, depends on 8.1 + 8.2), then the phase gate: licence-auditor (share card trade-dress + 8.5's sound files), test-engineer screenshots, full verification gate, decisions/session log, PR.
+> Phase 9 (Release readiness) on a new branch `upgrade/p9-release` from `upgrade/p8-engagement` (D30; PRs #6–#PRNUM are open, not merged – expected). Read the session 12 log first (Wave 2/3, the gate, carry-overs and device checks), and get Dav's answers on D53–D61 before 9.1 flips any flag defaults.
 
 ---
 
@@ -232,6 +232,13 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Rivers, mountains and lakes (7.2): `J/domain/mode/physicalfeatures/` (own `PhysicalFeature`/`PhysicalFeatureFilter` - no `QuizCategory` fits 101 curated features with no region/subregion structure, D51; `PhysicalFeaturesGameMode`'s `generator`/`validator`/`choiceGenerator` are unused placeholders, D43's pattern, since the screen builds a round directly from `PhysicalFeatureRepository` filtered by tab/continent). Typed answers strip generic geography words ("river"/"lake"/"mount"/"mountains"/"range") before comparing, so "Everest"/"Baikal"/"Amazon River" are all accepted; typo tolerance is scoped to the current target only, never any other round feature. The map highlights one feature via a new, optional `MapScene.overlay`/`MapCanvas` layer (`domain/map`/`ui/map` additions, D51: additive only, defaults to `null` for every existing caller, zero behaviour change for Tap the map/US-CA/Silhouettes) composited over a real `admin0_50m` basemap, sidestepping `regions_50m`'s ~517 overlapping polygons by building a synthetic single-feature layer rather than drawing the whole noisy layer. `MapCanvas.drawMap` also now skips its fill pass for `GeometryKind.LINE` (rivers): filling an open polyline as if closed was a latent, generic bug, not mode-specific. A point feature (a peak) draws via the same fixed-size marker circle a tap zone uses. `supportsPractice` (new `GameModeSpec` field, default `true`, mirrors `supportsAnswerReview`) is `false` here: this mode's feature-id codes would otherwise silently mis-parse back into the wrong filter via `PhysicalFeaturesCategory.filterFromLabel`'s safe default, starting an unrelated round instead of practising the real misses - worse than a blank Answer Review (also `false`, D43's reasoning). A touch-exploration text clue (the feature's continent) is the non-visual fallback, since there is no list alternative for a single highlighted feature the way Tap the map/US-CA have for a whole region.
 - Flag speed round (7.3): `J/domain/mode/flagspeed/` - the one mode with no fixed-size `QuizState` precedent (a hard 60-second clock, open-ended item count). Every question reuses the existing `ChoicePrompt.FlagOf` shape (flag shown large, name options), with distractors drawn only from the target's own lookalike set (`data/flag_lookalikes.json` via `assets/flag_speed/`). D52 (corrected 2026-10-16 after code review checked the real data): Easy draws only tier 1 (`clear`, easiest) sets, Normal tiers 1-2, Hard tiers 1-3; a set marked `in_app: "near_identical"` is never drawn at any tier, shown only in the post-round review. The round packs into a plain `QuizState`/`QuizResult` the way `BorderHopScoring` does: `quiz.countries` = every target actually answered (repeats allowed, an item still open at time-up/give-up is discarded entirely so `correct == asked - incorrectGuesses` always holds), the longest combo streak is stashed in `currentInput` as a parsed string (`FlagSpeedScoring`). `supportsPractice` defaults `true` here (unlike Physical features): the asked codes are real cca3, so a practice round is meaningful.
 - Tests: `NewModesCScreenshotTest` (29 goldens; 112 in total) - the Rivers/mountains/lakes goldens are the first real visual confirmation that the new map-engine overlay/line-fill-skip code actually renders correctly for each of the four geometry kinds (a river, a mountain range, a peak, a lake), since the fix round that wrote it could only verify by code reading.
+
+**Engagement** (Phase 8)
+- Daily challenge (8.1, D53/D54): `J/domain/mode/dailychallenge/` (`DailyChallengeDate.today()` device-local ISO date, `DailyChallengeGenerator` seeded from it, `QUESTION_COUNT` 10, `DailyChallengeScoring`), `J/ui/dailychallenge/` (Setup + Game screens/VMs). Recorded in `quiz_history` as mode `daily_challenge`, category `QuizCategory.DailyChallenge(date)` (type `daily`, value = the round's start date). The Game VM refuses a fresh round for an already-recorded date (`DailyChallengeUiState.AlreadyPlayed`, D54's hard guard since 8.2); restoring an in-progress round is never blocked.
+- Streaks (8.2, D59): `J/domain/streak/StreakCalculator.kt` (pure; rules in its KDoc) over the distinct daily dates from `QuizHistoryDao.observeDistinctCategoryValues`; `ObserveStreakUseCase` combines them with `localDateTicks()` (today, re-read just after each local midnight) — no new storage, so Reset all data clears streaks. `StreakStatus.NONE`, `StreakCalculator.MAX_FREEZES` (2). Setup derives "already played today" from `StreakStatus.playedToday` (one live source, so Back from Results flips Start off).
+- Share card (8.3, D60): `J/ui/share/ShareCardContent.kt` (pure; wording from `ShareCardStrings`, resolved by `shareCardStrings()` from `strings_share.xml`), `ShareCardRenderer` (android.graphics, 1080x1080 PNG, title ≤ 3 lines, short `displayLink` ≤ 2 lines, `placementFor` keeps blocks apart; `writeToCache` → `cacheDir/share/share_card_<time>.png`, older cards deleted; FileProvider `${applicationId}.fileprovider`, `res/xml/file_paths.xml`; ClipData for the chooser preview), `ShareCardDialog` (preview shrinks to fit so the buttons stay visible). Results' Share → `ResultsViewModel.openSharePreview()`: dialog state and the challenge link live in the `SavedStateHandle`, so rotation keeps the dialog and one outgoing challenge is recorded per Results entry. An image failure falls back to the text share. `ShareUtils.buildResultsShareText(..., date)`: classic text unchanged; new modes add the date and the Play Store link. FileProvider's root matching uses `/`, so the URI half of `ShareCardRendererTest` is skipped on a Windows host (runs on CI).
+- Home (8.6): `PlayUiState.todayChallenge: TodayChallengeInfo?` (streak + playedToday), shown while the daily challenge mode is available in the registry (today: `FeatureFlag.DAILY_CHALLENGE`); the card opens `mode_setup/daily_challenge`; header `StreakChip` (count + flame, icon dropped above 1.5 font scale; title is one line, ellipsised). Daily challenge is filtered out of `newModes`. `ScreenTestFixtures.playViewModel(streak = …)` registers the real `DailyChallengeGameMode`.
+- Hints (8.4, D55): `HintCosts.maxHintsPerRound(difficulty)` (Easy 0 / Normal 2 / Hard 3). Game-feel (8.5, D56–D58): `J/domain/feedback/ComboTracker.kt` (feel-only), `J/ui/quiz/feedback/ConfettiOverlay.kt`, `J/data/service/SoundEffectPlayer.kt` + `res/raw/sound_*.wav` (from `tools/sound/generate_sound_effects.py`, deterministic), Settings key `sound_effects`.
 
 **Room** (since Phase 2, task 2.1)
 - Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
@@ -469,7 +476,7 @@ Status: 7.1, 7.2, 7.3, screenshots and the gate done in session 10 (2026-10-16).
 | 8.5 | Game-feel: combo multiplier for fast consecutive correct answers, confetti on perfect score, short sound effects with a toggle (default respects silent mode), haptics from 3.3 | Reduced-motion and sound settings respected; sounds are original or CC0 and logged in SOURCES.md | B |
 | 8.6 | Home "Today's challenge" card wired up, streak shown in header | | after 8.1, 8.2 |
 
-Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16), committed (`7524c43`). 8.2, 8.3, 8.6 and the gate not started.
+Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16, `7524c43`). 8.2, 8.3 (`406da22`), 8.6 (`9e9c654`), screenshots and the gate done in session 12 (2026-10-16). PR open.
 
 ### Phase 9 – Release readiness
 
@@ -545,6 +552,9 @@ Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16), committed (`7524c43`). 8.
 | D56 | Game-feel (8.5) combo multiplier is feel-only, never a score effect: a new `ComboTracker` (pure, clock-driven, 5-second fast-answer window, visible from a streak of 2) drives a UI counter in the classic quiz header and nothing else; `CalculateScoreUseCase` is untouched. Chosen to avoid touching the shared, heavily-tested classic scoring path for a cosmetic feature (lead, 2026-10-16). | Decided (lead) |
 | D57 | Game-feel (8.5) sound effects are originally authored, not sourced externally: three short tones synthesised by a checked-in script (`tools/sound/generate_sound_effects.py`, stdlib only) rather than a downloaded CC0 pack, since no audio source is in section 5's approved-sources table and adding one would need its own licensing decision (same bar as D7/L4's flag-source question). Logged in `data/SOURCES.md` as GeoQuiz-original. Confetti is an original Compose Canvas effect, not a new dependency (lead, 2026-10-16). | Decided (lead) |
 | D58 | Game-feel (8.5) sound respects two independent gates: the new Settings toggle (`sound_effects`, default on, same shape as `vibration`) and the system ringer mode (`AudioManager.RINGER_MODE_NORMAL` only) — silent/DND always wins even with the setting on, same spirit as vibration already respecting the system touch-feedback setting (lead, 2026-10-16). | Decided (lead) |
+| D59 | Streaks (8.2): derived, never stored — a pure function of the distinct daily-challenge dates in `quiz_history` and today's local date. The streak counts days played in a run of consecutive local dates; not having played yet today never breaks it. One freeze is earned on every 7th day played in the current run, at most 2 held (one earned at the cap is lost), never purchasable; each missed day uses one automatically, a frozen day keeps the run but doesn't add to it, and a gap with too few freezes breaks the run. Evaluation anchors at max(today, latest played date), so flying west or moving the clock back never breaks a streak; flying east past a date is one missed day. Today is re-read at each local midnight (lead, 2026-10-16; Dav to confirm the freeze rules). | Decided (lead) |
+| D60 | Share card (8.3): text and an original 1080x1080 image card (app name, title, big score + %, date · time, link; plain stacked text on the theme background, no grids or tiles). The text share carries the full link — the signed challenge link for classic modes, else the Play Store listing (always the release id); the image prints only a short form (a challenge link's host + path, or the store URL without its scheme), since a ~250-character signed link can't be tapped or typed from a picture. The card's heading is the launcher name (`app_name`), so recipients can find the app in the store. Licence auditor signed off on L9 (session 12) (lead, 2026-10-16). | Decided (lead) |
+| D61 | Home (8.6): the Today's challenge card follows the daily challenge mode's availability in the registry (the same rule as its destination's guard), opens the daily challenge Setup, and replaces the mode's tile in the New modes grid; the streak shows as a header chip only while a streak is running. D24's placeholder is gone (lead, 2026-10-16). | Decided (lead) |
 
 ---
 
@@ -920,3 +930,113 @@ Each session appends one entry:
   (branch exists, Wave 1 committed). Then Wave 3 (8.6), then the phase gate (licence-auditor,
   test-engineer screenshots, full verification gate as three separate commands per the process note
   above, decisions/session log, manual test checklist, PR).
+
+### Session 12 – 2026-10-16/17 – Phase 8 (Wave 2, Wave 3, gate)
+- Done: 8.2 Streaks and 8.3 Share card (Wave 2, two Sonnet implementers in parallel on disjoint
+  files, one Gradle build at a time via a `mkdir` lock), then 8.6 Home wiring (Wave 3, by the lead).
+  Each task had an Opus `code-reviewer` pass and a fix round by the lead. Licence auditor: a full pass
+  on 8.5's sound files and an L9 trade-dress sign-off on 8.3. Phase gate: screenshot goldens,
+  verification gate, plan update. Commits `406da22` (8.2 + 8.3, plus session 11's uncommitted plan
+  update), `9e9c654` (8.6), and the gate commit (goldens, test fixes, docs).
+- Review fixes worth knowing:
+  - 8.2: Setup now takes "already played today" from the live streak, not a one-shot query. Before
+    this, Back from Results showed Start next to a 1-day streak and led to the AlreadyPlayed dead
+    end. "Today" re-reads at local midnight. 8 more calculator cases. A corrupt far-future date
+    can't add freezes.
+  - 8.3: the dialog state and challenge link moved into the `SavedStateHandle`. Before this,
+    rotation dismissed the dialog and every open recorded another outgoing challenge. The preview
+    shrinks so the buttons stay visible in landscape and at 200%. An image failure falls back to
+    text instead of crashing. The card prints a short link (D60). Wording is in `strings_share.xml`.
+    TalkBack hears "3 minutes 12 seconds", not "3m". ClipData for the chooser preview. A
+    timestamped cache file.
+  - 8.6: the header title is one line (ellipsised), and the chip drops its flame above 1.5 font
+    scale. The card follows the registry's availability rule.
+- Gate findings fixed:
+  - One Wave 1 test (`DailyChallengeGameViewModelTest`, "incorrect typed attempt") assumed the
+    day's first question is typed. It failed once the date rolled over to 2026-10-17. It now
+    answers up to the first typed question, like its neighbours.
+  - Wave 1 had left three golden sets stale:
+    - `border_hop_mid_round_*`: D55 disables Border hop's hint at Easy.
+    - `settings_*`: the new Sound effects switch.
+    - `play_*`: the old placeholder card.
+    All re-recorded and checked by eye.
+  - 2 new lint `UseKtx` warnings in `ShareCardRenderer` fixed (core-ktx `createBitmap` /
+    `withTranslation`).
+- Not done / carried over:
+  - No goldens for the daily challenge question screens: the questions are seeded from the real
+    local date, so a golden would change every day. That needs an injectable date (e.g. a `Clock`
+    for `DailyChallengeDate`). The Setup, AlreadyPlayed, share dialog, card and Play states are
+    covered. No golden for the combo counter or confetti (timed/animated).
+  - Results still hard-codes "Share"/"Challenge"/"Share your result so they can compare." in
+    English. This predates Phase 8 (licence auditor note); move them to strings in an i18n pass.
+  - Border hop at Easy shows a disabled "Show a valid hop" button (D55's cap of 0). Silhouettes and
+    Tap the map hide hints at Easy instead (D39/D41). Dav to choose: hide it for consistency, or
+    reverse D55 for Border hop.
+  - `geoColors.correct` on `secondaryContainer` (the Today's card tick) is not in
+    `GeoColorsContrastTest`. The icon is decorative and the words carry the meaning; add the pair
+    when the test is next touched.
+  - Credits screen: optionally mention "sound effects" under "App icon and artwork" (licence audit,
+    Recommended, not required: no third party to attribute).
+  - 8.5's "celebration fires exactly once" Robolectric test (from session 11) is still not added.
+  - Phase 3–7 carry-overs unchanged (see session 11).
+- Decisions: D59 (streak rules), D60 (share card and links), D61 (Home card). All lead decisions
+  for Dav to confirm, together with D53–D58.
+- Owner actions added: none.
+- Process notes:
+  - The test-engineer sub-agent hit the account-wide Sonnet session limit before writing anything
+    (`git status` clean apart from the lead's docs). The lead wrote `EngagementScreenshotTest`
+    directly instead of re-delegating.
+  - Robolectric's native graphics don't reliably finish a bitmap render started on
+    `Dispatchers.Default`. The share-dialog screenshots timed out at random (2 of 4 per run, even
+    with 30 s). Fix: `LocalShareCardRenderContext` (default `Dispatchers.Default`; screenshot tests
+    provide `EmptyCoroutineContext`). Two full verifies were stable afterwards.
+  - The AndroidX `FileProvider` matches roots with "/" separators, so `getUriForFile` always fails
+    on a Windows JVM. The URI half of `ShareCardRendererTest` is skipped on Windows (`Assume`) and
+    runs on Linux CI and devices.
+  - Ran the gate as separate commands with `./gradlew --stop` between them, as planned; no
+    low-memory kills this session.
+  - The Bash tool mangled a `\'` inside a heredoc twice (unescaped apostrophes in strings XML,
+    caught before any build). Prefer the Edit tool for resource strings with apostrophes.
+- Verification:
+  - `assembleDebug` passed.
+  - `testDebugUnitTest`: 1586 tests, 1 skipped (Windows FileProvider). The one date-dependent
+    failure was fixed and its class re-run green.
+  - `lintDebug`: 0 errors, 91 warnings (same as session 11).
+  - `verifyRoborazziDebug`: 127 goldens (15 new in `EngagementScreenshotTest`, 10 re-recorded),
+    all pass, run twice.
+  - `assembleRelease`: passed on the second try (5.7 MB signed APK). The first run, in the background,
+    was stopped by the low-memory guard; the retry ran alone in the foreground after `--stop`.
+- Manual test checklist (debug build; Settings title ×7 → Debug menu → turn on "Daily challenge"):
+  1. Play shows the Today's challenge card ("10 questions, the same for everyone today…"). It isn't
+     also listed in New modes. There's no streak chip yet.
+  2. Tap the card → Setup ("No current streak…", "0 streak freezes saved", "7 days to your next
+     streak freeze") → Start → play all 10 → Results.
+  3. Back from Results to Setup: Start is gone, "You've completed today's challenge", "Streak: 1
+     day". Back to Play: the card shows a blue tick and "Done for today…", and the header shows the
+     flame and 1.
+  4. TalkBack on the header chip: "1-day streak, 0 streak freezes saved". The card reads as one
+     button, "Open today's challenge".
+  5. 200% font: the Play header title stays on one line, and the chip shows only the number. The
+     Setup streak lines wrap and nothing clips.
+  6. Results → Share: the dialog previews the card (app name, title, big score, %, date · time,
+     short link). Check light and dark.
+  7. Share image → a chooser with an image preview → send to yourself (e.g. a messaging app or
+     Drive). The image arrives, and the text with the full link comes along where the target
+     supports it.
+  8. Share text: a classic Countries result has the sentence and the challenge link. A new-mode
+     result (e.g. Silhouettes) has the sentence, then the date, then the Play Store link.
+  9. Rotate with the share dialog open: it stays open. Cancel, then Share again: in Challenges,
+     only one outgoing challenge appears for that result.
+  10. Landscape: the dialog preview shrinks, and Share image / Share text stay visible.
+  11. Practice result (Practise the ones you missed): there is still no Share or Challenge.
+  12. Streak rollover: change the device date to tomorrow and the card says not done, with "Streak:
+      1 day" still alive. Skip a day (+2 days) with no freeze: the streak is 0. Set the date back
+      to real: no crash, and the streak is back.
+  13. Optional, for freezes: play 7 consecutive days by changing the date (or check the unit
+      tests): Setup shows "1 streak freeze saved". Skip a day: the streak survives and the freeze
+      is used.
+  14. Settings → Reset all data: the streak is gone and the card is back to not done.
+  15. Regression: the classic letter/word-pattern categories still play, and Border hop at Easy
+      shows its hint button disabled (see carry-over).
+- Next session starts at: Phase 9 (Release readiness) on `upgrade/p9-release` from
+  `upgrade/p8-engagement` (D30).

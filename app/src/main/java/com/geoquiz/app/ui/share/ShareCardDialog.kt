@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
@@ -30,6 +31,14 @@ import com.geoquiz.app.R
 import com.geoquiz.app.ui.components.AdaptiveButtonRow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
+
+/**
+ * Where [ShareCardDialog] renders the card: a background thread in the app. Screenshot tests
+ * provide [kotlin.coroutines.EmptyCoroutineContext] (the composition's own thread), because
+ * Robolectric's native graphics don't reliably finish a render started on another thread.
+ */
+val LocalShareCardRenderContext = staticCompositionLocalOf<CoroutineContext> { Dispatchers.Default }
 
 /** [ShareCardStrings] from `strings_share.xml`, for [ShareCardContent.from]. */
 @Composable
@@ -72,9 +81,10 @@ fun ShareCardDialog(
         )
     }
     var bitmap by remember(content, palette) { mutableStateOf<Bitmap?>(null) }
+    val renderContext = LocalShareCardRenderContext.current
 
     LaunchedEffect(content, palette, appName) {
-        bitmap = withContext(Dispatchers.Default) {
+        bitmap = withContext(renderContext) {
             ShareCardRenderer.render(content, palette, appName)
         }
     }

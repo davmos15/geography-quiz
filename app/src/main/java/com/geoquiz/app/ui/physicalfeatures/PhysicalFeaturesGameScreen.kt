@@ -244,7 +244,14 @@ private fun PhysicalFeaturesActiveContent(
     // whole (possibly hundreds-of-features) layer it came from, composited over admin0_50m's
     // real country context when that base layer loaded; falls back to the target alone (no base
     // context, still correctly drawn - never the pre-fix bug) if it didn't.
-    val overlayLayer = if (target != null && layer != null) physicalFeatureOverlayLayer(layer, highlightIds) else null
+    // remember()'d (screenshot-wave review): GeoLayer/GeoFeature have no custom equals(), so a
+    // plain val here would be a structurally-identical but reference-distinct object on every
+    // recomposition (this composable recomposes every second while timerSeconds ticks) - both
+    // MapPathCache's key and rememberMapLayerPaths' own remember() key it against would treat
+    // that as a brand-new layer and rebuild its paths from scratch every second.
+    val overlayLayer = remember(target, layer, highlightIds) {
+        if (target != null && layer != null) physicalFeatureOverlayLayer(layer, highlightIds) else null
+    }
     val baseLayer = mapState.baseLayer
     val projection = target?.let { physicalFeatureProjection(it) } ?: NO_TARGET_PROJECTION
     val frame = target?.let { physicalFeatureFrame(projection, it) }

@@ -48,7 +48,7 @@ where you stopped, commit, and tell me to start a new session.
 | 5 | New modes A: Silhouettes, Tap the map | Done – PR open | `upgrade/p5-modes-a` | #8 |
 | 6 | New modes B: Border hop, US states and Canadian provinces | Done – PR open | `upgrade/p6-modes-b` | #9 |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Done – PR open | `upgrade/p7-modes-c` | #10 |
-| 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Not started | `upgrade/p8-engagement` | |
+| 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | In progress | `upgrade/p8-engagement` | |
 | 9 | Release readiness | Not started | `upgrade/p9-release` | |
 
 Statuses: Not started, In progress, Done – PR open, Done (merged).
@@ -56,7 +56,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> Phase 8 (Engagement: daily challenge, streaks, share card, hints, game-feel) on a new branch `upgrade/p8-engagement` from `upgrade/p7-modes-c` (D30; PRs #6–#10 are open, not merged – expected). Read the session 10 log first (the three-mode parallel build, the code-review fix round, carry-overs and device checks).
+> Phase 8, Wave 2 (8.2 Streaks, 8.3 Share card) on `upgrade/p8-engagement` (branch already exists, session 11 committed Wave 1: `7524c43`). Read the session 11 log first (daily challenge/hints/game-feel design decisions D53–D58, the rate-limit recovery, and the memory-constrained verification gate). 8.2 and 8.3 both depend on 8.1 (done) and are independent of each other. Then Wave 3 (8.6 Home wiring, depends on 8.1 + 8.2), then the phase gate: licence-auditor (share card trade-dress + 8.5's sound files), test-engineer screenshots, full verification gate, decisions/session log, PR.
 
 ---
 
@@ -469,6 +469,8 @@ Status: 7.1, 7.2, 7.3, screenshots and the gate done in session 10 (2026-10-16).
 | 8.5 | Game-feel: combo multiplier for fast consecutive correct answers, confetti on perfect score, short sound effects with a toggle (default respects silent mode), haptics from 3.3 | Reduced-motion and sound settings respected; sounds are original or CC0 and logged in SOURCES.md | B |
 | 8.6 | Home "Today's challenge" card wired up, streak shown in header | | after 8.1, 8.2 |
 
+Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16), committed (`7524c43`). 8.2, 8.3, 8.6 and the gate not started.
+
 ### Phase 9 – Release readiness
 
 | ID | Task | Group |
@@ -537,6 +539,12 @@ Status: 7.1, 7.2, 7.3, screenshots and the gate done in session 10 (2026-10-16).
 | D50 | Currencies (7.1) answer mechanism: a currency with one owning country is typed at Normal/Hard and a standard 4-choice question at Easy, like every other mode. A shared currency (EUR, USD, XOF, XAF, XCD, plus the 8 other shared codes) is never typed at any tier — it is always "Which of these uses the X?" with 4 options and exactly one true member, since a shared currency otherwise has 6–26 valid typed answers, breaking the spec's "exactly one valid option" rule. New `ChoicePrompt.CurrencyOf(currencyLabel)` (lead, 2026-10-16). | Decided (lead) |
 | D51 | Rivers, mountains and lakes (7.2) answer mechanism: type the name at Normal/Hard, 4-choice at Easy (new `ChoicePrompt.FeatureOf(featureName)`, clearer than reusing `InSet`'s "Which of these fits…" template for a feature name). The map highlights the one feature, framed to its stored bbox, on the matching regional layer (`rivers_50m`/`lakes_50m`/`regions_50m`/`geo_points_50m`, bundled since Phase 4 but not yet exercised by any screen), reusing the generic `GeoLayer`/`HitTester`/`MapScene` engine rather than a list-only fallback (D43's precedent). Rivers/Mountains/Lakes are a category filter on one mode, not three separate modes (lead, 2026-10-16). | Decided (lead) |
 | D52 | Flag speed round (7.3) shape, the one piece with no existing precedent (every other mode is a fixed-size quiz with a `QuizState`; this is a hard 60-second clock with an open-ended item count): one continuous timed round reusing the existing `ChoicePrompt.FlagOf` shape for every question (flag shown large, name options as buttons), with distractors drawn from the same lookalike set as the target rather than generic same-region distractors. Difficulty tier picks which lookalike-set tiers are in the draw pool: **Easy = tier 1 only, Normal = tiers 1–2, Hard = tiers 1–3** (corrected 2026-10-16, code review: the lead's original text had this backwards — tier 1 in `data/flag_lookalikes.json` is the `clear`/easiest-to-tell-apart pairs, e.g. Italy/Mexico, Belgium/Germany; tier 3 is `subtle`, the hardest, e.g. Chad/Romania, Netherlands/Luxembourg — so Easy must draw tier 1, not tier 3). Sets marked `in_app: "near_identical"` (currently only Indonesia/Monaco) are never asked at any tier, per the data file's own note, and surface only as a line in the post-round review. The round packs into a plain `QuizState`/`QuizResult` via a documented field convention, the same way `BorderHopScoring` does (D37 precedent): `quiz.countries` = every item asked (repeats allowed), `answeredCountries` = correct ones, `incorrectGuesses` = wrong count, `timeElapsedSeconds` = 60 (fixed; Give up ends it early with whatever elapsed). New `FlagSpeedScoring`: base score from correct/asked percentage, plus a combo bonus for runs of consecutive correct answers that resets on any wrong answer, same spirit as D44's par-based bonus (lead, 2026-10-16; tier direction corrected same day after code review). | Decided (lead) |
+| D53 | Daily challenge (8.1) shape: its own `GameMode`/screen/ViewModel (D37 pattern), 10 questions deterministically seeded from the device's local date (`DailyChallengeDate.today()`, hashed into a `Random` seed, D4). v1 draws only 4 question kinds that reuse existing single-item UI with no per-question map/outline render: typed country name, typed capital, flag-to-country choice, capital choice (fixed distribution 3/3/2/2) — Tap the map, Border hop, US/CA regions, Country silhouettes and Rivers/mountains/lakes are excluded from the mix for now, a scope cut in the same spirit as session 10's single-pane cuts. Packs into a plain `QuizState`/`QuizResult` the same way Border hop/Flag speed round do (D37/D52 precedent). "One attempt per day" needs no new Room table: the round is recorded through the normal `CompleteQuizUseCase`/`QuizHistoryRepository` path under a new `QuizCategory.DailyChallenge(date)` case keyed by the ISO date string, and a new `QuizHistoryDao.hasCompletedCategory` query checks it; today's question set is regenerated from the date each time rather than persisted, since the generator is a pure function of (date, the full country list) — this is only safe because `CountryDao.getAllCountries()` has a stable `ORDER BY` (confirmed in code review). No achievements/leaderboards (new-mode rule, D35); always `Difficulty.NORMAL`, no hints yet (lead, 2026-10-16). | Decided (lead) |
+| D54 | Daily challenge's "Play again"/double-completion safety is a soft, UI-level gate only (the Setup screen hides Start once completed; nothing stops `CompleteQuizUseCase` recording a second round for the same date if the game screen were ever reached a second time by another path) — acceptable for v1 since the only entry point is Setup, but flagged in code review as worth a real guard once 8.6's Home card offers a more direct entry, since 8.2 (streaks) builds directly on one-completion-per-day being true (lead, 2026-10-16, confirmed by code review; Dav to confirm or ask for a harder guard). | Decided (lead) |
+| D55 | Hints economy (8.4): `HintCosts.maxHintsPerRound(difficulty)` caps hints per round at Easy 0 / Normal 2 / Hard 3, replacing the D37 placeholder's unlimited hints; per-hint point costs are unchanged. This is a real behaviour change for Border hop specifically: its Easy tier had no hint cap at all before (Silhouettes/Tap the map already showed no hints at Easy per D39/D41), so Border hop Easy goes from unlimited hints to none (lead, 2026-10-16, confirmed in code review; Dav to confirm or reverse for Border hop Easy specifically). | Decided (lead) |
+| D56 | Game-feel (8.5) combo multiplier is feel-only, never a score effect: a new `ComboTracker` (pure, clock-driven, 5-second fast-answer window, visible from a streak of 2) drives a UI counter in the classic quiz header and nothing else; `CalculateScoreUseCase` is untouched. Chosen to avoid touching the shared, heavily-tested classic scoring path for a cosmetic feature (lead, 2026-10-16). | Decided (lead) |
+| D57 | Game-feel (8.5) sound effects are originally authored, not sourced externally: three short tones synthesised by a checked-in script (`tools/sound/generate_sound_effects.py`, stdlib only) rather than a downloaded CC0 pack, since no audio source is in section 5's approved-sources table and adding one would need its own licensing decision (same bar as D7/L4's flag-source question). Logged in `data/SOURCES.md` as GeoQuiz-original. Confetti is an original Compose Canvas effect, not a new dependency (lead, 2026-10-16). | Decided (lead) |
+| D58 | Game-feel (8.5) sound respects two independent gates: the new Settings toggle (`sound_effects`, default on, same shape as `vibration`) and the system ringer mode (`AudioManager.RINGER_MODE_NORMAL` only) — silent/DND always wins even with the setting on, same spirit as vibration already respecting the system touch-feedback setting (lead, 2026-10-16). | Decided (lead) |
 
 ---
 
@@ -843,3 +851,72 @@ Each session appends one entry:
      round's countdown and combo update as live regions without talking every second.
 - Next session starts at: Phase 8 (Engagement: daily challenge, streaks, share card, hints,
   game-feel) on `upgrade/p8-engagement` from `upgrade/p7-modes-c` (D30).
+
+### Session 11 – 2026-10-16 – Phase 8 (Wave 1)
+- Done: 8.1 Daily challenge, 8.4 Hints economy, 8.5 Game-feel, built by three independent Sonnet
+  sub-agents in parallel on disjoint files, then integrated by the lead (routes in `Screen.kt`, nav
+  graph entries in `AppNavigation.kt`, dispatch in `ModeRoutes.kt`, registration in
+  `GameModeModule.kt` for 8.1, which the implementer agent correctly left for the lead per its
+  brief). Three parallel Opus `code-reviewer` passes (one per task), then a fix round each, all by
+  the lead directly (see Process below). Commit `7524c43`.
+- Not done / carried over:
+  - 8.2 Streaks, 8.3 Share card (Wave 2, both depend on 8.1), 8.6 Home wiring (Wave 3, depends on
+    8.1 + 8.2). Not started.
+  - `licence-auditor` has not formally reviewed 8.5's three bundled sound files yet (the
+    code-reviewer pass checked licensing informally - stdlib-only generation script, small files,
+    `data/SOURCES.md` rows - but the project's own process wants a real auditor pass before the
+    phase gate, same as every data/asset-adding phase).
+  - No screenshot goldens added yet for the daily challenge screens, the combo counter, or the
+    confetti overlay; `test-engineer` hasn't run.
+  - D54: daily challenge's one-attempt-per-day is a soft UI gate only (see D54); worth a harder
+    guard once 8.6 gives Home a more direct entry point, before it ships.
+  - D55: Border hop Easy's hint cap going from unlimited to zero is a real, user-visible behaviour
+    change on an already-shipped mode; flagged for Dav, not reversed.
+  - 8.5's review suggested one more test (automated coverage for the perfect-score celebration's
+    "fires exactly once" logic, which was traced by hand and is believed correct but has no
+    Robolectric test); not added this session, not blocking.
+  - Phase 3–7 carry-overs unchanged (classic double-submit race, Silhouettes 200% label wrap, Stats
+    overall totals including new-mode rounds, Tap the map no lakes/rivers, Name all Give-up parity,
+    `MapPathCache.clear()` not wired to `onTrimMemory`, LAEA rim rings, Europe frame with Svalbard,
+    geometry-based neighbours, Rivers/mountains/lakes' no-Pass-on-Normal gap, Currencies'
+    `CUC`/`KID`/`TVD` representative gap).
+- Decisions: D53-D58 (lead; all flagged for Dav to confirm or reverse, same pattern as D37/D43/D50).
+- Owner actions added: none new. Confirm D53-D58 at the end (as usual), especially D54 (soft
+  one-per-day gate) and D55 (Border hop Easy hints).
+- Process notes:
+  - All three Wave 1 implementer sub-agents hit the account-wide weekly Sonnet rate limit
+    simultaneously, mid-task (same failure mode sessions 8/10 flagged), each leaving a complete but
+    unverified diff (none had confirmed their own compile status before being cut off). The lead
+    verified and finished all three directly: fixed a Robolectric API misuse (`ShadowAudioManager`'s
+    `setRingerMode` is protected; call the real `AudioManager` setter instead), a JVM-illegal
+    backtick test name (a semicolon inside the name), a missing constructor arg in a shared test
+    fixture (`ScreenTestFixtures.kt`) after `QuizViewModel`'s constructor grew a new
+    `SoundEffectPlayer` parameter, a hard-coded English string in Settings, and a real UX bug in the
+    daily challenge screen (content would jump to the next question while still showing the
+    previous one's feedback - fixed with a new `displayIndex` that lags during the feedback pause).
+    Also reverted one unrelated, accidental edit to Phase 9's task row that slipped into the working
+    tree from one of the agents.
+  - This machine (8 GB RAM) hit its low-memory build-kill guard twice this session on top of the
+    existing slow-build issue (sessions 8-10): once mid test run, once on the combined
+    `assembleDebug testDebugUnitTest lintDebug` gate. `./gradlew --stop` (clearing idle Gradle/Kotlin
+    daemons) recovered roughly 1-2 GB each time; splitting the combined gate into three separate,
+    sequential Gradle invocations (assemble, then test, then lint) avoided a third kill. Recommend
+    always running the gate as three separate commands on this machine, not one combined one.
+  - A `compileDebugKotlin` run failed once on a transient Windows file-lock in the Gradle build
+    cache ("Could not get file mode for ... .class"), unrelated to any code change; retrying the
+    exact same command succeeded.
+- Verification: per-task compile + own test classes during the parallel build wave (confirmed by the
+  lead after the rate-limit cutoff, not by the agents themselves). Full gate run as three separate
+  commands after all fixes and the nav/DI integration: `assembleDebug` (passed), `testDebugUnitTest`
+  (1509 tests, 0 failures), `lintDebug` (passed, 0 errors, 91 warnings, same pre-existing categories
+  as session 10's 89). No screenshot/Roborazzi run this session (no new goldens needed yet since no
+  `test-engineer` pass has run). `assembleRelease` not run this session (not required until the
+  phase gate).
+- Manual test checklist: not written yet (Wave 1 isn't reachable end-to-end from Play yet - the
+  Daily challenge tile will appear in Play's New modes grid once `FeatureFlag.DAILY_CHALLENGE` is on
+  in the debug menu, but 8.2/8.6 aren't built, so streaks won't show and the Home card stays the
+  placeholder). Will be written once the phase gate is reached.
+- Next session starts at: Phase 8, Wave 2 (8.2 Streaks, 8.3 Share card) on `upgrade/p8-engagement`
+  (branch exists, Wave 1 committed). Then Wave 3 (8.6), then the phase gate (licence-auditor,
+  test-engineer screenshots, full verification gate as three separate commands per the process note
+  above, decisions/session log, manual test checklist, PR).

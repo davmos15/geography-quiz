@@ -49,6 +49,14 @@ sealed class DailyChallengeUiState {
 
     /** No usable country data (should not happen with the real, bundled data). */
     data object Unavailable : DailyChallengeUiState()
+
+    /**
+     * Today's round is already recorded in history (task 8.2's hard guard, D54): a fresh round
+     * is never built for a date already completed. Reaching this screen a second time for a
+     * date not yet recorded still restores the in-progress round normally (see
+     * [DailyChallengeGameViewModel]'s init) - this state only ever follows a *fresh* start.
+     */
+    data object AlreadyPlayed : DailyChallengeUiState()
     data class Active(val state: DailyChallengeRoundState) : DailyChallengeUiState()
 }
 

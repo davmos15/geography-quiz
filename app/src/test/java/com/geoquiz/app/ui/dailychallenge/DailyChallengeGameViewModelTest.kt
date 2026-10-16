@@ -20,6 +20,7 @@ import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import com.geoquiz.app.domain.usecase.ValidateCapitalAnswerUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -142,6 +143,7 @@ class DailyChallengeGameViewModelTest {
             validateAnswer = validateAnswer,
             validateCapitalAnswer = validateCapitalAnswer,
             completeQuiz = completeQuiz,
+            quizHistoryRepository = quizHistoryRepository,
             clock = clock
         )
         runCurrent()
@@ -367,5 +369,63 @@ class DailyChallengeGameViewModelTest {
 
         assertEquals(2, vm.active().currentIndex)
         assertNull((vm.uiState.value as? DailyChallengeUiState.Active)?.state?.choiceFeedback)
+    }
+
+    // Task 8.2's hard one-attempt-per-day guard (D54).
+
+    @Test
+    fun `a fresh start for a date already recorded shows AlreadyPlayed and never builds a round`() {
+        coEvery {
+            quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", date)
+        } returns true
+
+        val vm = viewModel()
+
+        assertEquals(DailyChallengeUiState.AlreadyPlayed, vm.uiState.value)
+    }
+
+    @Test
+    fun `the guard checks history before ever fetching countries or building questions`() {
+        coEvery {
+            quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", date)
+        } returns true
+
+        viewModel()
+
+        io.mockk.verify(exactly = 0) { countryRepository.getAllCountries() }
+    }
+
+    @Test
+    fun `restoring an in-progress round is never blocked, even for a date already recorded`() {
+        // Build a fresh (unblocked) round first, to capture a real in-progress snapshot.
+        val handle = SavedStateHandle()
+        val vm = viewModel(handle)
+        answerCurrentCorrectly(vm)
+        val before = vm.active()
+
+        // Now simulate that this exact date has since been recorded elsewhere (e.g. a retry of
+        // this same brief's scope-cut double-completion path, D54) - a restore must still work.
+        coEvery {
+            quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", date)
+        } returns true
+
+        val restoredHandle = afterProcessDeath(handle)
+        val vm2 = viewModel(restoredHandle)
+        val after = vm2.active()
+
+        assertEquals(before.askedCodes, after.askedCodes)
+        assertTrue("an unfinished restored round comes back paused", after.paused)
+    }
+
+    @Test
+    fun `a fresh start for a date not yet recorded builds a round normally`() {
+        coEvery {
+            quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", date)
+        } returns false
+
+        val vm = viewModel()
+
+        assertTrue(vm.uiState.value is DailyChallengeUiState.Active)
+        coVerify { quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", date) }
     }
 }

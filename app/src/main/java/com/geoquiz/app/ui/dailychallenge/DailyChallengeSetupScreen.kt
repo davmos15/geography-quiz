@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.streak.StreakCalculator
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.ui.components.ReadableWidthFrame
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 import com.geoquiz.app.ui.theme.geoColors
@@ -84,6 +87,7 @@ fun DailyChallengeSetupScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    StreakSummary(state.streak)
                     if (state.alreadyCompletedToday) {
                         CompletedTodayCard()
                     } else {
@@ -97,6 +101,48 @@ fun DailyChallengeSetupScreen(
                 }
             }
         }
+    }
+}
+
+/**
+ * Plain-text streak summary (task 8.2): current streak (or "no streak yet"), freezes held and
+ * days to the next freeze. No colour or icon carries meaning here - theme text colours only, and
+ * text wraps rather than clipping at large font scales.
+ */
+@Composable
+private fun StreakSummary(streak: StreakStatus) {
+    // One TalkBack stop for the whole summary.
+    Column(
+        modifier = Modifier.semantics(mergeDescendants = true) {},
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = if (streak.current > 0) {
+                pluralStringResource(R.plurals.daily_challenge_streak_current, streak.current, streak.current)
+            } else {
+                stringResource(R.string.daily_challenge_streak_none)
+            },
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = pluralStringResource(R.plurals.daily_challenge_streak_freezes, streak.freezesHeld, streak.freezesHeld),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            // At the cap a 7th day earns nothing, so don't promise a freeze.
+            text = if (streak.freezesHeld >= StreakCalculator.MAX_FREEZES) {
+                stringResource(R.string.daily_challenge_streak_freezes_full)
+            } else {
+                pluralStringResource(
+                    R.plurals.daily_challenge_streak_next_freeze,
+                    streak.daysToNextFreeze,
+                    streak.daysToNextFreeze
+                )
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

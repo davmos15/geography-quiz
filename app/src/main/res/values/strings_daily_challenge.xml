@@ -22,6 +22,22 @@
     <string name="daily_challenge_completed_title">You\'ve completed today\'s challenge</string>
     <string name="daily_challenge_completed_message">Come back tomorrow for a new set of questions.</string>
 
+    <!-- Streaks (task 8.2) -->
+    <string name="daily_challenge_streak_none">No current streak. Play today to start one.</string>
+    <plurals name="daily_challenge_streak_current">
+        <item quantity="one">Streak: %1$d day</item>
+        <item quantity="other">Streak: %1$d days</item>
+    </plurals>
+    <plurals name="daily_challenge_streak_freezes">
+        <item quantity="one">%1$d streak freeze saved</item>
+        <item quantity="other">%1$d streak freezes saved</item>
+    </plurals>
+    <string name="daily_challenge_streak_freezes_full">That\'s the most streak freezes you can save. Use one before you earn another.</string>
+    <plurals name="daily_challenge_streak_next_freeze">
+        <item quantity="one">%1$d day to your next streak freeze</item>
+        <item quantity="other">%1$d days to your next streak freeze</item>
+    </plurals>
+
     <!-- Game screen (ui/dailychallenge/DailyChallengeGameScreen.kt) -->
     <string name="daily_challenge_progress">Question %1$d of %2$d</string>
     <string name="daily_challenge_prompt_typed_country">Type the name of this country</string>

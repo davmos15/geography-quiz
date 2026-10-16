@@ -118,6 +118,15 @@ class QuizHistoryRepository @Inject constructor(
     suspend fun hasCompletedCategory(quizMode: String, categoryType: String, categoryValue: String): Boolean =
         quizHistoryDao.hasCompletedCategory(quizMode, categoryType, categoryValue)
 
+    /**
+     * Every distinct `categoryValue` ever recorded for (quizMode, categoryType) - e.g. every ISO
+     * date the daily challenge has been completed on, for
+     * [com.geoquiz.app.domain.streak.ObserveStreakUseCase] (task 8.2). Updates live as history
+     * changes.
+     */
+    fun distinctCategoryValues(quizMode: String, categoryType: String): Flow<List<String>> =
+        quizHistoryDao.observeDistinctCategoryValues(quizMode, categoryType)
+
     suspend fun clearAllHistory() = quizHistoryDao.deleteAllHistory()
 
     companion object {

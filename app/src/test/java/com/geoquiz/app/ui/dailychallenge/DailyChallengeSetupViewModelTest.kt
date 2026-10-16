@@ -1,15 +1,19 @@
 package com.geoquiz.app.ui.dailychallenge
 
-import com.geoquiz.app.data.repository.QuizHistoryRepository
-import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
-import io.mockk.coEvery
+import com.geoquiz.app.domain.streak.ObserveStreakUseCase
+import com.geoquiz.app.domain.streak.StreakStatus
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -19,11 +23,12 @@ import org.junit.Test
 class DailyChallengeSetupViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val quizHistoryRepository = mockk<QuizHistoryRepository>()
+    private val observeStreakUseCase = mockk<ObserveStreakUseCase>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        every { observeStreakUseCase() } returns flowOf(StreakStatus.NONE)
     }
 
     @After
@@ -33,13 +38,11 @@ class DailyChallengeSetupViewModelTest {
 
     private fun runCurrent() = dispatcher.scheduler.runCurrent()
 
+    private fun viewModel() = DailyChallengeSetupViewModel(observeStreakUseCase)
+
     @Test
     fun `shows the start button when today's challenge has not been played`() {
-        coEvery {
-            quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", any())
-        } returns false
-
-        val viewModel = DailyChallengeSetupViewModel(quizHistoryRepository)
+        val viewModel = viewModel()
         runCurrent()
 
         val state = viewModel.uiState.value
@@ -49,11 +52,9 @@ class DailyChallengeSetupViewModelTest {
 
     @Test
     fun `shows the completed state when today's challenge is already recorded`() {
-        coEvery {
-            quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", any())
-        } returns true
+        every { observeStreakUseCase() } returns flowOf(StreakStatus.NONE.copy(current = 1, best = 1, playedToday = true))
 
-        val viewModel = DailyChallengeSetupViewModel(quizHistoryRepository)
+        val viewModel = viewModel()
         runCurrent()
 
         val state = viewModel.uiState.value
@@ -62,13 +63,40 @@ class DailyChallengeSetupViewModelTest {
     }
 
     @Test
-    fun `queries history with today's date and this mode's id`() {
-        coEvery { quizHistoryRepository.hasCompletedCategory(any(), any(), any()) } returns false
+    fun `finishing today's round while the screen is alive hides Start`() {
+        // Back from Results lands on this same ViewModel: the live history must flip the button.
+        val streak = MutableStateFlow(StreakStatus.NONE)
+        every { observeStreakUseCase() } returns streak
+        val viewModel = viewModel()
+        runCurrent()
+        assertFalse(viewModel.uiState.value.alreadyCompletedToday)
 
-        DailyChallengeSetupViewModel(quizHistoryRepository)
+        streak.value = StreakStatus(current = 1, best = 1, freezesHeld = 0, daysToNextFreeze = 6, playedToday = true)
         runCurrent()
 
-        val today = com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeDate.today()
-        io.mockk.coVerify { quizHistoryRepository.hasCompletedCategory(DailyChallengeGameMode.MODE_ID, "daily", today) }
+        assertTrue(viewModel.uiState.value.alreadyCompletedToday)
+        assertEquals(1, viewModel.uiState.value.streak.current)
+    }
+
+    @Test
+    fun `shows the streak from ObserveStreakUseCase`() {
+        val streak = StreakStatus(current = 4, best = 9, freezesHeld = 1, daysToNextFreeze = 3, playedToday = true)
+        every { observeStreakUseCase() } returns flowOf(streak)
+
+        val viewModel = viewModel()
+        runCurrent()
+
+        assertEquals(streak, viewModel.uiState.value.streak)
+    }
+
+    @Test
+    fun `stays loading with no streak before ObserveStreakUseCase emits`() {
+        every { observeStreakUseCase() } returns emptyFlow()
+
+        val viewModel = viewModel()
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertEquals(StreakStatus.NONE, viewModel.uiState.value.streak)
     }
 }

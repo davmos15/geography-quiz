@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -63,7 +64,9 @@ import com.geoquiz.app.ui.quiz.components.MultipleChoicePanel
  * [MultipleChoicePanel] for the two choice kinds - the exact widgets classic typed quizzes and
  * Easy-tier quizzes already use. Finishing the 10th question or "End challenge" navigates to
  * Results via [onFinished]. Backgrounding pauses the round like every other new mode (D37); a
- * paused overlay with Resume is the only way back in.
+ * paused overlay with Resume is the only way back in. A fresh start for a date already recorded
+ * (task 8.2's hard guard, D54) shows [DailyChallengeUiState.AlreadyPlayed] instead - a short
+ * message with a Back button, no round.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,6 +127,38 @@ fun DailyChallengeGameScreen(
                             modifier = Modifier.semantics { heading() }
                         )
                         Button(onClick = onNavigateBack, modifier = Modifier.padding(top = 16.dp)) {
+                            Text(stringResource(R.string.action_back))
+                        }
+                    }
+                }
+            }
+            is DailyChallengeUiState.AlreadyPlayed -> {
+                // The hard one-attempt-per-day guard (task 8.2, D54): reuses the Setup screen's
+                // own "already played" wording rather than new, near-duplicate strings.
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.daily_challenge_completed_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.semantics { heading() }
+                        )
+                        Text(
+                            text = stringResource(R.string.daily_challenge_completed_message),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Button(
+                            onClick = onNavigateBack,
+                            modifier = Modifier.padding(top = 16.dp).heightIn(min = 48.dp)
+                        ) {
                             Text(stringResource(R.string.action_back))
                         }
                     }

@@ -109,6 +109,16 @@ interface QuizHistoryDao {
     )
     suspend fun hasCompletedCategory(quizMode: String, categoryType: String, categoryValue: String): Boolean
 
+    // Streaks (task 8.2): every distinct categoryValue ever recorded for a (mode, categoryType)
+    // pair - for the daily challenge, exactly the set of ISO dates played, which
+    // com.geoquiz.app.domain.streak.StreakCalculator turns into a streak. Updates live as history
+    // changes.
+
+    @Query(
+        "SELECT DISTINCT categoryValue FROM quiz_history WHERE quizMode = :quizMode AND categoryType = :categoryType"
+    )
+    fun observeDistinctCategoryValues(quizMode: String, categoryType: String): Flow<List<String>>
+
     // Reset
 
     @Query("DELETE FROM quiz_history")

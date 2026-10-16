@@ -1,6 +1,8 @@
 package com.geoquiz.app.ui.results
 
 import android.app.Activity
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
@@ -63,6 +66,7 @@ import com.geoquiz.app.R
 import com.geoquiz.app.data.service.rememberSoundEffectPlayer
 import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.model.Achievement
+import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.AdaptiveButtonRow
@@ -73,8 +77,16 @@ import com.geoquiz.app.ui.components.WindowLayout
 import com.geoquiz.app.ui.navigation.ModeRoutes
 import com.geoquiz.app.ui.quiz.components.inlineIconSize
 import com.geoquiz.app.ui.quiz.feedback.ConfettiOverlay
+import com.geoquiz.app.ui.share.ShareCardContent
+import com.geoquiz.app.ui.share.ShareCardDialog
+import com.geoquiz.app.ui.share.ShareCardRenderer
 import com.geoquiz.app.ui.share.ShareUtils
+import com.geoquiz.app.ui.share.shareCardStrings
 import com.geoquiz.app.ui.theme.geoColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 import java.util.Locale
 
 @Composable
@@ -146,7 +158,11 @@ fun ResultsScreen(
                 onGoHome = { onGoHome(result.quizModeId) },
                 onViewAnswers = { onViewAnswers(result.id) },
                 viewModel = viewModel,
-                resultId = result.id
+                resultId = result.id,
+                // 8.3: the share card builder reads this directly (date, mode id, etc.) rather
+                // than threading yet more individual fields through this already-long parameter
+                // list.
+                completedQuiz = result
             )
         }
     }
@@ -193,10 +209,18 @@ private fun ResultsContent(
     viewModel: ResultsViewModel,
     /** Keys the one-off perfect-score celebration (8.5) below, so it never replays for the same
      * result: [com.geoquiz.app.ui.results.ResultsViewModel] loads one result per Results entry. */
-    resultId: String
+    resultId: String,
+    /** The full result, for the share card (8.3, [ShareCardContent.from]) only. */
+    completedQuiz: CompletedQuiz
 ) {
     val context = LocalContext.current
     val challengeResult by viewModel.challengeResult.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
+    // The share card preview dialog (8.3): open/closed and the challenge link live in the
+    // ViewModel's SavedStateHandle, so the dialog survives rotation and the link (with its
+    // outgoing-challenge row) is made once per Results entry.
+    val sharePreviewOpen by viewModel.sharePreviewOpen.collectAsStateWithLifecycle()
+    val shareLink by viewModel.shareLink.collectAsStateWithLifecycle()
 
     // Perfect score (8.5): confetti plus a chime, shown once per result, not on every
     // recomposition or rotation (the "New achievements" card above needs no such guard: it is
@@ -330,6 +354,10 @@ private fun ResultsContent(
     // ...and what to do next (the other pane on wide screens). [widthFraction]: the share of the
     // pane's width the buttons take (see resultsActionsWidthFraction).
     val actions: @Composable ColumnScope.(widthFraction: Float) -> Unit = { widthFraction ->
+        // Resolved here (not inside the AdaptiveButtonRow content below) so the share card
+        // dialog, placed after that row, can use them too.
+        val itemsNoun = stringResource(modeSpec.labels.itemsNoun)
+        val modeName = stringResource(modeSpec.labels.name)
         // D21: a practice quiz is not recorded, so it is not shared or sent as a challenge.
         if (isPractice) {
             Text(
@@ -343,27 +371,11 @@ private fun ResultsContent(
             // Side by side when both labels fit on one line, otherwise stacked (3.6).
             modifier = Modifier.fillMaxWidth(widthFraction)
         ) {
-            val itemsNoun = stringResource(modeSpec.labels.itemsNoun)
             OutlinedButton(
                 onClick = {
-                    ShareUtils.shareResults(
-                        context = context,
-                        categoryName = categoryName,
-                        itemsNoun = itemsNoun,
-                        score = correctAnswers,
-                        total = totalCountries,
-                        time = timeElapsedSeconds,
-                        // D35: new modes have no challenge links, so their share text has none
-                        // (createChallengeShareUrl returns null for them).
-                        deepLink = if (showChallenge) {
-                            viewModel.createChallengeShareUrl(
-                                categoryType, categoryValue, quizMode,
-                                score = correctAnswers, total = totalCountries, time = timeElapsedSeconds
-                            )
-                        } else {
-                            null
-                        }
-                    )
+                    // D35: new modes have no challenge link, so their share text/card falls back
+                    // to the Play Store link (ShareCardContent.from).
+                    viewModel.openSharePreview()
                 },
                 // Material's padding for a button with an icon: a little more room for the label.
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
@@ -391,6 +403,63 @@ private fun ResultsContent(
                 Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
                 Text("Challenge", textAlign = TextAlign.Center)
             }
+        }
+
+        // The share card preview dialog (8.3): previews the same card either shared as a PNG
+        // (through ShareCardRenderer/FileProvider) or described as plain text (ShareUtils).
+        if (sharePreviewOpen) {
+            val strings = shareCardStrings()
+            val deepLink = shareLink?.let(Uri::parse)
+            val content = remember(completedQuiz, modeName, deepLink, strings) {
+                ShareCardContent.from(completedQuiz, modeName, deepLink, strings)
+            }
+            val shareText = {
+                ShareUtils.shareResults(
+                    context = context,
+                    categoryName = categoryName,
+                    itemsNoun = itemsNoun,
+                    score = correctAnswers,
+                    total = totalCountries,
+                    time = timeElapsedSeconds,
+                    deepLink = deepLink,
+                    date = content.date
+                )
+            }
+            ShareCardDialog(
+                content = content,
+                correct = correctAnswers,
+                total = totalCountries,
+                onDismiss = viewModel::closeSharePreview,
+                onShareText = {
+                    shareText()
+                    viewModel.closeSharePreview()
+                },
+                onShareImage = { bitmap ->
+                    val text = ShareUtils.buildResultsShareText(
+                        categoryName, itemsNoun, correctAnswers, totalCountries,
+                        timeElapsedSeconds, deepLink, content.date
+                    )
+                    // Writing the file is I/O, so it's off the main thread; the chooser itself
+                    // must start from the main thread. Any failure (full storage, provider
+                    // misconfiguration) falls back to the text share instead of crashing.
+                    coroutineScope.launch {
+                        val shared = runCatching {
+                            val file = withContext(Dispatchers.IO) { ShareCardRenderer.writeToCache(context, bitmap) }
+                            ShareCardRenderer.shareImage(
+                                context = context,
+                                file = file,
+                                text = text,
+                                chooserTitle = context.getString(R.string.share_chooser_title_image)
+                            )
+                        }.onFailure { if (it is CancellationException) throw it }.isSuccess
+                        if (!shared) {
+                            Toast.makeText(context, R.string.share_image_failed, Toast.LENGTH_SHORT).show()
+                            shareText()
+                        }
+                    }
+                    viewModel.closeSharePreview()
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

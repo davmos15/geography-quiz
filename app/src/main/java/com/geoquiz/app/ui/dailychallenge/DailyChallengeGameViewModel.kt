@@ -3,6 +3,7 @@ package com.geoquiz.app.ui.dailychallenge
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeDate
 import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGenerator
@@ -50,6 +51,12 @@ import kotlinx.coroutines.launch
  *
  * See [DailyChallengeScoring][com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeScoring]
  * for how a finished round packs into a plain [QuizState] for [CompleteQuizUseCase].
+ *
+ * Task 8.2's hard guard (D54, replacing the Setup screen's previous soft UI-only gate): a fresh
+ * start (no saved-state snapshot) checks [QuizHistoryRepository.hasCompletedCategory] for this
+ * round's date first and publishes [DailyChallengeUiState.AlreadyPlayed] instead of building a
+ * round if it is already recorded. Restoring an in-progress round is never blocked this way, even
+ * for a date not yet recorded (see `init` below).
  */
 @HiltViewModel
 class DailyChallengeGameViewModel @Inject constructor(
@@ -58,6 +65,7 @@ class DailyChallengeGameViewModel @Inject constructor(
     private val validateAnswer: ValidateAnswerUseCase,
     private val validateCapitalAnswer: ValidateCapitalAnswerUseCase,
     private val completeQuiz: CompleteQuizUseCase,
+    private val quizHistoryRepository: QuizHistoryRepository,
     clock: MonotonicClock
 ) : ViewModel() {
 
@@ -81,9 +89,21 @@ class DailyChallengeGameViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val allCountries = countryRepository.getAllCountries().first()
             val snapshot = savedState.restore()
             date = snapshot?.date ?: DailyChallengeDate.today()
+            // The hard one-attempt-per-day guard (task 8.2, D54) only applies to a *fresh* start:
+            // restoring an in-progress saved round (snapshot != null) must always continue, even
+            // for a date not yet recorded (it is only recorded once the round finishes).
+            if (snapshot == null && quizHistoryRepository.hasCompletedCategory(
+                    quizMode = DailyChallengeGameMode.MODE_ID,
+                    categoryType = category.typeKey,
+                    categoryValue = date
+                )
+            ) {
+                _uiState.value = DailyChallengeUiState.AlreadyPlayed
+                return@launch
+            }
+            val allCountries = countryRepository.getAllCountries().first()
             val questions = DailyChallengeGenerator.generate(date, allCountries)
             if (questions.isEmpty()) {
                 _uiState.value = DailyChallengeUiState.Unavailable

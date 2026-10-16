@@ -12,11 +12,14 @@ import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.mode.ModeIcon
+import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.repository.CountryRepository
+import com.geoquiz.app.domain.streak.ObserveStreakUseCase
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.domain.usecase.RecommendNextCategoryUseCase
 import com.geoquiz.app.domain.usecase.RecommendationCandidate
 import com.geoquiz.app.ui.category.CategoryOptionsBuilder
@@ -76,6 +79,14 @@ data class PinnedQuiz(
     val categoryDisplayName: String
 )
 
+/**
+ * The live "Today's challenge" card (8.6): whether today's round is done and the streak, which
+ * also feeds the streak chip in the Play header.
+ */
+data class TodayChallengeInfo(val streak: StreakStatus) {
+    val playedToday: Boolean get() = streak.playedToday
+}
+
 /** A concrete category option of a classic mode, in Play display order. */
 data class CategoryCandidate(
     val groupId: String,
@@ -94,14 +105,16 @@ data class PlayUiState(
     /** Group tiles per classic mode id; null while loading. */
     val modeContent: Map<String, ModeContent>? = null,
     val savedQuiz: SavedQuizInfo? = null,
-    /** The "Today's challenge" placeholder card; only while [FeatureFlag.DAILY_CHALLENGE] is on (D24). */
-    val showTodayChallenge: Boolean = false,
+    /** The "Today's challenge" card and header streak; null unless [FeatureFlag.DAILY_CHALLENGE] is on. */
+    val todayChallenge: TodayChallengeInfo? = null,
     /** "Recommended next" for [selectedModeId]; null hides the card. */
     val recommended: RecommendedQuiz? = null,
     /** Pinned categories of every available mode, oldest pin first; empty hides the section. */
     val pinned: List<PinnedQuiz> = emptyList()
 ) {
     val isLoading: Boolean get() = modeContent == null
+
+    val showTodayChallenge: Boolean get() = todayChallenge != null
 
     /** Tiles for [selectedModeId]. */
     val selectedContent: ModeContent? get() = modeContent?.get(selectedModeId)
@@ -125,7 +138,8 @@ class PlayViewModel @Inject constructor(
     private val optionsBuilder: CategoryOptionsBuilder,
     private val quizHistoryRepository: QuizHistoryRepository,
     private val recommendNext: RecommendNextCategoryUseCase,
-    pinnedCategoriesRepository: PinnedCategoriesRepository
+    pinnedCategoriesRepository: PinnedCategoriesRepository,
+    observeStreak: ObserveStreakUseCase
 ) : ViewModel() {
 
     private val classicIds: Set<String> = QuizMode.entries.map { it.id }.toSet()
@@ -136,13 +150,29 @@ class PlayViewModel @Inject constructor(
             val enabled = states.filter { it.enabled }.map { it.flag }.toSet()
             val available = registry.available { it in enabled }
             val classic = available.filter { it.id in classicIds }.sortedBy { it.spec.sortOrder }.map { it.toOption() }
-            val newModes = available.filter { it.id !in classicIds }.sortedBy { it.spec.sortOrder }.map { it.toOption() }
+            // The daily challenge has its own card at the top of Play (8.6), so it isn't listed
+            // twice in the New modes grid.
+            val newModes = available
+                .filter { it.id !in classicIds && it.id != DailyChallengeGameMode.MODE_ID }
+                .sortedBy { it.spec.sortOrder }
+                .map { it.toOption() }
             classic to newModes
         }
 
+    // Same rule as the destination's guard (rememberModeIsAvailable): the card shows exactly
+    // when the daily challenge mode is available, today behind FeatureFlag.DAILY_CHALLENGE, so it
+    // stays reachable if the mode is ever released without a flag.
     private val showTodayChallenge: Flow<Boolean> = featureFlagRepository.states
-        .map { states -> states.any { it.flag == FeatureFlag.DAILY_CHALLENGE && it.enabled } }
+        .map { states ->
+            val enabled = states.filter { it.enabled }.map { it.flag }.toSet()
+            registry.available { it in enabled }.any { it.id == DailyChallengeGameMode.MODE_ID }
+        }
         .distinctUntilChanged()
+
+    /** Live while the flag is on: streak (rolls over at midnight) and "done today". */
+    private val todayChallenge: Flow<TodayChallengeInfo?> = showTodayChallenge.flatMapLatest { on ->
+        if (on) observeStreak().map { TodayChallengeInfo(it) } else flowOf(null)
+    }.distinctUntilChanged()
 
     private val selectedModeId: Flow<String> = combine(
         savedStateHandle.getStateFlow(KEY_SELECTED_MODE, QuizMode.COUNTRIES.id),
@@ -218,7 +248,7 @@ class PlayViewModel @Inject constructor(
         modeOptions,
         modeContent,
         savedQuiz,
-        combine(showTodayChallenge, recommended, pinned, ::Triple)
+        combine(todayChallenge, recommended, pinned, ::Triple)
     ) { selected, (classic, newModes), content, saved, (today, recommendation, pins) ->
         PlayUiState(
             selectedModeId = selected,
@@ -226,7 +256,7 @@ class PlayViewModel @Inject constructor(
             newModes = newModes,
             modeContent = content,
             savedQuiz = saved,
-            showTodayChallenge = today,
+            todayChallenge = today,
             recommended = recommendation,
             pinned = pins
         )

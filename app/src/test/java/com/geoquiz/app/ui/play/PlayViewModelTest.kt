@@ -8,6 +8,7 @@ import com.geoquiz.app.domain.mode.ModeIcon
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
 import com.geoquiz.app.domain.model.PinnedCategory
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
@@ -254,6 +255,64 @@ class PlayViewModelTest {
 
             flags.value = flagStates(FeatureFlag.TAP_THE_MAP)
             assertFalse(awaitUntil { !it.showTodayChallenge }.showTodayChallenge)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // Today's challenge, live (8.6)
+
+    @Test
+    fun `the Today's challenge card carries the live streak and done-today state`() = runTest {
+        val streak = MutableStateFlow(StreakStatus.NONE)
+        val viewModel = ScreenTestFixtures.playViewModel(
+            flagStates = flowOf(flagStates(FeatureFlag.DAILY_CHALLENGE)),
+            streak = streak
+        )
+
+        viewModel.uiState.test {
+            val before = awaitUntil { it.todayChallenge != null }.todayChallenge!!
+            assertFalse(before.playedToday)
+            assertEquals(0, before.streak.current)
+
+            streak.value = StreakStatus(
+                current = 3, best = 3, freezesHeld = 0, daysToNextFreeze = 4, playedToday = true
+            )
+            val after = awaitUntil { it.todayChallenge?.playedToday == true }.todayChallenge!!
+            assertEquals(3, after.streak.current)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the daily challenge has its card, so it is not repeated in New modes`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(
+            flagStates = flowOf(flagStates(FeatureFlag.DAILY_CHALLENGE, FeatureFlag.COUNTRY_SILHOUETTES)),
+            extraModes = setOf(silhouettes)
+        )
+
+        viewModel.uiState.test {
+            val state = awaitUntil { it.todayChallenge != null && it.newModes.isNotEmpty() }
+            assertEquals(listOf(silhouettes.id), state.newModes.map { it.id })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a streak never shows the card while the daily challenge flag is off`() = runTest {
+        val flags = MutableStateFlow(flagStates())
+        val viewModel = ScreenTestFixtures.playViewModel(
+            flagStates = flags,
+            streak = flowOf(StreakStatus(current = 5, best = 5, freezesHeld = 0, daysToNextFreeze = 2, playedToday = true))
+        )
+
+        viewModel.uiState.test {
+            assertNull(awaitLoaded().todayChallenge)
+
+            flags.value = flagStates(FeatureFlag.DAILY_CHALLENGE)
+            assertEquals(5, awaitUntil { it.todayChallenge != null }.todayChallenge!!.streak.current)
+
+            flags.value = flagStates()
+            assertNull(awaitUntil { it.todayChallenge == null }.todayChallenge)
             cancelAndIgnoreRemainingEvents()
         }
     }

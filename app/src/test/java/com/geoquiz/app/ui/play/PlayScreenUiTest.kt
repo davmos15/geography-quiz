@@ -22,9 +22,11 @@ import androidx.compose.ui.test.performScrollToNode
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
 import com.geoquiz.app.domain.model.PinnedCategory
+import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.testutil.TestGameModes
+import com.geoquiz.app.ui.navigation.ModeRoutes
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import io.mockk.coVerify
 import kotlinx.coroutines.flow.flowOf
@@ -237,7 +239,7 @@ class PlayScreenUiTest {
     }
 
     @Test
-    fun `Today's challenge shows as a placeholder with its flag on and is not clickable`() {
+    fun `Today's challenge opens the daily challenge in one tap with its flag on`() {
         val daily = FeatureFlag.entries.map {
             FeatureFlagState(it, enabled = it == FeatureFlag.DAILY_CHALLENGE, overridden = it == FeatureFlag.DAILY_CHALLENGE)
         }
@@ -245,8 +247,43 @@ class PlayScreenUiTest {
 
         compose.onNode(hasText("Today’s challenge"))
             .assertIsDisplayed()
-            .assert(hasText("A new set of questions every day. Coming soon."))
-            .assertHasNoClickAction()
+            .assert(hasText("10 questions, the same for everyone today. One go per day."))
+            .performClick()
+        assertEquals(listOf(ModeRoutes.DAILY_CHALLENGE_MODE_ID), openedModes)
+    }
+
+    @Test
+    fun `no streak chip without a running streak, or with the daily challenge off`() {
+        val daily = FeatureFlag.entries.map {
+            FeatureFlagState(it, enabled = it == FeatureFlag.DAILY_CHALLENGE, overridden = it == FeatureFlag.DAILY_CHALLENGE)
+        }
+        launch(ScreenTestFixtures.playViewModel(flagStates = flowOf(daily)))
+        compose.onNodeWithContentDescription("streak", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a streak shows no chip or card while the daily challenge flag is off`() {
+        val streak = StreakStatus(current = 5, best = 5, freezesHeld = 0, daysToNextFreeze = 2, playedToday = true)
+        launch(ScreenTestFixtures.playViewModel(streak = flowOf(streak)))
+
+        compose.onNodeWithContentDescription("5-day streak", substring = true).assertDoesNotExist()
+        compose.onNode(hasText("Today’s challenge")).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a running streak shows in the header and the card says today is done`() {
+        val daily = FeatureFlag.entries.map {
+            FeatureFlagState(it, enabled = it == FeatureFlag.DAILY_CHALLENGE, overridden = it == FeatureFlag.DAILY_CHALLENGE)
+        }
+        val streak = StreakStatus(
+            current = 5, best = 5, freezesHeld = 1, daysToNextFreeze = 2, playedToday = true
+        )
+        launch(ScreenTestFixtures.playViewModel(flagStates = flowOf(daily), streak = flowOf(streak)))
+
+        compose.onNodeWithContentDescription("5-day streak, 1 streak freeze saved").assertIsDisplayed()
+        compose.onNode(hasText("Today’s challenge"))
+            .assert(hasText("Done for today. A new set arrives tomorrow."))
+            .assert(hasText("Streak: 5 days", substring = true))
     }
 
     // Pinned (3.4c)

@@ -43,4 +43,18 @@
     <string name="daily_challenge_prompt_typed_country">Type the name of this country</string>
     <string name="daily_challenge_give_up">End challenge</string>
     <string name="daily_challenge_unavailable">Today\'s challenge is not available right now. Try again later.</string>
+
+    <!-- Play tab (task 8.6): the Today's challenge card and the header streak chip. -->
+    <plurals name="play_today_body_ready">
+        <item quantity="one">%1$d question, the same for everyone today. One go per day.</item>
+        <item quantity="other">%1$d questions, the same for everyone today. One go per day.</item>
+    </plurals>
+    <string name="play_today_body_done">Done for today. A new set arrives tomorrow.</string>
+    <string name="play_today_action">Open today\'s challenge</string>
+    <!-- "5-day streak, 1 streak freeze saved" -->
+    <string name="play_streak_chip_a11y">%1$s, %2$s</string>
+    <plurals name="play_streak_chip_description">
+        <item quantity="one">%1$d-day streak</item>
+        <item quantity="other">%1$d-day streak</item>
+    </plurals>
 </resources>

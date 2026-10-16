@@ -101,6 +101,9 @@ class AchievementRepository @Inject constructor(
                 is QuizCategory.FixedRegion -> "fixedregion"
                 // Never reached: practice quizzes record no achievements (D21, CompleteQuizUseCase).
                 is QuizCategory.Practice -> "practice"
+                // Never reached: same reasoning as MapRegion/FixedRegion above (D35, daily
+                // challenge is a new, non-classic mode).
+                is QuizCategory.DailyChallenge -> "dailychallenge"
             }
             val groups = (prefs[CATEGORY_GROUPS_KEY] ?: "").let {
                 if (it.isBlank()) mutableSetOf() else it.split(",").toMutableSet()

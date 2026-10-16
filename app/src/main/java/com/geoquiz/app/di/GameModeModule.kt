@@ -6,6 +6,7 @@ import com.geoquiz.app.domain.mode.classic.CapitalsGameMode
 import com.geoquiz.app.domain.mode.classic.CountriesGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsGameMode
 import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
+import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.mode.flagspeed.FlagSpeedGameMode
 import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeaturesGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
@@ -54,4 +55,7 @@ abstract class GameModeModule {
 
     @Binds @IntoSet
     abstract fun flagSpeedRound(mode: FlagSpeedGameMode): GameMode
+
+    @Binds @IntoSet
+    abstract fun dailyChallenge(mode: DailyChallengeGameMode): GameMode
 }

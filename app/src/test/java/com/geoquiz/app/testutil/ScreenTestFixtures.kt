@@ -18,6 +18,7 @@ import com.geoquiz.app.data.service.BillingRepository
 import com.geoquiz.app.data.service.ConsentManager
 import com.geoquiz.app.data.service.InterstitialPolicy
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.data.service.SoundEffectPlayer
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.CompletedQuiz
@@ -170,6 +171,7 @@ object ScreenTestFixtures {
             settingsRepository = settingsRepository(showTimer = showTimer, vibration = vibration),
             savedQuizRepository = savedQuizRepository,
             adManager = mockk<AdManager>(relaxed = true),
+            soundEffectPlayer = mockk<SoundEffectPlayer>(relaxed = true),
             clock = FrozenClock,
             countryRepository = countryRepository(allCountries),
             quizRandom = QuizRandom(Random(42))

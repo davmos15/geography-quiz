@@ -191,4 +191,13 @@ sealed class Screen(val route: String) {
 
         fun createRoute(difficulty: String): String = "flag_speed_round/${Uri.encode(difficulty)}"
     }
+
+    /**
+     * Daily challenge (task 8.1): no category or difficulty argument - every round is the same
+     * fixed shape (always [com.geoquiz.app.domain.model.Difficulty.NORMAL], D4), so there is
+     * nothing to carry in the route.
+     */
+    data object DailyChallenge : Screen("daily_challenge") {
+        fun createRoute(): String = "daily_challenge"
+    }
 }

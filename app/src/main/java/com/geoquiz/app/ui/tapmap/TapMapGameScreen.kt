@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.map.MapFeatureState
 import com.geoquiz.app.domain.map.MapHit
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.Difficulty
@@ -339,10 +340,22 @@ internal fun TapMapActiveContent(
     val target = state.targetCode?.let { countriesByCode[it] }
     val featureStates = remember(state, isEasy) { tapMapFeatureStates(state, isEasy) }
 
+    // Task 8.4: once this round has used its difficulty tier's hint cap, the Hint button stays
+    // disabled for the rest of the round (HintCosts.maxHintsPerRound), alongside the existing
+    // per-prompt "already used" disable.
+    val hintCapReached = qs.hintsUsed.size >= HintCosts.maxHintsPerRound(difficulty)
+
     val controlsRow: @Composable () -> Unit = {
         // D39: Hint and Skip are hidden at Easy (nothing to skip to answer by picking a name;
         // the subregion clue already stands in for a hint).
-        ControlsRow(isEasy = isEasy, hintUsed = state.hintUsedThisPrompt, onSkip = onSkip, onHint = onHint, onGiveUp = onGiveUp)
+        ControlsRow(
+            isEasy = isEasy,
+            hintUsed = state.hintUsedThisPrompt,
+            hintCapReached = hintCapReached,
+            onSkip = onSkip,
+            onHint = onHint,
+            onGiveUp = onGiveUp
+        )
     }
     val details: @Composable (Modifier) -> Unit = { detailsModifier ->
         ControlsBlock(
@@ -632,9 +645,21 @@ private fun FeedbackArea(state: TapMapGameState) {
     }
 }
 
-/** Skip, Hint (hidden at Easy, D39) and Give up: stacked instead of clipped when they don't fit (S3). */
+/**
+ * Skip, Hint (hidden at Easy, D39) and Give up: stacked instead of clipped when they don't fit
+ * (S3). [hintCapReached] (task 8.4) disables Hint for the rest of the round once its difficulty
+ * tier's `HintCosts.maxHintsPerRound` is reached, alongside the existing per-prompt [hintUsed]
+ * disable; the content description still only speaks to the per-prompt state (no new string).
+ */
 @Composable
-private fun ControlsRow(isEasy: Boolean, hintUsed: Boolean, onSkip: () -> Unit, onHint: () -> Unit, onGiveUp: () -> Unit) {
+private fun ControlsRow(
+    isEasy: Boolean,
+    hintUsed: Boolean,
+    hintCapReached: Boolean,
+    onSkip: () -> Unit,
+    onHint: () -> Unit,
+    onGiveUp: () -> Unit
+) {
     AdaptiveButtonRow(modifier = Modifier.fillMaxWidth()) {
         if (!isEasy) {
             OutlinedButton(onClick = onSkip, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -645,7 +670,7 @@ private fun ControlsRow(isEasy: Boolean, hintUsed: Boolean, onSkip: () -> Unit, 
             )
             OutlinedButton(
                 onClick = onHint,
-                enabled = !hintUsed,
+                enabled = !hintUsed && !hintCapReached,
                 modifier = Modifier
                     .heightIn(min = 48.dp)
                     .clearAndSetSemantics { contentDescription = hintDescription }

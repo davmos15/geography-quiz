@@ -265,7 +265,15 @@ private fun BorderHopActiveContent(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(stringResource(R.string.border_hop_undo))
                         }
-                        OutlinedButton(onClick = viewModel::onHint, enabled = hintedCode == null) {
+                        // Task 8.4: disabled for the rest of the round once its difficulty tier's
+                        // hint cap (HintCosts.maxHintsPerRound) is reached, alongside the existing
+                        // "already revealed at this position" disable.
+                        val hintCapReached = round.hintsUsed.size >=
+                            com.geoquiz.app.domain.mode.HintCosts.maxHintsPerRound(round.difficulty)
+                        OutlinedButton(
+                            onClick = viewModel::onHint,
+                            enabled = hintedCode == null && !hintCapReached
+                        ) {
                             Icon(Icons.Default.Lightbulb, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(stringResource(R.string.border_hop_hint, HintCostsForDisplay))

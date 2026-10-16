@@ -55,6 +55,10 @@ object A11yText {
     fun incorrectGuesses(res: Resources, count: Int): String =
         res.getQuantityString(R.plurals.a11y_incorrect_guesses, count, count)
 
+    /** "Combo of 3 correct answers" (game feel, task 8.5; see domain.feedback.ComboTracker). */
+    fun combo(res: Resources, count: Int): String =
+        res.getQuantityString(R.plurals.a11y_combo, count, count)
+
     /**
      * One quiz list row, read as a single item. Never reveals an unanswered answer:
      * "France, answered", "Row 12, not yet answered",

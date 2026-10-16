@@ -100,6 +100,15 @@ interface QuizHistoryDao {
     @Query("SELECT COALESCE(SUM(correctAnswers), 0) FROM quiz_history WHERE quizMode = :quizMode AND difficulty != 'easy'")
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long
 
+    // Daily challenge (task 8.1): "has this exact category already been recorded?", for the
+    // setup screen's "already played today" check (and reusable by anything else that needs to
+    // know a specific (mode, category) was ever completed).
+
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM quiz_history WHERE quizMode = :quizMode AND categoryType = :categoryType AND categoryValue = :categoryValue)"
+    )
+    suspend fun hasCompletedCategory(quizMode: String, categoryType: String, categoryValue: String): Boolean
+
     // Reset
 
     @Query("DELETE FROM quiz_history")

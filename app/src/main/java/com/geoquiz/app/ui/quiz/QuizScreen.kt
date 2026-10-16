@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -74,6 +75,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.geoquiz.app.domain.feedback.ComboTracker
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.R
@@ -111,6 +113,7 @@ fun QuizScreen(
     val showCountryHint by viewModel.showCountryHint.collectAsStateWithLifecycle()
     val timerVisible by viewModel.timerVisible.collectAsStateWithLifecycle()
     val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
+    val comboCount by viewModel.comboCount.collectAsStateWithLifecycle()
     var showGiveUpDialog by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
 
@@ -322,6 +325,29 @@ fun QuizScreen(
                                         text = "${quizState.incorrectGuesses}",
                                         style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.geoColors.wrong
+                                    )
+                                }
+                            }
+                            // Game feel only (8.5): fast, consecutive correct answers. Not shown
+                            // for a lone correct answer or score bonus; see ComboTracker.
+                            if (comboCount >= ComboTracker.VISIBLE_THRESHOLD) {
+                                val comboDescription = A11yText.combo(res, comboCount)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clearAndSetSemantics {
+                                        contentDescription = comboDescription
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Default.Whatshot,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.geoColors.correct,
+                                        modifier = Modifier.size(inlineIconSize(18.dp))
+                                    )
+                                    Text(
+                                        text = "×$comboCount",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.geoColors.correct
                                     )
                                 }
                             }

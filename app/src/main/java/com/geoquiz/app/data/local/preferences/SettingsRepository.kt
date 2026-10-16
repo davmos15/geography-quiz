@@ -39,6 +39,14 @@ class SettingsRepository @Inject constructor(
         prefs[SHOW_COUNTRY_HINT_KEY] ?: false
     }
 
+    /** Game-feel sound effects (8.5): correct, wrong and perfect-score chimes. The system ringer
+     * also applies ([com.geoquiz.app.data.service.SoundEffectPlayer] skips playback outside
+     * `RINGER_MODE_NORMAL`), the same way [vibration] leaves the system touch-feedback setting to
+     * `HapticFeedbackPlayer`. */
+    val soundEffects: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[SOUND_EFFECTS_KEY] ?: true
+    }
+
     /**
      * The remembered default tier, preselected on the category list. Installs from before 3.2
      * only had the `hard_mode` switch: on means [Difficulty.HARD], off or unset [Difficulty.NORMAL].
@@ -77,6 +85,12 @@ class SettingsRepository @Inject constructor(
         }
     }
 
+    suspend fun setSoundEffects(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[SOUND_EFFECTS_KEY] = enabled
+        }
+    }
+
     /** Remembers [difficulty] as the default and drops the legacy `hard_mode` switch. */
     suspend fun setDifficulty(difficulty: Difficulty) {
         dataStore.edit { prefs ->
@@ -102,6 +116,7 @@ class SettingsRepository @Inject constructor(
         private val SHOW_FLAGS_KEY = booleanPreferencesKey("show_flags")
         private val SHOW_COUNTRY_HINT_KEY = booleanPreferencesKey("show_country_hint")
         private val VIBRATION_KEY = booleanPreferencesKey("vibration")
+        private val SOUND_EFFECTS_KEY = booleanPreferencesKey("sound_effects")
         private val DIFFICULTY_KEY = stringPreferencesKey("difficulty")
         /** Replaced by [DIFFICULTY_KEY] in 3.2; only read to migrate the old setting. */
         private val LEGACY_HARD_MODE_KEY = booleanPreferencesKey("hard_mode")

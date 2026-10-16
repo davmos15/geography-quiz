@@ -13,6 +13,7 @@ import com.geoquiz.app.domain.map.PlaneRect
 import com.geoquiz.app.domain.map.RegionPreset
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.mode.GameModeSpec
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.HintType
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
@@ -441,7 +442,8 @@ class TapMapGameViewModel @Inject constructor(
     /**
      * FLASH_REGION (D37): briefly highlights the target's UN subregion mates, and the target
      * itself (S9: otherwise the highlighted target would leave a revealing hole in the flash).
-     * Once per prompt; hidden at Easy (D39), guarded here (B3) all the same.
+     * Once per prompt; hidden at Easy (D39), guarded here (B3) all the same. A no-op once this
+     * round has already used its difficulty tier's hint cap (task 8.4, `HintCosts.maxHintsPerRound`).
      */
     fun onHint() {
         val active = activeOrNull() ?: return
@@ -450,6 +452,7 @@ class TapMapGameViewModel @Inject constructor(
         if (qs.isComplete || qs.isPaused || state.hintUsedThisPrompt) return
         if (state.revealedCode != null || qs.choiceFeedback != null) return
         if (hardLimitReached(qs)) return
+        if (qs.hintsUsed.size >= HintCosts.maxHintsPerRound(_difficulty.value)) return
         val targetCode = state.targetCode ?: return
         val target = itemsByCode[targetCode] ?: allCountries.find { it.code == targetCode } ?: return
         val mates = allCountries.filter { it.subregion == target.subregion }

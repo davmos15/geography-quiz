@@ -58,6 +58,23 @@ sealed class QuizCategory {
     data class FixedRegion(val label: String) : QuizCategory()
 
     /**
+     * The daily challenge round for one device-local calendar date (task 8.1, D4): [date] is
+     * "yyyy-MM-dd", the same string
+     * [com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGenerator] seeds a day's 10
+     * questions from, so every device gets the same set on the same date. Never offered in a
+     * classic mode ([isOfferedIn] is always false, like [MapRegion]/[FixedRegion]/[Practice]):
+     * [com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode] is the only mode that
+     * offers it, and its own setup screen starts a round directly rather than through a category
+     * list. Never carried by a challenge link either (there is no entry for it in
+     * [fromRouteOrNull], so an unknown "daily" type falls through to its `null` default, same as
+     * [Practice]): a daily challenge is already the same for everyone on a given date, so there
+     * is nothing to challenge a friend to that they could not already play themselves. Unlike
+     * [Practice], its result *is* recorded ([isRecorded] keeps the default `!is Practice`): Stats
+     * and "already played today" both need the row.
+     */
+    data class DailyChallenge(val date: String) : QuizCategory()
+
+    /**
      * "Practise the ones you missed" (3.5c): exactly these items, in this order. [codes] are
      * distinct upper-case cca3 codes. Built from a finished quiz's misses
      * ([CompletedQuiz.practiceCategoryOrNull]), never offered in a category list and never carried
@@ -109,6 +126,8 @@ sealed class QuizCategory {
             // in strings.xml (no Android resource dependency here, same as every other name above).
             is MapRegion -> presetId.split('_').joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
             is FixedRegion -> label
+            // Same text as R.string.mode_daily_challenge_name.
+            is DailyChallenge -> "Today's challenge"
             // Same text as R.string.practice_quiz_title, which Results shows instead.
             is Practice -> "Practise your misses"
         }
@@ -162,6 +181,7 @@ sealed class QuizCategory {
             is FlagElement -> "flagelement"
             is MapRegion -> "map_region"
             is FixedRegion -> "fixed_region"
+            is DailyChallenge -> "daily"
             is Practice -> Practice.TYPE_KEY
         }
 
@@ -195,6 +215,7 @@ sealed class QuizCategory {
             is FlagElement -> element
             is MapRegion -> presetId
             is FixedRegion -> label
+            is DailyChallenge -> date
             // Quiz order, not sorted.
             is Practice -> Practice.routeValue(codes)
         }
@@ -248,6 +269,7 @@ sealed class QuizCategory {
                 "flagelement" -> FlagElement(value)
                 "map_region" -> RegionPreset.fromId(value)?.let { MapRegion(value) } ?: AllCountries
                 "fixed_region" -> FixedRegion(value)
+                "daily" -> if (ISO_DATE_VALUE.matches(value)) DailyChallenge(value) else AllCountries
                 Practice.TYPE_KEY -> Practice.parseCodes(value).takeIf { it.isNotEmpty() }
                     ?.let { Practice(it) } ?: AllCountries
                 else -> AllCountries
@@ -256,6 +278,8 @@ sealed class QuizCategory {
             AllCountries
         }
 
+        /** "yyyy-MM-dd" as [DailyChallenge.date] and [com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeDate.today] produce it. */
+        private val ISO_DATE_VALUE = Regex("\\d{4}-\\d{2}-\\d{2}")
         private val LETTER_VALUE = Regex("[A-Z]")
         private val PLACE_VALUE = Regex("[A-Za-z][A-Za-z .,'&-]{0,39}")
         private val WORD_VALUE = Regex("[A-Za-z]{1,20}")
@@ -328,6 +352,11 @@ sealed class QuizCategory {
                 "fixed_region" -> null
                 // A practice set is the player's own misses: never something to send to a friend.
                 Practice.TYPE_KEY -> null
+                // Daily challenge resolves itself from today's date (DailyChallengeDate); never a
+                // challenge link, same reasoning as fixed_region above - everyone on the same date
+                // already plays the same round, so there is nothing to send. No "daily" case here
+                // at all (falls through to the else below), same treatment as every other unknown
+                // type.
                 else -> null
             }
         }
@@ -358,6 +387,7 @@ sealed class QuizCategory {
         this is Practice -> false
         this is MapRegion -> false
         this is FixedRegion -> false
+        this is DailyChallenge -> false
         isFlagCategory -> mode == QuizMode.FLAGS
         this is CapitalMatchesCountry -> mode == QuizMode.CAPITALS
         else -> mode == QuizMode.COUNTRIES || mode == QuizMode.CAPITALS

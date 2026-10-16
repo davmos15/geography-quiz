@@ -64,6 +64,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.ReadableWidthFrame
@@ -289,13 +290,14 @@ private fun SilhouettesActiveContent(
                     GuessedSoFarChips(names = round.wrongGuessNamesForCurrent, modifier = Modifier.fillMaxWidth())
                 }
                 if (round.availableHints.isNotEmpty()) {
+                    val hintCapReached = round.hintsUsed.size >= HintCosts.maxHintsPerRound(round.difficulty)
                     SilhouetteHintsRow(
                         available = round.availableHints,
                         used = round.hintsUsedForCurrent,
                         revealedSubregion = round.current?.subregion,
                         revealedFirstLetter = round.current?.name?.firstOrNull(),
                         neighbourNames = round.neighbourNames,
-                        enabled = !round.isComplete && !round.isAdvancing && !round.paused,
+                        enabled = !round.isComplete && !round.isAdvancing && !round.paused && !hintCapReached,
                         onHint = viewModel::onHint,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -418,13 +420,14 @@ private fun SilhouettesActiveContent(
                         choicePanel()
                     }
                     if (round.availableHints.isNotEmpty()) {
+                        val hintCapReached = round.hintsUsed.size >= HintCosts.maxHintsPerRound(round.difficulty)
                         SilhouetteHintsRow(
                             available = round.availableHints,
                             used = round.hintsUsedForCurrent,
                             revealedSubregion = round.current?.subregion,
                             revealedFirstLetter = round.current?.name?.firstOrNull(),
                             neighbourNames = round.neighbourNames,
-                            enabled = !round.isComplete && !round.isAdvancing && !round.paused,
+                            enabled = !round.isComplete && !round.isAdvancing && !round.paused && !hintCapReached,
                             onHint = viewModel::onHint,
                             modifier = Modifier.fillMaxWidth()
                         )

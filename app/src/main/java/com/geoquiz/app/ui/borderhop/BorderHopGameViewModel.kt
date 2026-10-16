@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.borderhop.BorderGraphRepository
 import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.HintType
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.borderhop.BorderGraph
@@ -178,12 +179,14 @@ class BorderHopGameViewModel @Inject constructor(
      * [HintType.SHOW_VALID_HOP]: reveals one neighbour of the current country that is still on a
      * shortest path to the target (its distance to the target is exactly one less than the
      * current country's). Usable again once the player moves (a hop or an undo clears the
-     * reveal); tapping it again at the same position costs nothing more.
+     * reveal); tapping it again at the same position costs nothing more. A no-op once this round
+     * has already used its difficulty tier's hint cap (task 8.4, `HintCosts.maxHintsPerRound`).
      */
     fun onHint() {
         val state = activeState() ?: return
         if (state.isComplete || state.paused) return
         if (state.revealedHopCode != null) return
+        if (state.hintsUsed.size >= HintCosts.maxHintsPerRound(state.difficulty)) return
         val distances = borderGraph.distancesFrom(state.targetCode)
         val currentDistance = distances[state.currentCode] ?: return
         val validHop = borderGraph.neighboursOf(state.currentCode)

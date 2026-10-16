@@ -36,6 +36,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
+import com.geoquiz.app.data.service.rememberSoundEffectPlayer
 import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.model.Achievement
 import com.geoquiz.app.domain.model.QuizMode
@@ -67,6 +72,7 @@ import com.geoquiz.app.ui.components.readableWidth
 import com.geoquiz.app.ui.components.WindowLayout
 import com.geoquiz.app.ui.navigation.ModeRoutes
 import com.geoquiz.app.ui.quiz.components.inlineIconSize
+import com.geoquiz.app.ui.quiz.feedback.ConfettiOverlay
 import com.geoquiz.app.ui.share.ShareUtils
 import com.geoquiz.app.ui.theme.geoColors
 import java.util.Locale
@@ -139,7 +145,8 @@ fun ResultsScreen(
                 },
                 onGoHome = { onGoHome(result.quizModeId) },
                 onViewAnswers = { onViewAnswers(result.id) },
-                viewModel = viewModel
+                viewModel = viewModel,
+                resultId = result.id
             )
         }
     }
@@ -183,10 +190,28 @@ private fun ResultsContent(
     onPlayAgain: () -> Unit,
     onGoHome: () -> Unit,
     onViewAnswers: () -> Unit,
-    viewModel: ResultsViewModel
+    viewModel: ResultsViewModel,
+    /** Keys the one-off perfect-score celebration (8.5) below, so it never replays for the same
+     * result: [com.geoquiz.app.ui.results.ResultsViewModel] loads one result per Results entry. */
+    resultId: String
 ) {
     val context = LocalContext.current
     val challengeResult by viewModel.challengeResult.collectAsStateWithLifecycle()
+
+    // Perfect score (8.5): confetti plus a chime, shown once per result, not on every
+    // recomposition or rotation (the "New achievements" card above needs no such guard: it is
+    // static, not an animation). `celebrated` survives rotation via rememberSaveable; the
+    // `remember` below locks in this composition's decision so the overlay is not pulled out of
+    // composition the instant `celebrated` flips to true.
+    val soundEffectPlayer = rememberSoundEffectPlayer()
+    var celebrated by rememberSaveable(resultId) { mutableStateOf(false) }
+    val showCelebration = remember(resultId) { perfectBonus && !celebrated }
+    LaunchedEffect(resultId) {
+        if (showCelebration) {
+            celebrated = true
+            soundEffectPlayer.playPerfect()
+        }
+    }
 
     val percentage = if (totalCountries > 0) {
         (correctAnswers.toDouble() / totalCountries * 100)
@@ -447,6 +472,11 @@ private fun ResultsContent(
                     Spacer(modifier = Modifier.height(20.dp))
                     actions(actionsWidth)
                 }
+            }
+            // Drawn last so it sits on top of both layouts above. ConfettiOverlay itself skips
+            // drawing anything when reduced motion is on (checked inside it).
+            if (showCelebration) {
+                ConfettiOverlay(modifier = Modifier.fillMaxSize())
             }
         }
     }

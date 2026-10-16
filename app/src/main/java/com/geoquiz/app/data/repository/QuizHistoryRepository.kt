@@ -110,6 +110,14 @@ class QuizHistoryRepository @Inject constructor(
     suspend fun getTotalCorrectAnswersForModeSync(quizMode: String): Long =
         quizHistoryDao.getTotalCorrectAnswersForModeSync(quizMode)
 
+    /**
+     * Whether this exact (mode, category) has ever been recorded (task 8.1: the daily challenge
+     * setup screen's "already played today" check, with `categoryType = "daily"` and
+     * `categoryValue` = today's "yyyy-MM-dd" date).
+     */
+    suspend fun hasCompletedCategory(quizMode: String, categoryType: String, categoryValue: String): Boolean =
+        quizHistoryDao.hasCompletedCategory(quizMode, categoryType, categoryValue)
+
     suspend fun clearAllHistory() = quizHistoryDao.deleteAllHistory()
 
     companion object {

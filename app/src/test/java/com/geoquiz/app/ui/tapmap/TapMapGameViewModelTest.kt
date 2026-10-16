@@ -347,6 +347,43 @@ class TapMapGameViewModelTest {
     }
 
     @Test
+    fun `onHint is a no-op once the round reaches Normal's hint cap (task 8_4)`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+
+        vm.onHint()
+        runCurrent()
+        assertEquals(1, vm.active().quizState.hintsUsed.size)
+
+        // Skip to a fresh prompt (clears the per-prompt "already used" flag) and use a second
+        // hint: Normal's cap (HintCosts.maxHintsPerRound) is 2.
+        vm.onSkip()
+        runCurrent()
+        vm.onHint()
+        runCurrent()
+        assertEquals(2, vm.active().quizState.hintsUsed.size)
+
+        // A third hint, on a third fresh prompt, is a no-op: the round-wide cap is already spent.
+        vm.onSkip()
+        runCurrent()
+        vm.onHint()
+        runCurrent()
+
+        val state = vm.active()
+        assertEquals("the cap already reached: no third hint", 2, state.quizState.hintsUsed.size)
+        assertFalse(state.hintUsedThisPrompt)
+    }
+
+    @Test
+    fun `onHint is always a no-op at Easy, which has no hint cap headroom (D39)`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
+
+        vm.onHint()
+        runCurrent()
+
+        assertTrue(vm.active().quizState.hintsUsed.isEmpty())
+    }
+
+    @Test
     fun `hint is available again on the next prompt`() {
         val vm = viewModel(routeHandle())
         vm.onHint()

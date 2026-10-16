@@ -2,6 +2,7 @@ package com.geoquiz.app.ui.navigation
 
 import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
+import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.mode.flagspeed.FlagSpeedGameMode
 import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeaturesGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
@@ -32,6 +33,7 @@ object ModeRoutes {
     const val CURRENCIES_MODE_ID = CurrencyGameMode.MODE_ID
     const val PHYSICAL_FEATURES_MODE_ID = PhysicalFeaturesGameMode.MODE_ID
     const val FLAG_SPEED_ROUND_MODE_ID = FlagSpeedGameMode.MODE_ID
+    const val DAILY_CHALLENGE_MODE_ID = DailyChallengeGameMode.MODE_ID
 
     /**
      * A fresh quiz for [modeId] over [categoryType]/[categoryValue] at [difficulty]. [challengeId]
@@ -62,6 +64,12 @@ object ModeRoutes {
         CURRENCIES_MODE_ID -> Screen.Currencies.createRoute(categoryType, categoryValue, difficulty)
         PHYSICAL_FEATURES_MODE_ID -> Screen.PhysicalFeatures.createRoute(categoryType, categoryValue, difficulty)
         FLAG_SPEED_ROUND_MODE_ID -> Screen.FlagSpeed.createRoute(difficulty ?: Difficulty.DEFAULT.id)
+        // No category/difficulty to carry (every round is the same fixed shape, D4); never
+        // actually reached via playAgain/practise since Results hides both for this mode
+        // (supportsPractice = false, and a fresh round each day replaces "play again" with the
+        // normal Setup screen), but included here so an unknown-mode fallback to a classic quiz
+        // (the `else` branch below) is never silently possible for this id either.
+        DAILY_CHALLENGE_MODE_ID -> Screen.DailyChallenge.createRoute()
         else -> Screen.Quiz.createRoute(modeId, categoryType, categoryValue, challengeId, difficulty)
     }
 

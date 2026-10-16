@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Daily challenge (task 8.1). Australian spelling. Never name another game or app.
+-->
+<resources>
+    <!-- Mode spec (domain/mode/dailychallenge/DailyChallengeGameMode.kt) -->
+    <string name="mode_daily_challenge_name">Today\'s challenge</string>
+    <!-- Never shown directly: the game screen picks a classic mode's own input label per
+         question kind (Countries or Capitals) instead. -->
+    <string name="mode_daily_challenge_input_label">Type your answer</string>
+    <string name="mode_daily_challenge_items">questions</string>
+    <string name="mode_daily_challenge_paused_progress">%1$d of %2$d questions answered</string>
+    <string name="mode_daily_challenge_give_up">You\'ve answered %1$d of %2$d questions. End today\'s challenge now?</string>
+    <plurals name="a11y_progress_daily_challenge">
+        <item quantity="one">%1$d of %2$d question answered</item>
+        <item quantity="other">%1$d of %2$d questions answered</item>
+    </plurals>
+
+    <!-- Setup screen (ui/dailychallenge/DailyChallengeSetupScreen.kt) -->
+    <string name="daily_challenge_setup_intro">Ten questions mixing countries, capitals and flags - the same for everyone today. Come back tomorrow for a new set.</string>
+    <string name="daily_challenge_start_action">Start today\'s challenge</string>
+    <string name="daily_challenge_completed_title">You\'ve completed today\'s challenge</string>
+    <string name="daily_challenge_completed_message">Come back tomorrow for a new set of questions.</string>
+
+    <!-- Game screen (ui/dailychallenge/DailyChallengeGameScreen.kt) -->
+    <string name="daily_challenge_progress">Question %1$d of %2$d</string>
+    <string name="daily_challenge_prompt_typed_country">Type the name of this country</string>
+    <string name="daily_challenge_give_up">End challenge</string>
+    <string name="daily_challenge_unavailable">Today\'s challenge is not available right now. Try again later.</string>
+</resources>

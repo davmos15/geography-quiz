@@ -125,8 +125,8 @@ class PlayScreenUiTest {
         segment("Flags").assertIsSelected()
         segment("Countries").assertIsNotSelected()
         compose.onNode(hasText("All countries")).assertDoesNotExist()
-        grid.performScrollToNode(hasText("By Color"))
-        compose.onNodeWithText("By Color").assertIsDisplayed().performClick()
+        grid.performScrollToNode(hasText("By Colour"))
+        compose.onNodeWithText("By Colour").assertIsDisplayed().performClick()
         grid.performScrollToNode(hasText("Shapes & Objects"))
         compose.onNodeWithText("Shapes & Objects").assertIsDisplayed()
         assertEquals(listOf("flags" to "flag_single_color"), categories)
@@ -231,9 +231,15 @@ class PlayScreenUiTest {
         assertEquals(listOf(Triple("countries", "region", "Africa")), quizzes)
     }
 
+    /** Every flag at its default except the daily challenge, which is switched off (D63 defaults it on). */
+    private fun dailyOff() = FeatureFlag.entries.map {
+        val daily = it == FeatureFlag.DAILY_CHALLENGE
+        FeatureFlagState(it, enabled = !daily && it.defaultEnabled, overridden = daily)
+    }
+
     @Test
-    fun `Today's challenge is hidden by default`() {
-        launch()
+    fun `Today's challenge is hidden while its flag is off`() {
+        launch(ScreenTestFixtures.playViewModel(flagStates = flowOf(dailyOff())))
 
         compose.onNode(hasText("Today’s challenge")).assertDoesNotExist()
     }
@@ -264,7 +270,7 @@ class PlayScreenUiTest {
     @Test
     fun `a streak shows no chip or card while the daily challenge flag is off`() {
         val streak = StreakStatus(current = 5, best = 5, freezesHeld = 0, daysToNextFreeze = 2, playedToday = true)
-        launch(ScreenTestFixtures.playViewModel(streak = flowOf(streak)))
+        launch(ScreenTestFixtures.playViewModel(flagStates = flowOf(dailyOff()), streak = flowOf(streak)))
 
         compose.onNodeWithContentDescription("5-day streak", substring = true).assertDoesNotExist()
         compose.onNode(hasText("Today’s challenge")).assertDoesNotExist()

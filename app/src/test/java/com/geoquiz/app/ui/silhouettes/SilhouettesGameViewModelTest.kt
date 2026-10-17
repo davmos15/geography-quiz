@@ -37,6 +37,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -694,6 +695,56 @@ class SilhouettesGameViewModelTest {
         val state = second.active()
         assertEquals("DEU", state.current?.code)
         assertFalse(state.isAdvancing)
+    }
+
+    // ---- Review fixes (task 9.2 review): Show neighbours can't be spent before the outline loads ----
+
+    @Test
+    fun `Show neighbours hint is a no-op while the outline is still loading`() {
+        coEvery { getCountryOutline(any(), any(), any()) } coAnswers {
+            delay(10_000)
+            outlineWithNeighbours(listOf("DEU"))
+        }
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD), silhouettesMode(listOf(france)))
+
+        assertTrue("outline hasn't resolved yet", vm.active().isOutlineLoading)
+        assertTrue(
+            "still listed while loading, so the row doesn't flicker",
+            HintType.SHOW_NEIGHBOURS in vm.active().availableHints
+        )
+
+        vm.onHint(HintType.SHOW_NEIGHBOURS)
+
+        val whileLoading = vm.active()
+        assertTrue("a hint spent while loading costs nothing", whileLoading.hintsUsed.isEmpty())
+        assertFalse(whileLoading.showNeighbours)
+        assertFalse(HintType.SHOW_NEIGHBOURS in whileLoading.hintsUsedForCurrent)
+
+        advanceTime(10_000)
+        assertFalse("the outline has now loaded", vm.active().isOutlineLoading)
+
+        vm.onHint(HintType.SHOW_NEIGHBOURS)
+        assertEquals(
+            "usable once the outline is ready",
+            listOf(HintType.SHOW_NEIGHBOURS),
+            vm.active().hintsUsed
+        )
+    }
+
+    @Test
+    fun `Show neighbours is dropped from availableHints once the outline is unavailable, and onHint is a no-op`() {
+        coEvery { getCountryOutline(any(), any(), any()) } returns null
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD), silhouettesMode(listOf(france)))
+
+        val state = vm.active()
+        assertTrue(state.isOutlineUnavailable)
+        assertFalse(
+            "no neighbour geometry to reveal, so the hint shouldn't be offered at all",
+            HintType.SHOW_NEIGHBOURS in state.availableHints
+        )
+
+        vm.onHint(HintType.SHOW_NEIGHBOURS)
+        assertTrue("a hint not in availableHints can't be used", vm.active().hintsUsed.isEmpty())
     }
 
     private fun outlineWithNeighbours(neighbourCodes: List<String>) = OutlineModel(

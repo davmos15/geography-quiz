@@ -362,12 +362,19 @@ class SilhouettesGameViewModel @Inject constructor(
     /**
      * One hint type, usable once per silhouette; each use is recorded for the scoring cost. A
      * no-op once this round has already used its difficulty tier's hint cap (task 8.4,
-     * `HintCosts.maxHintsPerRound`).
+     * `HintCosts.maxHintsPerRound`). Show neighbours is also a no-op while the current
+     * silhouette's outline is still loading (task 9.2 review fix): on a cold silhouette the
+     * outline (and so its neighbour list) isn't known yet, so spending the hint here would charge
+     * points, use up the round's hint cap and reveal nothing but a false "No land neighbours".
+     * Once the outline settles, [SilhouetteState.availableHints] either allows this (loaded) or
+     * drops it from the row entirely ([SilhouetteState.isOutlineUnavailable]), so the `!in
+     * availableHints` check above already covers that second case.
      */
     fun onHint(type: HintType) {
         val state = activeState() ?: return
         if (state.isComplete || state.isAdvancing || state.paused) return
         if (type !in state.availableHints) return
+        if (type == HintType.SHOW_NEIGHBOURS && state.isOutlineLoading) return
         if (type in state.hintsUsedForCurrent) return
         if (state.hintsUsed.size >= HintCosts.maxHintsPerRound(state.difficulty)) return
         commit(

@@ -53,6 +53,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -82,6 +84,7 @@ import com.geoquiz.app.ui.map.rememberMapViewState
 import com.geoquiz.app.ui.quiz.components.MultipleChoicePanel
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.quiz.feedback.rememberHapticFeedbackPlayer
+import com.geoquiz.app.ui.theme.geoColors
 
 /** A throwaway centre used only while there is no current feature to frame (round not loaded
  * yet, or just finished): [rememberMapScene] always needs a projection, but with no `coarse`
@@ -160,6 +163,20 @@ fun PhysicalFeaturesGameScreen(
         when (val state = uiState) {
             is PhysicalFeaturesUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
+            }
+            is PhysicalFeaturesUiState.Unavailable -> Box(
+                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(R.string.physical_features_unavailable),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = onNavigateBack) { Text(stringResource(R.string.action_back)) }
+                }
             }
             is PhysicalFeaturesUiState.Active -> {
                 val round = state.state
@@ -322,6 +339,7 @@ private fun PhysicalFeaturesActiveContent(
                     current = round.progress,
                     total = round.features.size,
                     difficulty = round.difficulty,
+                    incorrectGuesses = round.incorrectGuesses,
                     timerVisible = timerVisible,
                     timerSeconds = timerSeconds,
                     modifier = Modifier.fillMaxWidth()
@@ -438,6 +456,7 @@ private fun PhysicalFeaturesHeader(
     current: Int,
     total: Int,
     difficulty: Difficulty,
+    incorrectGuesses: Int,
     timerVisible: Boolean,
     timerSeconds: Int,
     modifier: Modifier = Modifier
@@ -455,6 +474,20 @@ private fun PhysicalFeaturesHeader(
         },
         trailing = {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Task 9.2 review fix: Hard ends the round at a strike limit (same as every
+                // other map mode) but, unlike Tap the map/US-CA, never showed the count - same
+                // status item, so this never relies on colour alone either.
+                if (difficulty == Difficulty.HARD) {
+                    val limit = Difficulty.HARD.strikeLimit ?: HARD_STRIKE_LIMIT_FALLBACK
+                    val shown = incorrectGuesses.coerceAtMost(limit)
+                    val description = pluralStringResource(R.plurals.a11y_hard_mode_strikes, limit, shown, limit)
+                    Text(
+                        text = stringResource(R.string.mode_tap_map_strikes_short, shown, limit),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.geoColors.wrong,
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = description }
+                    )
+                }
                 DifficultyLabel(difficulty = difficulty)
                 if (timerVisible) {
                     TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
@@ -463,6 +496,9 @@ private fun PhysicalFeaturesHeader(
         }
     )
 }
+
+/** Fallback only if [Difficulty.HARD]'s own [Difficulty.strikeLimit] is ever cleared to null. */
+private const val HARD_STRIKE_LIMIT_FALLBACK = 3
 
 @Composable
 private fun PhysicalFeaturesFeedbackBanner(

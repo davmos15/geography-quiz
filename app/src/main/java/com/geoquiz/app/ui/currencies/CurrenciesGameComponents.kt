@@ -36,8 +36,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -49,9 +52,9 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.ChoiceOption
 import com.geoquiz.app.domain.mode.ChoiceQuestion
 import com.geoquiz.app.domain.mode.currencies.CurrencyEntry
-import com.geoquiz.app.domain.mode.currencies.currencyLabel
 import com.geoquiz.app.domain.model.ChoiceFeedback
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.ui.components.AdaptiveTrailingRow
 import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.FlagImage
 import com.geoquiz.app.ui.quiz.components.FeedbackLine
@@ -59,25 +62,51 @@ import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.quiz.components.inlineIconSize
 import com.geoquiz.app.ui.theme.geoColors
 
-/** Header: "3 of 143", difficulty chip and the timer (same shape as `SilhouettesHeader`). */
+/** Header: "3 of 143", Hard's strike counter, difficulty chip and the timer. */
 @Composable
 fun CurrenciesHeader(
     current: Int,
     total: Int,
     difficulty: Difficulty,
+    incorrectGuesses: Int,
     timerVisible: Boolean,
     timerSeconds: Int,
     modifier: Modifier = Modifier
 ) {
     val progressText = stringResource(R.string.currencies_progress, (current + 1).coerceAtMost(total.coerceAtLeast(1)), total)
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = progressText, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        DifficultyLabel(difficulty = difficulty)
-        if (timerVisible) {
-            TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
+    // Task 9.2 review fix: AdaptiveTrailingRow wraps the strikes/timer/tier group onto its own
+    // line at 200% font scale (D29), the same component Tap the map/Rivers mountains and
+    // lakes/US-CA's own status rows use, instead of squeezing the progress text to zero width.
+    AdaptiveTrailingRow(
+        modifier = modifier,
+        main = {
+            Text(text = progressText, style = MaterialTheme.typography.titleMedium)
+        },
+        trailing = {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (difficulty == Difficulty.HARD) {
+                    val limit = Difficulty.HARD.strikeLimit ?: HARD_STRIKE_LIMIT_FALLBACK
+                    // The VM never lets this exceed the limit, but coerce defensively too (same
+                    // reasoning as `TapMapGameScreen.StatusRow`).
+                    val shown = incorrectGuesses.coerceAtMost(limit)
+                    val description = pluralStringResource(R.plurals.a11y_hard_mode_strikes, limit, shown, limit)
+                    Text(
+                        text = stringResource(R.string.mode_tap_map_strikes_short, shown, limit),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.geoColors.wrong,
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = description }
+                    )
+                }
+                if (timerVisible) {
+                    TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
+                }
+                DifficultyLabel(difficulty = difficulty)
+            }
         }
-    }
+    )
 }
+
+private const val HARD_STRIKE_LIMIT_FALLBACK = 3
 
 /**
  * The currency's clue: name, big symbol and ISO code. Shown for both typed and choice items.
@@ -101,7 +130,10 @@ fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val prompt = if (entry.shared) {
-                stringResource(R.string.choice_prompt_currency_of, currencyLabel(entry))
+                // "the Euro (€, EUR)" (task 9.2 review fix): built from a strings_currencies.xml
+                // format string rather than Kotlin string interpolation, so it stays localisable.
+                val label = stringResource(R.string.currencies_entry_label, entry.name, entry.symbol, entry.code)
+                stringResource(R.string.choice_prompt_currency_of, label)
             } else {
                 stringResource(R.string.currencies_prompt_which_country)
             }
@@ -117,7 +149,7 @@ fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "${entry.name} (${entry.code})",
+                text = stringResource(R.string.currencies_name_code, entry.name, entry.code),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )

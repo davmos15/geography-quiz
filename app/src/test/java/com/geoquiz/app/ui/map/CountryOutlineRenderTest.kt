@@ -1,6 +1,7 @@
 package com.geoquiz.app.ui.map
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Canvas
@@ -26,6 +27,7 @@ import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import com.geoquiz.app.ui.theme.LightGeoColors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -194,6 +196,53 @@ class CountryOutlineRenderTest {
         val withNeighbours = outline(neighbours = listOf(neighbour))
         val secondPaths = kotlinx.coroutines.runBlocking { cache.paths(withNeighbours, showNeighbours = true).await() }
         assertEquals("second draw's model has a neighbour, so the cache must not reuse the first (neighbour-less) entry", 1, secondPaths.neighbourPaths.size)
+    }
+
+    @Test
+    fun `clear while a build is in flight neither crashes nor resurrects the discarded entry`() = kotlinx.coroutines.runBlocking {
+        val cache = CountryOutlinePathCache()
+        val model = outline()
+        val inFlight = cache.paths(model, showNeighbours = true)
+        // See MapPathCache's equivalent test and CountryOutlinePathCache.clear's doc: paths()
+        // and clear() share one monitor, and a build never writes its result back into the map
+        // on completion, so clear() can only drop the map entry, never resurrect it afterwards.
+        cache.clear()
+        inFlight.await()
+        assertNotSame(
+            "the cleared key is gone: the next request is a fresh build, not the discarded one",
+            inFlight,
+            cache.paths(model, showNeighbours = true)
+        )
+    }
+
+    // ---- A failed build never crashes composition (task 9.2 review fix) ----
+
+    /** An odd-length points array: [buildOutlinePath]'s loop reads one past the end and throws. */
+    private fun malformedOutline() = outline().let {
+        OutlineModel(
+            it.cca3, it.includeRemote, it.projection,
+            listOf(OutlineRing(floatArrayOf(0f, 0f, 1f, 0f, 1f), isHole = false)),
+            it.neighbours, it.frame, it.scale,
+        )
+    }
+
+    @Test
+    fun `a failed path build never crashes composition - CountryOutline just draws nothing`() {
+        val cache = CountryOutlinePathCache()
+        val model = malformedOutline()
+        // Force the failure to materialise before composition, so the test isn't racing the
+        // background build; either way, produceState must not rethrow it (task 9.2 review fix).
+        kotlinx.coroutines.runBlocking {
+            runCatching { cache.paths(model, showNeighbours = true).await() }
+        }
+        compose.setContent {
+            CompositionLocalProvider(LocalCountryOutlinePathCache provides cache) {
+                CountryOutline(outline = model, modifier = Modifier.size(100.dp))
+            }
+        }
+        // No exception thrown out of setContent/waitForIdle is the assertion: before the fix,
+        // the failed build's exception was rethrown by produceState into composition.
+        compose.waitForIdle()
     }
 
     private companion object {

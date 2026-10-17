@@ -286,7 +286,7 @@ class DailyChallengeGameViewModelTest {
     }
 
     @Test
-    fun `giving up mid-round ends it early and only the questions actually asked are recorded`() {
+    fun `giving up mid-round ends it early and is scored out of the full ten, not just the questions asked`() {
         val vm = viewModel()
         answerCurrentCorrectly(vm)
         answerCurrentCorrectly(vm)
@@ -298,8 +298,39 @@ class DailyChallengeGameViewModelTest {
         assertTrue(finished.isComplete)
         assertTrue(finished.gaveUp)
         val stored = completedQuizzes.stored!!
-        assertEquals(2, stored.total)
+        // Review fix: a give-up round is always scored out of all 10 questions - the 8 never
+        // reached count as missed (not correct), never as a perfect 2/2.
+        assertEquals(10, stored.total)
         assertEquals(2, stored.correct)
+        assertFalse("2 correct out of 10 is not a perfect round", stored.perfectBonus)
+    }
+
+    @Test
+    fun `giving up at question one scores zero out of ten`() {
+        val vm = viewModel()
+
+        vm.onGiveUp()
+        runCurrent()
+
+        val finished = vm.active()
+        assertTrue(finished.isComplete)
+        assertTrue(finished.gaveUp)
+        val stored = completedQuizzes.stored!!
+        assertEquals(10, stored.total)
+        assertEquals(0, stored.correct)
+        assertFalse(stored.perfectBonus)
+    }
+
+    @Test
+    fun `answering all ten correctly then nothing left to give up on is a perfect ten out of ten`() {
+        val vm = viewModel()
+
+        repeat(10) { answerCurrentCorrectly(vm) }
+
+        val stored = completedQuizzes.stored!!
+        assertEquals(10, stored.total)
+        assertEquals(10, stored.correct)
+        assertTrue(stored.perfectBonus)
     }
 
     @Test

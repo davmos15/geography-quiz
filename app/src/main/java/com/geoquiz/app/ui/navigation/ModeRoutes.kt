@@ -65,10 +65,10 @@ object ModeRoutes {
         PHYSICAL_FEATURES_MODE_ID -> Screen.PhysicalFeatures.createRoute(categoryType, categoryValue, difficulty)
         FLAG_SPEED_ROUND_MODE_ID -> Screen.FlagSpeed.createRoute(difficulty ?: Difficulty.DEFAULT.id)
         // No category/difficulty to carry (every round is the same fixed shape, D4); never
-        // actually reached via playAgain/practise since Results hides both for this mode
-        // (supportsPractice = false, and a fresh round each day replaces "play again" with the
-        // normal Setup screen), but included here so an unknown-mode fallback to a classic quiz
-        // (the `else` branch below) is never silently possible for this id either.
+        // actually reached via playAgain/practise since Results hides both buttons for this mode
+        // (its spec sets supportsPractice = false and supportsPlayAgain = false: one attempt per
+        // day, D54), but included here so an unknown-mode fallback to a classic quiz (the `else`
+        // branch below) is never silently possible for this id either.
         DAILY_CHALLENGE_MODE_ID -> Screen.DailyChallenge.createRoute()
         else -> Screen.Quiz.createRoute(modeId, categoryType, categoryValue, challengeId, difficulty)
     }

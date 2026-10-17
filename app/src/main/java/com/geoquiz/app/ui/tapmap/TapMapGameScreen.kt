@@ -37,7 +37,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -428,9 +427,10 @@ internal fun TapMapActiveContent(
 
 /**
  * The map pane: [MapCanvas], [MapListAlternative] (never at Easy, D39), a loading spinner, or
- * [MapLoadError]. [onListSelect]'s [MapListAlternative] is re-keyed on [targetCode] (S8): its
- * search query is `rememberSaveable` with no key of its own, so without this a leftover query
- * from the previous prompt would carry over and could hide the new target's row.
+ * [MapLoadError]. [MapListAlternative]'s `resetKey` is [targetCode] (S8, task 9.2 review fix):
+ * its search query resets for the new prompt, without rebuilding the whole list (which used to
+ * lose its scroll position and TalkBack focus after every find - the original intent here was
+ * only ever to clear the leftover query, not the list itself).
  */
 @Composable
 private fun MapArea(
@@ -479,14 +479,13 @@ private fun MapArea(
                     CircularProgressIndicator()
                 }
             }
-            viewMode == MapViewMode.List -> key(targetCode) {
-                MapListAlternative(
-                    countries = qs.quiz.countries,
-                    featureStates = featureStates,
-                    onSelect = onListSelect,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            viewMode == MapViewMode.List -> MapListAlternative(
+                countries = qs.quiz.countries,
+                featureStates = featureStates,
+                onSelect = onListSelect,
+                modifier = Modifier.fillMaxSize(),
+                resetKey = targetCode
+            )
             else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }

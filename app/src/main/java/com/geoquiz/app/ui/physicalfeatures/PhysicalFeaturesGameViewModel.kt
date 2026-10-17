@@ -150,6 +150,12 @@ class PhysicalFeaturesGameViewModel @Inject constructor(
                 isComplete = features.isEmpty()
             )
         }
+        // No features to ask about (e.g. a practice set whose ids no longer resolve): show
+        // Unavailable rather than a round that completes and records itself (Phase 9 review).
+        if (state.features.isEmpty()) {
+            _uiState.value = PhysicalFeaturesUiState.Unavailable
+            return
+        }
         aliasesByCode = state.features.associate { it.id to it.aliases }
         commit(state)
         loadMapState(state.features)

@@ -30,6 +30,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -156,5 +157,15 @@ class UsCaChoiceViewModelTest {
         assertEquals(1, completedQuizzes.saveCount)
         assertEquals(UsCaRegionsGameMode.VARIANT_CHOICE, completedQuizzes.stored?.variantId)
         assertEquals(Difficulty.EASY.id, completedQuizzes.stored?.difficultyId)
+    }
+
+    @Test
+    fun `no regions to ask about shows Unavailable and records nothing`() {
+        coEvery { mapRepository.layer(GeoLayerId.ADMIN1_50M) } returns fakeAdmin1Layer()
+
+        val vm = viewModel(handle())
+
+        assertEquals(UsCaChoiceUiState.Unavailable, vm.uiState.value)
+        assertNull(completedQuizzes.stored)
     }
 }

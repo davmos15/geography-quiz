@@ -4,19 +4,25 @@ import com.geoquiz.app.domain.mode.AnswerValidator
 import com.geoquiz.app.domain.mode.ChoiceQuestionGenerator
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.mode.ModeIcon
 import com.geoquiz.app.domain.mode.QuestionGenerator
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.ScoringRule
+import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.classic.CapitalsGameMode
 import com.geoquiz.app.domain.mode.classic.CapitalsQuestionGenerator
 import com.geoquiz.app.domain.mode.classic.CountriesGameMode
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
 import com.geoquiz.app.domain.mode.classic.FlagsGameMode
 import com.geoquiz.app.domain.mode.classic.FlagsQuestionGenerator
+import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
+import com.geoquiz.app.domain.mode.flagspeed.FlagSpeedGameMode
+import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeaturesGameMode
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.mode.tapmap.TapMapQuestionGenerator
+import com.geoquiz.app.domain.mode.usca.UsCaRegionsGameMode
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
@@ -101,6 +107,30 @@ object TestGameModes {
             featureFlag = featureFlag,
             sortOrder = sortOrder
         )
+        override val generator = mockk<QuestionGenerator>()
+        override val validator = mockk<AnswerValidator>()
+        override val scoring = mockk<ScoringRule>()
+        override val choiceGenerator = mockk<ChoiceQuestionGenerator>()
+    }
+
+    /**
+     * Stubs carrying the *real* [GameModeSpec] of every non-classic, non-daily-challenge mode
+     * (task 9.x "Play with every mode on" goldens), so the Play tab's New modes grid shows the
+     * real ids, icons, labels and sort order. Only the spec is real; behaviour is mocked, which
+     * Play never calls (it only reads `GameMode.spec`).
+     */
+    fun newModeSpecStubs(): Set<GameMode> = setOf(
+        SilhouettesGameMode.SPEC,
+        TapMapGameMode.SPEC,
+        BorderHopGameMode.SPEC,
+        UsCaRegionsGameMode.SPEC,
+        CurrencyGameMode.SPEC,
+        PhysicalFeaturesGameMode.SPEC,
+        FlagSpeedGameMode.SPEC
+    ).map(::specStub).toSet()
+
+    private fun specStub(modeSpec: GameModeSpec): GameMode = object : GameMode {
+        override val spec = modeSpec
         override val generator = mockk<QuestionGenerator>()
         override val validator = mockk<AnswerValidator>()
         override val scoring = mockk<ScoringRule>()

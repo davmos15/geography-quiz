@@ -115,6 +115,14 @@ class UsCaTapViewModel @Inject constructor(
 
     private suspend fun loadQuiz() {
         val loaded = loadUsCaRegionsRound(mapRepository, categoryType, categoryValue)
+        // No regions to ask about (task 9.2 review fix: the admin1 layer failed to load, or a
+        // Practice round's codes no longer resolve to any): never publish a round that would
+        // complete itself on the spot and get recorded - Unavailable instead, the same reasoning
+        // as `BorderHopUiState.Unavailable`.
+        if (loaded.items.isEmpty()) {
+            _uiState.value = UsCaTapUiState.Unavailable
+            return
+        }
         itemsByCode = loaded.items.associateBy { it.code }
         val quiz = Quiz(category = loaded.category, countries = loaded.items)
         _mapState.value = loadUsCaRegionsMapState(mapRepository, itemsByCode.keys)
@@ -128,7 +136,6 @@ class UsCaTapViewModel @Inject constructor(
             nextPrompt(UsCaTapGameState(quizState = base))
         }
         state = when {
-            loaded.items.isEmpty() -> state.copy(quizState = state.quizState.copy(isComplete = true, isPaused = false))
             hardLimitReached(state.quizState) && !state.quizState.isComplete ->
                 state.copy(quizState = state.quizState.copy(isComplete = true, isPaused = false))
             !state.quizState.isComplete && state.currentTargetCode == null -> nextPrompt(state)
@@ -322,5 +329,8 @@ class UsCaTapViewModel @Inject constructor(
 
 sealed class UsCaTapUiState {
     data object Loading : UsCaTapUiState()
+
+    /** No regions to ask about; nothing is recorded (Phase 9 review). */
+    data object Unavailable : UsCaTapUiState()
     data class Active(val state: UsCaTapGameState) : UsCaTapUiState()
 }

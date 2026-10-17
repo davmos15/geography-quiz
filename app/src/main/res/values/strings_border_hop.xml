@@ -43,4 +43,8 @@
     <string name="border_hop_reached">Reached %1$s in %2$d hops (par %3$d)!</string>
     <string name="border_hop_gave_up_outcome">Gave up short of %1$s</string>
     <string name="border_hop_unavailable">No route of the right length could be found for this filter and difficulty. Try a different one.</string>
+    <!-- Task 9.2 review: the hinted neighbour's accessible label (content description) and
+         the once-off announcement when the hint reveals it, since the Lightbulb icon that marks
+         it visually has no content description of its own. -->
+    <string name="border_hop_hint_suggested_hop">%1$s, suggested hop</string>
 </resources>

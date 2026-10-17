@@ -172,7 +172,8 @@ class TapMapNameAllViewModel @Inject constructor(
 
     fun onInputChange(input: String) {
         _uiState.update { ui -> if (ui is TapMapNameAllUiState.Active) TapMapNameAllUiState.Active(ui.state.copy(currentInput = input)) else ui }
-        saveToHandle()
+        // Typing changes only the field, so save just that rather than the whole snapshot.
+        savedState.saveInput(input)
     }
 
     /**

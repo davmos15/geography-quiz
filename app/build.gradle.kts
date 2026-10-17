@@ -17,7 +17,7 @@ import java.util.Properties
 val signingPropsFile = rootProject.file("signing.properties")
 val signingProps = Properties()
 if (signingPropsFile.exists()) {
-    signingProps.load(FileInputStream(signingPropsFile))
+    FileInputStream(signingPropsFile).use { signingProps.load(it) }
 }
 
 // HMAC key for signed challenge links (base64url). From signing.properties `challengeHmacKey`,
@@ -56,8 +56,8 @@ android {
         applicationId = "com.geoquiz.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 17
-        versionName = "2.7.2"
+        versionCode = 18
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -120,6 +120,10 @@ android {
             )
             // Map timing assertions run only with ./gradlew testDebugUnitTest -Pgeoquiz.perf=true
             it.systemProperty("geoquiz.perf", project.findProperty("geoquiz.perf") ?: "false")
+            // Store listing screenshots (task 9.x, D65) are written outside the goldens dir and
+            // only run with ./gradlew testDebugUnitTest -Pgeoquiz.storeShots=true, so a plain
+            // test run or verifyRoborazziDebug/recordRoborazziDebug never touches them.
+            it.systemProperty("geoquiz.storeShots", project.findProperty("geoquiz.storeShots") ?: "false")
         }
     }
 }

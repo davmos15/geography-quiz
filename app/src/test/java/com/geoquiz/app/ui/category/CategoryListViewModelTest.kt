@@ -165,6 +165,7 @@ class CategoryListViewModelTest {
     private fun legacy(mode: QuizMode, groupId: String) =
         LegacyCategoryOptions(mode, CategoryOptionsFixture.FLAG_COLOURS, CategoryOptionsFixture.FLAG_ELEMENTS)
             .options(groupId, CategoryOptionsFixture.COUNTRIES)
+            .withAustralianColourSpelling()
 
     @Test
     fun `category list options are unchanged for countries, capitals and flags`() {

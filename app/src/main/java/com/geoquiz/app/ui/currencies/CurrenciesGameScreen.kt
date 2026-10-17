@@ -113,6 +113,19 @@ fun CurrenciesGameScreen(
                     CircularProgressIndicator()
                 }
             }
+            is CurrenciesUiState.Unavailable -> {
+                Box(modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.currencies_unavailable),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.semantics { heading() }
+                        )
+                        Spacer(modifier = Modifier.size(16.dp))
+                        Button(onClick = onNavigateBack) { Text(stringResource(R.string.action_back)) }
+                    }
+                }
+            }
             is CurrenciesUiState.Active -> {
                 val round = state.state
                 Box(modifier = Modifier.fillMaxSize().padding(padding).imePadding()) {
@@ -179,6 +192,7 @@ private fun CurrenciesActiveContent(
             current = round.progress,
             total = round.items.size,
             difficulty = round.difficulty,
+            incorrectGuesses = round.incorrectGuesses,
             timerVisible = timerVisible,
             timerSeconds = timerSeconds,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)

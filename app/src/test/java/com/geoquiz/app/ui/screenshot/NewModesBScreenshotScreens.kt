@@ -199,7 +199,11 @@ object NewModesBScreenshotScreens {
             countryRepository = countryRepository,
             optionsBuilder = CategoryOptionsFixture.builder(),
             settingsRepository = settingsRepository,
-            borderHopGameMode = borderHopMode()
+            borderHopGameMode = borderHopMode(),
+            // Every filter counts as playable here; feasibility has its own tests.
+            borderGraphRepository = mockk<BorderGraphRepository> {
+                coEvery { graph() } returns mockk { every { hasPuzzle(any(), any()) } returns true }
+            }
         )
         return { BorderHopSetupScreen(onStart = {}, onNavigateBack = {}, viewModel = viewModel) }
     }

@@ -256,16 +256,27 @@ class DailyChallengeGameViewModel @Inject constructor(
      * Records the round once ([CompleteQuizUseCase]) and publishes [completion]. See
      * [com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeScoring] for how the round is
      * packed into a [QuizState].
+     *
+     * A round is always scored out of its full [DailyChallengeRoundState.totalCount] (10), not
+     * just the questions actually asked before "End challenge": every question in [state.questions]
+     * is packed into [QuizState.quiz], so a question never reached at give-up counts as missed
+     * (not correct), never as correct. [QuizState.incorrectGuesses] is therefore "not correct"
+     * (wrong attempts plus unreached questions), not only wrong attempts - the round is perfect
+     * ([com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeScoring]'s `isPerfect`) only when
+     * every question was both reached and answered correctly. This fixes a review finding: giving
+     * up after a couple of correct answers used to be recorded (and scored) as a perfect round,
+     * since only the questions actually asked were packed.
      */
     private fun finishIfComplete() {
         val state = activeState() ?: return
         if (!state.isComplete || completionJob != null) return
 
-        val askedCountries = state.questions.take(state.askedCodes.size).map { it.target }
+        val allTargets = state.questions.map { it.target }
+        val notCorrect = allTargets.size - state.correctCodes.size
         val quizState = QuizState(
-            quiz = Quiz(category = category, countries = askedCountries),
+            quiz = Quiz(category = category, countries = allTargets),
             answeredCountries = state.correctCodes,
-            incorrectGuesses = state.incorrectGuesses,
+            incorrectGuesses = notCorrect,
             isComplete = true
         )
         val resultId = savedState.resultId ?: UUID.randomUUID().toString().also { savedState.resultId = it }

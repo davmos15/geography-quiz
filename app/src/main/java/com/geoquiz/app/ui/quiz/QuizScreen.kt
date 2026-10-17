@@ -52,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -114,8 +115,9 @@ fun QuizScreen(
     val timerVisible by viewModel.timerVisible.collectAsStateWithLifecycle()
     val difficulty by viewModel.difficulty.collectAsStateWithLifecycle()
     val comboCount by viewModel.comboCount.collectAsStateWithLifecycle()
-    var showGiveUpDialog by remember { mutableStateOf(false) }
-    var showSettingsSheet by remember { mutableStateOf(false) }
+    // Saveable, so the Give up dialog and the settings sheet survive rotation.
+    var showGiveUpDialog by rememberSaveable { mutableStateOf(false) }
+    var showSettingsSheet by rememberSaveable { mutableStateOf(false) }
 
     val completion by viewModel.completion.collectAsStateWithLifecycle()
 

@@ -101,17 +101,24 @@ data class SilhouetteState(
      * This mode's hint set ([SilhouettesGameMode.SPEC]), minus Show region when [category] is
      * already a subregion filter: the hint reveals the subregion, which the player chose, so it
      * would give nothing away. On a region (continent) round it still narrows the answer down.
+     * Also minus Show neighbours once [isOutlineUnavailable] (task 9.2 review fix): with no
+     * outline there is no neighbour geometry to reveal, so the hint would always answer "No land
+     * neighbours" for a charge, whatever the real country borders. While the outline is still
+     * *loading* it stays listed here (so the row doesn't flicker it away and back), but
+     * [SilhouettesGameViewModel.onHint] is a no-op for it until the outline settles - see that
+     * function's doc.
      */
     val availableHints: Set<HintType>
         get() {
             // D41: no hints at Easy; the four names are the help (as Tap the map's Easy, D39).
             if (difficulty == Difficulty.EASY) return emptySet()
             val all = SilhouettesGameMode.SPEC.hintTypes
-            return if (category is QuizCategory.BySubregion) {
+            val afterRegion = if (category is QuizCategory.BySubregion) {
                 all - HintType.SHOW_REGION
             } else {
                 all
             }
+            return if (isOutlineUnavailable) afterRegion - HintType.SHOW_NEIGHBOURS else afterRegion
         }
 
     companion object {

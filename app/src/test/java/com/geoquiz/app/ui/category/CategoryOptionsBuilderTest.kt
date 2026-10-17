@@ -14,7 +14,8 @@ import org.junit.Test
 
 /**
  * The options extracted into [CategoryOptionsBuilder] (3.4b) are exactly those the category list
- * built before, compared with the verbatim pre-3.4b copy in [LegacyCategoryOptions].
+ * built before, compared with the verbatim pre-3.4b copy in [LegacyCategoryOptions] (with only
+ * the 9.2 "colour" spelling change normalised, [withAustralianColourSpelling]).
  */
 class CategoryOptionsBuilderTest {
 
@@ -30,21 +31,21 @@ class CategoryOptionsBuilderTest {
     @Test
     fun `countries options match the old category list for every group`() = runTest {
         for (groupId in allGroupIds) {
-            assertEquals(groupId, legacy(QuizMode.COUNTRIES).options(groupId, COUNTRIES), built(QuizMode.COUNTRIES, groupId))
+            assertEquals(groupId, legacy(QuizMode.COUNTRIES).options(groupId, COUNTRIES).withAustralianColourSpelling(), built(QuizMode.COUNTRIES, groupId))
         }
     }
 
     @Test
     fun `capitals options match the old category list for every group`() = runTest {
         for (groupId in allGroupIds) {
-            assertEquals(groupId, legacy(QuizMode.CAPITALS).options(groupId, COUNTRIES), built(QuizMode.CAPITALS, groupId))
+            assertEquals(groupId, legacy(QuizMode.CAPITALS).options(groupId, COUNTRIES).withAustralianColourSpelling(), built(QuizMode.CAPITALS, groupId))
         }
     }
 
     @Test
     fun `flags options match the old category list for every group`() = runTest {
         for (groupId in allGroupIds) {
-            assertEquals(groupId, legacy(QuizMode.FLAGS).options(groupId, COUNTRIES), built(QuizMode.FLAGS, groupId))
+            assertEquals(groupId, legacy(QuizMode.FLAGS).options(groupId, COUNTRIES).withAustralianColourSpelling(), built(QuizMode.FLAGS, groupId))
         }
     }
 

@@ -372,7 +372,7 @@ class CategoryOptionsBuilder @Inject constructor(
                 }
                 countMap.entries.sortedBy { it.key }.map { (count, numCountries) ->
                     QuizOptionInfo(
-                        "$count ${if (count == 1) "color" else "colors"}",
+                        "$count ${if (count == 1) "colour" else "colours"}",
                         numCountries,
                         "flagcount",
                         count.toString()

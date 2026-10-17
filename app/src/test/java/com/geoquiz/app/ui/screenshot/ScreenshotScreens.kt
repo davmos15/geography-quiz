@@ -161,6 +161,30 @@ object ScreenshotScreens {
         }
     }
 
+    /**
+     * The Play tab with every mode on (task 9.x, D63: every flag defaults to on for the 3.0.0
+     * release candidate): the classic registry plus [TestGameModes.newModeSpecStubs] (the real
+     * spec of every one of the 7 new modes), so the New modes grid shows all 7 tiles. Feature
+     * flags are left at their defaults (every one `true`); the daily challenge is always
+     * registered by [ScreenTestFixtures.playViewModel] and stays off the grid (it has its own
+     * Today's challenge card).
+     */
+    fun playAllModes(): @Composable () -> Unit {
+        val viewModel = ScreenTestFixtures.playViewModel(
+            extraModes = TestGameModes.newModeSpecStubs()
+        )
+        return {
+            NoAds {
+                PlayScreen(
+                    onOpenCategory = { _, _ -> },
+                    onStartQuiz = { _, _, _ -> },
+                    onOpenMode = {},
+                    viewModel = viewModel
+                )
+            }
+        }
+    }
+
     // ---- Category list ----
 
     /**

@@ -132,6 +132,14 @@ class CurrenciesGameViewModel @Inject constructor(
             val items = currencyGameMode.generator.currencyItems(category)
             CurrencyRoundState(category = category, difficulty = difficulty, items = items, isComplete = items.isEmpty())
         }
+        // No currencies left to ask about for this filter (task 9.2 review fix, e.g. a Practice
+        // filter whose codes have all been resolved away): never commit or record this as a
+        // played round - Unavailable instead, the same reasoning as Border hop's own `randomPuzzle
+        // == null` case.
+        if (state.items.isEmpty()) {
+            _uiState.value = CurrenciesUiState.Unavailable
+            return
+        }
         commit(state)
         when {
             state.isComplete -> finishIfComplete()

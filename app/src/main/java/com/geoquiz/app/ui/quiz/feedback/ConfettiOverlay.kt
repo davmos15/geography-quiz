@@ -82,8 +82,11 @@ fun ConfettiOverlay(modifier: Modifier = Modifier) {
         progress.animateTo(1f, animationSpec = tween(CONFETTI_DURATION_MILLIS, easing = LinearEasing))
     }
 
-    val t = progress.value
+    // progress.value is read inside the Canvas draw lambda below, not here: reading an
+    // Animatable's value during composition (rather than in the draw phase) would recompose this
+    // whole composable on every animation frame instead of only re-drawing it (review fix).
     Canvas(modifier = modifier.fillMaxSize()) {
+        val t = progress.value
         particles.forEach { particle ->
             if (t < particle.startFraction) return@forEach
             val span = (1f - particle.startFraction).coerceAtLeast(0.01f)

@@ -40,8 +40,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -141,6 +144,7 @@ fun UsCaTapScreen(
             is UsCaTapUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            is UsCaTapUiState.Unavailable -> UsCaUnavailable(padding, onNavigateBack)
             is UsCaTapUiState.Active -> Box(Modifier.fillMaxSize().padding(padding)) {
                 UsCaTapContent(
                     state = state.state,
@@ -320,13 +324,17 @@ internal fun UsCaStatusRow(qs: QuizState, difficulty: Difficulty, timerVisible: 
         },
         trailing = {
             androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Task 9.2 review fix: a bare "1/3" relied on colour alone for what it meant -
+                // the same labelled text + content description Tap the map's own status row uses.
                 if (difficulty == Difficulty.HARD) {
                     val limit = Difficulty.HARD.strikeLimit ?: 3
                     val shown = qs.incorrectGuesses.coerceAtMost(limit)
+                    val description = pluralStringResource(R.plurals.a11y_hard_mode_strikes, limit, shown, limit)
                     Text(
-                        text = "$shown/$limit",
+                        text = stringResource(R.string.mode_tap_map_strikes_short, shown, limit),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.geoColors.wrong
+                        color = MaterialTheme.geoColors.wrong,
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = description }
                     )
                 }
                 if (timerVisible) TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)

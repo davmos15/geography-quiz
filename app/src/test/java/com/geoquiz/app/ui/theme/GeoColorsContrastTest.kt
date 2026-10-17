@@ -80,6 +80,20 @@ class GeoColorsContrastTest {
     }
 
     @Test
+    fun correctIcon_standsOutOnSecondaryContainer() {
+        // Today's challenge card on Play (8.6) ticks its secondaryContainer background;
+        // the tick is a non-text graphic (WCAG 1.4.11): 3:1.
+        for (t in themes) {
+            assertContrast(
+                "${t.name} correct icon/secondaryContainer",
+                t.geo.correct,
+                t.scheme.secondaryContainer,
+                3.0
+            )
+        }
+    }
+
+    @Test
     fun masteryStars_standOutFromSurfaces() {
         for (t in themes) {
             // Stars are non-text graphics (WCAG 1.4.11): 3:1 wherever category rows are drawn.

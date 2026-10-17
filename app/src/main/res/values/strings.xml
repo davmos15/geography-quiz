@@ -142,8 +142,8 @@
     <string name="credits_flag_licence_loading">Loading…</string>
     <string name="credits_fonts_heading">Fonts</string>
     <string name="credits_fonts_body">This app uses your device\'s system font.</string>
-    <string name="credits_artwork_heading">App icon and artwork</string>
-    <string name="credits_artwork_body">The app icon and artwork are original artwork created for this app.</string>
+    <string name="credits_artwork_heading">App icon, artwork and sounds</string>
+    <string name="credits_artwork_body">The app icon, artwork and sound effects are original, created for this app.</string>
     <string name="credits_open_source_heading">Open-source software</string>
     <string name="credits_open_source_licences">Open-source licences</string>
     <string name="credits_open_source_licences_summary">Libraries used to build this app and their licences</string>
@@ -328,6 +328,34 @@
     </plurals>
     <!-- Results, shown for a practice quiz instead of Share and Challenge -->
     <string name="results_practice_not_recorded">Practice quizzes don’t count towards your stats or achievements.</string>
+    <!-- Results buttons: share the result as text/image, or challenge a friend to beat it -->
+    <string name="results_share_button">Share</string>
+    <string name="results_challenge_button">Challenge</string>
+    <!-- Shown when a completed challenge's sender has not shared their own score yet -->
+    <string name="results_challenge_share_prompt">Share your result so they can compare.</string>
+    <!-- Stats: Reset Statistics confirmation (keeps daily challenge history, task 9.2) -->
+    <string name="stats_reset_dialog_title">Reset Statistics?</string>
+    <string name="stats_reset_dialog_message">This will permanently delete your quiz history and statistics. Your daily challenge results and streak are kept, and achievements will not be affected.</string>
+    <string name="stats_reset_dialog_confirm">Reset</string>
+    <!-- Results screen (ui/results/ResultsScreen.kt) -->
+    <string name="results_title">Quiz Complete!</string>
+    <string name="results_score_label">Score</string>
+    <string name="results_percentage_label">Percentage</string>
+    <string name="results_time_label">Time</string>
+    <string name="results_incorrect_guesses_label">Incorrect Guesses</string>
+    <!-- Shown for a perfect result; the perfect bonus multiplies the score by 1.2 -->
+    <string name="results_perfect_bonus" formatted="false">Perfect! +20% bonus!</string>
+    <string name="results_view_answers_button">View Answers</string>
+    <string name="results_play_again_button">Play Again</string>
+    <string name="results_home_button">Home</string>
+    <!-- Challenge result card: you vs the friend who sent the challenge -->
+    <string name="results_challenge_result_heading">Challenge Result</string>
+    <string name="results_challenge_you">You</string>
+    <string name="results_challenge_won">You won!</string>
+    <string name="results_challenge_lost">You lost - challenge them back!</string>
+    <string name="results_challenge_tie">It\'s a tie!</string>
+    <!-- %1$s is the challenger's name; shown when they did not share their own score -->
+    <string name="results_challenge_completed">Challenge from %1$s completed!</string>
 
     <!-- Bottom navigation (ui/navigation/AppNavigation.kt) -->
     <string name="nav_play">Play</string>

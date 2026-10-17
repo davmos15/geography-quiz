@@ -34,8 +34,11 @@ interface QuizHistoryDao {
     @Query("SELECT COUNT(DISTINCT quizMode || '|' || categoryType || '|' || categoryValue) FROM quiz_history")
     fun getUniqueQuizzesCompleted(): Flow<Int>
 
-    @Query("SELECT COALESCE(MAX(score), 0.0) FROM quiz_history")
-    fun getHighestScore(): Flow<Double>
+    // Highest score over the given modes only (Stats, task 9.2): the classic modes share one
+    // score scale ((correct/total) * correct, x1.2 if perfect), while new modes score on their
+    // own scales, so a single maximum across every mode would compare unlike numbers.
+    @Query("SELECT COALESCE(MAX(score), 0.0) FROM quiz_history WHERE quizMode IN (:modeIds)")
+    fun getHighestScoreForModes(modeIds: List<String>): Flow<Double>
 
     @Query("SELECT COALESCE(AVG(CAST(correctAnswers AS REAL) / CASE WHEN totalQuestions = 0 THEN 1 ELSE totalQuestions END), 0.0) FROM quiz_history")
     fun getAverageAccuracy(): Flow<Double>
@@ -44,6 +47,12 @@ interface QuizHistoryDao {
 
     @Query("SELECT COUNT(*) FROM quiz_history WHERE quizMode = :quizMode")
     fun getQuizzesCompletedForMode(quizMode: String): Flow<Int>
+
+    // Quizzes completed per mode, one row for every mode with any history (Stats' "By Mode",
+    // task 9.2)
+
+    @Query("SELECT quizMode, COUNT(*) AS count FROM quiz_history GROUP BY quizMode")
+    fun observeQuizCountsByMode(): Flow<List<QuizModeCount>>
 
     // Best result per category of a quiz mode (highest score); follows history, so category rows
     // update when the player comes back from a quiz
@@ -123,7 +132,18 @@ interface QuizHistoryDao {
 
     @Query("DELETE FROM quiz_history")
     suspend fun deleteAllHistory()
+
+    // Stats' "Reset Statistics" (task 9.2): deletes every row except those of [keepModeId]
+    // (the daily challenge, whose rows are the streak and the one-attempt-per-day guard).
+    @Query("DELETE FROM quiz_history WHERE quizMode != :keepModeId")
+    suspend fun deleteHistoryExceptMode(keepModeId: String)
 }
+
+/** Quizzes completed in one mode, as returned by [QuizHistoryDao.observeQuizCountsByMode]. */
+data class QuizModeCount(
+    val quizMode: String,
+    val count: Int
+)
 
 /** A recorded category of a mode, as returned by [QuizHistoryDao.observeCategoriesByRecencyForMode]. */
 data class QuizCategoryRef(

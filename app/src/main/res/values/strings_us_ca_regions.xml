@@ -40,4 +40,6 @@
 
     <!-- Multiple choice variant -->
     <string name="us_ca_regions_choice_heading">Which one is highlighted?</string>
+    <!-- Shown instead of a round when no regions could be loaded; nothing is recorded -->
+    <string name="us_ca_unavailable">The map regions could not be loaded. Go back and try again.</string>
 </resources>

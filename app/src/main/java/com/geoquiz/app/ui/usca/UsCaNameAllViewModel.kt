@@ -111,6 +111,12 @@ class UsCaNameAllViewModel @Inject constructor(
     private suspend fun loadQuiz() {
         val loaded = loadUsCaRegionsRound(mapRepository, categoryType, categoryValue)
         round = loaded
+        // No regions to ask about (the admin-1 layer failed to load, or a practice set no longer
+        // resolves): show Unavailable rather than a round that completes and records itself (Phase 9 review).
+        if (loaded.items.isEmpty()) {
+            _uiState.value = UsCaNameAllUiState.Unavailable
+            return
+        }
         val quiz = Quiz(category = loaded.category, countries = loaded.items)
 
         val snapshot = savedState.restore()
@@ -120,7 +126,6 @@ class UsCaNameAllViewModel @Inject constructor(
         } else {
             QuizState(quiz = quiz)
         }
-        if (loaded.items.isEmpty()) state = state.copy(isComplete = true, isPaused = false)
         _uiState.value = UsCaNameAllUiState.Active(state)
         onStateChanged()
         finishQuizIfComplete()
@@ -263,6 +268,9 @@ class UsCaNameAllViewModel @Inject constructor(
 
 sealed class UsCaNameAllUiState {
     data object Loading : UsCaNameAllUiState()
+
+    /** No regions to ask about; nothing is recorded (Phase 9 review). */
+    data object Unavailable : UsCaNameAllUiState()
     data class Active(val state: QuizState) : UsCaNameAllUiState()
 }
 

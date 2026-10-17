@@ -37,6 +37,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -1089,5 +1090,90 @@ class QuizViewModelTest {
         val stored = completedQuizzes.stored!!
         assertEquals(3, stored.correct)
         assertEquals(setOf("FRA", "DEU", "AUT"), stored.countryCodes.toSet())
+    }
+
+    // Task 9.2: one submit at a time, and a quiz that completed during validation stays complete.
+
+    /** Makes every validation wait for [gate] before answering as the default mock does. */
+    private fun holdValidationUntil(gate: CompletableDeferred<Unit>) {
+        coEvery { validateAnswer(any(), any(), any()) } coAnswers {
+            gate.await()
+            val input = firstArg<String>()
+            val state = secondArg<QuizState>()
+            val country = state.quiz.countries.find { it.name.equals(input, ignoreCase = true) }
+            when {
+                country == null -> AnswerResult.Incorrect
+                country.code in state.answeredCountries -> AnswerResult.AlreadyAnswered
+                else -> AnswerResult.Correct(country.name)
+            }
+        }
+    }
+
+    @Test
+    fun `a second submit while the first is validating counts one strike, not two`() {
+        val gate = CompletableDeferred<Unit>()
+        holdValidationUntil(gate)
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
+        val events = vm.collectFeedback()
+
+        vm.onInputChange("Narnia")
+        vm.onSubmitAnswer()
+        runCurrent()
+        vm.onSubmitAnswer() // Double tap while the first is still validating: ignored.
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(1, vm.quizState().incorrectGuesses)
+        assertEquals(listOf("Narnia"), vm.quizState().incorrectGuessStrings)
+        assertEquals(listOf(AnswerFeedbackEvent.INCORRECT), events)
+        coVerify(exactly = 1) { validateAnswer(any(), any(), any()) }
+    }
+
+    @Test
+    fun `a second submit while the first is validating counts one Correct`() {
+        val gate = CompletableDeferred<Unit>()
+        holdValidationUntil(gate)
+        val vm = viewModel(routeHandle())
+        val events = vm.collectFeedback()
+
+        vm.onInputChange("France")
+        vm.onSubmitAnswer()
+        runCurrent()
+        vm.onSubmitAnswer()
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(setOf("FRA"), vm.quizState().answeredCountries)
+        assertEquals(listOf(AnswerFeedbackEvent.CORRECT), events)
+        coVerify(exactly = 1) { validateAnswer(any(), any(), any()) }
+        // The next answer is accepted once the first has finished.
+        coEvery { validateAnswer(any(), any(), any()) } answers { AnswerResult.Correct("Germany") }
+        vm.answer("Germany")
+        assertEquals(setOf("FRA", "DEU"), vm.quizState().answeredCountries)
+    }
+
+    @Test
+    fun `giving up while an answer is validating keeps the quiz complete and drops the late answer`() {
+        val gate = CompletableDeferred<Unit>()
+        holdValidationUntil(gate)
+        val vm = viewModel(routeHandle())
+        val events = vm.collectFeedback()
+
+        vm.onInputChange("France")
+        vm.onSubmitAnswer()
+        runCurrent()
+        vm.onGiveUp()
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+
+        val state = vm.quizState()
+        assertTrue(state.isComplete)
+        assertEquals(emptySet<String>(), state.answeredCountries)
+        assertEquals(emptyList<AnswerFeedbackEvent>(), events)
+        // The recorded result is the one handed over at Give up.
+        assertEquals(0, completedQuizzes.stored?.correct)
     }
 }

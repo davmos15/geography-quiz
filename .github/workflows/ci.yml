@@ -35,6 +35,13 @@ jobs:
           python3 tools/data/build_physical_features.py --check
           python3 tools/data/validate_flag_lookalikes.py --check
 
+      - name: Check bundled data copies match data/
+        run: |
+          cmp data/borders.json app/src/main/assets/border_hop/borders.json
+          cmp data/currencies.json app/src/main/assets/currencies/currencies.json
+          cmp data/physical_features.json app/src/main/assets/physical_features/physical_features.json
+          cmp data/flag_lookalikes.json app/src/main/assets/flag_speed/flag_lookalikes.json
+
       - name: Check achievements match Achievement.kt
         run: python3 generate_achievements_zip.py --check
 

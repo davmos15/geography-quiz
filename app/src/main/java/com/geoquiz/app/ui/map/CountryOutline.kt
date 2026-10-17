@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import com.geoquiz.app.domain.map.OutlineModel
 import com.geoquiz.app.domain.map.OutlineRing
 import com.geoquiz.app.ui.theme.geoColors
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -198,7 +199,14 @@ internal class CountryOutlinePathCache(
         return scope.async { CountryOutlinePaths.build(outline, showNeighbours) }.also { entries[key] = it }
     }
 
-    /** Drops every entry (memory pressure, tests). Running builds finish but aren't kept. */
+    /**
+     * Drops every entry (memory pressure, tests); `GeographyQuizApplication.onTrimMemory`/
+     * `onLowMemory` call this once the UI is hidden or memory is tight (task 9.2 review fix).
+     * Running builds finish but aren't kept: [paths] and this share the same monitor
+     * ([Synchronized]), and a build never writes back into [entries] on completion (only [paths]
+     * does, when it creates the entry), so a clear mid-build just drops the map entry rather than
+     * resurrecting it once the build finishes.
+     */
     @Synchronized
     fun clear() = entries.clear()
 
@@ -213,6 +221,14 @@ internal val LocalCountryOutlinePathCache = staticCompositionLocalOf { CountryOu
 /**
  * [outline]'s paths from [cache], or null while they build. Paths that are already built are
  * returned on the first composition, so a rotation or theme change never shows a blank frame.
+ *
+ * A failed build never rethrows into composition (task 9.2 review fix, matching
+ * `rememberMapLayerPaths` in `MapScene.kt`): [value] is simply left null, same as "still
+ * building", so [CountryOutline] just keeps drawing nothing (the silhouette box's own
+ * loading/unavailable state is tracked separately by its caller, keyed off the outline fetch
+ * itself, not this path-building step). [CountryOutlinePathCache] already treats a failed entry
+ * as retryable, so the next request tries again. [Throwable] is caught, not just [Exception], to
+ * match the cache's own "did this fail" check, which treats any throwable completion the same way.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
@@ -224,7 +240,13 @@ internal fun rememberCountryOutlinePaths(
     val deferred = remember(cache, outline, showNeighbours) { cache.paths(outline, showNeighbours) }
     val ready = deferred.takeIf { it.isCompleted && it.getCompletionExceptionOrNull() == null }?.getCompleted()
     val awaited by produceState<Pair<Deferred<CountryOutlinePaths>, CountryOutlinePaths>?>(initialValue = null, deferred) {
-        value = deferred.let { it to it.await() }
+        value = try {
+            deferred to deferred.await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            null
+        }
     }
     return ready ?: awaited?.takeIf { it.first === deferred }?.second
 }

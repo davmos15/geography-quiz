@@ -50,6 +50,11 @@ class TapMapNameAllSavedState(private val handle: SavedStateHandle) {
     val hasSnapshot: Boolean
         get() = handle.contains(KEY_ANSWERED)
 
+    /** Only the typed text, for every keystroke; the rest of the snapshot changes on [save]. */
+    fun saveInput(input: String) {
+        handle[KEY_INPUT] = input
+    }
+
     fun save(state: QuizState, elapsedMillis: Long) {
         handle[KEY_ANSWERED] = ArrayList(state.answeredCountries)
         handle[KEY_INCORRECT_COUNT] = state.incorrectGuesses

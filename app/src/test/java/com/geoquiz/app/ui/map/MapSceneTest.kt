@@ -56,6 +56,26 @@ class MapSceneTest {
         assertNotSame(first, cache.paths(coarse, PlateProjection))
     }
 
+    // ---- clear() vs. an in-flight build (task 9.2 review fix) ----
+
+    @Test
+    fun `clear while a build is in flight neither crashes nor resurrects the discarded entry`() = runBlocking {
+        val cache = MapPathCache()
+        val inFlight = cache.paths(coarse, PlateProjection)
+        // clear() and the build itself (on Dispatchers.Default) race; either order must be safe
+        // (see MapPathCache.clear's doc: paths() and clear() share one monitor, and a build never
+        // writes its result back into the map on completion, so clearing can only drop the map
+        // entry, never resurrect it once the build finishes).
+        cache.clear()
+        val result = inFlight.await()
+        assertTrue("the build in flight when clear() ran still finishes normally", result.size > 0)
+        assertNotSame(
+            "the cleared key is gone: the next request is a fresh build, not the discarded one",
+            inFlight,
+            cache.paths(coarse, PlateProjection)
+        )
+    }
+
     @Test
     fun `path cache evicts the least recently used projection beyond its capacity`() = runBlocking {
         // 4.6/7: bounded by distinct *projections*, not individual layer entries - each
@@ -219,6 +239,32 @@ class MapSceneTest {
         compose.waitForIdle()
         // Like a rotation: the screen comes back and finds its paths at once.
         assertSame(built, firstComposition.first())
+    }
+
+    /** A projection whose `project` always throws, to force [MapLayerPaths.build] to fail. */
+    private object ThrowingProjection : MapProjection {
+        override fun project(lonDeg: Double, latDeg: Double, out: DoubleArray): Unit =
+            throw RuntimeException("boom")
+
+        override fun inverse(x: Double, y: Double, out: DoubleArray): Boolean = true
+    }
+
+    @Test
+    fun `a failed build never crashes composition - the scene just stays null`() {
+        val cache = MapPathCache()
+        // Force the failure to materialise before composition, so the test isn't racing the
+        // background build; either way, produceState must not rethrow it (task 9.2 review fix).
+        runBlocking { runCatching { cache.paths(coarse, ThrowingProjection).await() } }
+        var scene: MapScene? = null
+        compose.setContent {
+            CompositionLocalProvider(LocalMapPathCache provides cache) {
+                scene = rememberMapScene(ThrowingProjection, coarse)
+            }
+        }
+        // No exception thrown out of setContent/waitForIdle is itself the assertion: before the
+        // fix, the failed build's exception was rethrown by produceState into composition.
+        compose.waitForIdle()
+        assertNull("a failed build leaves the scene null, like it's still loading", scene)
     }
 
     @Test

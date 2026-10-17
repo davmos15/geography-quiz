@@ -43,6 +43,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -119,6 +121,7 @@ fun UsCaNameAllScreen(
             is UsCaNameAllUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            is UsCaNameAllUiState.Unavailable -> UsCaUnavailable(padding, onNavigateBack)
             is UsCaNameAllUiState.Active -> Box(Modifier.fillMaxSize().padding(padding)) {
                 UsCaNameAllContent(
                     state = state.state,
@@ -192,10 +195,18 @@ internal fun UsCaNameAllContent(
             },
             trailing = {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Task 9.2 review fix: a bare "1/3" relied on colour alone for what it meant -
+                    // the same labelled text + content description Tap the map's own status row uses.
                     if (difficulty == com.geoquiz.app.domain.model.Difficulty.HARD) {
                         val limit = com.geoquiz.app.domain.model.Difficulty.HARD.strikeLimit ?: 3
                         val shown = state.incorrectGuesses.coerceAtMost(limit)
-                        Text(text = "$shown/$limit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.geoColors.wrong)
+                        val description = pluralStringResource(R.plurals.a11y_hard_mode_strikes, limit, shown, limit)
+                        Text(
+                            text = stringResource(R.string.mode_tap_map_strikes_short, shown, limit),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.geoColors.wrong,
+                            modifier = Modifier.clearAndSetSemantics { contentDescription = description }
+                        )
                     }
                     TimerDisplay(elapsedSeconds = timerSeconds, timerSeconds = null)
                     DifficultyLabel(difficulty = difficulty)

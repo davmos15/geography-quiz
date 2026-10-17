@@ -1,10 +1,13 @@
 package com.geoquiz.app.ui.screenshot
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import org.junit.Rule
@@ -116,6 +119,23 @@ class KeyScreensScreenshotTest {
 
     @Test @Config(fontScale = 2f)
     fun play_font200() = capture("play_font200", ScreenshotScreens.play())
+
+    // ---- Play tab with every mode on, scrolled to the New modes grid (task 9.x, D63) ----
+
+    private fun playAllModes(name: String) = capture(name, ScreenshotScreens.playAllModes()) {
+        // The grid is lazy: items past the classic groups aren't composed until scrolled into
+        // view, so onNodeWithText(...).performScrollTo() can't find "New modes" yet (PlayScreenUiTest
+        // uses the same onNode(hasScrollAction()).performScrollToNode(...) pattern).
+        onNode(hasScrollAction()).performScrollToNode(hasText("New modes"))
+    }
+
+    @Test fun playAllModes_light() = playAllModes("play_all_modes_light")
+
+    @Test @Config(qualifiers = "+night")
+    fun playAllModes_dark() = playAllModes("play_all_modes_dark")
+
+    @Test @Config(fontScale = 2f)
+    fun playAllModes_font200() = playAllModes("play_all_modes_font200")
 
     // ---- Category list: difficulty selector, a row with stars, Best and pinned, rows without ----
 

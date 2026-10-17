@@ -37,6 +37,29 @@ class DailyChallengeGeneratorTest {
         )
     }
 
+    /**
+     * Pins the exact output for three fixed dates (Phase 9 review). Everyone on the same date must
+     * get the same round on every app version, so if this fails, today's questions changed for
+     * players (a Kotlin `Random` algorithm change, or a generator change). That needs a decision,
+     * not a golden update.
+     */
+    @Test
+    fun `fixed dates keep producing exactly the same rounds`() {
+        val expected = mapOf(
+            "2026-01-01" to GOLDEN_2026_01_01,
+            "2026-10-17" to GOLDEN_2026_10_17,
+            "2027-02-28" to GOLDEN_2027_02_28
+        )
+        val actual = expected.keys.associateWith { signature(DailyChallengeGenerator.generate(it, countries)) }
+        assertEquals(expected, actual)
+    }
+
+    private fun signature(questions: List<DailyChallengeQuestion>): String =
+        questions.joinToString(" ") { q ->
+            val options = q.choice?.options?.joinToString(",") { it.code }.orEmpty()
+            "${q.target.code}:${q.kind.name.first()}${q.kind.name.last()}:$options"
+        }
+
     @Test
     fun `determinism holds across many different dates, not just one`() {
         listOf("2020-01-01", "2024-02-29", "2026-10-16", "2099-12-31").forEach { date ->
@@ -111,3 +134,12 @@ class DailyChallengeGeneratorTest {
         assertEquals("2020-01-01".hashCode().toLong(), DailyChallengeGenerator.seedFor("2020-01-01"))
     }
 }
+
+// Each item is "<target>:<kind first+last letter>:<choice options in order>" (TY typed country,
+// TL typed capital, CG flag choice, CL capital choice). Recorded 2026-10-17 (Phase 9).
+private const val GOLDEN_2026_01_01 =
+    "C02:CG:C02,C16,C06,C40 C37:TL: C08:TL: C36:CG:C30,C36,C02,C06 C27:TL: C35:TY: C20:CL:C10,C18,C06,C20 C16:TY: C40:TY: C11:CL:C35,C11,C25,C07"
+private const val GOLDEN_2026_10_17 =
+    "C35:CL:C09,C39,C25,C35 C06:TL: C20:TL: C04:CL:C38,C30,C32,C04 C24:TL: C40:TY: C14:TY: C29:TY: C01:CG:C39,C01,C25,C29 C27:CG:C13,C03,C05,C27"
+private const val GOLDEN_2027_02_28 =
+    "C07:TY: C22:TL: C11:TL: C16:TL: C25:TY: C10:CL:C20,C24,C10,C34 C21:CG:C17,C03,C21,C07 C03:TY: C23:CL:C17,C05,C29,C23 C38:CG:C20,C10,C06,C38"

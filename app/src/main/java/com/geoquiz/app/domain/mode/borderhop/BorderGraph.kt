@@ -133,6 +133,26 @@ class BorderGraph(private val adjacency: Map<String, List<String>>) {
         }
         return null
     }
+
+    /**
+     * Deterministic, exhaustive version of the question [randomPuzzle] answers with a random
+     * pair: does any puzzle at all exist for [candidates] in [hopRange]? Used by the setup screen
+     * (task 9.2 review) to decide whether a category is worth offering at a difficulty tier,
+     * before a round is actually generated. Same exclusions as [randomPuzzle] (never an island,
+     * D44; a candidate unknown to the graph is dropped), but checks every candidate as a possible
+     * start rather than stopping at a random sample, so it never misses a feasible pair.
+     * [randomPuzzle] already tries every candidate as a start (in a shuffled order) before giving
+     * up, so for the same [candidates]/[hopRange] it returns null for every [Random] seed iff this
+     * returns false.
+     */
+    fun hasPuzzle(candidates: Collection<String>, hopRange: IntRange): Boolean {
+        val pool = candidates.filter { it in adjacency && !isIsland(it) }.distinct()
+        if (pool.size < 2) return false
+        return pool.any { start ->
+            val distances = distancesFrom(start)
+            pool.any { target -> target != start && (distances[target] ?: -1) in hopRange }
+        }
+    }
 }
 
 /**

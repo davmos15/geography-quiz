@@ -31,6 +31,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -183,5 +184,15 @@ class UsCaNameAllViewModelTest {
         val restoredHandle = SavedStateHandle(original.keys().associateWith { original.get<Any?>(it) })
         val restored = viewModel(restoredHandle)
         assertTrue("US-CA" in restored.active().answeredCountries)
+    }
+
+    @Test
+    fun `no regions to ask about shows Unavailable and records nothing`() {
+        coEvery { mapRepository.layer(GeoLayerId.ADMIN1_50M) } returns fakeAdmin1Layer()
+
+        val vm = viewModel(handle())
+
+        assertEquals(UsCaNameAllUiState.Unavailable, vm.uiState.value)
+        assertNull(completedQuizzes.stored)
     }
 }

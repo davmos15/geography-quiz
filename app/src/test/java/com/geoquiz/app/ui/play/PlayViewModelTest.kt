@@ -69,8 +69,11 @@ class PlayViewModelTest {
     }
 
     @Test
-    fun `new modes are empty by default even when flagged modes are registered`() = runTest {
-        val viewModel = ScreenTestFixtures.playViewModel(extraModes = setOf(silhouettes, tapTheMap))
+    fun `new modes are empty while their flags are off, even when registered`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(
+            extraModes = setOf(silhouettes, tapTheMap),
+            flagStates = MutableStateFlow(flagStates())
+        )
 
         viewModel.uiState.test {
             val state = awaitLoaded()
@@ -318,8 +321,8 @@ class PlayViewModelTest {
     }
 
     @Test
-    fun `the Today's challenge card is off by default`() = runTest {
-        val viewModel = ScreenTestFixtures.playViewModel()
+    fun `the Today's challenge card is off while its flag is off`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(flagStates = MutableStateFlow(flagStates()))
 
         viewModel.uiState.test {
             assertFalse(awaitLoaded().showTodayChallenge)

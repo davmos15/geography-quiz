@@ -64,6 +64,11 @@ data class CurrencyRoundState(
 
 sealed class CurrenciesUiState {
     data object Loading : CurrenciesUiState()
+
+    /** No currencies left to ask about for this filter (task 9.2 review fix: e.g. a Practice
+     * filter whose codes have all been resolved away) - the round never starts, so nothing is
+     * recorded, the same reasoning as `BorderHopUiState.Unavailable`. */
+    data object Unavailable : CurrenciesUiState()
     data class Active(val state: CurrencyRoundState) : CurrenciesUiState()
 }
 

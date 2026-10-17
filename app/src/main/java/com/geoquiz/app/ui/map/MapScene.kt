@@ -15,6 +15,7 @@ import com.geoquiz.app.domain.map.GeometryKind
 import com.geoquiz.app.domain.map.MapProjection
 import com.geoquiz.app.domain.map.PlaneRect
 import com.geoquiz.app.domain.map.ProjectedLayer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -186,9 +187,12 @@ fun isFarContext(isMember: Boolean, angleDeg: Double, maxDeg: Double = FAR_CONTE
  * [MapProjection] each time, so without this every preset ever visited in a session would keep
  * its paths forever. [projectionKeys] is an access-order LRU of the projections themselves;
  * evicting the oldest one drops every layer entry built under it. [clear] (memory pressure,
- * tests) drops everything; there is no [android.content.ComponentCallbacks2] hook wired to call
- * it automatically (`GeographyQuizApplication` is outside this task's files), so `onTrimMemory`
- * does not call it yet.
+ * tests) drops everything; `GeographyQuizApplication.onTrimMemory`/`onLowMemory` call it once the
+ * UI is hidden or memory is tight (task 9.2 review fix). Safe to call while a build is in flight:
+ * [paths] and [clear] share the same monitor ([Synchronized]), and a running build never writes
+ * back into [builtPaths] on completion (only [paths] does, when it creates the entry) - so a
+ * clear mid-build just drops the map entry; the build itself finishes normally and its result is
+ * discarded rather than resurrected into the cleared cache.
  */
 class MapPathCache(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
@@ -243,6 +247,16 @@ val LocalMapPathCache = staticCompositionLocalOf { MapPathCache.Shared }
  * A layer's paths from [LocalMapPathCache], or null while they build (or when [layer] is null).
  * Paths that are already built are returned on the first composition, so a rotation or theme
  * change never shows an empty map.
+ *
+ * A failed build (bad geometry, or an [OutOfMemoryError] projecting/triangulating a large layer)
+ * never rethrows into composition (task 9.2 review fix): [value] is simply left null, same as
+ * "still building", so a caller that only ever checks for a non-null [MapScene] keeps showing its
+ * loading state instead of crashing. [MapPathCache] already treats a failed entry as retryable
+ * (see its class doc), so the next request for the same (layer, projection) - a recomposition, a
+ * rotation, or a cache [MapPathCache.clear] - tries again. [Throwable], not just [Exception], is
+ * caught deliberately: the cache's own "did this fail" check
+ * ([kotlinx.coroutines.Deferred.getCompletionExceptionOrNull]) already treats *any* throwable
+ * completion the same way, so matching that here keeps the two in step.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
@@ -252,7 +266,15 @@ fun rememberMapLayerPaths(layer: GeoLayer?, projection: MapProjection): MapLayer
     val ready = deferred?.takeIf { it.isCompleted && it.getCompletionExceptionOrNull() == null }?.getCompleted()
     // Remember which request produced the value, so stale paths are never returned.
     val awaited by produceState<Pair<Deferred<MapLayerPaths>, MapLayerPaths>?>(initialValue = null, deferred) {
-        value = deferred?.let { it to it.await() }
+        value = null
+        val current = deferred ?: return@produceState
+        value = try {
+            current to current.await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            null
+        }
     }
     return ready ?: awaited?.takeIf { it.first === deferred }?.second
 }

@@ -299,7 +299,8 @@ private fun SilhouettesActiveContent(
                         neighbourNames = round.neighbourNames,
                         enabled = !round.isComplete && !round.isAdvancing && !round.paused && !hintCapReached,
                         onHint = viewModel::onHint,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isOutlineLoading = round.isOutlineLoading
                     )
                 }
             }
@@ -429,7 +430,8 @@ private fun SilhouettesActiveContent(
                             neighbourNames = round.neighbourNames,
                             enabled = !round.isComplete && !round.isAdvancing && !round.paused && !hintCapReached,
                             onHint = viewModel::onHint,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            isOutlineLoading = round.isOutlineLoading
                         )
                     }
                     if (isTyped) {

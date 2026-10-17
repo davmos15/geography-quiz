@@ -120,7 +120,7 @@ sealed class QuizCategory {
             is SingleVowelType -> "Single Vowel Type"
             is FlagSingleColor -> color.replaceFirstChar { it.uppercase() }
             is FlagColorCombo -> "Only " + colors.joinToString(" & ") { it.replaceFirstChar { c -> c.uppercase() } }
-            is FlagColorCount -> "$count ${if (count == 1) "color" else "colors"}"
+            is FlagColorCount -> "$count ${if (count == 1) "colour" else "colours"}"
             is FlagElement -> ELEMENT_DISPLAY_NAMES[element] ?: element.replaceFirstChar { it.uppercase() }
             // "world" -> "World", "north_america" -> "North America": matches region_world etc.
             // in strings.xml (no Android resource dependency here, same as every other name above).

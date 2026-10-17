@@ -89,7 +89,10 @@ class DailyChallengeGameMode @Inject constructor() : GameMode {
             // list, replaying these codes would just restart an ordinary quiz with no connection
             // to what was actually asked or how (same reasoning as PhysicalFeaturesGameMode and
             // UsCaRegionsGameMode, D43).
-            supportsPractice = false
+            supportsPractice = false,
+            // One attempt per local date (D54): replaying from Results would only reach the
+            // "already played" screen, so Results hides Play Again (task 9.2).
+            supportsPlayAgain = false
         )
     }
 }

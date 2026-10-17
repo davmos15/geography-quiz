@@ -6,8 +6,11 @@ import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -90,6 +93,32 @@ class ObserveStreakUseCaseTest {
         ObserveStreakUseCase.localDateTicks().test {
             val first = awaitItem()
             assertTrue(first == LocalDate.now() || first == LocalDate.now().minusDays(1))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    /**
+     * Review fix: a device sleeping through midnight (or a clock/time zone change) must be caught
+     * within one [ObserveStreakUseCase.POLL_INTERVAL_MILLIS], not only after the one long delay to
+     * the next midnight that was originally calculated - `delay` is uptime-based and would not have
+     * advanced through a real deep sleep, so that original delay is never trusted to fire on time.
+     * This drives [ObserveStreakUseCase.localDateTicks]'s injectable `now` far past midnight while
+     * only advancing the *virtual* test clock by one poll interval (not the ~many hours a real
+     * sleep would represent), proving the new date is picked up without waiting for it.
+     */
+    @Test
+    fun `polling re-reads the wall clock within one poll interval, catching a now that jumps past midnight`() = runTest {
+        var now = LocalDateTime.of(2026, 10, 16, 12, 0, 0)
+        ObserveStreakUseCase.localDateTicks(now = { now }).test {
+            assertEquals(LocalDate.of(2026, 10, 16), awaitItem())
+
+            // A 12-hour deep sleep crossing midnight: the wall clock jumps straight to the next
+            // day, but only one poll interval of *virtual* time elapses.
+            now = LocalDateTime.of(2026, 10, 17, 0, 0, 5)
+            advanceTimeBy(ObserveStreakUseCase.POLL_INTERVAL_MILLIS)
+            runCurrent()
+
+            assertEquals(LocalDate.of(2026, 10, 17), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }

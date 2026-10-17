@@ -75,6 +75,9 @@ data class PhysicalFeaturesRoundState(
 
 sealed class PhysicalFeaturesUiState {
     data object Loading : PhysicalFeaturesUiState()
+
+    /** No features to ask about for this filter; nothing is recorded (Phase 9 review). */
+    data object Unavailable : PhysicalFeaturesUiState()
     data class Active(val state: PhysicalFeaturesRoundState) : PhysicalFeaturesUiState()
 }
 

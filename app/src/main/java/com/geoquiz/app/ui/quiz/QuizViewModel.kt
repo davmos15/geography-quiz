@@ -154,6 +154,9 @@ class QuizViewModel @Inject constructor(
     /** Easy: shows a pick's feedback for [CHOICE_FEEDBACK_MILLIS], then moves on. */
     private var feedbackJob: Job? = null
 
+    /** The submit being validated, if any: one at a time (see [onSubmitAnswer]). */
+    private var submitJob: Job? = null
+
     init {
         adManager.preloadInterstitial()
         viewModelScope.launch {
@@ -433,21 +436,32 @@ class QuizViewModel @Inject constructor(
         saveToHandle()
     }
 
+    /**
+     * Validates the typed answer. Ignored while a previous submit is still validating
+     * ([submitJob]): tapping Submit twice before the first finishes counts one answer, not two
+     * (one Correct, or one strike). If the quiz completed while validation ran (e.g. Give up),
+     * the late result is dropped, so a finished quiz is never un-completed or changed after it
+     * was handed to [CompleteQuizUseCase].
+     */
     fun onSubmitAnswer() {
         val current = _uiState.value
         if (current !is QuizUiState.Active) return
         if (current.state.isComplete || current.state.isPaused) return
+        if (submitJob?.isActive == true) return
 
         val input = current.state.currentInput.trim()
         if (input.isBlank()) return
 
-        viewModelScope.launch {
+        submitJob = viewModelScope.launch {
             // Typos are forgiven except at Hard, where they get a NearMiss (no strike).
             val rules = _difficulty.value
             val allowFuzzy = rules.allowsTypos
             val result = gameMode.validator.validate(input, current.state, allowFuzzy)
+            var applied = false
             _uiState.update { uiState ->
-                if (uiState is QuizUiState.Active) {
+                applied = false
+                if (uiState is QuizUiState.Active && !uiState.state.isComplete) {
+                    applied = true
                     val state = uiState.state
                     val correctCode = (result as? AnswerResult.Correct)?.let { correct ->
                         state.quiz.countries.first { it.name == correct.countryName }.code
@@ -474,7 +488,8 @@ class QuizViewModel @Inject constructor(
                     }
                     val allAnswered = newAnswered.size == state.quiz.countries.size
                     val struckOut = rules.strikeLimit?.let { newIncorrect >= it } ?: false
-                    val isComplete = allAnswered || struckOut
+                    // Never un-complete: reads the latest state inside the update.
+                    val isComplete = state.isComplete || allAnswered || struckOut
                     QuizUiState.Active(
                         state.copy(
                             answeredCountries = newAnswered,
@@ -488,6 +503,7 @@ class QuizViewModel @Inject constructor(
                     )
                 } else uiState
             }
+            if (!applied) return@launch
             onStateChanged()
             AnswerFeedbackEvent.from(result)?.let { _feedbackEvents.tryEmit(it) }
             when (result) {

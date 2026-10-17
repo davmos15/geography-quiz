@@ -12,14 +12,17 @@ import com.geoquiz.app.domain.model.QuizState
  * it like any other mode, reusing its fields with this mode's own, simpler meaning (there is no
  * repeat-question or combo wrinkle here - every item gets exactly one attempt):
  *
- * - [QuizState.quiz]'s countries are the targets actually asked (i.e. given a final attempt)
- *   during the round, in the order asked. A question still on screen when the player gives up is
- *   never added here: it was shown but never answered.
- * - [QuizState.answeredCountries] is the set of targets answered correctly on that one attempt.
- * - [QuizState.incorrectGuesses] is the count of targets answered incorrectly on that one attempt.
- *   Since every asked target is either correct or incorrect (no retries, no "already answered"),
+ * - [QuizState.quiz]'s countries are **every** target in the day's round (always
+ *   [DailyChallengeGenerator.QUESTION_COUNT], 10, in real play), not only the ones actually given
+ *   a final attempt before the round ended - a round is always scored out of its full size, so
+ *   giving up early cannot score (or record) as if it were a shorter, possibly perfect, round.
+ * - [QuizState.answeredCountries] is the set of targets answered correctly on their one attempt.
+ * - [QuizState.incorrectGuesses] is "not correct": every target answered incorrectly on that one
+ *   attempt, **plus** every target never reached before the round ended (give-up). Since every
+ *   target is either correct or not-correct (no retries, no "already answered"),
  *   `correct == asked - incorrectGuesses` always holds, exactly like
- *   [com.geoquiz.app.domain.mode.flagspeed.FlagSpeedScoring].
+ *   [com.geoquiz.app.domain.mode.flagspeed.FlagSpeedScoring] - `isPerfect` (zero incorrect) is
+ *   therefore true only when every one of the day's questions was both reached and correct.
  *
  * Score formula: the same shape as the classic formula
  * ([com.geoquiz.app.domain.usecase.CalculateScoreUseCase]) and as [QuizState]'s two new-mode
@@ -32,8 +35,9 @@ import com.geoquiz.app.domain.model.QuizState
  * Worked example, a perfect round: 10 asked, 10 correct, 0 incorrect:
  * `base = (10/10) * 10 = 10`, perfect, so `score = 10 * 1.2 = 12.0`.
  *
- * Giving up before answering anything, or any other way the round ends with zero questions asked,
- * scores zero.
+ * Giving up before answering anything scores zero (0 correct out of the full `asked`, since the
+ * day's round is never empty in real play - see [DailyChallengeGenerator.generate]'s own near-
+ * impossible empty-pool case, the only way `asked` is actually 0 here).
  */
 object DailyChallengeScoring {
 

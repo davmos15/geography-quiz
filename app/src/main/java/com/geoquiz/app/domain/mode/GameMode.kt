@@ -110,7 +110,13 @@ data class GameModeSpec(
      * mode whose codes aren't real quiz items the normal way sets this `false` rather than start
      * a wrong, unrelated round when the player taps it.
      */
-    val supportsPractice: Boolean = true
+    val supportsPractice: Boolean = true,
+    /**
+     * Whether Results' "Play Again" button makes sense for this mode (task 9.2). The daily
+     * challenge is one attempt per local date (D54), so its replay route would only dead-end at
+     * "already played"; it sets this `false` and Results hides the button.
+     */
+    val supportsPlayAgain: Boolean = true
 )
 
 /** Builds the set of items a quiz asks about. Only called for categories offered in the mode. */

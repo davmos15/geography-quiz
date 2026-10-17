@@ -15,6 +15,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.first
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,18 +54,29 @@ class SoundEffectPlayer @Inject constructor(
         )
         .build()
 
-    /** Sound-pool sample ids that have finished loading; playback before that is skipped. */
-    private val loadedSoundIds = mutableSetOf<Int>()
-
-    private val correctSoundId = soundPool.load(context, R.raw.sound_correct, 1)
-    private val wrongSoundId = soundPool.load(context, R.raw.sound_wrong, 1)
-    private val perfectSoundId = soundPool.load(context, R.raw.sound_perfect, 1)
+    /**
+     * Sound-pool sample ids that have finished loading; playback before that is skipped. A
+     * [ConcurrentHashMap] keyset, not a plain `mutableSetOf()`: [SoundPool]'s load-complete
+     * callback can run on a binder/background thread while [play] reads this set from whatever
+     * coroutine dispatcher calls it, so concurrent reads/writes must be safe without external
+     * locking (review fix).
+     */
+    private val loadedSoundIds: MutableSet<Int> = ConcurrentHashMap.newKeySet()
 
     init {
+        // Registered before any load() call below (review fix): SoundPool can deliver a
+        // load-complete callback for a sample as soon as load() is called for it - even
+        // synchronously on some OEM implementations - so setting the listener afterwards could
+        // silently drop an early completion, leaving that one sound permanently "not loaded" and
+        // so always silently skipped by play().
         soundPool.setOnLoadCompleteListener { _, sampleId, status ->
             if (status == 0) loadedSoundIds += sampleId
         }
     }
+
+    private val correctSoundId = soundPool.load(context, R.raw.sound_correct, 1)
+    private val wrongSoundId = soundPool.load(context, R.raw.sound_wrong, 1)
+    private val perfectSoundId = soundPool.load(context, R.raw.sound_perfect, 1)
 
     /** A correct typed answer or Easy pick. */
     suspend fun playCorrect() = play(correctSoundId)

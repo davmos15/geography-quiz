@@ -33,6 +33,7 @@ import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeatureTab
 import com.geoquiz.app.ui.components.DifficultySelector
 import com.geoquiz.app.ui.components.WrappingTopAppBar
+import com.geoquiz.app.ui.components.summaryRes
 import com.geoquiz.app.domain.model.Difficulty
 
 /**
@@ -127,7 +128,10 @@ fun PhysicalFeaturesSetupScreen(
                 DifficultySelector(
                     selected = state.difficulty,
                     onSelect = viewModel::onDifficultySelected,
-                    options = Difficulty.entries.toList()
+                    options = Difficulty.entries.toList(),
+                    summaryRes = { difficulty ->
+                        if (difficulty == Difficulty.HARD) R.string.physical_features_hard_summary else difficulty.summaryRes
+                    }
                 )
             }
 

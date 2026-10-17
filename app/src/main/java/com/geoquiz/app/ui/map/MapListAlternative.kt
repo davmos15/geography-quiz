@@ -95,6 +95,13 @@ fun MapOrListToggle(
  *
  * [showSearch] adds a field that filters by name, normalised the same way as typed answers (so
  * "cote d'ivoire" matches "Côte d'Ivoire").
+ *
+ * [resetKey] clears the search query (only) whenever it changes, without disturbing [listState]
+ * or recreating this composable's own remembered state (task 9.2 review fix): a caller that asks
+ * about a new target in turn (Tap the map's "Find" game) passes the target's code here, so a
+ * leftover query from the previous prompt never carries over and hides the new target's row, but
+ * the list's scroll position and TalkBack focus survive each find instead of resetting. Null
+ * (the default) never resets the query on its own.
  */
 @Composable
 fun MapListAlternative(
@@ -104,8 +111,9 @@ fun MapListAlternative(
     modifier: Modifier = Modifier,
     showSearch: Boolean = true,
     listState: LazyListState = rememberLazyListState(),
+    resetKey: Any? = null,
 ) {
-    var query by rememberSaveable { mutableStateOf("") }
+    var query by rememberSaveable(resetKey) { mutableStateOf("") }
     val normalize = remember { NormalizeInputUseCase() }
     // Locale-aware order (see [sortCountriesForList]). Each name is normalised once here, not on
     // every keystroke, and the search filter below matches against that stored value instead of

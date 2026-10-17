@@ -214,4 +214,14 @@ class UsCaTapViewModelTest {
         val vm = viewModel(handle(difficulty = "easy"))
         assertEquals(Difficulty.NORMAL, vm.difficulty.value)
     }
+
+    @Test
+    fun `no regions to ask about shows Unavailable and records nothing`() {
+        coEvery { mapRepository.layer(GeoLayerId.ADMIN1_50M) } returns fakeAdmin1Layer()
+
+        val vm = viewModel(handle())
+
+        assertEquals(UsCaTapUiState.Unavailable, vm.uiState.value)
+        assertNull(completedQuizzes.stored)
+    }
 }

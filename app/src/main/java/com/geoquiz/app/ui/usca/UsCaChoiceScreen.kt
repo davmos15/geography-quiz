@@ -109,6 +109,7 @@ fun UsCaChoiceScreen(
             is UsCaChoiceUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            is UsCaChoiceUiState.Unavailable -> UsCaUnavailable(padding, onNavigateBack)
             is UsCaChoiceUiState.Active -> Box(Modifier.fillMaxSize().padding(padding)) {
                 UsCaChoiceContent(
                     state = state.state,

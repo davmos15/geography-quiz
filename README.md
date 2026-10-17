@@ -3,7 +3,7 @@
 An Android geography quiz app that challenges players to name countries, capitals and flags across dozens of quiz categories. Built with Kotlin and Jetpack Compose.
 
 **Platform:** Android (Kotlin + Jetpack Compose)
-**Current Version:** 2.7.2 (versionCode 17)
+**Current Version:** 3.0.0 (versionCode 18)
 
 ---
 

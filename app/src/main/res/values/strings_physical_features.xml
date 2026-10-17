@@ -13,6 +13,11 @@
     </plurals>
 
     <!-- Setup screen -->
+    <!-- Hard summary under the setup selector (task 9.2 review fix): the generic
+         difficulty_hard_summary talks about "the quiz", which doesn't fit this mode's own round
+         terminology, and review flagged that the strike limit wasn't called out by name here the
+         way Silhouettes/Tap the map's own Hard summaries do. -->
+    <string name="physical_features_hard_summary">Type the exact spelling. 3 wrong guesses ends the round, and the timer is always on.</string>
     <string name="physical_features_setup_tab_title">What to name</string>
     <string name="physical_features_tab_rivers">Rivers</string>
     <string name="physical_features_tab_mountains">Mountains</string>
@@ -34,4 +39,6 @@
     <!-- Task 7.2 review fix H2: the only clue a TalkBack user gets (there is no list fallback
          for a one-off highlighted feature); never the feature's own name. -->
     <string name="physical_features_clue">Found in %1$s</string>
+    <!-- Shown instead of a round when the filter has no features to ask about; nothing is recorded -->
+    <string name="physical_features_unavailable">There are no features to ask about for this choice. Go back and try a different one.</string>
 </resources>

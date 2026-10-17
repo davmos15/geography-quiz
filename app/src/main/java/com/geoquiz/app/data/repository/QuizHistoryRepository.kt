@@ -52,7 +52,12 @@ class QuizHistoryRepository @Inject constructor(
     val totalQuestionsAnswered: Flow<Int> = quizHistoryDao.getTotalQuestionsAnswered()
     val totalTimeSpent: Flow<Int> = quizHistoryDao.getTotalTimeSpent()
     val uniqueQuizzesCompleted: Flow<Int> = quizHistoryDao.getUniqueQuizzesCompleted()
-    val highestScore: Flow<Double> = quizHistoryDao.getHighestScore()
+    /**
+     * Highest score over the classic modes only (task 9.2): new modes score on their own scales
+     * (Border hop's hops, Flag speed round's combos, ...), so mixing them into one maximum would
+     * compare unlike numbers.
+     */
+    val highestClassicScore: Flow<Double> = quizHistoryDao.getHighestScoreForModes(CLASSIC_MODE_IDS)
     val averageAccuracy: Flow<Double> = quizHistoryDao.getAverageAccuracy()
 
     fun recentQuizzes(limit: Int = 10): Flow<List<QuizHistoryEntity>> =
@@ -60,6 +65,10 @@ class QuizHistoryRepository @Inject constructor(
 
     fun quizzesCompletedForMode(quizMode: String): Flow<Int> =
         quizHistoryDao.getQuizzesCompletedForMode(quizMode)
+
+    /** Quizzes completed per mode id, for every mode with any history. Updates live. */
+    val quizCountsByMode: Flow<Map<String, Int>> =
+        quizHistoryDao.observeQuizCountsByMode().map { rows -> rows.associate { it.quizMode to it.count } }
 
     /**
      * The best result (highest score) per category of [quizMode], keyed by [categoryKey].
@@ -129,11 +138,18 @@ class QuizHistoryRepository @Inject constructor(
 
     suspend fun clearAllHistory() = quizHistoryDao.deleteAllHistory()
 
+    /**
+     * Deletes all history except [keepModeId]'s rows (Stats' "Reset Statistics", task 9.2: the
+     * daily challenge's rows hold its streak and its one-attempt-per-day guard, so they stay).
+     * Settings' Reset all data still clears everything (`ResetAllDataUseCase`).
+     */
+    suspend fun clearHistoryExceptMode(keepModeId: String) = quizHistoryDao.deleteHistoryExceptMode(keepModeId)
+
     companion object {
         /** Key used by [masteryStarsForMode] and [bestScoresForMode]. */
         fun categoryKey(categoryType: String, categoryValue: String): String = "$categoryType|$categoryValue"
 
-        /** The classic mode ids, for [getTotalCorrectAnswersSync]'s "Overall" leaderboard total (D35). */
+        /** The classic mode ids, for [getTotalCorrectAnswersSync]'s "Overall" leaderboard total (D35) and [highestClassicScore]. */
         private val CLASSIC_MODE_IDS: List<String> = QuizMode.entries.map { it.id }
     }
 }

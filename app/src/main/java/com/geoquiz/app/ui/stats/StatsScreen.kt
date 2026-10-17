@@ -33,7 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +55,7 @@ fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var showResetDialog by remember { mutableStateOf(false) }
+    var showResetDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -132,10 +132,11 @@ fun StatsScreen(
                 StatRow("Total Time Playing", timeStr)
             }
 
+            // Every mode with history, labelled with its own name (task 9.2): classic first.
             StatsCard(title = "By Mode") {
-                StatRow("Countries Quizzes", state.countriesQuizCount.toString())
-                StatRow("Capitals Quizzes", state.capitalsQuizCount.toString())
-                StatRow("Flags Quizzes", state.flagsQuizCount.toString())
+                state.modeCounts.forEach { row ->
+                    StatRow(stringResource(row.nameRes), row.count.toString())
+                }
             }
 
             StatsCard(title = "Achievements") {
@@ -160,19 +161,19 @@ fun StatsScreen(
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Statistics?") },
-            text = { Text("This will permanently delete all quiz history and statistics. Achievements will not be affected.") },
+            title = { Text(stringResource(R.string.stats_reset_dialog_title)) },
+            text = { Text(stringResource(R.string.stats_reset_dialog_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     showResetDialog = false
                     viewModel.resetStatistics()
                 }) {
-                    Text("Reset", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.stats_reset_dialog_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showResetDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )

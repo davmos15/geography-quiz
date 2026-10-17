@@ -106,4 +106,52 @@ class SoundEffectPlayerTest {
 
         assertFalse(shadowOf(player.soundPool).wasResourcePlayed(R.raw.sound_correct))
     }
+
+    /**
+     * Review fix: [SoundEffectPlayer.loadedSoundIds] is a [java.util.concurrent.ConcurrentHashMap]
+     * keyset because the real [android.media.SoundPool]'s load-complete callback can arrive on a
+     * background/binder thread, concurrently with another sample's callback. This drives
+     * `notifyResourceLoaded` for all three clips from separate real threads at once (standing in
+     * for that concurrency) and checks every one is still recorded - a plain `mutableSetOf()`
+     * would risk a lost update (or a `ConcurrentModificationException`) under exactly this
+     * pattern.
+     */
+    @Test
+    fun `load-complete callbacks arriving concurrently on different threads are all recorded`() = runTest {
+        audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+        val player = SoundEffectPlayer(context, settingsWith(soundEffectsEnabled = true))
+        val shadow = shadowOf(player.soundPool)
+
+        val resources = listOf(R.raw.sound_correct, R.raw.sound_wrong, R.raw.sound_perfect)
+        val threads = resources.map { resId -> Thread { shadow.notifyResourceLoaded(resId, true) } }
+        threads.forEach { it.start() }
+        threads.forEach { it.join() }
+
+        player.playCorrect()
+        player.playWrong()
+        player.playPerfect()
+
+        assertTrue(shadow.wasResourcePlayed(R.raw.sound_correct))
+        assertTrue(shadow.wasResourcePlayed(R.raw.sound_wrong))
+        assertTrue(shadow.wasResourcePlayed(R.raw.sound_perfect))
+    }
+
+    /**
+     * Review fix: [SoundEffectPlayer] now registers its `OnLoadCompleteListener` (in `init`)
+     * before any `soundPool.load(...)` call, so an eager load-complete cannot be dropped. This is
+     * mostly a code-structure guarantee Robolectric's `ShadowSoundPool` cannot race-test directly
+     * (it never fires a completion synchronously from `load()`), but this still pins the
+     * observable contract every other test here already relies on: a clip reported loaded,
+     * however soon after construction, is always picked up.
+     */
+    @Test
+    fun `a load-complete reported immediately after construction is still picked up`() = runTest {
+        audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+        val player = SoundEffectPlayer(context, settingsWith(soundEffectsEnabled = true))
+
+        shadowOf(player.soundPool).notifyResourceLoaded(R.raw.sound_correct, true)
+        player.playCorrect()
+
+        assertTrue(shadowOf(player.soundPool).wasResourcePlayed(R.raw.sound_correct))
+    }
 }

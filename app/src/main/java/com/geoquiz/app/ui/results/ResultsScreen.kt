@@ -248,7 +248,7 @@ private fun ResultsContent(
     // The score, stats and cards (3.7: one pane on wide screens)...
     val summary: @Composable ColumnScope.() -> Unit = {
         Text(
-            text = "Quiz Complete!",
+            text = stringResource(R.string.results_title),
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() }
@@ -286,7 +286,7 @@ private fun ResultsContent(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = "Score",
+                    text = stringResource(R.string.results_score_label),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -313,15 +313,15 @@ private fun ResultsContent(
                     valueDescription = A11yText.progress(res, modeSpec, correctAnswers, totalCountries)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                ResultRow("Percentage", String.format(Locale.US, "%.1f%%", percentage))
+                ResultRow(stringResource(R.string.results_percentage_label), String.format(Locale.US, "%.1f%%", percentage))
                 Spacer(modifier = Modifier.height(8.dp))
-                ResultRow("Time", timeFormatted, valueDescription = A11yText.duration(res, timeElapsedSeconds))
+                ResultRow(stringResource(R.string.results_time_label), timeFormatted, valueDescription = A11yText.duration(res, timeElapsedSeconds))
                 Spacer(modifier = Modifier.height(8.dp))
-                ResultRow("Incorrect Guesses", incorrectGuesses.toString())
+                ResultRow(stringResource(R.string.results_incorrect_guesses_label), incorrectGuesses.toString())
                 if (perfectBonus) {
                     Spacer(modifier = Modifier.height(8.dp))
                     OutcomeLine(
-                        text = "Perfect! +20% bonus!",
+                        text = stringResource(R.string.results_perfect_bonus),
                         icon = Icons.Default.Check,
                         color = MaterialTheme.geoColors.correct,
                         style = MaterialTheme.typography.bodyLarge
@@ -381,7 +381,7 @@ private fun ResultsContent(
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {
                 Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                Text("Share", textAlign = TextAlign.Center)
+                Text(stringResource(R.string.results_share_button), textAlign = TextAlign.Center)
             }
             // D35: no Challenge button for a new (non-classic) mode.
             if (showChallenge) OutlinedButton(
@@ -401,7 +401,7 @@ private fun ResultsContent(
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {
                 Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-                Text("Challenge", textAlign = TextAlign.Center)
+                Text(stringResource(R.string.results_challenge_button), textAlign = TextAlign.Center)
             }
         }
 
@@ -476,35 +476,40 @@ private fun ResultsContent(
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             ) {
-                Text("View Answers", textAlign = TextAlign.Center)
+                Text(stringResource(R.string.results_view_answers_button), textAlign = TextAlign.Center)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        Button(
-            onClick = onPlayAgain,
-            modifier = Modifier.fillMaxWidth(widthFraction)
-        ) {
-            Text("Play Again", textAlign = TextAlign.Center)
+        // Play Again: hidden for a mode that can't be replayed straight away
+        // (GameModeSpec.supportsPlayAgain; the daily challenge is one attempt per day, D54).
+        if (modeSpec.supportsPlayAgain) {
+            Button(
+                onClick = onPlayAgain,
+                modifier = Modifier.fillMaxWidth(widthFraction)
+            ) {
+                Text(stringResource(R.string.results_play_again_button), textAlign = TextAlign.Center)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
         if (missedCount > 0) {
-            Spacer(modifier = Modifier.height(12.dp))
             PractiseMissedButton(
                 missedCount = missedCount,
                 onClick = onPractiseMissed,
                 modifier = Modifier.fillMaxWidth(widthFraction)
             )
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         OutlinedButton(
             onClick = onGoHome,
             modifier = Modifier.fillMaxWidth(widthFraction)
         ) {
-            Text("Home", textAlign = TextAlign.Center)
+            Text(stringResource(R.string.results_home_button), textAlign = TextAlign.Center)
         }
     }
 
@@ -698,7 +703,7 @@ private fun ChallengeResultCard(
                     modifier = Modifier.padding(end = 8.dp)
                 )
                 Text(
-                    text = "Challenge Result",
+                    text = stringResource(R.string.results_challenge_result_heading),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -720,7 +725,7 @@ private fun ChallengeResultCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "You",
+                        text = stringResource(R.string.results_challenge_you),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -745,14 +750,14 @@ private fun ChallengeResultCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Score row
-                ComparisonRow("$myScore / $myTotal", "Score", "$challengerScore / $challengerTotal")
+                ComparisonRow("$myScore / $myTotal", stringResource(R.string.results_score_label), "$challengerScore / $challengerTotal")
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Percentage row
                 ComparisonRow(
                     String.format(Locale.US, "%.1f%%", myPct),
-                    "Percentage",
+                    stringResource(R.string.results_percentage_label),
                     String.format(Locale.US, "%.1f%%", theirPct)
                 )
 
@@ -765,7 +770,7 @@ private fun ChallengeResultCard(
                 val theirSec = (challengerTime ?: 0) % 60
                 ComparisonRow(
                     String.format("%02d:%02d", myMin, mySec),
-                    "Time",
+                    stringResource(R.string.results_time_label),
                     String.format("%02d:%02d", theirMin, theirSec)
                 )
 
@@ -777,17 +782,17 @@ private fun ChallengeResultCard(
                 val resultIcon: ImageVector?
                 when {
                     myPct > theirPct -> {
-                        resultText = "You won!"
+                        resultText = stringResource(R.string.results_challenge_won)
                         resultColor = MaterialTheme.geoColors.correct
                         resultIcon = Icons.Default.Check
                     }
                     myPct < theirPct -> {
-                        resultText = "You lost - challenge them back!"
+                        resultText = stringResource(R.string.results_challenge_lost)
                         resultColor = MaterialTheme.geoColors.wrong
                         resultIcon = Icons.Default.Close
                     }
                     else -> {
-                        resultText = "It's a tie!"
+                        resultText = stringResource(R.string.results_challenge_tie)
                         resultColor = MaterialTheme.colorScheme.onTertiaryContainer
                         resultIcon = null
                     }
@@ -802,7 +807,7 @@ private fun ChallengeResultCard(
             } else {
                 // Challenger didn't share their score
                 Text(
-                    text = "Challenge from $challengerName completed!",
+                    text = stringResource(R.string.results_challenge_completed, challengerName),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     textAlign = TextAlign.Center,
@@ -810,7 +815,7 @@ private fun ChallengeResultCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Share your result so they can compare.",
+                    text = stringResource(R.string.results_challenge_share_prompt),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     textAlign = TextAlign.Center,

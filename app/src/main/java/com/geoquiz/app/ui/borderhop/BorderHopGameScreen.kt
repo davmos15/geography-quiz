@@ -5,6 +5,7 @@ package com.geoquiz.app.ui.borderhop
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,11 +52,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -267,16 +272,18 @@ private fun BorderHopActiveContent(
                         }
                         // Task 8.4: disabled for the rest of the round once its difficulty tier's
                         // hint cap (HintCosts.maxHintsPerRound) is reached, alongside the existing
-                        // "already revealed at this position" disable.
-                        val hintCapReached = round.hintsUsed.size >=
-                            com.geoquiz.app.domain.mode.HintCosts.maxHintsPerRound(round.difficulty)
-                        OutlinedButton(
-                            onClick = viewModel::onHint,
-                            enabled = hintedCode == null && !hintCapReached
-                        ) {
-                            Icon(Icons.Default.Lightbulb, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.border_hop_hint, HintCostsForDisplay))
+                        // "already revealed at this position" disable. A tier with no hints at all
+                        // (Easy) hides the button, like Silhouettes and Tap the map (D62).
+                        val maxHints = com.geoquiz.app.domain.mode.HintCosts.maxHintsPerRound(round.difficulty)
+                        if (maxHints > 0) {
+                            OutlinedButton(
+                                onClick = viewModel::onHint,
+                                enabled = hintedCode == null && round.hintsUsed.size < maxHints
+                            ) {
+                                Icon(Icons.Default.Lightbulb, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.border_hop_hint, HintCostsForDisplay))
+                            }
                         }
                         OutlinedButton(onClick = onGiveUp) {
                             Text(stringResource(R.string.quiz_give_up))
@@ -315,10 +322,23 @@ private fun BorderHopHeader(
     }
 }
 
-/** The chain hopped so far, ending with the target chip (D44: "shows route chips"). */
+/**
+ * The chain hopped so far, ending with the target chip (D44: "shows route chips"). One row that
+ * scrolls sideways and follows the latest hop, so a long path never pushes the neighbour list off
+ * a small screen at large text (Phase 9 review).
+ */
 @Composable
 private fun BorderHopPathRow(path: List<Country>, target: Country?, reachedTarget: Boolean) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    val scrollState = rememberScrollState()
+    // maxValue only grows once the new chip is laid out, so follow it rather than reading it once.
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.maxValue }.collect { scrollState.animateScrollTo(it) }
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         path.forEachIndexed { index, country ->
             val isLast = index == path.lastIndex
             BorderHopChip(country = country, isTarget = reachedTarget && isLast, isCurrent = isLast && !reachedTarget)
@@ -356,12 +376,25 @@ private fun BorderHopChip(country: Country, isTarget: Boolean = false, isCurrent
 @Composable
 private fun BorderHopNeighbourCard(country: Country, isHinted: Boolean, onClick: () -> Unit) {
     val actionLabel = stringResource(R.string.border_hop_hop_to_action, country.name)
+    val hintedLabel = stringResource(R.string.border_hop_hint_suggested_hop, country.name)
     Card(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .buttonSemantics(actionLabel, onClick),
+            .buttonSemantics(actionLabel, onClick)
+            // The hint is otherwise only a colour and a decorative bulb: say it, and announce it
+            // once when it appears (Phase 9 review).
+            .then(
+                if (isHinted) {
+                    Modifier.semantics {
+                        contentDescription = hintedLabel
+                        liveRegion = LiveRegionMode.Polite
+                    }
+                } else {
+                    Modifier
+                }
+            ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isHinted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant

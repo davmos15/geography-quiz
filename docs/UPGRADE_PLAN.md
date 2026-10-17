@@ -49,14 +49,14 @@ where you stopped, commit, and tell me to start a new session.
 | 6 | New modes B: Border hop, US states and Canadian provinces | Done – PR open | `upgrade/p6-modes-b` | #9 |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Done – PR open | `upgrade/p7-modes-c` | #10 |
 | 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Done – PR open | `upgrade/p8-engagement` | #11 |
-| 9 | Release readiness | Not started | `upgrade/p9-release` | |
+| 9 | Release readiness | Done – PR open | `upgrade/p9-release` | |
 
 Statuses: Not started, In progress, Done – PR open, Done (merged).
 Each phase branches from `main` after the previous PR is merged. Dav tests the debug build on a device before merging.
 
 ### Next session starts at
 
-> Phase 9 (Release readiness) on a new branch `upgrade/p9-release` from `upgrade/p8-engagement` (D30; PRs #6–#11 are open, not merged – expected). Read the session 12 log first (Wave 2/3, the gate, carry-overs and device checks), and get Dav's answers on D53–D61 before 9.1 flips any flag defaults.
+> Dav device-tests the 3.0.0 RC (session 13 checklist; release APK and AAB in `app/build/outputs/`), says which feature flags to turn back off and answers the owner items in `docs/STORE_LISTING.md`. Then ship: merge PRs #6–#12 in order (D30), upload to Play.
 
 ---
 
@@ -137,13 +137,13 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Record which mledoze/countries release or commit `countries.json` came from (SHA-256 is in `data/SOURCES.md`), or pin it on the next refresh.
 - [ ] AdMob console: publish a GDPR/EEA consent message (Privacy & messaging) so UMP can show a form. Then check on a device with UMP debug geography = EEA whether the Settings "Privacy options" row appears with the under-age tag on.
 - [ ] Play Console: confirm Play Games Services sign-in is acceptable for a mixed-audience app under the Families policy.
-- [ ] Play Games bulk import: check whether it expects `AchievementsIconMappings.csv` or `AchievementsIconsMappings.csv` (byte-identical copies in `store_assets/achievements/`); keep one.
-- [ ] Phase 9: regenerate store images with the Lato scripts and re-upload to Play.
+- [ ] Play Games bulk import expects `AchievementsIconsMappings.csv` (Google's doc, checked in Phase 9; the script writes and zips that one). The stale duplicate `AchievementsIconMappings.csv` was deleted in Phase 9 (Dav approved).
+- [ ] Upload the store images regenerated in Phase 9 (icon, feature graphic, 8 phone screenshots in `store_assets/screenshots/`) and paste the text from `docs/STORE_LISTING.md`.
 - [x] Merge the Phase 1 PR after checking the debug build on a device (manual checklist in the session 2 log).
 - [ ] Back up `challengeHmacKey` (added to the local `signing.properties` in Phase 2) with the keystore in Drive and Bitwarden. Every release must use the same key; losing it means older challenge links open without scores.
 - [ ] App Links: add the Play App Signing key SHA-256 (Play Console → App integrity) to the `com.geoquiz.app` entry in `docs/.well-known/assetlinks.json`; after merge check `https://geoquiz-app.netlify.app/.well-known/assetlinks.json` is served as JSON with no redirect. The upload key and debug key are already listed.
 - [ ] Debug builds are now `com.geoquiz.app.debug` ("GeoQuiz Debug"). Play Games sign-in and Billing won't work in them unless that package is linked in Play Console (Play Games: add a linked Android app with the debug SHA-1); not required for testing.
-- [ ] Play Console achievements: the Flag Master description in Play Games reads "Complete Flags of the World quiz with 80%+" while the app says "Complete the Flags of the World quiz with 80%+"; update it in Phase 9 with the store refresh. Achievement titles still use US spelling ("World Traveler", "Color Expert"); decide in Phase 9 whether to rename.
+- [ ] Play Console achievements: the Flag Master description in Play Games reads "Complete Flags of the World quiz with 80%+" while the app says "Complete the Flags of the World quiz with 80%+"; update it in Phase 9 with the store refresh. Achievement titles still use US spelling ("World Traveler", "Color Expert", "flag color quizzes"); Phase 9 recommends renaming the display text only (ids stay) — Dav to say "rename" or "keep" (checklist in `docs/STORE_LISTING.md`). The regenerated `achievements_import.zip` already carries the app's Flag Master wording.
 
 ---
 
@@ -153,7 +153,7 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 `J/` = `app/src/main/java/com/geoquiz/app/`.
 
 **Stack and build**
-- Single `:app` module. Kotlin 2.2.21 (KSP2 2.2.21-2.0.5), AGP 8.13.2, Gradle 8.14.5, Compose BOM 2024.12, Material 3, Hilt 2.57.2, Room 2.7.2, Roborazzi 1.76.0 (since 3.6a; Kotlin 2.3 needs Hilt 2.60 → AGP 9, see D26), DataStore 1.1.1, Navigation Compose 2.8.5, kotlinx.serialization, AdMob (play-services-ads 23.6.0), Play Games v2, Play Billing 8.3. minSdk 26, compileSdk/targetSdk 36, versionCode 17, versionName 2.7.2.
+- Single `:app` module. Kotlin 2.2.21 (KSP2 2.2.21-2.0.5), AGP 8.13.2, Gradle 8.14.5, Compose BOM 2024.12, Material 3, Hilt 2.57.2, Room 2.7.2, Roborazzi 1.76.0 (since 3.6a; Kotlin 2.3 needs Hilt 2.60 → AGP 9, see D26), DataStore 1.1.1, Navigation Compose 2.8.5, kotlinx.serialization, AdMob (play-services-ads 23.6.0), Play Games v2, Play Billing 8.3. minSdk 26, compileSdk/targetSdk 36, versionCode 18, versionName 3.0.0 (D64; was 17 / 2.7.2).
 - Release: R8 minify + resource shrinking already on (`app/build.gradle.kts`); `app/proguard-rules.pro` keeps Room, kotlinx.serialization, Hilt, Play Games, Ads. Signing from `signing.properties` (gitignored).
 - Local build needs `local.properties` with `sdk.dir=C\:/Users/.../Android/Sdk` (forward slashes on Windows).
 - CI: `.github/workflows/ci.yml` (added Phase 0) runs `assembleDebug testDebugUnitTest lintDebug`. Lint was clean at baseline.
@@ -239,6 +239,15 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Share card (8.3, D60): `J/ui/share/ShareCardContent.kt` (pure; wording from `ShareCardStrings`, resolved by `shareCardStrings()` from `strings_share.xml`), `ShareCardRenderer` (android.graphics, 1080x1080 PNG, title ≤ 3 lines, short `displayLink` ≤ 2 lines, `placementFor` keeps blocks apart; `writeToCache` → `cacheDir/share/share_card_<time>.png`, older cards deleted; FileProvider `${applicationId}.fileprovider`, `res/xml/file_paths.xml`; ClipData for the chooser preview), `ShareCardDialog` (preview shrinks to fit so the buttons stay visible). Results' Share → `ResultsViewModel.openSharePreview()`: dialog state and the challenge link live in the `SavedStateHandle`, so rotation keeps the dialog and one outgoing challenge is recorded per Results entry. An image failure falls back to the text share. `ShareUtils.buildResultsShareText(..., date)`: classic text unchanged; new modes add the date and the Play Store link. FileProvider's root matching uses `/`, so the URI half of `ShareCardRendererTest` is skipped on a Windows host (runs on CI).
 - Home (8.6): `PlayUiState.todayChallenge: TodayChallengeInfo?` (streak + playedToday), shown while the daily challenge mode is available in the registry (today: `FeatureFlag.DAILY_CHALLENGE`); the card opens `mode_setup/daily_challenge`; header `StreakChip` (count + flame, icon dropped above 1.5 font scale; title is one line, ellipsised). Daily challenge is filtered out of `newModes`. `ScreenTestFixtures.playViewModel(streak = …)` registers the real `DailyChallengeGameMode`.
 - Hints (8.4, D55): `HintCosts.maxHintsPerRound(difficulty)` (Easy 0 / Normal 2 / Hard 3). Game-feel (8.5, D56–D58): `J/domain/feedback/ComboTracker.kt` (feel-only), `J/ui/quiz/feedback/ConfettiOverlay.kt`, `J/data/service/SoundEffectPlayer.kt` + `res/raw/sound_*.wav` (from `tools/sound/generate_sound_effects.py`, deterministic), Settings key `sound_effects`.
+
+**Release candidate** (Phase 9)
+- Version 3.0.0 / 18 (D64). Every `FeatureFlag` has `defaultEnabled = true` (D63); turning a mode off before shipping = set its default to `false`. Flag tests no longer assume default-off: `PlayScreenUiTest.dailyOff()`, `PlayViewModelTest.flagStates()`, `ModeAvailabilityViewModelTest.allFlagsOn()`; the screenshot fixtures follow the defaults.
+- `GameModeSpec.supportsPlayAgain` (default true; false for the daily challenge). Unavailable states, never recorded, in Border hop, Currencies, Rivers/mountains/lakes and the three US/CA variants (`ui/usca/UsCaUnavailable.kt`). Border hop setup hides filters with no puzzle at the chosen tier (`BorderGraph.hasPuzzle`, cached per difficulty).
+- Daily challenge rounds are always scored out of all 10 questions; `DailyChallengeGeneratorTest` pins three dates' exact output: if it fails, players' questions changed, so it needs a decision, not a golden update. `ObserveStreakUseCase.localDateTicks` re-reads the wall clock at least every 60 s.
+- Stats: Reset Statistics keeps `daily_challenge` rows (`QuizHistoryDao.deleteHistoryExceptMode`); By Mode comes from the registry; Highest Score is classic-only.
+- `GeographyQuizApplication.onTrimMemory`/`onLowMemory` clear the map path caches.
+- Store assets: `python generate_store_assets.py`, `python generate_achievements_zip.py` (Lato), phone screenshots via `./gradlew testReleaseUnitTest --tests "*StoreScreenshotTest" -Pgeoquiz.storeShots=true` (release variant, so the header shows the real app name; skipped otherwise) → `store_assets/screenshots/`. Listing text in `docs/STORE_LISTING.md`.
+- CI also checks that the bundled `assets/{border_hop,currencies,flag_speed,physical_features}` JSON copies match `data/` (`cmp`).
 
 **Room** (since Phase 2, task 2.1)
 - Two databases. `StaticDatabase` (`J/data/local/db/StaticDatabase.kt`, file `static.db`, `VERSION` 2): `countries` (cca3 PK, no emoji `flag` column any more), `aliases`, `capital_aliases`, `flag_colors`, `flag_elements`; read-only DAOs. Shipped prebuilt as `app/src/main/assets/databases/static.db` and opened with `createFromAsset()` + `fallbackToDestructiveMigration()`: to change content, edit `data/source/*.json`, bump `StaticDatabase.VERSION`, build once (exports `app/schemas/.../StaticDatabase/<n>.json`), run `python tools/data/build_static_db.py`. Never a migration.
@@ -488,6 +497,8 @@ Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16, `7524c43`). 8.2, 8.3 (`406
 | 9.4 | Performance pass: cold start, map rendering, APK/AAB size against budget | A |
 | 9.5 | Final manual test checklist for Dav covering every mode at every tier, light/dark, 200% font, TalkBack, offline | last |
 
+Status: 9.1–9.5 done in session 13 (2026-10-17), prepare only: nothing uploaded, merged or tagged. 9.1 turned every flag on for the RC (D63) instead of removing approved ones, because Dav approves modes after testing. PR open.
+
 ---
 
 ## 7. Decisions log
@@ -498,7 +509,7 @@ Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16, `7524c43`). 8.2, 8.3 (`406
 | D2 | Licence for app code: All rights reserved (Dav, 2026-10-07) | Decided |
 | D3 | Map assets: compact binary, one file per layer (lon/lat quantised to int16 per layer bounds, delta-encoded, simplified per level), read by a Kotlin reader; all map layers together at most 1.5 MB raw, enforced by the pipeline (Dav, 2026-10-09). | Decided |
 | D4 | Daily challenge seed: device local date | Decided |
-| D5 | Feature flags: enum `FeatureFlag` + DataStore "feature_flags". Overrides are honoured only in debug builds (`BuildConfig.DEBUG`); release always uses each flag's default. Debug menu opens by tapping the Settings title 7 times (debug builds only). Phase 9 flips approved defaults to on. | Decided (Phase 0) |
+| D5 | Feature flags: enum `FeatureFlag` + DataStore "feature_flags". Overrides are honoured only in debug builds (`BuildConfig.DEBUG`); release always uses each flag's default. Debug menu opens by tapping the Settings title 7 times (debug builds only). Phase 9 flips approved defaults to on (D63: all on for the 3.0.0 RC). | Decided (Phase 0) |
 | D6 | `.gitignore` ignores `.claude/*` except `.claude/agents/`, so project agents are versioned but personal settings are not. | Decided (Phase 0) |
 | D7 | Flags switch from Unicode emoji to flag-icons (lipis, MIT) SVG images bundled in the APK (Dav, 2026-10-07). Emoji glyphs varied by OEM and could not be shown large. | Decided |
 | D9 | Flag images rendered with Coil 3 (coil-compose + coil-svg, Apache 2.0) from `assets/flags/<cca3>.svg`; files named by cca3 so no Room schema change was needed. Open-source licences via AboutLibraries 11.6.3 (Apache 2.0). Store asset font: Lato (OFL 1.1), because Noto Sans and Inter are variable-only in google/fonts. | Decided (Phase 1) |
@@ -546,15 +557,19 @@ Status: 8.1, 8.4, 8.5 done in session 11 (2026-10-16, `7524c43`). 8.2, 8.3 (`406
 | D50 | Currencies (7.1) answer mechanism: a currency with one owning country is typed at Normal/Hard and a standard 4-choice question at Easy, like every other mode. A shared currency (EUR, USD, XOF, XAF, XCD, plus the 8 other shared codes) is never typed at any tier — it is always "Which of these uses the X?" with 4 options and exactly one true member, since a shared currency otherwise has 6–26 valid typed answers, breaking the spec's "exactly one valid option" rule. New `ChoicePrompt.CurrencyOf(currencyLabel)` (lead, 2026-10-16). | Decided (lead) |
 | D51 | Rivers, mountains and lakes (7.2) answer mechanism: type the name at Normal/Hard, 4-choice at Easy (new `ChoicePrompt.FeatureOf(featureName)`, clearer than reusing `InSet`'s "Which of these fits…" template for a feature name). The map highlights the one feature, framed to its stored bbox, on the matching regional layer (`rivers_50m`/`lakes_50m`/`regions_50m`/`geo_points_50m`, bundled since Phase 4 but not yet exercised by any screen), reusing the generic `GeoLayer`/`HitTester`/`MapScene` engine rather than a list-only fallback (D43's precedent). Rivers/Mountains/Lakes are a category filter on one mode, not three separate modes (lead, 2026-10-16). | Decided (lead) |
 | D52 | Flag speed round (7.3) shape, the one piece with no existing precedent (every other mode is a fixed-size quiz with a `QuizState`; this is a hard 60-second clock with an open-ended item count): one continuous timed round reusing the existing `ChoicePrompt.FlagOf` shape for every question (flag shown large, name options as buttons), with distractors drawn from the same lookalike set as the target rather than generic same-region distractors. Difficulty tier picks which lookalike-set tiers are in the draw pool: **Easy = tier 1 only, Normal = tiers 1–2, Hard = tiers 1–3** (corrected 2026-10-16, code review: the lead's original text had this backwards — tier 1 in `data/flag_lookalikes.json` is the `clear`/easiest-to-tell-apart pairs, e.g. Italy/Mexico, Belgium/Germany; tier 3 is `subtle`, the hardest, e.g. Chad/Romania, Netherlands/Luxembourg — so Easy must draw tier 1, not tier 3). Sets marked `in_app: "near_identical"` (currently only Indonesia/Monaco) are never asked at any tier, per the data file's own note, and surface only as a line in the post-round review. The round packs into a plain `QuizState`/`QuizResult` via a documented field convention, the same way `BorderHopScoring` does (D37 precedent): `quiz.countries` = every item asked (repeats allowed), `answeredCountries` = correct ones, `incorrectGuesses` = wrong count, `timeElapsedSeconds` = 60 (fixed; Give up ends it early with whatever elapsed). New `FlagSpeedScoring`: base score from correct/asked percentage, plus a combo bonus for runs of consecutive correct answers that resets on any wrong answer, same spirit as D44's par-based bonus (lead, 2026-10-16; tier direction corrected same day after code review). | Decided (lead) |
-| D53 | Daily challenge (8.1) shape: its own `GameMode`/screen/ViewModel (D37 pattern), 10 questions deterministically seeded from the device's local date (`DailyChallengeDate.today()`, hashed into a `Random` seed, D4). v1 draws only 4 question kinds that reuse existing single-item UI with no per-question map/outline render: typed country name, typed capital, flag-to-country choice, capital choice (fixed distribution 3/3/2/2) — Tap the map, Border hop, US/CA regions, Country silhouettes and Rivers/mountains/lakes are excluded from the mix for now, a scope cut in the same spirit as session 10's single-pane cuts. Packs into a plain `QuizState`/`QuizResult` the same way Border hop/Flag speed round do (D37/D52 precedent). "One attempt per day" needs no new Room table: the round is recorded through the normal `CompleteQuizUseCase`/`QuizHistoryRepository` path under a new `QuizCategory.DailyChallenge(date)` case keyed by the ISO date string, and a new `QuizHistoryDao.hasCompletedCategory` query checks it; today's question set is regenerated from the date each time rather than persisted, since the generator is a pure function of (date, the full country list) — this is only safe because `CountryDao.getAllCountries()` has a stable `ORDER BY` (confirmed in code review). No achievements/leaderboards (new-mode rule, D35); always `Difficulty.NORMAL`, no hints yet (lead, 2026-10-16). | Decided (lead) |
-| D54 | Daily challenge's "Play again"/double-completion safety is a soft, UI-level gate only (the Setup screen hides Start once completed; nothing stops `CompleteQuizUseCase` recording a second round for the same date if the game screen were ever reached a second time by another path) — acceptable for v1 since the only entry point is Setup, but flagged in code review as worth a real guard once 8.6's Home card offers a more direct entry, since 8.2 (streaks) builds directly on one-completion-per-day being true (lead, 2026-10-16, confirmed by code review; Dav to confirm or ask for a harder guard). | Decided (lead) |
-| D55 | Hints economy (8.4): `HintCosts.maxHintsPerRound(difficulty)` caps hints per round at Easy 0 / Normal 2 / Hard 3, replacing the D37 placeholder's unlimited hints; per-hint point costs are unchanged. This is a real behaviour change for Border hop specifically: its Easy tier had no hint cap at all before (Silhouettes/Tap the map already showed no hints at Easy per D39/D41), so Border hop Easy goes from unlimited hints to none (lead, 2026-10-16, confirmed in code review; Dav to confirm or reverse for Border hop Easy specifically). | Decided (lead) |
-| D56 | Game-feel (8.5) combo multiplier is feel-only, never a score effect: a new `ComboTracker` (pure, clock-driven, 5-second fast-answer window, visible from a streak of 2) drives a UI counter in the classic quiz header and nothing else; `CalculateScoreUseCase` is untouched. Chosen to avoid touching the shared, heavily-tested classic scoring path for a cosmetic feature (lead, 2026-10-16). | Decided (lead) |
-| D57 | Game-feel (8.5) sound effects are originally authored, not sourced externally: three short tones synthesised by a checked-in script (`tools/sound/generate_sound_effects.py`, stdlib only) rather than a downloaded CC0 pack, since no audio source is in section 5's approved-sources table and adding one would need its own licensing decision (same bar as D7/L4's flag-source question). Logged in `data/SOURCES.md` as GeoQuiz-original. Confetti is an original Compose Canvas effect, not a new dependency (lead, 2026-10-16). | Decided (lead) |
-| D58 | Game-feel (8.5) sound respects two independent gates: the new Settings toggle (`sound_effects`, default on, same shape as `vibration`) and the system ringer mode (`AudioManager.RINGER_MODE_NORMAL` only) — silent/DND always wins even with the setting on, same spirit as vibration already respecting the system touch-feedback setting (lead, 2026-10-16). | Decided (lead) |
-| D59 | Streaks (8.2): derived, never stored — a pure function of the distinct daily-challenge dates in `quiz_history` and today's local date. The streak counts days played in a run of consecutive local dates; not having played yet today never breaks it. One freeze is earned on every 7th day played in the current run, at most 2 held (one earned at the cap is lost), never purchasable; each missed day uses one automatically, a frozen day keeps the run but doesn't add to it, and a gap with too few freezes breaks the run. Evaluation anchors at max(today, latest played date), so flying west or moving the clock back never breaks a streak; flying east past a date is one missed day. Today is re-read at each local midnight (lead, 2026-10-16; Dav to confirm the freeze rules). | Decided (lead) |
-| D60 | Share card (8.3): text and an original 1080x1080 image card (app name, title, big score + %, date · time, link; plain stacked text on the theme background, no grids or tiles). The text share carries the full link — the signed challenge link for classic modes, else the Play Store listing (always the release id); the image prints only a short form (a challenge link's host + path, or the store URL without its scheme), since a ~250-character signed link can't be tapped or typed from a picture. The card's heading is the launcher name (`app_name`), so recipients can find the app in the store. Licence auditor signed off on L9 (session 12) (lead, 2026-10-16). | Decided (lead) |
-| D61 | Home (8.6): the Today's challenge card follows the daily challenge mode's availability in the registry (the same rule as its destination's guard), opens the daily challenge Setup, and replaces the mode's tile in the New modes grid; the streak shows as a header chip only while a streak is running. D24's placeholder is gone (lead, 2026-10-16). | Decided (lead) |
+| D53 | Daily challenge (8.1) shape: its own `GameMode`/screen/ViewModel (D37 pattern), 10 questions deterministically seeded from the device's local date (`DailyChallengeDate.today()`, hashed into a `Random` seed, D4). v1 draws only 4 question kinds that reuse existing single-item UI with no per-question map/outline render: typed country name, typed capital, flag-to-country choice, capital choice (fixed distribution 3/3/2/2) — Tap the map, Border hop, US/CA regions, Country silhouettes and Rivers/mountains/lakes are excluded from the mix for now, a scope cut in the same spirit as session 10's single-pane cuts. Packs into a plain `QuizState`/`QuizResult` the same way Border hop/Flag speed round do (D37/D52 precedent). "One attempt per day" needs no new Room table: the round is recorded through the normal `CompleteQuizUseCase`/`QuizHistoryRepository` path under a new `QuizCategory.DailyChallenge(date)` case keyed by the ISO date string, and a new `QuizHistoryDao.hasCompletedCategory` query checks it; today's question set is regenerated from the date each time rather than persisted, since the generator is a pure function of (date, the full country list) — this is only safe because `CountryDao.getAllCountries()` has a stable `ORDER BY` (confirmed in code review). No achievements/leaderboards (new-mode rule, D35); always `Difficulty.NORMAL`, no hints yet (lead, 2026-10-16). | Decided |
+| D54 | Daily challenge's "Play again"/double-completion safety is a soft, UI-level gate only (the Setup screen hides Start once completed; nothing stops `CompleteQuizUseCase` recording a second round for the same date if the game screen were ever reached a second time by another path) — acceptable for v1 since the only entry point is Setup, but flagged in code review as worth a real guard once 8.6's Home card offers a more direct entry, since 8.2 (streaks) builds directly on one-completion-per-day being true (lead, 2026-10-16, confirmed by code review; Dav to confirm or ask for a harder guard). | Decided |
+| D55 | Hints economy (8.4): `HintCosts.maxHintsPerRound(difficulty)` caps hints per round at Easy 0 / Normal 2 / Hard 3, replacing the D37 placeholder's unlimited hints; per-hint point costs are unchanged. This is a real behaviour change for Border hop specifically: its Easy tier had no hint cap at all before (Silhouettes/Tap the map already showed no hints at Easy per D39/D41), so Border hop Easy goes from unlimited hints to none (lead, 2026-10-16, confirmed in code review; Dav to confirm or reverse for Border hop Easy specifically). | Decided |
+| D56 | Game-feel (8.5) combo multiplier is feel-only, never a score effect: a new `ComboTracker` (pure, clock-driven, 5-second fast-answer window, visible from a streak of 2) drives a UI counter in the classic quiz header and nothing else; `CalculateScoreUseCase` is untouched. Chosen to avoid touching the shared, heavily-tested classic scoring path for a cosmetic feature (lead, 2026-10-16). | Decided |
+| D57 | Game-feel (8.5) sound effects are originally authored, not sourced externally: three short tones synthesised by a checked-in script (`tools/sound/generate_sound_effects.py`, stdlib only) rather than a downloaded CC0 pack, since no audio source is in section 5's approved-sources table and adding one would need its own licensing decision (same bar as D7/L4's flag-source question). Logged in `data/SOURCES.md` as GeoQuiz-original. Confetti is an original Compose Canvas effect, not a new dependency (lead, 2026-10-16). | Decided |
+| D58 | Game-feel (8.5) sound respects two independent gates: the new Settings toggle (`sound_effects`, default on, same shape as `vibration`) and the system ringer mode (`AudioManager.RINGER_MODE_NORMAL` only) — silent/DND always wins even with the setting on, same spirit as vibration already respecting the system touch-feedback setting (lead, 2026-10-16). | Decided |
+| D59 | Streaks (8.2): derived, never stored — a pure function of the distinct daily-challenge dates in `quiz_history` and today's local date. The streak counts days played in a run of consecutive local dates; not having played yet today never breaks it. One freeze is earned on every 7th day played in the current run, at most 2 held (one earned at the cap is lost), never purchasable; each missed day uses one automatically, a frozen day keeps the run but doesn't add to it, and a gap with too few freezes breaks the run. Evaluation anchors at max(today, latest played date), so flying west or moving the clock back never breaks a streak; flying east past a date is one missed day. Today is re-read at each local midnight (lead, 2026-10-16; Dav to confirm the freeze rules). | Decided |
+| D60 | Share card (8.3): text and an original 1080x1080 image card (app name, title, big score + %, date · time, link; plain stacked text on the theme background, no grids or tiles). The text share carries the full link — the signed challenge link for classic modes, else the Play Store listing (always the release id); the image prints only a short form (a challenge link's host + path, or the store URL without its scheme), since a ~250-character signed link can't be tapped or typed from a picture. The card's heading is the launcher name (`app_name`), so recipients can find the app in the store. Licence auditor signed off on L9 (session 12) (lead, 2026-10-16). | Decided |
+| D61 | Home (8.6): the Today's challenge card follows the daily challenge mode's availability in the registry (the same rule as its destination's guard), opens the daily challenge Setup, and replaces the mode's tile in the New modes grid; the streak shows as a header chip only while a streak is running. D24's placeholder is gone (lead, 2026-10-16). | Decided |
+| D62 | D55 follow-up: Border hop keeps its hint cap of 0 at Easy, but hides the "Show a valid hop" button at Easy instead of showing it disabled, matching Silhouettes and Tap the map (D39/D41). At Normal/Hard the button still shows disabled once the cap is reached (Dav, 2026-10-17). | Decided |
+| D63 | Release candidate flags (9.1): Dav approves modes only after testing, so for the RC every flag in `FeatureFlag` is `defaultEnabled = true` (all 7 new modes and the daily challenge with streaks). The flag system and debug overrides stay, so any flag can be turned back off by setting its default to `false` before shipping (Dav, 2026-10-17). | Decided |
+| D64 | Version for the Phase 0–9 release: versionCode 18, versionName 3.0.0 (Dav, 2026-10-17). | Decided |
+| D65 | Store phone screenshots come from an on-demand Roborazzi test (`StoreScreenshotTest`, 1080x1920 to stay within Play's 2:1 limit, demo fixtures, not part of `verifyRoborazziDebug`) writing to `store_assets/screenshots/`; the icon, feature graphic and achievement icons come from the Lato Python scripts (Dav, 2026-10-17). | Decided |
 
 ---
 
@@ -1040,3 +1055,145 @@ Each session appends one entry:
       shows its hint button disabled (see carry-over).
 - Next session starts at: Phase 9 (Release readiness) on `upgrade/p9-release` from
   `upgrade/p8-engagement` (D30).
+
+### Session 13 – 2026-10-17 – Phase 9 (release readiness, prepare only)
+- Scope (Dav): prepare the 3.0.0 release candidate. Do not upload, merge, retarget, tag, push to `main` or touch the live site; Dav device-tests the RC first.
+- Done:
+  - D53–D61 confirmed by Dav and now Decided; D62–D65 added.
+  - 9.1: every flag on; version 3.0.0 / 18.
+  - 9.2: full review and licence audit, with the fixes listed below.
+  - 9.3: `docs/STORE_LISTING.md`, Lato store images, 8 phone screenshots and the owner checklist.
+  - 9.4: measurements below. 9.5: checklist below.
+  - D62: Border hop hides its hint at Easy.
+  - Carry-overs:
+    - Results strings moved to `strings.xml`.
+    - `geoColors.correct` on `secondaryContainer` added to `GeoColorsContrastTest`; it passes in both themes.
+    - Credits now says "App icon, artwork and sounds".
+- **Flags for Dav.** All have `defaultEnabled = true` in `domain/model/FeatureFlag.kt`; tell the lead which to turn back off after testing:
+  1. `COUNTRY_SILHOUETTES` – Country silhouettes
+  2. `TAP_THE_MAP` – Tap the map (Find and Name all)
+  3. `BORDER_HOP` – Border hop
+  4. `US_CA_REGIONS` – US states and Canadian provinces
+  5. `CURRENCIES` – Currencies
+  6. `PHYSICAL_FEATURES` – Rivers, mountains and lakes
+  7. `FLAG_SPEED_ROUND` – Flag speed round
+  8. `DAILY_CHALLENGE` – Daily challenge, streaks, the Today's challenge card and the streak chip
+
+  Always on, with no flag: difficulty tiers, the Play hub, the hints economy, the combo counter, confetti, sound effects (they have a Settings switch) and the share card.
+- 9.2 review covered `git diff main...HEAD`, phases 3–8; phases 0–2 were reviewed when they merged.
+  - Reviewers: five Opus code-reviewers split by area (data/DI/config; core UI; map engine + Phase 5 modes; Phase 6–7 modes; Phase 8 + tools), one licence-auditor over everything, then an Opus review of the fix diff itself.
+  - Licence audit: no Required items. One Recommended item (a stale D34 → D47 reference in `data/SOURCES.md`) is fixed.
+
+  Fixed, High:
+  - A daily challenge give-up was scored as a perfect round. It is now always scored out of 10.
+  - Border hop setup offered filters that can never produce a puzzle (Oceania, and most subregions at Hard). They are now hidden per tier via `BorderGraph.hasPuzzle`.
+  - The Border hop hint was invisible to TalkBack. It now has a label and a polite live region.
+
+  Fixed, Medium:
+  - Play Again after a daily challenge led to a dead end. It is now hidden there (`supportsPlayAgain`).
+  - Stats "Reset Statistics" wiped the streak and allowed a replay. Daily rows are now kept.
+  - Stats "By Mode" covered only the classic modes.
+  - Category labels used the US "color". They now say "colour"; persisted keys are unchanged.
+  - The daily challenge Setup screen stayed on yesterday after deep sleep. Fixed with `WhileSubscribed` and a 60 s wall-clock poll.
+  - The daily generator's output is now pinned by a golden test.
+  - Silhouettes' Show neighbours could be spent before the outline loaded.
+  - Hard strike counters were missing (Currencies, Rivers) or a bare "1/3" (US/CA). US/CA now reads "1/3 strikes".
+  - The Border hop path row could squeeze the neighbour list at 200% font.
+
+  Fixed, Low:
+  - Classic double-submit race: one submit at a time, and a quiz is never un-completed.
+  - The Give up dialog and the quiz settings sheet now survive rotation.
+  - Empty Currencies, Rivers and US/CA rounds were recorded as 0/0. They now show an Unavailable state.
+  - Map engine:
+    - map path caches are cleared on trim-memory;
+    - a failed path build no longer crashes;
+    - the Tap the map list keeps its scroll position and TalkBack focus between finds.
+  - Name all saves only the typed input on each keystroke.
+  - The SoundPool listener is registered before loading.
+  - Confetti no longer recomposes every frame.
+  - Strings: the Results hard-coded strings moved to `strings.xml`; currency labels are formatted from resources in the UI.
+  - Build and CI:
+    - the signing-properties stream is closed;
+    - CI checks that the bundled JSON copies match `data/`.
+  - Tests:
+    - new `ModeAvailabilityViewModel` tests;
+    - flag tests no longer assume default-off.
+- Not done / carried over (logged, not blocking the RC):
+  - **Release smoke test.** CI never builds a release; R1 checked the keep rules by reading and they look complete. Dav's device pass on the minified RC covers this.
+  - **Data scripts.** `tools/data/build_borders.py` and `build_currencies.py` don't verify `countries.json`'s recorded SHA-256. The recorded hash `9c5b9005…` is of the Windows CRLF checkout, while the committed blob hashes to `06fe415a…`. A check needs line-ending normalisation first, or a `.gitattributes` `-text` rule. Not changed.
+  - **Currency label in domain.** `CurrenciesChoiceGenerator.currencyLabel()` still builds the English "the X (s, c)" for `ChoicePrompt.CurrencyOf`. Moving it needs shared choice-prompt plumbing.
+  - **Daily challenge Results label.** Unreached questions count under "Incorrect Guesses" (e.g. 8 after giving up at 2/10). Consider a "Missed" label for this mode.
+  - **One attempt per day.** Force-stopping mid-round bypasses it, because the in-progress state lives only in the `SavedStateHandle`. Accepted for v1, in D54's spirit.
+  - **Hard-coded English.** Stats screen labels and the `ShareUtils` share sentence, plus strings in Answer review, Settings and Challenges. Leave for an i18n pass.
+  - **Layering.** `rememberSoundEffectPlayer` (a `@Composable`) lives in `data/service`, and `AcceptIncomingChallengeUseCase` depends on the concrete `ChallengeRepository`.
+  - **Map drawing cost.** The hatched Wrong state costs one `clipPath` per wrong country per frame (`MapCanvas`). Profile on a low-end device with many misses.
+  - **Name all empty round.** `TapMapNameAllViewModel` still records a round with no members; the empty-round guard was added only to the other modes.
+  - **Tile icons.** Silhouettes and Rivers/mountains/lakes share the mountain icon on Play.
+  - **Store screenshots.**
+    - `03_quiz_countries.png` ends on a "Not recognised" guess (it reuses a shared fixture).
+    - Slot 07 shows US states, because the Border hop fixture uses synthetic country names.
+    - Dav may prefer device screenshots for some slots.
+  - **Missing test.** The 8.5 "celebration fires exactly once" Robolectric test is still not written.
+  - Earlier carry-overs (sessions 8–12) are unchanged unless listed as fixed above.
+- Decisions: D53–D61 are now Decided (Dav). D62–D65 added (Dav, 2026-10-17).
+- Owner actions added or updated:
+  - Upload the regenerated store images and text.
+  - The duplicate `AchievementsIconMappings.csv` is deleted (Google's doc names `AchievementsIconsMappings.csv`; Dav approved).
+  - Decide the achievement title spelling.
+  - Tell the lead which flags to turn off.
+  - App name: the launcher says "Geography Quiz" while the repo and docs say "GeoQuiz" (see `docs/STORE_LISTING.md`).
+- Process notes:
+  - All five Sonnet fix agents hit the account rate limit mid-task at the same time. The lead checked each partial diff and finished the rest directly: Border hop TalkBack and path row, the US/CA Unavailable states, the Name all input save and the daily generator golden. An Opus implementer did the core-UI fix round.
+  - The low-memory guard reaped one background store-screenshot build. It was re-run in the foreground after Dav's OK.
+  - Store screenshots run on the release unit-test variant, because the debug variant renames the app "GeoQuiz Debug". That variant lacks `ui-test-manifest`, so the test registers `ComponentActivity` with Robolectric's package manager.
+- Verification: 
+  - `assembleDebug` passed.
+  - `testDebugUnitTest`, final full run on the finished tree: 1648 tests, 0 failures, 9 skipped (the 8 store shots and the Windows FileProvider test).
+  - `lintDebug`: 0 errors, 91 warnings, the same categories as session 12.
+  - `recordRoborazziDebug`: 15 goldens re-recorded and 4 new `play_all_modes_*` goldens, all checked by eye. `verifyRoborazziDebug`: all 131 goldens pass; the 8 skipped tests are the store shots.
+  - Store shots: 8 PNGs at 1080x1920 via `testReleaseUnitTest`.
+  - `assembleRelease` passed in 12.5 min, foreground (it moved to the background after 10 min and finished). `app/build/outputs/apk/release/app-release.apk` is 5.71 MB, versionCode 18 / 3.0.0, v2-signed with the replacement upload key (SHA-256 `05:DE:14:…`).
+  - `bundleRelease` passed: `app/build/outputs/bundle/release/app-release.aab`, 10.86 MB, signature verified with jarsigner. It includes full native debug symbols; Play strips them before download.
+  - Nothing was uploaded.
+- 9.4 performance: 
+  - APK size: 5.71 MB raw, about 4.99 MB download (apkanalyzer). 2.7.2 was 4.6 MB. Compressed parts:
+    - dex: 3.62 MB
+    - resources: 0.74 MB
+    - map layers: 0.47 MB
+    - flags: 0.43 MB
+    - `static.db`: 0.08 MB
+    - native: 0.06 MB
+  - D3 map budget: 591 KB raw of 1.5 MB.
+  - Map timings (JVM, `-Pgeoquiz.perf=true`, best of 5):
+    - decoding all 8 layers: 17.7 ms (`admin0_50m` alone 5.2 ms);
+    - projecting `admin0_50m`: 10.4 ms with Equal Earth, 50.6 ms with LAEA;
+    - building paths (Robolectric native): 7 ms for `admin0_110m`, 58 ms for `admin0_50m`.
+  - Cold start: there was no device, so it was not measured here. Startup does no main-thread IO: `Application` only initialises Play Games; consent, billing and sync start asynchronously, and every asset repository loads lazily on IO. Library baseline profiles are packaged.
+  - To measure on Dav's phone: `adb shell am force-stop com.geoquiz.app`, then `adb shell am start -W -n com.geoquiz.app/.MainActivity`. Read `TotalTime`, take the median of 5 runs, and compare it with 2.7.2.
+  - No perf code changes. The only memory change is clearing the map caches on trim-memory (9.2).
+  - Follow-up if cold start is slow: an app-specific baseline profile (Macrobenchmark needs a device).
+- Manual test checklist:
+  Use the **release APK** (`app/build/outputs/apk/release/app-release.apk`), not the debug build, so R8 is tested too. Every mode is on by default (D63); no debug menu is needed.
+  0. **Upgrade test (do this first).** The Play Store build is signed with Google's app-signing key and this RC with the upload key, so installing the local RC over the store version fails (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Use one of these:
+     - (a) Recommended, closest to real users: upload the AAB to Play Console → Internal testing (or Internal app sharing) after the first device pass, install the store version, then update to the internal build through Play.
+     - (b) Local: build 2.7.2 from `main` with the same `signing.properties` (`git worktree add ../gq-272 main`, copy `signing.properties` and `local.properties` in, `./gradlew assembleRelease`), install it, then `adb install -r app-release.apk` (the RC) over it.
+     Either way, on 2.7.2 first: finish a Countries quiz (achievement progress), leave a Capitals quiz half done (Resume card), set Show timer off and Hard mode on. After updating, check: History and Stats keep the old quizzes; Achievements keep unlocks and progress; Play's Continue card resumes the Capitals quiz with its answers and time; Show timer is still off and the default difficulty is Hard; Remove Ads stays removed if purchased; no crash on first launch.
+  1. **Classic modes × tiers.** For each of Countries, Capitals and Flags: one Easy (4 choices, wrong pick shows the right answer blue + tick and yours orange + cross), one Normal (typo "Austrailia" accepted), one Hard (timer always on, 3 wrong guesses end it, near miss = "Close – check the spelling", no strike). Include a letter/word-pattern category (e.g. "Starts with B", "Contains 'land'") and a flag colour category (labels say "colour"). Mastery stars and "Best" update on the category row. "Practise the ones you missed" replays exactly the misses.
+  2. **New modes × tiers.** On Play → New modes, all seven tiles show. For each, play one round at Easy, Normal and Hard (where offered), check Results, then "Practise the ones you missed" where shown:
+     - Country silhouettes: hints (region, first letter, neighbours, which stays disabled until the outline has drawn), 3 lives, no hints at Easy.
+     - Tap the map: Find (World and one continent) and Name all; TalkBack list keeps its scroll position after each find.
+     - Border hop: setup lists only filters that can make a puzzle at the chosen tier (Oceania never; few subregions at Hard); no hint button at Easy (D62); a long path scrolls sideways; Undo; "Reached X in N hops (par P)".
+     - US states and Canadian provinces: Tap, Name all (postal codes like "CA"), Multiple choice; Hard shows "1/3 strikes", not a bare number.
+     - Currencies: shared currencies are always "Which of these uses…"; Hard shows a strike counter.
+     - Rivers, mountains and lakes: each tab; "Everest"/"Baikal" accepted; Pass works; Hard shows a strike counter.
+     - Flag speed round: 60 s countdown, combo, lookalike review.
+  3. **Daily challenge and streaks.** Play → Today's challenge card → Setup → Start → answer 10 → Results (no Play Again button). Back: Start is gone, "Streak: 1 day", card shows a tick, header shows the flame chip. Give-up test on another day: answer 2, End challenge → Results shows 2/10, no "Perfect" line, no confetti. Rollover: set the date to tomorrow → card says not done and streak 1 still alive; leave the Setup screen open across a real midnight (or lock the phone past midnight) and come back → it shows the new day within about a minute. +2 days with no freeze → streak 0. Set the date back → no crash. Stats → Reset Statistics keeps the streak; Settings → Reset all data clears it.
+  4. **Share card.** Results → Share → preview (app name, title, big score + %, date · time, short link) in light and dark → Share image → send to yourself; Share text: classic has the challenge link, new modes have the date and Play Store link. Rotate with the dialog open: it stays. Practice results have no Share.
+  5. **Game-feel.** Correct/wrong sounds and haptics; Settings → Sound effects off silences them; phone on silent/vibrate silences them even with the setting on; a perfect score shows confetti once (none with system "Remove animations").
+  6. **Light/dark.** Every screen above in both themes; maps, outlines and flag borders visible; no white flash on launch in dark mode.
+  7. **200% font** (largest font + display size). Play (header title one line, chip number only), every setup screen, every game screen (status rows wrap, nothing clipped, field and buttons reachable with the keyboard open), Results, Stats, Settings, Credits.
+  8. **TalkBack.** One round of a classic quiz, Tap the map (list view), Border hop (hinted row says "…, suggested hop" and is announced), US/CA Name all, Flag speed; the daily challenge card and streak chip; Results and the share dialog.
+  9. **Offline.** Airplane mode from a cold start: every mode and the daily challenge play fully; no banners, no crash; Play Games sync catches up when back online.
+  10. **Reset all data.** Settings → Reset all data → history, stats, streak, pins, saved quiz, achievements progress and settings are cleared; Remove Ads stays.
+  11. **Misc.** Stats "By mode" lists every mode you played. Challenge link from a classic Results opens on another device or via `adb shell am start`. Credits shows "App icon, artwork and sounds". Cold start time (see 9.4 commands) noted for the record.
+- Next session starts at: Dav device-tests the RC (checklist above), says which flags to turn back off and answers the owner items in `docs/STORE_LISTING.md`. Then ship: merge PRs #6–#12 in order (D30: retarget each to `main` after the one before it merges), build the final AAB from `main`, and upload to Play (internal testing first).

@@ -226,4 +226,12 @@ class PhysicalFeaturesGameViewModelTest {
         assertEquals(1, completedQuizzes.saveCount)
         assertEquals(Difficulty.NORMAL.id, completedQuizzes.stored?.difficultyId)
     }
+
+    @Test
+    fun `no features to ask about shows Unavailable and records nothing`() {
+        val vm = viewModel(handle(), repository = FakePhysicalFeatureRepository(emptyList()))
+
+        assertEquals(PhysicalFeaturesUiState.Unavailable, vm.uiState.value)
+        assertNull(completedQuizzes.stored)
+    }
 }

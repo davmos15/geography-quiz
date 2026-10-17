@@ -196,6 +196,11 @@ private fun FeedbackRow(icon: androidx.compose.ui.graphics.vector.ImageVector, t
  * revealed value as plain readable text rather than a disabled button (task 5.1 review, S6):
  * [revealedSubregion]/[revealedFirstLetter] for the first two; [neighbourNames] (D38) for Show
  * neighbours, sorted and spoken for everyone, with "No land neighbours" if the country has none.
+ *
+ * [isOutlineLoading] additionally disables Show neighbours on its own (task 9.2 review fix):
+ * until the current silhouette's outline has loaded, its neighbour list isn't known yet, so the
+ * button would otherwise charge the hint and falsely reveal "No land neighbours" on a cold
+ * silhouette. The other two hints are unaffected, since they don't depend on the outline.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -207,7 +212,8 @@ fun SilhouetteHintsRow(
     neighbourNames: List<String>,
     enabled: Boolean,
     onHint: (HintType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isOutlineLoading: Boolean = false,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
@@ -249,7 +255,7 @@ fun SilhouetteHintsRow(
                 } else {
                     HintButton(
                         label = stringResource(R.string.silhouettes_hint_show_neighbours, HintCosts.cost(HintType.SHOW_NEIGHBOURS)),
-                        enabled = enabled,
+                        enabled = enabled && !isOutlineLoading,
                         onClick = { onHint(HintType.SHOW_NEIGHBOURS) }
                     )
                 }

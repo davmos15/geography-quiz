@@ -3,6 +3,7 @@ package com.geoquiz.app.ui.results
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.geoquiz.app.domain.mode.GameMode
+import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.model.CompletedQuiz
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
@@ -79,5 +80,23 @@ class ResultsNewModeUiTest {
 
         compose.onNodeWithText("Share").assertExists()
         compose.onNodeWithText("Challenge").assertExists()
+    }
+
+    @Test
+    fun `the daily challenge hides Play Again but keeps Home (one attempt per day, D54)`() {
+        launch(
+            ScreenTestFixtures.RESULT.copy(quizModeId = DailyChallengeGameMode.MODE_ID),
+            extraModes = setOf(DailyChallengeGameMode())
+        )
+
+        compose.onNodeWithText("Play Again").assertDoesNotExist()
+        compose.onNodeWithText("Home").assertExists()
+    }
+
+    @Test
+    fun `a classic mode still shows Play Again`() {
+        launch(ScreenTestFixtures.RESULT.copy(quizModeId = "countries"))
+
+        compose.onNodeWithText("Play Again").assertExists()
     }
 }

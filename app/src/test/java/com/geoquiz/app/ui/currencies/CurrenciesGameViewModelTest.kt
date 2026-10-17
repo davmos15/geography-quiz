@@ -321,4 +321,12 @@ class CurrenciesGameViewModelTest {
         assertEquals(2, state.items.size)
         assertNull(completedQuizzes.stored)
     }
+
+    @Test
+    fun `no currencies to ask about shows Unavailable and records nothing`() {
+        val vm = viewModel(routeHandle(), currencyMode(roundPool = emptyList()))
+
+        assertEquals(CurrenciesUiState.Unavailable, vm.uiState.value)
+        assertNull(completedQuizzes.stored)
+    }
 }

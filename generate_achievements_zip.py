@@ -4,7 +4,7 @@ Generate Google Play Games achievements ZIP for bulk import.
 Creates:
   - AchievementsMetadata.csv
   - AchievementsLocalizations.csv
-  - AchievementsIconsMappings.csv  (note: singular "Icon" per Google docs)
+  - AchievementsIconsMappings.csv  (plural "Icons", the name Google's bulk-import docs require)
   - 512x512 PNG icons for each achievement
   - achievements_import.zip containing everything
 """

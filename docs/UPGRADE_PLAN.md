@@ -49,7 +49,7 @@ where you stopped, commit, and tell me to start a new session.
 | 6 | New modes B: Border hop, US states and Canadian provinces | Done – PR open | `upgrade/p6-modes-b` | #9 |
 | 7 | New modes C: Currencies, Rivers/mountains/lakes, Flag speed round | Done – PR open | `upgrade/p7-modes-c` | #10 |
 | 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Done – PR open | `upgrade/p8-engagement` | #11 |
-| 9 | Release readiness | Done – PR open | `upgrade/p9-release` | |
+| 9 | Release readiness | Done – PR open | `upgrade/p9-release` | #12 |
 
 Statuses: Not started, In progress, Done – PR open, Done (merged).
 Each phase branches from `main` after the previous PR is merged. Dav tests the debug build on a device before merging.

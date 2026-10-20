@@ -84,8 +84,12 @@ The biggest GeoQuiz update yet:
 Do these only after the RC passes the device test (session 13 manual checklist).
 
 - [ ] **Turn modes back off if needed.** For any mode or feature that shouldn't ship, set its `defaultEnabled` to `false` in `app/src/main/java/com/geoquiz/app/domain/model/FeatureFlag.kt` and rebuild. Then remove it from the description, "What's new" and the screenshots.
-- [ ] **Achievement description (Flag Master).** Play Games reads "Complete Flags of the World quiz with 80%+"; the app says "Complete the Flags of the World quiz with 80%+". Fix it in Play Console → Play Games services → Achievements → Flag Master, or re-import the regenerated `achievements_import.zip`, which now carries the app's wording.
-- [ ] **Achievement spelling (decide).** Two titles use US spelling: "World Traveler" and "Color Expert", and Color Expert's description says "flag color quizzes". Recommendation: rename them to "World Traveller", "Colour Expert" and "flag colour quizzes" in both the app (`Achievement.kt`, display text only; the ids `world_traveler`/`color_expert` and the Play Games ids stay the same, so nobody loses an unlock) and Play Console. Tell the lead "rename" or "keep".
+- [ ] **Achievement text in Play Console (edit by hand, do not re-import).** The app now uses Australian spelling (D66). In Play Console → Play Games services → Achievements, edit each of these four. A bulk import of `achievements_import.zip` would create *new* achievements for an existing game, and players' unlocks are tied to the existing ones.
+  - World Traveler → **World Traveller**
+  - Color Expert → **Colour Expert**, description "Complete 5 different flag colour quizzes"
+  - Rainbow: description "Complete flag quizzes for 6 different colours"
+  - Flag Master: description "Complete the Flags of the World quiz with 80%+"
+- [x] **Achievement spelling (decided: rename, D66).** Display text only: the ids `world_traveler`/`color_expert`/`rainbow` and the Play Games ids are unchanged, so nobody loses an unlock.
 - [x] **Duplicate mappings CSV.** Google's bulk-import doc (developer.android.com/games/pgs/integrate-achievements) names the file `AchievementsIconsMappings.csv`, which the script writes and zips. The stale copy `AchievementsIconMappings.csv` was deleted (approved 2026-10-17).
 - [ ] **Upload graphics:** the icon, feature graphic and phone screenshots (table above).
 - [ ] **Paste text:** the short description, full description and "What's new" (en-AU, plus en-US/en-GB if those listings exist).

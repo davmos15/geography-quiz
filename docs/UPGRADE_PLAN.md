@@ -143,7 +143,7 @@ Collected here by any session that finds one. Never block on them; flag and move
 - [ ] Back up `challengeHmacKey` (added to the local `signing.properties` in Phase 2) with the keystore in Drive and Bitwarden. Every release must use the same key; losing it means older challenge links open without scores.
 - [ ] App Links: add the Play App Signing key SHA-256 (Play Console → App integrity) to the `com.geoquiz.app` entry in `docs/.well-known/assetlinks.json`; after merge check `https://geoquiz-app.netlify.app/.well-known/assetlinks.json` is served as JSON with no redirect. The upload key and debug key are already listed.
 - [ ] Debug builds are now `com.geoquiz.app.debug` ("GeoQuiz Debug"). Play Games sign-in and Billing won't work in them unless that package is linked in Play Console (Play Games: add a linked Android app with the debug SHA-1); not required for testing.
-- [ ] Play Console achievements: the Flag Master description in Play Games reads "Complete Flags of the World quiz with 80%+" while the app says "Complete the Flags of the World quiz with 80%+"; update it in Phase 9 with the store refresh. Achievement titles still use US spelling ("World Traveler", "Color Expert", "flag color quizzes"); Phase 9 recommends renaming the display text only (ids stay) — Dav to say "rename" or "keep" (checklist in `docs/STORE_LISTING.md`). The regenerated `achievements_import.zip` already carries the app's Flag Master wording.
+- [ ] Play Console achievements: edit by hand (no re-import) the World Traveller, Colour Expert and Rainbow text to the app's Australian spelling (D66), and the Flag Master description ("Complete the Flags of the World quiz with 80%+"). Checklist in `docs/STORE_LISTING.md`.
 
 ---
 
@@ -570,6 +570,7 @@ Status: 9.1–9.5 done in session 13 (2026-10-17), prepare only: nothing uploade
 | D63 | Release candidate flags (9.1): Dav approves modes only after testing, so for the RC every flag in `FeatureFlag` is `defaultEnabled = true` (all 7 new modes and the daily challenge with streaks). The flag system and debug overrides stay, so any flag can be turned back off by setting its default to `false` before shipping (Dav, 2026-10-17). | Decided |
 | D64 | Version for the Phase 0–9 release: versionCode 18, versionName 3.0.0 (Dav, 2026-10-17). | Decided |
 | D65 | Store phone screenshots come from an on-demand Roborazzi test (`StoreScreenshotTest`, 1080x1920 to stay within Play's 2:1 limit, demo fixtures, not part of `verifyRoborazziDebug`) writing to `store_assets/screenshots/`; the icon, feature graphic and achievement icons come from the Lato Python scripts (Dav, 2026-10-17). | Decided |
+| D66 | Achievement display text uses Australian spelling: "World Traveller", "Colour Expert" ("…flag colour quizzes") and Rainbow's "…6 different colours". Enum names, ids (`world_traveler`, `color_expert`, `rainbow`) and Play Games ids are unchanged. Play Console text is edited by hand, never re-imported, because a bulk import would create new achievements (Dav, 2026-10-20). | Decided |
 
 ---
 
@@ -1135,11 +1136,11 @@ Each session appends one entry:
     - Dav may prefer device screenshots for some slots.
   - **Missing test.** The 8.5 "celebration fires exactly once" Robolectric test is still not written.
   - Earlier carry-overs (sessions 8–12) are unchanged unless listed as fixed above.
-- Decisions: D53–D61 are now Decided (Dav). D62–D65 added (Dav, 2026-10-17).
+- Decisions: D53–D61 are now Decided (Dav). D62–D65 added (Dav, 2026-10-17). D66 added (achievement spelling, Dav, 2026-10-20): three achievement texts renamed in `Achievement.kt`, the CSVs and zip regenerated, `--check`, the achievement tests and every screenshot golden pass (no golden shows these three).
 - Owner actions added or updated:
   - Upload the regenerated store images and text.
   - The duplicate `AchievementsIconMappings.csv` is deleted (Google's doc names `AchievementsIconsMappings.csv`; Dav approved).
-  - Decide the achievement title spelling.
+  - Achievement spelling decided as "rename" (D66, 2026-10-20). Done in the app; the Play Console text is edited by hand (`docs/STORE_LISTING.md`).
   - Tell the lead which flags to turn off.
   - App name: the launcher says "Geography Quiz" while the repo and docs say "GeoQuiz" (see `docs/STORE_LISTING.md`).
 - Process notes:

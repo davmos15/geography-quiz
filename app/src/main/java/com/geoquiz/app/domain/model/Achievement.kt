@@ -7,7 +7,7 @@ enum class Achievement(
     val tier: AchievementTier
 ) {
     FIRST_STEPS("first_steps", "First Steps", "Complete any quiz", AchievementTier.BRONZE),
-    WORLD_TRAVELER("world_traveler", "World Traveler", "Complete the All Countries quiz", AchievementTier.GOLD),
+    WORLD_TRAVELER("world_traveler", "World Traveller", "Complete the All Countries quiz", AchievementTier.GOLD),
     PERFECTIONIST("perfectionist", "Perfectionist", "Get 100% on any quiz", AchievementTier.GOLD),
     SPEED_DEMON("speed_demon", "Speed Demon", "Complete any quiz in under 2 minutes", AchievementTier.SILVER),
     REGION_MASTER("region_master", "Region Master", "Complete all 5 region quizzes", AchievementTier.GOLD),
@@ -45,8 +45,8 @@ enum class Achievement(
 
     // Flag achievements
     FLAG_SPOTTER("flag_spotter", "Flag Spotter", "Complete any flag quiz", AchievementTier.BRONZE),
-    COLOR_EXPERT("color_expert", "Color Expert", "Complete 5 different flag color quizzes", AchievementTier.SILVER),
-    RAINBOW("rainbow", "Rainbow", "Complete flag quizzes for 6 different colors", AchievementTier.GOLD),
+    COLOR_EXPERT("color_expert", "Colour Expert", "Complete 5 different flag colour quizzes", AchievementTier.SILVER),
+    RAINBOW("rainbow", "Rainbow", "Complete flag quizzes for 6 different colours", AchievementTier.GOLD),
     FLAG_PERFECTIONIST("flag_perfectionist", "Flag Perfectionist", "Get 100% on any flag quiz", AchievementTier.SILVER),
     VEXILLOLOGIST("vexillologist", "Vexillologist", "Complete 10 flag quizzes", AchievementTier.GOLD),
     FLAG_MASTER("flag_master", "Flag Master", "Complete the Flags of the World quiz with 80%+", AchievementTier.GOLD),

@@ -3,6 +3,7 @@ package com.geoquiz.app.data.currencies
 import android.content.res.AssetManager
 import com.geoquiz.app.domain.mode.currencies.CurrencyData
 import com.geoquiz.app.domain.mode.currencies.CurrencyEntry
+import com.geoquiz.app.domain.mode.currencies.CurrencySymbolRules
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -87,7 +88,7 @@ class AssetCurrencyRepository(
     private fun load(): CurrencyData {
         val bytes = source.read(ASSET_PATH)
         val asset = json.decodeFromString<CurrencyAsset>(bytes.decodeToString())
-        val entries = asset.currencies.map {
+        val rawEntries = asset.currencies.map {
             CurrencyEntry(
                 code = it.code,
                 name = it.name,
@@ -98,6 +99,9 @@ class AssetCurrencyRepository(
                 listedInBasketBy = it.listedInBasketBy
             )
         }
+        // CurrencySymbolRules.EXCLUDED_CODES dropped and CurrencyEntry.ambiguousSymbol set here,
+        // once, rather than by editing the data file itself (task P10-B).
+        val entries = CurrencySymbolRules.classify(rawEntries)
         return CurrencyData(entries, asset.primaryCurrency)
     }
 

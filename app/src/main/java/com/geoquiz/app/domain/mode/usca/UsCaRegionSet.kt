@@ -5,14 +5,16 @@ import com.geoquiz.app.domain.map.GeoLayer
 import com.geoquiz.app.domain.model.Country
 
 /**
- * Which fixed member set a round draws from (task 6.2): "US states" (50 states + DC, DC
- * optional) or "Canadian provinces and territories" (13, no optional member). A route value
- * (`us`/`ca`), never changed, and the admin1 layer's `country` property
- * (`data/geo/FORMAT.md`) that selects this group's features.
+ * Which fixed member set a round draws from (task 6.2; Australia added P10-D2): "US states" (50
+ * states + DC, DC optional), "Canadian provinces and territories" (13, no optional member) or
+ * "Australian states and territories" (8, no optional member). A route value (`us`/`ca`/`au`),
+ * never changed, and the admin1 layer's `country` property (`data/geo/FORMAT.md`) that selects
+ * this group's features.
  */
 enum class UsCaRegionGroup(val routeValue: String, val countryProperty: String) {
     US_STATES("us", "USA"),
-    CANADIAN_PROVINCES("ca", "CAN");
+    CANADIAN_PROVINCES("ca", "CAN"),
+    AU_STATES("au", "AUS");
 
     companion object {
         fun fromRouteOrNull(value: String?): UsCaRegionGroup? = entries.firstOrNull { it.routeValue == value }
@@ -20,12 +22,13 @@ enum class UsCaRegionGroup(val routeValue: String, val countryProperty: String) 
 }
 
 /**
- * US states + DC and Canadian provinces and territories (task 6.2): a fixed ISO 3166-2 member
- * set read straight from the bundled `admin1_50m.bin` layer (via [GeoLayerId.ADMIN1_50M] and
+ * US states + DC, Canadian provinces and territories, and Australian states and territories
+ * (task 6.2; Australia added P10-D2): a fixed ISO 3166-2 member set read straight from the
+ * bundled `admin1_50m.bin` layer (via [GeoLayerId.ADMIN1_50M] and
  * [com.geoquiz.app.domain.map.MapRepository]), not derived from
  * [com.geoquiz.app.domain.model.Country]/[com.geoquiz.app.domain.map.RegionPreset] filtering
- * (D43): those are typed to the app's 197 UN-member countries and have no notion of a US state
- * or a Canadian province.
+ * (D43): those are typed to the app's 197 UN-member countries and have no notion of a US state,
+ * a Canadian province or an Australian state/territory.
  */
 object UsCaRegionSet {
     /** Washington DC's admin1 id: the only member [includeDc] can ever exclude. */
@@ -35,7 +38,8 @@ object UsCaRegionSet {
 
     /**
      * [group]'s members from [layer], sorted by English name. DC is left out unless [includeDc]
-     * (meaningless for [UsCaRegionGroup.CANADIAN_PROVINCES], which has no optional member).
+     * (meaningless for [UsCaRegionGroup.CANADIAN_PROVINCES] and [UsCaRegionGroup.AU_STATES],
+     * neither of which has an optional member).
      */
     fun members(layer: GeoLayer, group: UsCaRegionGroup, includeDc: Boolean): List<GeoFeature> =
         layer.features

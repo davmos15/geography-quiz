@@ -33,7 +33,7 @@ enum class GeoLayerId(val code: Int, val fileName: String, val kind: GeometryKin
     ADMIN0_50M(2, "admin0_50m.bin", GeometryKind.POLYGON),
     /** Tap-zone centres for small countries. */
     TAP_ZONES(3, "tap_zones.bin", GeometryKind.POINT),
-    /** US states + DC and Canadian provinces and territories. */
+    /** US states + DC, Canadian provinces and territories, and Australian states and territories. */
     ADMIN1_50M(4, "admin1_50m.bin", GeometryKind.POLYGON),
     /** Rivers, lake centrelines and canals. */
     RIVERS_50M(5, "rivers_50m.bin", GeometryKind.LINE),

@@ -118,7 +118,6 @@ class CurrenciesGameViewModelTest {
         every { Uri.decode(any()) } answers { firstArg() }
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         coEvery { validateAnswer(any(), any(), any()) } answers {
             when (firstArg<String>()) {
                 "Peru" -> AnswerResult.Correct("Peru")
@@ -148,7 +147,8 @@ class CurrenciesGameViewModelTest {
     private fun viewModel(
         handle: SavedStateHandle,
         mode: CurrencyGameMode,
-        completeQuiz: CompleteQuizUseCase = completeQuizUseCase(mode)
+        completeQuiz: CompleteQuizUseCase = completeQuizUseCase(mode),
+        random: Random = Random(ORDER_KEEPING_SEED)
     ): CurrenciesGameViewModel {
         val vm = CurrenciesGameViewModel(
             savedStateHandle = handle,
@@ -157,7 +157,7 @@ class CurrenciesGameViewModelTest {
             completeQuiz = completeQuiz,
             settingsRepository = settingsRepository,
             clock = clock,
-            quizRandom = QuizRandom(Random(9))
+            quizRandom = QuizRandom(random)
         )
         runCurrent()
         return vm
@@ -165,8 +165,37 @@ class CurrenciesGameViewModelTest {
 
     private fun runCurrent() = dispatcher.scheduler.runCurrent()
 
+    private companion object {
+        /**
+         * A seed whose shuffle leaves this two-item round in the pool's order (Peru/PEN, then
+         * EUR), so the tests written for that order still exercise it now rounds are shuffled.
+         */
+        val ORDER_KEEPING_SEED = (0..1_000).first { listOf(0, 1).shuffled(Random(it)) == listOf(0, 1) }
+    }
+
     private fun CurrenciesGameViewModel.active(): CurrencyRoundState =
         (uiState.value as CurrenciesUiState.Active).state
+
+    @Test
+    fun `a new round asks its currencies in a random order`() {
+        val mode = currencyMode()
+        val firstCodes = (0 until 20).map { seed ->
+            viewModel(routeHandle(Difficulty.NORMAL), mode, random = Random(seed)).active().current?.entry?.code
+        }.toSet()
+        assertEquals("over 20 seeds both currencies come up first", setOf("PEN", "EUR"), firstCodes)
+    }
+
+    @Test
+    fun `a restored round keeps its saved order whatever the random draw`() {
+        val mode = currencyMode()
+        val handle = routeHandle(Difficulty.NORMAL)
+        val order = viewModel(handle, mode, random = Random(1)).active().items.map { it.entry.code }
+
+        (0 until 10).forEach { seed ->
+            val restored = viewModel(afterProcessDeath(handle), mode, random = Random(seed))
+            assertEquals(order, restored.active().items.map { it.entry.code })
+        }
+    }
 
     @Test
     fun `a Hard round's shared currency is always a choice question - typed onSubmit is a no-op for it`() {
@@ -244,12 +273,14 @@ class CurrenciesGameViewModelTest {
         val c7 = country("PRT", "Portugal", "Lisbon", region = "Europe")
         val c8 = country("IRL", "Ireland", "Dublin", region = "Europe")
         val roundPool = listOf(c1, c2, c3, c4, c5, c6, c7, c8)
+        // Four distinct symbols (task P10-B review: same symbol would collapse to one question
+        // per round via CurrencyQuestionGenerator's one-per-symbol cap) so all four stay askable.
         val data = CurrencyData(
             entries = listOf(
                 CurrencyEntry("AA1", "A1", "a", listOf("AUT", "BEL"), shared = true, fact = null),
-                CurrencyEntry("AA2", "A2", "a", listOf("ITA", "ESP"), shared = true, fact = null),
-                CurrencyEntry("AA3", "A3", "a", listOf("GRC", "CYP"), shared = true, fact = null),
-                CurrencyEntry("AA4", "A4", "a", listOf("PRT", "IRL"), shared = true, fact = null)
+                CurrencyEntry("AA2", "A2", "b", listOf("ITA", "ESP"), shared = true, fact = null),
+                CurrencyEntry("AA3", "A3", "c", listOf("GRC", "CYP"), shared = true, fact = null),
+                CurrencyEntry("AA4", "A4", "d", listOf("PRT", "IRL"), shared = true, fact = null)
             ),
             primaryCurrency = emptyMap()
         )
@@ -302,10 +333,13 @@ class CurrenciesGameViewModelTest {
         val fsm = country("FSM", "Micronesia", "Palikir", region = "Oceania")
         val kir = country("KIR", "Kiribati", "Tarawa", region = "Oceania")
         val roundPool = listOf(fsm, kir)
+        // Distinct symbols (task P10-B review: CurrencyQuestionGenerator now asks each symbol at
+        // most once per round, which is not what this test - about the pre-existing review item
+        // 1 regression - is checking) so both currencies' representatives still both survive.
         val data = CurrencyData(
             entries = listOf(
                 CurrencyEntry("USD", "US dollar", "$", listOf("FSM", "ECU"), shared = true, fact = null),
-                CurrencyEntry("AUD", "Australian dollar", "$", listOf("KIR", "AUS"), shared = true, fact = null)
+                CurrencyEntry("AUD", "Australian dollar", "A$", listOf("KIR", "AUS"), shared = true, fact = null)
             ),
             primaryCurrency = emptyMap()
         )
@@ -328,5 +362,12 @@ class CurrenciesGameViewModelTest {
 
         assertEquals(CurrenciesUiState.Unavailable, vm.uiState.value)
         assertNull(completedQuizzes.stored)
+    }
+
+    @Test
+    fun `without a route difficulty Difficulty DEFAULT (Normal) is used`() {
+        val vm = viewModel(routeHandle(), currencyMode())
+
+        assertEquals(Difficulty.NORMAL, vm.active().difficulty)
     }
 }

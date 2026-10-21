@@ -3,17 +3,13 @@ package com.geoquiz.app.ui.tapmap
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.map.RegionPreset
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.testutil.MainDispatcherRule
-import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -27,11 +23,6 @@ class TapMapSetupViewModelTest {
 
     @get:Rule
     val mainDispatcher = MainDispatcherRule()
-
-    private val difficultyFlow = MutableStateFlow(Difficulty.NORMAL)
-    private val settingsRepository = mockk<SettingsRepository>(relaxed = true) {
-        every { difficulty } returns difficultyFlow
-    }
 
     @Before
     fun setUp() {
@@ -47,7 +38,7 @@ class TapMapSetupViewModelTest {
     }
 
     private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) =
-        TapMapSetupViewModel(handle, settingsRepository)
+        TapMapSetupViewModel(handle)
 
     @Test
     fun `starts on World with every preset offered`() = runTest {
@@ -83,15 +74,18 @@ class TapMapSetupViewModelTest {
     }
 
     @Test
-    fun `picking a difficulty remembers it as the default`() = runTest {
+    fun `picking a difficulty updates the state but is never persisted`() = runTest {
         val vm = viewModel()
         vm.uiState.test {
             awaitItem()
             vm.onDifficultySelected(Difficulty.HARD)
-            difficultyFlow.value = Difficulty.HARD
-            awaitItem()
+            assertEquals(Difficulty.HARD, awaitItem().difficulty)
         }
-        coVerify { settingsRepository.setDifficulty(Difficulty.HARD) }
+
+        // A fresh instance of this screen starts back at Normal (P10-G): nothing was persisted.
+        viewModel().uiState.test {
+            assertEquals(Difficulty.NORMAL, awaitItem().difficulty)
+        }
     }
 
     @Test
@@ -129,16 +123,18 @@ class TapMapSetupViewModelTest {
     }
 
     @Test
-    fun `an easy default is shown as normal while name all is selected, display only`() = runTest {
-        difficultyFlow.value = Difficulty.EASY
+    fun `an easy selection is shown as normal while name all is selected, display only`() = runTest {
         val vm = viewModel()
         vm.uiState.test {
             awaitItem()
+            vm.onDifficultySelected(Difficulty.EASY)
+            awaitItem()
+
             vm.onVariantSelected(TapMapGameMode.VARIANT_NAME_ALL)
             val nameAllState = awaitItem()
             assertEquals(Difficulty.NORMAL, nameAllState.difficulty)
 
-            // Switching the same view model back to find offers Easy again: the stored default
+            // Switching the same view model back to find offers Easy again: the selection itself
             // was never overwritten.
             vm.onVariantSelected(TapMapGameMode.VARIANT_FIND)
             val findState = awaitItem()

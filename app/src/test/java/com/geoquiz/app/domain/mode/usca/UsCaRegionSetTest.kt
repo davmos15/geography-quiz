@@ -44,6 +44,22 @@ class UsCaRegionSetTest {
     }
 
     @Test
+    fun `Australian states and territories are exactly 8, DC flag has no effect`() {
+        val withDc = UsCaRegionSet.members(layer, UsCaRegionGroup.AU_STATES, includeDc = true)
+        val withoutDc = UsCaRegionSet.members(layer, UsCaRegionGroup.AU_STATES, includeDc = false)
+        assertEquals(8, withDc.size)
+        assertEquals(withDc.map { it.id }, withoutDc.map { it.id })
+        assertTrue(withDc.all { it.properties.stringOrNull("country") == "AUS" })
+    }
+
+    @Test
+    fun `New South Wales has the expected id, name and postal code`() {
+        val nsw = layer.feature("AU-NSW")!!
+        assertEquals("New South Wales", nsw.regionName())
+        assertEquals("NSW", nsw.postalCode())
+    }
+
+    @Test
     fun `members are sorted by English name`() {
         val members = UsCaRegionSet.members(layer, UsCaRegionGroup.US_STATES, includeDc = false)
         assertEquals(members.map { it.regionName() }, members.map { it.regionName() }.sorted())
@@ -76,6 +92,7 @@ class UsCaRegionSetTest {
     fun `UsCaRegionGroup fromRouteOrNull`() {
         assertEquals(UsCaRegionGroup.US_STATES, UsCaRegionGroup.fromRouteOrNull("us"))
         assertEquals(UsCaRegionGroup.CANADIAN_PROVINCES, UsCaRegionGroup.fromRouteOrNull("ca"))
+        assertEquals(UsCaRegionGroup.AU_STATES, UsCaRegionGroup.fromRouteOrNull("au"))
         assertFalse(UsCaRegionGroup.fromRouteOrNull("xx") != null)
     }
 }

@@ -74,7 +74,7 @@ fun ConfettiOverlay(modifier: Modifier = Modifier) {
     if (rememberReducedMotion()) return
 
     val colors = with(MaterialTheme.geoColors) {
-        listOf(correct, wrong, star, tierGold, mapStart, mapEnd)
+        listOf(correct, wrong, nearMiss, tierGold, mapStart, mapEnd)
     }
     val particles = remember { randomParticles(colors.size) }
     val progress = remember { Animatable(0f) }

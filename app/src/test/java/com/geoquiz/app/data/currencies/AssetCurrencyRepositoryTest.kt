@@ -43,9 +43,22 @@ class AssetCurrencyRepositoryTest {
 
         assertSame(first, second)
         assertEquals(1, source.reads.get())
-        assertEquals(146, first.entries.size)
+        // 146 raw entries minus task P10-B's 19 CurrencySymbolRules.EXCLUDED_CODES.
+        assertEquals(127, first.entries.size)
         assertEquals(197, first.primaryCurrency.size)
         assertSame(first, repo.cachedOrNull())
+    }
+
+    @Test
+    fun `drops every CurrencySymbolRules excluded code (task P10-B)`() = runTest {
+        val repo = AssetCurrencyRepository(FakeAssetSource(), StandardTestDispatcher(testScheduler))
+
+        val data = repo.currencies()
+        val codes = data.entries.map { it.code }.toSet()
+
+        com.geoquiz.app.domain.mode.currencies.CurrencySymbolRules.EXCLUDED_CODES.forEach { excluded ->
+            assertFalse("$excluded must be dropped entirely", excluded in codes)
+        }
     }
 
     @Test
@@ -83,11 +96,13 @@ class AssetCurrencyRepositoryTest {
     }
 
     @Test
-    fun `exactly 13 currency codes are shared`() = runTest {
+    fun `exactly 12 currency codes are shared, after excluding JOD (task P10-B)`() = runTest {
+        // 13 shared codes in the raw data (D50); JOD is one of CurrencySymbolRules.EXCLUDED_CODES.
         val repo = AssetCurrencyRepository(FakeAssetSource(), StandardTestDispatcher(testScheduler))
         val data = repo.currencies()
 
-        assertEquals(13, data.entries.count { it.shared })
+        assertEquals(12, data.entries.count { it.shared })
+        assertTrue(data.entries.none { it.code == "JOD" })
     }
 
     @Test

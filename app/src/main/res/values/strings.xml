@@ -20,6 +20,7 @@
     <string translatable="false" name="debug_menu_opened">Debug menu unlocked</string>
     <string translatable="false" name="debug_menu_tools">Tools</string>
     <string translatable="false" name="debug_menu_map_preview">Map preview</string>
+    <string translatable="false" name="debug_menu_show_whats_new_again">Show What’s new again</string>
 
     <!-- Map region presets -->
     <string name="region_world">World</string>
@@ -292,8 +293,6 @@
     <!-- Quiz header label, e.g. "Difficulty: Hard" for screen readers -->
     <string name="a11y_quiz_difficulty">Difficulty: %1$s</string>
     <string name="quiz_timer_always_shown_hard">Always shown in Hard</string>
-    <string name="settings_default_difficulty">Default difficulty</string>
-    <string name="settings_default_difficulty_summary">Used for new quizzes. You can also change it at the top of each category list.</string>
     <!-- Easy tier multiple choice (3.2b, ui/quiz/components/MultipleChoicePanel.kt) -->
     <!-- %1$s is the category name, e.g. "Which of these fits “Europe”?" (reads for regions and letter/word patterns) -->
     <string name="choice_prompt_in_set">Which of these fits “%1$s”?</string>
@@ -308,11 +307,6 @@
     <!-- Spoken with an option while its result is shown -->
     <string name="choice_option_correct">correct answer</string>
     <string name="choice_option_wrong">your answer, incorrect</string>
-    <!-- Mastery stars on a category row; quantity follows the maximum (%2$d) -->
-    <plurals name="a11y_mastery_stars">
-        <item quantity="one">%1$d of %2$d star</item>
-        <item quantity="other">%1$d of %2$d stars</item>
-    </plurals>
     <!-- Results: heading of the card listing achievements this quiz unlocked -->
     <plurals name="results_new_achievements_heading">
         <item quantity="one">New achievement</item>
@@ -368,9 +362,14 @@
     <!-- Spoken name of the Countries / Capitals / Flags switch -->
     <string name="play_mode_switch_description">Quiz type</string>
     <string name="play_categories_heading">Categories</string>
-    <string name="play_new_modes_heading">New modes</string>
+    <!-- Heading over a mode's other, non-category modes (task P10-A.5), e.g. Country silhouettes under Countries -->
+    <string name="play_more_ways_heading">More ways to play</string>
     <string name="play_all_countries">All countries</string>
     <string name="play_all_capitals">All capitals</string>
+    <!-- Starts a random quiz of whichever classic mode is selected (task P10-A.6) -->
+    <string name="play_surprise_me">Surprise me</string>
+    <!-- TalkBack's "double tap to..." action label for Surprise me (task P10-R1): a meaningful verb phrase, not a repeat of the visible "Surprise me" label -->
+    <string name="play_surprise_me_action">start a random quiz</string>
     <plurals name="play_all_countries_count">
         <item quantity="one">%d country</item>
         <item quantity="other">%d countries</item>
@@ -390,8 +389,6 @@
     <!-- %1$d = number answered, %2$s = time played: "01:15" on screen, "1 minute 15 seconds" for screen readers -->
     <string name="play_continue_progress">%1$d answered in %2$s</string>
     <string name="play_resume_dismiss">Dismiss saved quiz</string>
-    <!-- Recommended next card: one tap starts the suggested category -->
-    <string name="play_recommended_title">Recommended next</string>
     <!-- Today's challenge card (8.6), shown while the daily challenge is available -->
     <string name="play_today_title">Today’s challenge</string>
     <string name="action_open_mode">Open mode</string>
@@ -409,4 +406,41 @@
     <!-- Pin toggle on a category row; %1$s = category name -->
     <string name="category_pin">Pin %1$s</string>
     <string name="category_unpin">Unpin %1$s</string>
+
+    <!-- "What's new" (P10-F): one-off screen shown on top of Play after an update, dismissible,
+         listing the 3.0.0 modes and changes. See ui/whatsnew/WhatsNewContent.kt. -->
+    <string name="whats_new_title">What’s new</string>
+    <string name="whats_new_got_it">Got it</string>
+    <string name="whats_new_section_new_modes">New ways to play</string>
+    <string name="whats_new_section_changes">Changes</string>
+
+    <string name="whats_new_mode_silhouettes_title">Country silhouettes</string>
+    <string name="whats_new_mode_silhouettes_subtitle">Guess the country from its outline</string>
+    <string name="whats_new_mode_tap_map_title">Tap the map</string>
+    <string name="whats_new_mode_tap_map_subtitle">Find countries and regions by tapping the map</string>
+    <string name="whats_new_mode_border_hop_title">Border hop</string>
+    <string name="whats_new_mode_border_hop_subtitle">Build a route across the map, country by country</string>
+    <string name="whats_new_mode_us_ca_title">States and territories</string>
+    <string name="whats_new_mode_us_ca_subtitle">Name the states and provinces of the US, Canada and Australia</string>
+    <string name="whats_new_mode_currencies_title">Currencies</string>
+    <string name="whats_new_mode_currencies_subtitle">Name the country from its currency symbol</string>
+    <string name="whats_new_mode_physical_features_title">Rivers, mountains and lakes</string>
+    <string name="whats_new_mode_physical_features_subtitle">Spot the world’s great rivers, ranges and lakes</string>
+    <string name="whats_new_mode_flag_speed_title">Flag speed round</string>
+    <string name="whats_new_mode_flag_speed_subtitle">60 seconds of flags that look alike</string>
+    <string name="whats_new_mode_daily_challenge_title">Today’s challenge</string>
+    <string name="whats_new_mode_daily_challenge_subtitle">A new set of questions every day, with streaks</string>
+
+    <string name="whats_new_change_difficulty_title">Easy, Normal and Hard</string>
+    <string name="whats_new_change_difficulty_subtitle">Choose a difficulty on every quiz; Easy is multiple choice</string>
+    <string name="whats_new_change_more_ways_title">More ways to play</string>
+    <string name="whats_new_change_more_ways_subtitle">New modes sit under Countries and Flags</string>
+    <string name="whats_new_change_surprise_me_title">Surprise me</string>
+    <string name="whats_new_change_surprise_me_subtitle">Picks a random quiz for you</string>
+    <string name="whats_new_change_colour_title">Colour is back</string>
+    <string name="whats_new_change_colour_subtitle">Each category has its own colour again</string>
+    <string name="whats_new_change_share_title">Share your results</string>
+    <string name="whats_new_change_share_subtitle">Share a results card with friends</string>
+    <string name="whats_new_change_sound_title">Sound and vibration</string>
+    <string name="whats_new_change_sound_subtitle">New settings for sound effects and vibration</string>
 </resources>

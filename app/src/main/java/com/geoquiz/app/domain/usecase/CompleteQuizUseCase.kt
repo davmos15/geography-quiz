@@ -22,12 +22,12 @@ import javax.inject.Inject
  * clears the "Resume quiz" save (classic modes only, after a recorded quiz), and records
  * achievements, history and leaderboard scores.
  *
- * Easy quizzes are recorded in history (so they show in stats and mastery stars) but unlock no
- * achievements and submit no leaderboard scores (D16, [Difficulty.countsForAchievements]).
+ * Easy quizzes are recorded in history (so they show in stats) but unlock no achievements and
+ * submit no leaderboard scores (D16, [Difficulty.countsForAchievements]).
  * Practice quizzes ([QuizCategory.Practice]) record nothing beyond the result and leave any
  * "Resume quiz" save alone (D21, [QuizCategory.isRecorded]). New (non-classic) modes are recorded
- * in history with mastery stars, but unlock no achievements, submit no leaderboard scores and
- * never write or clear a "Resume quiz" save, which only exists for classic modes (D35, D37,
+ * in history, but unlock no achievements, submit no leaderboard scores and never write or clear a
+ * "Resume quiz" save, which only exists for classic modes (D35, D37,
  * [CompletedQuiz.classicModeOrNull]).
  *
  * Achievements the quiz unlocks are stored with the result ([CompletedQuiz.newAchievementIds]) so
@@ -123,8 +123,7 @@ class CompleteQuizUseCase @Inject constructor(
         if (isClassic) savedQuizRepository.clearSavedQuiz()
 
         // D35: achievements, Play Games unlocks and leaderboard submissions are classic-only.
-        // New modes are still recorded in history below, with mastery stars, so Stats and Play's
-        // "Recommended next" work for them too.
+        // New modes are still recorded in history below, so Stats works for them too.
         val counts = request.difficulty.countsForAchievements && isClassic
         val newlyUnlocked = if (counts) {
             achievementRepository.onQuizCompleted(

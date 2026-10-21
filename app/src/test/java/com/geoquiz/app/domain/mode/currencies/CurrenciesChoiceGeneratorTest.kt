@@ -63,7 +63,7 @@ class CurrenciesChoiceGeneratorTest {
     }
 
     @Test
-    fun `a shared currency's prompt uses the currency's name, symbol and code`() {
+    fun `a shared currency's prompt is the symbol alone - never the name or code (task P10-B)`() {
         val data = CurrencyData(entries = listOf(eur, pen), primaryCurrency = mapOf("PER" to "PEN"))
 
         val question = generator(data).question(
@@ -74,11 +74,11 @@ class CurrenciesChoiceGeneratorTest {
             random = Random(1)
         )
 
-        assertEquals(ChoicePrompt.CurrencyOf("the Euro (€, EUR)"), question.prompt)
+        assertEquals(ChoicePrompt.CurrencyOf("€"), question.prompt)
     }
 
     @Test
-    fun `a non-shared currency's question is a plain four-name question`() {
+    fun `a non-shared currency's question is a plain four-name question with just the symbol in the prompt`() {
         val data = CurrencyData(entries = listOf(eur, pen), primaryCurrency = mapOf("PER" to "PEN"))
 
         val question = generator(data).question(
@@ -90,12 +90,12 @@ class CurrenciesChoiceGeneratorTest {
         )
 
         assertEquals("PER", question.targetCode)
-        assertEquals(ChoicePrompt.CurrencyOf("the Peruvian sol (S/, PEN)"), question.prompt)
+        assertEquals(ChoicePrompt.CurrencyOf("S/"), question.prompt)
         assertTrue(question.options.any { it.code == "PER" })
     }
 
     @Test
-    fun `falls back to the target's own name when the cache is cold, rather than crashing`() {
+    fun `falls back to a placeholder, never the target's name, when the cache is cold`() {
         val question = generator(null).question(
             target = peru,
             quizSet = allCountries,
@@ -104,13 +104,8 @@ class CurrenciesChoiceGeneratorTest {
             random = Random(1)
         )
 
-        assertEquals(ChoicePrompt.CurrencyOf("Peru"), question.prompt)
+        assertEquals(ChoicePrompt.CurrencyOf("?"), question.prompt)
         assertEquals("PER", question.targetCode)
-    }
-
-    @Test
-    fun `currencyLabel formats name, symbol and code together`() {
-        assertEquals("the Euro (€, EUR)", currencyLabel(eur))
     }
 
     // --- Zimbabwe's basket (task 7.1 review item 3) --------------------------------------------
@@ -175,8 +170,9 @@ class CurrenciesChoiceGeneratorTest {
         val items = CurrencyItems.buildAll(data, allCountriesByCode)
         val quizSet = items.map { it.country }
         val sharedItems = items.filter { it.entry.shared }
-        // Sanity: every one of the 13 real shared codes still gets a representative at full scope.
-        assertEquals(13, sharedItems.size)
+        // Sanity: every one of the 12 surviving real shared codes (13 minus JOD, excluded by
+        // CurrencySymbolRules, task P10-B) still gets a representative at full scope.
+        assertEquals(12, sharedItems.size)
 
         val repo = mockk<CurrencyRepository>()
         every { repo.cachedOrNull() } returns data

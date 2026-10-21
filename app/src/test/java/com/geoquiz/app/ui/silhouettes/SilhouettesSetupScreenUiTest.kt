@@ -10,11 +10,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
-import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForFlagQuizUseCase
@@ -52,8 +50,6 @@ class SilhouettesSetupScreenUiTest {
     private fun viewModel(): SilhouettesSetupViewModel {
         val countryRepository = mockk<CountryRepository>()
         every { countryRepository.getAllCountries() } returns flowOf(CategoryOptionsFixture.COUNTRIES)
-        val settingsRepository = mockk<SettingsRepository>(relaxed = true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         val mode = SilhouettesGameMode(
             CountriesQuestionGenerator(mockk<GetCountriesForQuizUseCase>(relaxed = true), mockk<GetCountriesForFlagQuizUseCase>(relaxed = true)),
             mockk<ValidateAnswerUseCase>(),
@@ -63,7 +59,6 @@ class SilhouettesSetupScreenUiTest {
         return SilhouettesSetupViewModel(
             countryRepository = countryRepository,
             optionsBuilder = CategoryOptionsFixture.builder(),
-            settingsRepository = settingsRepository,
             silhouettesGameMode = mode
         )
     }

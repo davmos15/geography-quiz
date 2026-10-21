@@ -19,12 +19,14 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.geoquiz.app.domain.model.PinnedCategory
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
 import com.geoquiz.app.ui.assertIsBelow
 import com.geoquiz.app.ui.assertIsRightOf
 import com.geoquiz.app.ui.components.WidthClass
 import com.geoquiz.app.ui.theme.GeographyQuizTheme
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -68,12 +70,16 @@ class PlayWideLayoutUiTest {
 
     @Test
     fun `on a large tablet the cards sit beside the mode switch and tiles`() {
-        launch()
+        launch(
+            ScreenTestFixtures.playViewModel(
+                pins = flowOf(listOf(PinnedCategory("flags", "flagcolor", "red")))
+            )
+        )
 
         val continueCard = compose.onNodeWithText("Continue")
-        val recommended = compose.onNodeWithText("Recommended next")
+        val pinnedHeading = compose.onNodeWithText("Pinned")
         continueCard.assertIsDisplayed()
-        recommended.assertIsDisplayed().assertIsBelow(continueCard)
+        pinnedHeading.assertIsDisplayed().assertIsBelow(continueCard)
 
         val allCountries = compose.onNodeWithText("All countries").assertIsDisplayed()
         val cardBounds = continueCard.getBoundsInRoot()

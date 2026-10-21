@@ -3,15 +3,12 @@ package com.geoquiz.app.ui.physicalfeatures
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeatureTab
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.testutil.MainDispatcherRule
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -26,10 +23,6 @@ class PhysicalFeaturesSetupViewModelTest {
     @get:Rule
     val mainDispatcher = MainDispatcherRule()
 
-    private val difficultyFlow = MutableStateFlow(Difficulty.NORMAL)
-    private val settingsRepository = mockk<SettingsRepository>(relaxed = true) {
-        every { difficulty } returns difficultyFlow
-    }
     private val repository = FakePhysicalFeatureRepository(FAKE_RIVERS)
 
     @Before
@@ -44,7 +37,7 @@ class PhysicalFeaturesSetupViewModelTest {
     }
 
     private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) =
-        PhysicalFeaturesSetupViewModel(handle, settingsRepository, repository)
+        PhysicalFeaturesSetupViewModel(handle, repository)
 
     @Test
     fun `defaults to Rivers with no continent filter`() = runTest {
@@ -88,5 +81,20 @@ class PhysicalFeaturesSetupViewModelTest {
         assertTrue(route.startsWith("physical_features/fixed_region/"))
         assertTrue(route.contains("Rivers - Asia"))
         assertTrue(route.contains("difficulty=normal"))
+    }
+
+    @Test
+    fun `selecting a difficulty updates the state but is never persisted`() = runTest {
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitItem()
+            vm.onDifficultySelected(Difficulty.HARD)
+            assertEquals(Difficulty.HARD, awaitItem().difficulty)
+        }
+
+        // A fresh instance of this screen starts back at Normal (P10-G): nothing was persisted.
+        viewModel().uiState.test {
+            assertEquals(Difficulty.NORMAL, awaitItem().difficulty)
+        }
     }
 }

@@ -100,7 +100,6 @@ class SilhouettesGameScreenUiTest {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         val completeQuiz = CompleteQuizUseCase(
             gameModes = GameModeRegistry(setOf(mode)),
             completedQuizRepository = FakeCompletedQuizRepository(),

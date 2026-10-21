@@ -57,9 +57,13 @@ data class CurrencyRoundState(
     val current: CurrencyItem? get() = items.getOrNull(currentIndex)
     val progress: Int get() = currentIndex.coerceAtMost(items.size)
 
-    /** D50: Easy, or any shared currency, is always a four-option question, never typed. */
+    /**
+     * D50 plus task P10-B: Easy, or any [com.geoquiz.app.domain.mode.currencies.CurrencyEntry.isChoiceOnly]
+     * currency (shared, or a single-owner currency whose symbol is ambiguous), is always a
+     * four-option question, never typed.
+     */
     val isCurrentChoice: Boolean
-        get() = difficulty == Difficulty.EASY || current?.entry?.shared == true
+        get() = difficulty == Difficulty.EASY || current?.entry?.isChoiceOnly == true
 }
 
 sealed class CurrenciesUiState {

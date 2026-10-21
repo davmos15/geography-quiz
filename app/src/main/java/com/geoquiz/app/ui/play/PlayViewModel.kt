@@ -12,6 +12,7 @@ import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.domain.mode.GameMode
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.mode.ModeIcon
+import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGameMode
 import com.geoquiz.app.domain.model.Country
 import com.geoquiz.app.domain.model.FeatureFlag
@@ -20,9 +21,8 @@ import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.streak.ObserveStreakUseCase
 import com.geoquiz.app.domain.streak.StreakStatus
-import com.geoquiz.app.domain.usecase.RecommendNextCategoryUseCase
-import com.geoquiz.app.domain.usecase.RecommendationCandidate
 import com.geoquiz.app.ui.category.CategoryOptionsBuilder
+import com.geoquiz.app.ui.navigation.ModeRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** A mode in the classic switch or the "New modes" grid. */
+/** A mode in the classic switch or a page's "More ways to play" tiles. */
 data class ModeOption(
     val id: String,
     @StringRes val label: Int,
@@ -56,17 +56,6 @@ data class SavedQuizInfo(
     val answeredCount: Int,
     /** Time played so far. */
     val timeElapsedSeconds: Int = 0
-)
-
-/** The "Recommended next" card ([RecommendNextCategoryUseCase]); one tap starts this quiz. */
-data class RecommendedQuiz(
-    val quizModeId: String,
-    @StringRes val modeLabel: Int,
-    val categoryType: String,
-    val categoryValue: String,
-    val categoryDisplayName: String,
-    /** Mastery stars, 0 to 3. */
-    val stars: Int
 )
 
 /** A "Pinned" row ([PinnedCategoriesRepository]); one tap starts this quiz in its mode. */
@@ -100,17 +89,26 @@ data class PlayUiState(
     val selectedModeId: String = QuizMode.COUNTRIES.id,
     /** Countries, Capitals and Flags (those available), in sort order. */
     val classicModes: List<ModeOption> = emptyList(),
-    /** Available non-classic modes, in sort order; empty hides the "New modes" section. */
-    val newModes: List<ModeOption> = emptyList(),
+    /**
+     * Non-classic modes to show after a classic mode's category groups, under "More ways to
+     * play" (task P10-A.5), keyed by classic mode id. A mode is absent from its page's list while
+     * its feature flag is off; an empty list hides the heading.
+     */
+    val extraModesByPage: Map<String, List<ModeOption>> = emptyMap(),
     /** Group tiles per classic mode id; null while loading. */
     val modeContent: Map<String, ModeContent>? = null,
     val savedQuiz: SavedQuizInfo? = null,
     /** The "Today's challenge" card and header streak; null unless [FeatureFlag.DAILY_CHALLENGE] is on. */
     val todayChallenge: TodayChallengeInfo? = null,
-    /** "Recommended next" for [selectedModeId]; null hides the card. */
-    val recommended: RecommendedQuiz? = null,
     /** Pinned categories of every available mode, oldest pin first; empty hides the section. */
-    val pinned: List<PinnedQuiz> = emptyList()
+    val pinned: List<PinnedQuiz> = emptyList(),
+    /**
+     * [PlayViewModel.surprise]'s own candidate pool per classic mode id; null while loading
+     * (code review round, task P10-R1: built asynchronously, separately from [modeContent], so a
+     * tap on "Surprise me" before this is ready used to silently do nothing - see
+     * [surpriseMeReady], which the button is now disabled on until true).
+     */
+    val candidatesByMode: Map<String, List<CategoryCandidate>>? = null
 ) {
     val isLoading: Boolean get() = modeContent == null
 
@@ -118,13 +116,24 @@ data class PlayUiState(
 
     /** Tiles for [selectedModeId]. */
     val selectedContent: ModeContent? get() = modeContent?.get(selectedModeId)
+
+    /** "More ways to play" tiles for [selectedModeId] (task P10-A.5). */
+    val selectedExtraModes: List<ModeOption> get() = extraModesByPage[selectedModeId].orEmpty()
+
+    /**
+     * Whether [PlayViewModel.surprise] has a real candidate pool to draw from for
+     * [selectedModeId] right now (task P10-R1): "Surprise me" is disabled until this is true, so
+     * a tap can never silently do nothing while [candidatesByMode] is still loading.
+     */
+    val surpriseMeReady: Boolean get() = candidatesByMode?.get(selectedModeId)?.isNotEmpty() == true
 }
 
 /**
- * The Play tab: the "Today's challenge" placeholder (feature-flagged), "Continue" and
- * "Recommended next" cards, the "Pinned" categories of every mode, a classic-mode switch, that mode's category groups and the
- * "New modes" grid, all built from the [GameModeRegistry] and the feature flags. The selected
- * mode is kept in the [SavedStateHandle], so it survives rotation and process death.
+ * The Play tab: the "Today's challenge" placeholder (feature-flagged), the "Continue" card, the
+ * "Pinned" categories of every mode, a classic-mode switch, that mode's category groups and
+ * (task P10-A.5) its other modes under "More ways to play", all built from the
+ * [GameModeRegistry] and the feature flags. The selected mode is kept in the [SavedStateHandle],
+ * so it survives rotation and process death.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -136,27 +145,53 @@ class PlayViewModel @Inject constructor(
     private val savedQuizRepository: SavedQuizRepository,
     private val categoryGroups: PlayCategoryGroups,
     private val optionsBuilder: CategoryOptionsBuilder,
-    private val quizHistoryRepository: QuizHistoryRepository,
-    private val recommendNext: RecommendNextCategoryUseCase,
     pinnedCategoriesRepository: PinnedCategoriesRepository,
-    observeStreak: ObserveStreakUseCase
+    observeStreak: ObserveStreakUseCase,
+    private val quizRandom: QuizRandom
 ) : ViewModel() {
 
     private val classicIds: Set<String> = QuizMode.entries.map { it.id }.toSet()
 
-    /** Available classic modes and new modes, each in sort order. */
-    private val modeOptions: Flow<Pair<List<ModeOption>, List<ModeOption>>> =
+    /**
+     * Fixed order of non-classic modes shown after a classic mode's category groups, under
+     * "More ways to play" (task P10-A.5). Capitals has none. A mode only appears on its page
+     * while it is available (its feature flag, if any, is on).
+     */
+    private val modePagePlacements: Map<String, List<String>> = mapOf(
+        QuizMode.COUNTRIES.id to listOf(
+            ModeRoutes.SILHOUETTES_MODE_ID,
+            ModeRoutes.PHYSICAL_FEATURES_MODE_ID,
+            ModeRoutes.BORDER_HOP_MODE_ID,
+            ModeRoutes.CURRENCIES_MODE_ID,
+            ModeRoutes.TAP_MAP_MODE_ID,
+            ModeRoutes.US_CA_REGIONS_MODE_ID
+        ),
+        QuizMode.FLAGS.id to listOf(ModeRoutes.FLAG_SPEED_ROUND_MODE_ID),
+        QuizMode.CAPITALS.id to emptyList()
+    )
+
+    /** Available classic modes, in sort order. */
+    private val classicModes: Flow<List<ModeOption>> =
         featureFlagRepository.states.map { states ->
             val enabled = states.filter { it.enabled }.map { it.flag }.toSet()
             val available = registry.available { it in enabled }
-            val classic = available.filter { it.id in classicIds }.sortedBy { it.spec.sortOrder }.map { it.toOption() }
-            // The daily challenge has its own card at the top of Play (8.6), so it isn't listed
-            // twice in the New modes grid.
-            val newModes = available
-                .filter { it.id !in classicIds && it.id != DailyChallengeGameMode.MODE_ID }
-                .sortedBy { it.spec.sortOrder }
-                .map { it.toOption() }
-            classic to newModes
+            available.filter { it.id in classicIds }.sortedBy { it.spec.sortOrder }.map { it.toOption() }
+        }
+
+    /**
+     * [modePagePlacements], filtered live to the modes currently available (task P10-A.5): a mode
+     * disappears from its page the moment its flag is turned off, and the daily challenge is
+     * never included here (it keeps its own Today's challenge card).
+     */
+    private val extraModesByPage: Flow<Map<String, List<ModeOption>>> =
+        featureFlagRepository.states.map { states ->
+            val enabled = states.filter { it.enabled }.map { it.flag }.toSet()
+            val available = registry.available { it in enabled }
+                .filter { it.id != DailyChallengeGameMode.MODE_ID }
+                .associateBy { it.id }
+            modePagePlacements.mapValues { (_, ids) ->
+                ids.mapNotNull { id -> available[id]?.toOption() }
+            }
         }
 
     // Same rule as the destination's guard (rememberModeIsAvailable): the card shows exactly
@@ -174,10 +209,14 @@ class PlayViewModel @Inject constructor(
         if (on) observeStreak().map { TodayChallengeInfo(it) } else flowOf(null)
     }.distinctUntilChanged()
 
+    /** [classicModes] and [extraModesByPage] together, so the top-level [uiState] combine stays at 5 flows. */
+    private val classicAndExtraModes: Flow<Pair<List<ModeOption>, Map<String, List<ModeOption>>>> =
+        combine(classicModes, extraModesByPage, ::Pair)
+
     private val selectedModeId: Flow<String> = combine(
         savedStateHandle.getStateFlow(KEY_SELECTED_MODE, QuizMode.COUNTRIES.id),
-        modeOptions
-    ) { selected, (classic, _) ->
+        classicModes
+    ) { selected, classic ->
         selected.takeIf { id -> classic.any { it.id == id } }
             ?: classic.firstOrNull()?.id
             ?: QuizMode.COUNTRIES.id
@@ -191,40 +230,16 @@ class PlayViewModel @Inject constructor(
     private val savedQuiz = savedQuizRepository.savedQuiz.map { it?.toSavedQuizInfo() }
 
     /**
-     * "Recommended next" for the selected mode. Follows history (stars and recency) live and
-     * never names the category in the Continue card.
-     */
-    private val recommended: Flow<RecommendedQuiz?> = combine(selectedModeId, savedQuiz) { mode, saved ->
-        val excluded = saved?.takeIf { it.quizModeId == mode }
-            ?.let { QuizHistoryRepository.categoryKey(it.categoryType, it.categoryValue) }
-        mode to excluded
-    }.distinctUntilChanged().flatMapLatest { (mode, excludedKey) ->
-        candidates.flatMapLatest { all ->
-            val modeCandidates = all?.get(mode)
-            if (modeCandidates == null) {
-                flowOf(null)
-            } else {
-                combine(
-                    quizHistoryRepository.masteryStarsForMode(mode),
-                    quizHistoryRepository.categoryKeysByRecencyForMode(mode)
-                ) { stars, recent ->
-                    recommend(mode, modeCandidates, stars, recent, excludedKey)
-                }
-            }
-        }
-    }.distinctUntilChanged()
-
-    /**
      * Pins of every available mode whose category the mode still lists (so a pin for a category
      * that has gone from the data is hidden). Empty until the category options are built.
      */
     private val pinned: Flow<List<PinnedQuiz>> = combine(
         pinnedCategoriesRepository.pinnedCategories,
         candidates,
-        modeOptions
-    ) { pins, all, (classic, newModes) ->
+        classicAndExtraModes
+    ) { pins, all, (classic, extraByPage) ->
         if (all == null) return@combine emptyList()
-        val availableIds = (classic + newModes).map { it.id }.toSet()
+        val availableIds = classic.map { it.id }.toSet() + extraByPage.values.flatten().map { it.id }.toSet()
         pins.filter { pin ->
             pin.modeId in availableIds &&
                 all[pin.modeId].orEmpty().any {
@@ -245,20 +260,20 @@ class PlayViewModel @Inject constructor(
 
     val uiState: StateFlow<PlayUiState> = combine(
         selectedModeId,
-        modeOptions,
+        classicAndExtraModes,
         modeContent,
         savedQuiz,
-        combine(todayChallenge, recommended, pinned, ::Triple)
-    ) { selected, (classic, newModes), content, saved, (today, recommendation, pins) ->
+        combine(todayChallenge, pinned, candidates, ::Triple)
+    ) { selected, (classic, extraByPage), content, saved, (today, pins, candidateMap) ->
         PlayUiState(
             selectedModeId = selected,
             classicModes = classic,
-            newModes = newModes,
+            extraModesByPage = extraByPage,
             modeContent = content,
             savedQuiz = saved,
             todayChallenge = today,
-            recommended = recommendation,
-            pinned = pins
+            pinned = pins,
+            candidatesByMode = candidateMap
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlayUiState())
 
@@ -291,28 +306,15 @@ class PlayViewModel @Inject constructor(
         }
     }
 
-    private fun recommend(
-        modeId: String,
-        modeCandidates: List<CategoryCandidate>,
-        stars: Map<String, Int>,
-        recentKeys: List<String>,
-        excludedKey: String?
-    ): RecommendedQuiz? {
-        val pick = recommendNext(
-            candidates = modeCandidates.map { RecommendationCandidate(it.groupId, it.key) },
-            stars = stars,
-            recentKeys = recentKeys,
-            excludedKey = excludedKey
-        ) ?: return null
-        val option = modeCandidates.first { it.key == pick.key }
-        return RecommendedQuiz(
-            quizModeId = modeId,
-            modeLabel = registry.findOrDefault(modeId).spec.labels.name,
-            categoryType = option.categoryType,
-            categoryValue = option.categoryValue,
-            categoryDisplayName = QuizCategory.fromRoute(option.categoryType, option.categoryValue).displayName,
-            stars = stars[pick.key] ?: 0
-        )
+    /**
+     * "Surprise me" (task P10-A.6): a category of [modeId] picked uniformly at random from its
+     * candidates (never "All", which is not a candidate). Null while loading or if the mode has
+     * no candidates yet.
+     */
+    fun surprise(modeId: String): CategoryCandidate? {
+        val options = candidates.value?.get(modeId)
+        if (options.isNullOrEmpty()) return null
+        return options[quizRandom.random.nextInt(options.size)]
     }
 
     /** Shows [modeId]'s groups. Ignores ids that are not classic modes. */

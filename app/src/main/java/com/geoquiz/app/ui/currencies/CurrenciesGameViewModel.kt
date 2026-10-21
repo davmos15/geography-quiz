@@ -101,7 +101,7 @@ class CurrenciesGameViewModel @Inject constructor(
         viewModelScope.launch {
             _showTimer.value = settingsRepository.showTimer.first()
             _vibration.value = settingsRepository.vibration.first()
-            val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+            val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
             val difficulty = requested.takeIf { it in currencyGameMode.spec.supportedDifficulties } ?: Difficulty.DEFAULT
             savedState.difficulty = difficulty
             _timerVisible.value = _showTimer.value || difficulty.timerAlwaysShown
@@ -129,7 +129,9 @@ class CurrenciesGameViewModel @Inject constructor(
                 paused = !snapshot.isComplete
             )
         } else {
-            val items = currencyGameMode.generator.currencyItems(category)
+            // Asked in a random order (Dav, 2026-10-22): the pool's own order is alphabetical, so
+            // every round used to open on the same currency. A restore keeps its saved order.
+            val items = currencyGameMode.generator.currencyItems(category).shuffled(random)
             CurrencyRoundState(category = category, difficulty = difficulty, items = items, isComplete = items.isEmpty())
         }
         // No currencies left to ask about for this filter (task 9.2 review fix, e.g. a Practice

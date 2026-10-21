@@ -11,12 +11,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
@@ -28,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -41,9 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.model.Difficulty
-import com.geoquiz.app.domain.usecase.MasteryStars
-import com.geoquiz.app.ui.quiz.components.inlineIconSize
-import com.geoquiz.app.ui.theme.geoColors
 
 /** Short name of the tier: "Easy", "Normal", "Hard". */
 @get:StringRes
@@ -185,29 +176,5 @@ fun DifficultyLabel(
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
         )
-    }
-}
-
-/**
- * Mastery stars for a category: [stars] filled stars then outlined ones, up to
- * [MasteryStars.MAX]. Read as one item, e.g. "2 of 3 stars".
- */
-@Composable
-fun MasteryStarsRow(
-    stars: Int,
-    modifier: Modifier = Modifier
-) {
-    val max = MasteryStars.MAX
-    val earned = stars.coerceIn(0, max)
-    val description = pluralStringResource(R.plurals.a11y_mastery_stars, max, earned, max)
-    Row(modifier = modifier.clearAndSetSemantics { contentDescription = description }) {
-        repeat(max) { index ->
-            Icon(
-                imageVector = if (index < earned) Icons.Filled.Star else Icons.Filled.StarBorder,
-                contentDescription = null,
-                tint = MaterialTheme.geoColors.star,
-                modifier = Modifier.size(inlineIconSize(18.dp))
-            )
-        }
     }
 }

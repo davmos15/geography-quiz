@@ -78,7 +78,6 @@ class UsCaNameAllViewModelTest {
         every { Uri.decode(any()) } answers { firstArg() }
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
     }
 
     @After

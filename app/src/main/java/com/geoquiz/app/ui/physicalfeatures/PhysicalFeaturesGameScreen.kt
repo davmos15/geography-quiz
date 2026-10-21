@@ -44,7 +44,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -69,6 +71,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.map.LambertAzimuthalEqualAreaProjection
 import com.geoquiz.app.domain.map.MapFeatureState
+import com.geoquiz.app.domain.mode.physicalfeatures.physicalFeatureContextBounds
 import com.geoquiz.app.domain.mode.physicalfeatures.physicalFeatureFrame
 import com.geoquiz.app.domain.mode.physicalfeatures.physicalFeatureLayerIds
 import com.geoquiz.app.domain.mode.physicalfeatures.physicalFeatureOverlayLayer
@@ -77,6 +80,7 @@ import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.ui.components.AdaptiveTrailingRow
 import com.geoquiz.app.ui.components.DifficultyLabel
 import com.geoquiz.app.ui.components.WrappingTopAppBar
+import com.geoquiz.app.ui.components.rememberReducedMotion
 import com.geoquiz.app.ui.map.MapCanvas
 import com.geoquiz.app.ui.map.rememberIsTouchExplorationEnabled
 import com.geoquiz.app.ui.map.rememberMapScene
@@ -85,6 +89,7 @@ import com.geoquiz.app.ui.quiz.components.MultipleChoicePanel
 import com.geoquiz.app.ui.quiz.components.TimerDisplay
 import com.geoquiz.app.ui.quiz.feedback.rememberHapticFeedbackPlayer
 import com.geoquiz.app.ui.theme.geoColors
+import kotlinx.coroutines.flow.first
 
 /** A throwaway centre used only while there is no current feature to frame (round not loaded
  * yet, or just finished): [rememberMapScene] always needs a projection, but with no `coarse`
@@ -95,6 +100,18 @@ private val NO_TARGET_PROJECTION = LambertAzimuthalEqualAreaProjection(0.0, 0.0)
  * map/US-CA's own `MAP_MIN_HEIGHT`. */
 private val MAP_MIN_HEIGHT = 160.dp
 private val SECTION_GAP = 8.dp
+
+/**
+ * Whether the camera still needs fitting to [targetId]'s tight frame (task P10-R1 review fix):
+ * true only the first time this [targetId] is seen, i.e. when it differs from [framedId] (the
+ * last target actually fitted, `rememberSaveable`'d by the caller). A plain `false` for a null
+ * [targetId] (no question loaded yet, nothing to fit). Pulled out of the composable below as a
+ * pure function so the one piece of real logic in that effect - "is this a new question, or the
+ * same one surviving a recomposition/configuration change" - has a unit test independent of
+ * Compose and the map's own camera state.
+ */
+internal fun shouldFitPhysicalFeatureTarget(targetId: String?, framedId: String?): Boolean =
+    targetId != null && targetId != framedId
 
 /**
  * Rivers, mountains and lakes' game screen (task 7.2, D51), registered at a destination the
@@ -272,12 +289,17 @@ private fun PhysicalFeaturesActiveContent(
     val baseLayer = mapState.baseLayer
     val projection = target?.let { physicalFeatureProjection(it) } ?: NO_TARGET_PROJECTION
     val frame = target?.let { physicalFeatureFrame(projection, it) }
+    // Task P10-E (Dav's device feedback, "need to be able to zoom out further"): the scene's own
+    // `bounds` is a much wider context rectangle around the feature, not the tight `frame` - see
+    // [physicalFeatureContextBounds]'s KDoc for why using the tight frame here made it the hard
+    // zoom-out limit. The screen still *opens* framed tightly via the fitTo effect below.
+    val contextBounds = target?.let { physicalFeatureContextBounds(projection, it, frame!!) }
     val scene = if (target != null && layer != null) {
         rememberMapScene(
             projection = projection,
             coarse = baseLayer ?: overlayLayer,
             overlay = if (baseLayer != null) overlayLayer else null,
-            bounds = frame,
+            bounds = contextBounds,
             // An empty (not null) member set: every admin0_50m feature draws as non-playable
             // context (`mapLandInactive`), never this mode's own "answerable" layer - there is no
             // country to answer here. Null (no exclusion) when there is no base layer to draw.
@@ -288,6 +310,25 @@ private fun PhysicalFeaturesActiveContent(
         null
     }
     val mapViewState = rememberMapViewState()
+    val reducedMotion = rememberReducedMotion()
+    // Opens each question framed tightly on the feature (not on the wider context rectangle
+    // above), the one time it changes - never again just because this composable recomposes
+    // (e.g. the timer tick), and never again on a configuration change either (code review round,
+    // task P10-R1: a plain `remember` here does not survive activity recreation, e.g. rotation,
+    // so the LaunchedEffect below used to see it as a fresh question and re-fit, discarding
+    // whatever zoom/pan the player had set). [framedId] is `rememberSaveable`, so it survives
+    // that recreation and the effect below skips re-fitting a question it has already framed.
+    var framedId by rememberSaveable { mutableStateOf<String?>(null) }
+    // Waits for the camera to be ready (viewport measured, scene built) before fitting, so it
+    // always wins over MapCanvas's own "new projection resets to zoom 1 on the content centre"
+    // side effect, whichever order they run in.
+    LaunchedEffect(target?.id) {
+        val targetFrame = frame ?: return@LaunchedEffect
+        if (!shouldFitPhysicalFeatureTarget(target?.id, framedId)) return@LaunchedEffect
+        snapshotFlow { mapViewState.isReady }.first { it }
+        mapViewState.fitTo(targetFrame, animate = !reducedMotion)
+        framedId = target?.id
+    }
     val featureStates = remember(highlightIds) { highlightIds.associateWith { MapFeatureState.Highlighted } }
     val controlsEnabled = !round.isComplete && !round.isAdvancing && !round.paused
     val giveUpEnabled = !round.paused

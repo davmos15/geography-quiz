@@ -115,9 +115,9 @@ object TestGameModes {
 
     /**
      * Stubs carrying the *real* [GameModeSpec] of every non-classic, non-daily-challenge mode
-     * (task 9.x "Play with every mode on" goldens), so the Play tab's New modes grid shows the
-     * real ids, icons, labels and sort order. Only the spec is real; behaviour is mocked, which
-     * Play never calls (it only reads `GameMode.spec`).
+     * (task 9.x "Play with every mode on" goldens), so Play's per-page "More ways to play" tiles
+     * (task P10-A.5) show the real ids, icons and labels. Only the spec is real; behaviour is
+     * mocked, which Play never calls (it only reads `GameMode.spec`).
      */
     fun newModeSpecStubs(): Set<GameMode> = setOf(
         SilhouettesGameMode.SPEC,

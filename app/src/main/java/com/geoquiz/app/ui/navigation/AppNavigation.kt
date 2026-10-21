@@ -61,6 +61,7 @@ import com.geoquiz.app.ui.tapmap.TapMapGameScreen
 import com.geoquiz.app.ui.tapmap.TapMapSetupScreen
 import com.geoquiz.app.ui.usca.UsCaRegionsGameScreen
 import com.geoquiz.app.ui.usca.UsCaRegionsSetupScreen
+import com.geoquiz.app.ui.whatsnew.WhatsNewHost
 
 /** A display cutout on the left or right edge. */
 private val HORIZONTAL_CUTOUT: WindowInsets
@@ -114,7 +115,7 @@ internal fun ConsumeRequestedPlayMode(entry: NavBackStackEntry, selectMode: (Str
 
 /**
  * Whether [modeId] is currently reachable (its [com.geoquiz.app.domain.model.FeatureFlag] is on,
- * the same rule as Play's "New modes" grid); null while that is still loading. Pops back to Play
+ * the same rule as Play's "More ways to play" tiles); null while that is still loading. Pops back to Play
  * once it is known to be false, so a bookmarked deep link or a flag flipped from the debug menu
  * while the player is on a new mode's own screen (`ModeSetup`, `Silhouettes`, `TapMap`) can't
  * strand them there (task 5.0 review).
@@ -137,6 +138,17 @@ fun AppNavigation(challengeDeepLink: ChallengeDeepLink? = null) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
+
+    // The one-off "What's new" screen (P10-F): a dialog in its own window, so it sits on top of
+    // the Play hub on first launch after an update. Only rendered while Play is the current
+    // destination (task P10-R1 review fix): a cold start over a challenge deep link lands here
+    // first too (Play is always the NavHost's start destination), then immediately navigates to
+    // ChallengeAccept below - gating on the route keeps the dialog from ever appearing over that
+    // unrelated screen. [WhatsNewViewModel] itself is unaffected (still resolves and may become
+    // [WhatsNewUiState.Shown] regardless of route); only not being on Play suppresses *showing*
+    // it, and `onDismiss` - the only place that records `whats_new_seen_version` - is still never
+    // called, so it is shown for real on the next normal Play launch instead.
+    WhatsNewHost(visible = currentRoute == Screen.Play.route)
 
     // Handle deep links for challenges
     LaunchedEffect(challengeDeepLink) {

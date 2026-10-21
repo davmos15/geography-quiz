@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.R
-import com.geoquiz.app.data.local.preferences.SettingsRepository
+import com.geoquiz.app.domain.mode.silhouettes.SilhouetteLegibility
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Difficulty
@@ -44,7 +44,6 @@ data class SilhouettesSetupUiState(
 class SilhouettesSetupViewModel @Inject constructor(
     private val countryRepository: CountryRepository,
     private val optionsBuilder: CategoryOptionsBuilder,
-    private val settingsRepository: SettingsRepository,
     private val silhouettesGameMode: SilhouettesGameMode
 ) : ViewModel() {
 
@@ -53,9 +52,14 @@ class SilhouettesSetupViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val difficulty = settingsRepository.difficulty.first()
-                .takeIf { it in silhouettesGameMode.spec.supportedDifficulties } ?: Difficulty.DEFAULT
+            val difficulty = Difficulty.DEFAULT
+            // Task P10-E: excluded (unrecognisable, e.g. Tuvalu) codes are left out before the
+            // shared CategoryOptionsBuilder counts options, so a filter's shown count already
+            // matches what a round of it will actually ask about, and a filter that is only
+            // excluded codes (e.g. a region of nothing but scattered atolls) disappears rather
+            // than offering an option that silently asks about fewer countries than shown.
             val allCountries = optionsBuilder.countriesFor(QuizMode.COUNTRIES, countryRepository.getAllCountries().first())
+                .filterNot { it.code in SilhouetteLegibility.EXCLUDED_CCA3 }
             val sections = GROUPS.mapNotNull { (group, titleRes) ->
                 val options = optionsBuilder.build(QuizMode.COUNTRIES, group.id, allCountries)
                     .filter { option -> silhouettesGameMode.offers(QuizCategory.fromRoute(option.categoryType, option.categoryValue)) }
@@ -65,9 +69,9 @@ class SilhouettesSetupViewModel @Inject constructor(
         }
     }
 
+    /** Selection only: never persisted (P10-G), so it does not carry over to the next visit. */
     fun onDifficultySelected(difficulty: Difficulty) {
         _uiState.value = _uiState.value.copy(difficulty = difficulty)
-        viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
     }
 
     /** The route [onStart][SilhouettesSetupScreen] should navigate to for [option]. */

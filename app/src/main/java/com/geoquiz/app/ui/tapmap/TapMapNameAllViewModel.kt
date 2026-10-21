@@ -125,12 +125,12 @@ class TapMapNameAllViewModel @Inject constructor(
     }
 
     /**
-     * Route tier, else the value saved for process death, else the remembered default - clamped
+     * Route tier, else the value saved for process death, else [Difficulty.DEFAULT] - clamped
      * to Normal/Hard (D40): Easy is Find's multiple-choice tier, never Name all's, whatever asked
      * for it.
      */
-    private suspend fun resolveDifficulty(): Difficulty {
-        val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+    private fun resolveDifficulty(): Difficulty {
+        val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
         return if (requested == Difficulty.HARD) Difficulty.HARD else Difficulty.NORMAL
     }
 

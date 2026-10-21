@@ -2,7 +2,6 @@ package com.geoquiz.app.ui.borderhop
 
 import android.net.Uri
 import com.geoquiz.app.data.borderhop.BorderGraphRepository
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.borderhop.BorderGraph
 import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.borderhop.BorderHopQuestionGenerator
@@ -18,7 +17,6 @@ import com.geoquiz.app.ui.category.CategoryOptionsFixture
 import com.geoquiz.app.ui.category.QuizOptionInfo
 import com.geoquiz.app.ui.navigation.ModeRoutes
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -47,7 +45,6 @@ import org.junit.Test
 class BorderHopSetupViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
 
     /**
      * A small hand-built border graph over [CategoryOptionsFixture.COUNTRIES] (task 9.2 review),
@@ -90,7 +87,6 @@ class BorderHopSetupViewModelTest {
         Dispatchers.setMain(dispatcher)
         mockkStatic(Uri::class)
         every { Uri.encode(any()) } answers { firstArg() }
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
     }
 
     @After
@@ -120,7 +116,6 @@ class BorderHopSetupViewModelTest {
         val vm = BorderHopSetupViewModel(
             countryRepository = countryRepository(countries),
             optionsBuilder = optionsBuilder,
-            settingsRepository = settingsRepository,
             borderHopGameMode = gameMode(countries),
             borderGraphRepository = mockk<BorderGraphRepository> { coEvery { this@mockk.graph() } returns graph },
             defaultDispatcher = Dispatchers.Unconfined
@@ -162,17 +157,19 @@ class BorderHopSetupViewModelTest {
 
     @Test
     fun `All countries is always offered, at every difficulty`() {
+        val vm = viewModel()
         for (difficulty in Difficulty.entries) {
-            every { settingsRepository.difficulty } returns flowOf(difficulty)
-            val vm = viewModel()
+            vm.onDifficultySelected(difficulty)
+            dispatcher.scheduler.runCurrent()
             assertEquals(1, optionsOf(vm.uiState.value, CategoryGroup.ALL_COUNTRIES).size)
         }
     }
 
     @Test
     fun `hides a region or subregion with no puzzle at the selected difficulty - Easy`() {
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.EASY)
         val vm = viewModel()
+        vm.onDifficultySelected(Difficulty.EASY)
+        dispatcher.scheduler.runCurrent()
         val state = vm.uiState.value
 
         // Europe (span 6) and Asia (span 4) and Africa (span 3) all reach Easy's 2-3 range.
@@ -185,7 +182,7 @@ class BorderHopSetupViewModelTest {
 
     @Test
     fun `hides a region or subregion with no puzzle at the selected difficulty - Normal`() {
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
+        // Normal is the setup screen's starting tier (P10-G): no selection needed.
         val vm = viewModel()
         val state = vm.uiState.value
 
@@ -196,8 +193,9 @@ class BorderHopSetupViewModelTest {
 
     @Test
     fun `hides every subregion at Hard, matching the review brief's real-data finding`() {
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.HARD)
         val vm = viewModel()
+        vm.onDifficultySelected(Difficulty.HARD)
+        dispatcher.scheduler.runCurrent()
         val state = vm.uiState.value
 
         // Only Europe's 6-hop pair (GBR-DEU) reaches Hard's 6+ range.
@@ -209,8 +207,9 @@ class BorderHopSetupViewModelTest {
 
     @Test
     fun `onDifficultySelected recomputes which options are offered`() {
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.EASY)
         val vm = viewModel()
+        vm.onDifficultySelected(Difficulty.EASY)
+        dispatcher.scheduler.runCurrent()
         assertEquals(setOf("Eastern Africa"), names(optionsOf(vm.uiState.value, CategoryGroup.SUBREGIONS)))
 
         vm.onDifficultySelected(Difficulty.NORMAL)
@@ -221,7 +220,17 @@ class BorderHopSetupViewModelTest {
             setOf("Western Europe", "Northern Europe"),
             names(optionsOf(vm.uiState.value, CategoryGroup.SUBREGIONS))
         )
-        coVerify { settingsRepository.setDifficulty(Difficulty.NORMAL) }
+    }
+
+    @Test
+    fun `the difficulty always starts at Normal, even after a previous instance picked another tier`() {
+        val first = viewModel()
+        first.onDifficultySelected(Difficulty.HARD)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(Difficulty.HARD, first.uiState.value.difficulty)
+
+        val second = viewModel()
+        assertEquals(Difficulty.NORMAL, second.uiState.value.difficulty)
     }
 
     @Test

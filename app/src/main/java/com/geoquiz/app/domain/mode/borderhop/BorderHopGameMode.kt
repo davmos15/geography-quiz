@@ -18,20 +18,23 @@ import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import javax.inject.Inject
 
 /**
- * Border hop (task 6.1, D42/D44): a fixed start/target path puzzle over the land-border graph
- * ([BorderGraph]). The player hops from the start to the target by tapping neighbouring
- * countries, building a path shown as a chain; "Undo last hop" backtracks (a core mechanic, free)
- * and the one hint, [HintType.SHOW_VALID_HOP], reveals one working next move (placeholder cost,
- * D37/D44). Its own screen and ViewModel own the gameplay entirely (D37: no Room resume save;
- * [generator]/[validator] are not used for answering, same as [AnswerType.MAP_TAP] in
- * `domain/mode/tapmap/TapMapGameMode.kt`'s Find variant); [scoring] is [BorderHopScoring], which
- * documents how the round packs itself into a plain [com.geoquiz.app.domain.model.QuizState] for
+ * Border hop (task 6.1, D42/D44; map version task P10-C): a fixed start/target route puzzle over
+ * the land-border graph ([BorderGraph]). A blank world map shows the start, the target and the
+ * route so far; the player extends the route one land border at a time by naming a country that
+ * borders the end of it (typed at Normal/Hard, with suggestions at Normal; one of four options at
+ * Easy, [BorderHopChoiceBuilder]). [BorderHopMoves] judges each guess: a non-neighbour is a wrong
+ * guess (a strike at Hard). "Undo last hop" backtracks (a core mechanic, free) and the one hint,
+ * [HintType.SHOW_VALID_HOP], reveals one working next move (D44, capped per round, D55/D62).
+ * Its own screen and ViewModel own the gameplay entirely (D37: no Room resume save;
+ * [validator] is not used for answering, because a Border hop guess is judged against every
+ * country rather than a quiz set); [scoring] is [BorderHopScoring], which documents how the
+ * round packs itself into a plain [com.geoquiz.app.domain.model.QuizState] for
  * [com.geoquiz.app.domain.usecase.CompleteQuizUseCase].
  *
  * [generator] ([BorderHopQuestionGenerator]) resolves the category to its candidate countries,
  * used by the setup screen and the game's own puzzle generator to pick a start/target pair
- * ([BorderGraph.randomPuzzle]); [choiceGenerator] is never called (every tier plays the same way,
- * tapping a neighbour, so there is no Easy multiple-choice variant) and throws if it ever is.
+ * ([BorderGraph.randomPuzzle]); [choiceGenerator] is never called (Easy's options depend on the
+ * route, so [BorderHopChoiceBuilder] builds them) and throws if it ever is.
  */
 class BorderHopGameMode @Inject constructor(
     override val generator: BorderHopQuestionGenerator,
@@ -41,7 +44,7 @@ class BorderHopGameMode @Inject constructor(
     override val validator = AnswerValidator { input, state, allowFuzzy -> validateAnswer(input, state, allowFuzzy) }
     override val scoring = ScoringRule { state -> HintCosts.applyTo(BorderHopScoring.score(state), state.hintsUsed) }
     override val choiceGenerator: ChoiceQuestionGenerator =
-        ChoiceQuestionGenerator { _, _, _, _, _ -> error("Border hop has no multiple-choice tier") }
+        ChoiceQuestionGenerator { _, _, _, _, _ -> error("Border hop builds its Easy options with BorderHopChoiceBuilder") }
 
     /**
      * Border hop offers the categories that make sense for picking a start/target pair on a
@@ -82,12 +85,16 @@ class BorderHopGameMode @Inject constructor(
                 // Never shown: Border hop answers by tapping a neighbour, never typing.
                 inputLabel = R.string.mode_border_hop_input_label,
                 itemsNoun = R.string.mode_border_hop_items,
-                pausedProgress = R.string.mode_border_hop_paused_progress,
-                giveUpMessage = R.string.mode_border_hop_give_up,
+                // These are @StringRes in ModeLabels but, like a11yProgress, are now plurals
+                // (P10-R2 L4): never read generically (Border hop has its own screen, which reads
+                // the plurals directly rather than through GameModeSpec.labels), only kept here
+                // so the spec is fully populated.
+                pausedProgress = R.string.mode_border_hop_paused_progress_label,
+                giveUpMessage = R.string.mode_border_hop_give_up_label,
                 a11yProgress = R.plurals.a11y_progress_border_hop
             ),
             icon = ModeIcon.BORDER_HOP,
-            answerType = AnswerType.MAP_TAP,
+            answerType = AnswerType.TYPED_NAME,
             supportedDifficulties = Difficulty.entries.toSet(),
             hintTypes = setOf(HintType.SHOW_VALID_HOP),
             featureFlag = FeatureFlag.BORDER_HOP,

@@ -16,10 +16,21 @@ class BorderHopScoringTest {
     private val andorra = country("AND", "Andorra", "Andorra la Vella")
     private val portugal = country("PRT", "Portugal", "Lisbon")
 
-    private fun stateFor(path: List<com.geoquiz.app.domain.model.Country>, extraHops: Int, reached: Boolean) = QuizState(
+    private fun stateFor(
+        path: List<com.geoquiz.app.domain.model.Country>,
+        extraHops: Int,
+        reached: Boolean,
+        wrongGuesses: List<String> = emptyList()
+    ) = QuizState(
         quiz = Quiz(category = QuizCategory.AllCountries, countries = path),
         answeredCountries = path.map { it.code }.toSet(),
-        incorrectGuesses = extraHops,
+        incorrectGuesses = BorderHopScoring.incorrectGuessesFor(
+            reached = reached,
+            hopsUsed = path.size - 1,
+            parHops = path.size - 1 - extraHops,
+            wrongGuesses = wrongGuesses.size
+        ),
+        incorrectGuessStrings = wrongGuesses,
         currentInput = if (reached) BorderHopScoring.FLAG_REACHED else BorderHopScoring.FLAG_GAVE_UP,
         isComplete = true
     )
@@ -80,5 +91,51 @@ class BorderHopScoringTest {
             .let { it.copy(quiz = it.quiz.copy(category = QuizCategory.ByRegion("Europe"))) }
         val result = BorderHopScoring.score(state)
         assertEquals(QuizCategory.ByRegion("Europe"), result.category)
+    }
+
+    @Test
+    fun `wrong guesses count as wasted moves and drop the perfect bonus even on a par route`() {
+        // Par 2, hops 2, one wrong guess: 2 of 3 moves useful.
+        val path = listOf(portugal, spain, france)
+        val result = BorderHopScoring.score(stateFor(path, extraHops = 0, reached = true, wrongGuesses = listOf("Japan")))
+
+        assertEquals(3, result.totalCountries)
+        assertEquals(2, result.correctAnswers)
+        assertFalse(result.perfectBonus)
+        assertEquals(1, result.incorrectGuesses)
+        assertEquals(2.0 / 3.0 * 2.0, result.score, 1e-9)
+    }
+
+    @Test
+    fun `wrong guesses and extra hops add up`() {
+        // Par 2, hops 3, two wrong guesses: 2 of 5 moves useful.
+        val path = listOf(portugal, spain, andorra, france)
+        val result = BorderHopScoring.score(
+            stateFor(path, extraHops = 1, reached = true, wrongGuesses = listOf("Japan", "Peru"))
+        )
+
+        assertEquals(5, result.totalCountries)
+        assertEquals(2, result.correctAnswers)
+        assertEquals(3, result.incorrectGuesses)
+        assertEquals(2.0 / 5.0 * 2.0, result.score, 1e-9)
+    }
+
+    @Test
+    fun `running out of wrong guesses scores zero`() {
+        val path = listOf(portugal, spain)
+        val state = stateFor(path, extraHops = 0, reached = false, wrongGuesses = listOf("A", "B", "C"))
+            .copy(currentInput = BorderHopScoring.FLAG_OUT_OF_GUESSES)
+        val result = BorderHopScoring.score(state)
+
+        assertEquals(0.0, result.score, 1e-9)
+        assertFalse(result.perfectBonus)
+        assertEquals(4, result.incorrectGuesses)
+    }
+
+    @Test
+    fun `incorrectGuessesFor packs extra hops plus wrong guesses, or hops so far when not reached`() {
+        assertEquals(3, BorderHopScoring.incorrectGuessesFor(reached = true, hopsUsed = 5, parHops = 4, wrongGuesses = 2))
+        assertEquals(0, BorderHopScoring.incorrectGuessesFor(reached = true, hopsUsed = 4, parHops = 4, wrongGuesses = 0))
+        assertEquals(4, BorderHopScoring.incorrectGuessesFor(reached = false, hopsUsed = 3, parHops = 4, wrongGuesses = 1))
     }
 }

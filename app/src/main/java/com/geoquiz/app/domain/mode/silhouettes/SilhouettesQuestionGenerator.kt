@@ -19,8 +19,15 @@ class SilhouettesQuestionGenerator(
     private val quizRandom: QuizRandom
 ) : QuestionGenerator {
 
+    /**
+     * [pool]'s candidates, minus [SilhouetteLegibility.EXCLUDED_CCA3] (task P10-E, Dav's device
+     * feedback: some silhouettes, like Tuvalu's, are unrecognisable). Applied before the practice
+     * short-circuit below, so a practice set made entirely of excluded codes correctly resolves to
+     * an empty list rather than quietly asking about countries that weren't missed -
+     * `SilhouettesGameViewModel` turns that into its `Unavailable` state.
+     */
     override suspend fun items(category: QuizCategory): List<Country> {
-        val candidates = pool.items(category)
+        val candidates = pool.items(category).filterNot { it.code in SilhouetteLegibility.EXCLUDED_CCA3 }
         if (category is QuizCategory.Practice) return candidates
         return candidates.shuffled(quizRandom.random).take(ROUND_SIZE)
     }

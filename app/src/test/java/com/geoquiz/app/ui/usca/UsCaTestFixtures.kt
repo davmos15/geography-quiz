@@ -46,5 +46,9 @@ val FAKE_TEXAS = fakeAdmin1Feature("US-TX", "Texas", "TX", "USA")
 val FAKE_DC = fakeAdmin1Feature("US-DC", "District of Columbia", "DC", "USA")
 val FAKE_ONTARIO = fakeAdmin1Feature("CA-ON", "Ontario", "ON", "CAN")
 
+/** Two Australian states/territories (P10-D2), same fake shape as the US/Canadian ones above. */
+val FAKE_NSW = fakeAdmin1Feature("AU-NSW", "New South Wales", "NSW", "AUS")
+val FAKE_ACT = fakeAdmin1Feature("AU-ACT", "Australian Capital Territory", "ACT", "AUS")
+
 val FAKE_ADMIN1_LAYER: GeoLayer =
-    fakeAdmin1Layer(FAKE_CALIFORNIA, FAKE_NEW_YORK, FAKE_TEXAS, FAKE_DC, FAKE_ONTARIO)
+    fakeAdmin1Layer(FAKE_CALIFORNIA, FAKE_NEW_YORK, FAKE_TEXAS, FAKE_DC, FAKE_ONTARIO, FAKE_NSW, FAKE_ACT)

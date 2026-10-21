@@ -3,10 +3,8 @@ package com.geoquiz.app.data.local.preferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import com.geoquiz.app.domain.model.Difficulty
+import androidx.datastore.preferences.core.intPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,7 +21,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 
-/** The default difficulty setting (3.2) and its migration from the old `hard_mode` switch. */
 class SettingsRepositoryTest {
 
     @get:Rule
@@ -32,9 +29,6 @@ class SettingsRepositoryTest {
     private lateinit var scope: CoroutineScope
     private lateinit var dataStore: DataStore<Preferences>
     private lateinit var repository: SettingsRepository
-
-    private val hardModeKey = booleanPreferencesKey("hard_mode")
-    private val difficultyKey = stringPreferencesKey("difficulty")
 
     @Before
     fun setUp() {
@@ -48,57 +42,6 @@ class SettingsRepositoryTest {
     @After
     fun tearDown() {
         scope.cancel()
-    }
-
-    @Test
-    fun `a fresh install defaults to normal`() = runTest {
-        assertEquals(Difficulty.NORMAL, repository.difficulty.first())
-    }
-
-    @Test
-    fun `the old hard mode switch on becomes hard`() = runTest {
-        dataStore.edit { it[hardModeKey] = true }
-
-        assertEquals(Difficulty.HARD, repository.difficulty.first())
-    }
-
-    @Test
-    fun `the old hard mode switch off becomes normal`() = runTest {
-        dataStore.edit { it[hardModeKey] = false }
-
-        assertEquals(Difficulty.NORMAL, repository.difficulty.first())
-    }
-
-    @Test
-    fun `a stored difficulty wins over the old switch`() = runTest {
-        dataStore.edit {
-            it[hardModeKey] = true
-            it[difficultyKey] = "easy"
-        }
-
-        assertEquals(Difficulty.EASY, repository.difficulty.first())
-    }
-
-    @Test
-    fun `an unknown stored id falls back to the old switch, then normal`() = runTest {
-        dataStore.edit { it[difficultyKey] = "impossible" }
-        assertEquals(Difficulty.NORMAL, repository.difficulty.first())
-
-        dataStore.edit { it[hardModeKey] = true }
-        assertEquals(Difficulty.HARD, repository.difficulty.first())
-    }
-
-    @Test
-    fun `setDifficulty round-trips every tier and drops the old switch`() = runTest {
-        dataStore.edit { it[hardModeKey] = true }
-
-        for (difficulty in Difficulty.entries) {
-            repository.setDifficulty(difficulty)
-            assertEquals(difficulty, repository.difficulty.first())
-        }
-        val prefs = dataStore.data.first()
-        assertNull(prefs[hardModeKey])
-        assertEquals("hard", prefs[difficultyKey])
     }
 
     @Test
@@ -124,13 +67,20 @@ class SettingsRepositoryTest {
     }
 
     @Test
-    fun `other settings are untouched by the difficulty`() = runTest {
-        repository.setShowTimer(false)
-        repository.setAdsRemoved(true)
+    fun `whats new seen version is unset on a fresh install`() = runTest {
+        assertNull(repository.whatsNewSeenVersion.first())
+    }
 
-        repository.setDifficulty(Difficulty.HARD)
+    @Test
+    fun `whats new seen version round-trips`() = runTest {
+        repository.setWhatsNewSeenVersion(SettingsRepository.WHATS_NEW_VERSION)
 
-        assertEquals(false, repository.showTimer.first())
-        assertTrue(repository.adsRemoved.first())
+        assertEquals(SettingsRepository.WHATS_NEW_VERSION, repository.whatsNewSeenVersion.first())
+
+        val prefs = dataStore.data.first()
+        assertEquals(
+            SettingsRepository.WHATS_NEW_VERSION,
+            prefs[intPreferencesKey("whats_new_seen_version")]
+        )
     }
 }

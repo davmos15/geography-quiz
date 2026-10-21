@@ -5,7 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.data.local.preferences.PinnedCategoriesRepository
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.challenge.ChallengeLinkSigner
 import com.geoquiz.app.domain.mode.GameModeRegistry
 import com.geoquiz.app.domain.model.ChallengeDeepLink
@@ -20,14 +19,12 @@ import com.geoquiz.app.data.service.PlayGamesAchievementService
 import com.geoquiz.app.domain.repository.CountryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -51,8 +48,6 @@ data class QuizOptionInfo(
     val bestScore: Double? = null,
     val bestCorrect: Int? = null,
     val bestTotal: Int? = null,
-    /** Mastery stars, 0 to 3 ([com.geoquiz.app.domain.usecase.MasteryStars]). */
-    val masteryStars: Int = 0,
     /** Pinned in this mode (shown on the Play tab). */
     val isPinned: Boolean = false
 )
@@ -65,7 +60,6 @@ class CategoryListViewModel @Inject constructor(
     private val quizHistoryRepository: QuizHistoryRepository,
     private val challengeRepository: ChallengeRepository,
     private val playGamesService: PlayGamesAchievementService,
-    private val settingsRepository: SettingsRepository,
     private val pinnedCategoriesRepository: PinnedCategoriesRepository,
     private val challengeLinkSigner: ChallengeLinkSigner,
     gameModes: GameModeRegistry
@@ -85,14 +79,17 @@ class CategoryListViewModel @Inject constructor(
         .sortedBy { it.ordinal }
 
     /**
-     * The tier a tapped category starts at: the remembered default. Changing it here changes
-     * the default too, so a quiz stays two taps from home.
+     * The tier a tapped category starts at. Always [Difficulty.DEFAULT] on a fresh instance of
+     * this screen and never persisted (P10-G): selecting a different tier here only lasts for
+     * this visit.
      */
-    val difficulty: StateFlow<Difficulty> = settingsRepository.difficulty
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Difficulty.DEFAULT)
+    private val _difficulty = MutableStateFlow(
+        Difficulty.DEFAULT.takeIf { it in difficulties } ?: difficulties.firstOrNull() ?: Difficulty.DEFAULT
+    )
+    val difficulty: StateFlow<Difficulty> = _difficulty.asStateFlow()
 
     fun onDifficultySelected(difficulty: Difficulty) {
-        viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
+        _difficulty.value = difficulty
     }
 
     /** This group's options before history and pins are applied; null while loading. */
@@ -117,19 +114,18 @@ class CategoryListViewModel @Inject constructor(
             baseOptions.value = options
         }
 
-        // Best scores, stars and pins follow their stores, so the rows are up to date when the
+        // Best scores and pins follow their stores, so the rows are up to date when the
         // player comes back from a quiz or pins a category.
         viewModelScope.launch {
             combine(
                 baseOptions.filterNotNull(),
                 quizHistoryRepository.bestScoresForMode(quizModeId),
-                quizHistoryRepository.masteryStarsForMode(quizModeId),
                 pinnedCategoriesRepository.pinnedCategories.map { pins ->
                     pins.filter { it.modeId == quizModeId }
                         .map { QuizHistoryRepository.categoryKey(it.categoryType, it.categoryValue) }
                         .toSet()
                 }
-            ) { options, bestScores, starsByCategory, pinnedKeys ->
+            ) { options, bestScores, pinnedKeys ->
                 options.map { option ->
                     val key = QuizHistoryRepository.categoryKey(option.categoryType, option.categoryValue)
                     val best = bestScores[key]
@@ -138,7 +134,6 @@ class CategoryListViewModel @Inject constructor(
                         bestScore = best?.score,
                         bestCorrect = best?.correctAnswers,
                         bestTotal = best?.totalQuestions,
-                        masteryStars = starsByCategory[key] ?: 0,
                         isPinned = key in pinnedKeys
                     )
                 }

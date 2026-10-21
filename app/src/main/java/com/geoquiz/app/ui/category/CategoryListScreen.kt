@@ -54,7 +54,6 @@ import com.geoquiz.app.domain.model.QuizMode
 import com.geoquiz.app.ui.components.A11yText
 import com.geoquiz.app.ui.components.AdaptiveTrailingRow
 import com.geoquiz.app.ui.components.DifficultySelector
-import com.geoquiz.app.ui.components.MasteryStarsRow
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 import com.geoquiz.app.ui.components.a11yResources
 import com.geoquiz.app.ui.components.buttonSemantics
@@ -141,8 +140,8 @@ fun CategoryListScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp + sideInset, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // The tier for the next quiz, remembered as the default: one tap on a category
-                    // then starts at this tier.
+                    // The tier for the next quiz: always Normal on a fresh visit (P10-G), never
+                    // persisted. One tap on a category starts at this tier.
                     item(key = "difficulty") {
                         Column(modifier = Modifier.padding(bottom = 8.dp)) {
                             Text(
@@ -219,8 +218,8 @@ private fun QuizOptionCard(
         )
     ) {
         // The count, pin and share buttons sit to the right of the name while it keeps enough
-        // room; at large text sizes they move below it, so the name, stars and Best wrap at
-        // full width instead of being squeezed (3.6).
+        // room; at large text sizes they move below it, so the name and Best wrap at full width
+        // instead of being squeezed (3.6).
         AdaptiveTrailingRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -252,10 +251,6 @@ private fun QuizOptionCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        MasteryStarsRow(
-                            stars = option.masteryStars,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
                         if (option.bestCorrect != null && option.bestTotal != null) {
                             Spacer(modifier = Modifier.height(2.dp))
                             val bestPoints = formatBestPoints(option.bestScore ?: 0.0)

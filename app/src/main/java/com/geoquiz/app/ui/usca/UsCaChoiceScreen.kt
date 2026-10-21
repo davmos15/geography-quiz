@@ -172,7 +172,7 @@ internal fun UsCaChoiceContent(
         map
     }
     val scene = rememberMapScene(
-        projection = US_CA_PROJECTION,
+        projection = mapState.projection,
         coarse = mapState.layer,
         bounds = mapState.frame,
         members = state.quiz.countries.mapTo(HashSet()) { it.code },

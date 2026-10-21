@@ -43,7 +43,7 @@ class GeoLayerReaderTest {
             GeoLayerId.ADMIN0_110M to 204,
             GeoLayerId.ADMIN0_50M to 240,
             GeoLayerId.TAP_ZONES to 46,
-            GeoLayerId.ADMIN1_50M to 64,
+            GeoLayerId.ADMIN1_50M to 72,
             GeoLayerId.RIVERS_50M to 463,
             GeoLayerId.LAKES_50M to 406,
             GeoLayerId.REGIONS_50M to 517,
@@ -65,7 +65,7 @@ class GeoLayerReaderTest {
             // The build log counts source rings; one PRK ring (110m) and 14 region rings collapsed and were dropped.
             GeoLayerId.ADMIN0_110M to (361 to 10605),
             GeoLayerId.ADMIN0_50M to (1630 to 70471),
-            GeoLayerId.ADMIN1_50M to (334 to 15830),
+            GeoLayerId.ADMIN1_50M to (382 to 17558),
             GeoLayerId.LAKES_50M to (465 to 11830),
             GeoLayerId.REGIONS_50M to (1859 to 49898),
         )
@@ -92,10 +92,10 @@ class GeoLayerReaderTest {
     }
 
     @Test
-    fun `admin1 has 51 US and 13 Canadian features`() {
+    fun `admin1 has 51 US, 13 Canadian and 8 Australian features`() {
         val layer = readAsset(GeoLayerId.ADMIN1_50M)
         val byCountry = layer.features.groupingBy { it.properties.string("country") }.eachCount()
-        assertEquals(mapOf("USA" to 51, "CAN" to 13), byCountry)
+        assertEquals(mapOf("USA" to 51, "CAN" to 13, "AUS" to 8), byCountry)
         assertEquals("Québec", layer.feature("CA-QC")?.properties?.string("name"))
     }
 

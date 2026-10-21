@@ -107,9 +107,9 @@ class UsCaTapViewModel @Inject constructor(
         }
     }
 
-    /** Route tier, else the saved value, else the remembered default - Normal/Hard only. */
-    private suspend fun resolveDifficulty(): Difficulty {
-        val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+    /** Route tier, else the saved value, else [Difficulty.DEFAULT] - Normal/Hard only. */
+    private fun resolveDifficulty(): Difficulty {
+        val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
         return if (requested == Difficulty.HARD) Difficulty.HARD else Difficulty.NORMAL
     }
 
@@ -125,7 +125,7 @@ class UsCaTapViewModel @Inject constructor(
         }
         itemsByCode = loaded.items.associateBy { it.code }
         val quiz = Quiz(category = loaded.category, countries = loaded.items)
-        _mapState.value = loadUsCaRegionsMapState(mapRepository, itemsByCode.keys)
+        _mapState.value = loadUsCaRegionsMapState(mapRepository, itemsByCode.keys, loaded.group)
 
         val snapshot = savedState.restore()
         var state = if (snapshot != null) {

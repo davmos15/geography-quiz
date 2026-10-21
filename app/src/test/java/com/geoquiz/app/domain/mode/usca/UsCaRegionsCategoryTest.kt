@@ -42,6 +42,25 @@ class UsCaRegionsCategoryTest {
     }
 
     @Test
+    fun `Australian states and territories round-trips regardless of the DC flag passed in`() {
+        val category = UsCaRegionsCategory.toQuizCategory(UsCaRegionGroup.AU_STATES, includeDc = true)
+        assertEquals(UsCaRegionsCategory.LABEL_AU, category.valueKey)
+        assertEquals(
+            UsCaRegionGroup.AU_STATES to false,
+            UsCaRegionsCategory.groupAndDcFromLabel(category.valueKey)
+        )
+    }
+
+    /** P10-D2: the three pre-existing labels are persisted (history/stats keys) and must never
+     * change, even after adding a fourth group. */
+    @Test
+    fun `the three pre-existing labels stay byte-identical`() {
+        assertEquals("US states", UsCaRegionsCategory.LABEL_US_NO_DC)
+        assertEquals("US states and DC", UsCaRegionsCategory.LABEL_US_WITH_DC)
+        assertEquals("Canadian provinces and territories", UsCaRegionsCategory.LABEL_CA)
+    }
+
+    @Test
     fun `an unknown label falls back to US states without DC, like other category route parsing`() {
         assertEquals(UsCaRegionGroup.US_STATES to false, UsCaRegionsCategory.groupAndDcFromLabel("nonsense"))
         assertEquals(UsCaRegionGroup.US_STATES to false, UsCaRegionsCategory.groupAndDcFromLabel(null))

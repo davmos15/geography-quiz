@@ -5,8 +5,6 @@ import com.geoquiz.app.data.local.db.QuizHistoryDao
 import com.geoquiz.app.data.local.db.QuizHistoryEntity
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.domain.model.QuizMode
-import com.geoquiz.app.domain.usecase.MasteryAttempt
-import com.geoquiz.app.domain.usecase.MasteryStars
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -80,35 +78,6 @@ class QuizHistoryRepository @Inject constructor(
         }
 
     /**
-     * Mastery stars (0 to 3) per category of [quizMode], keyed by `"categoryType|categoryValue"`
-     * as recorded in history. Categories never played are absent. Updates when history changes.
-     */
-    fun masteryStarsForMode(quizMode: String): Flow<Map<String, Int>> =
-        quizHistoryDao.observeMasteryRowsForMode(quizMode).map { rows ->
-            rows.groupBy { categoryKey(it.categoryType, it.categoryValue) }
-                .mapValues { (_, categoryRows) ->
-                    MasteryStars.calculate(
-                        categoryRows.map {
-                            MasteryAttempt(
-                                difficulty = Difficulty.fromIdOrDefault(it.difficulty),
-                                correct = it.correctAnswers,
-                                total = it.totalQuestions
-                            )
-                        }
-                    )
-                }
-        }
-
-    /**
-     * The categories of [quizMode] that have a recorded quiz, as [categoryKey]s, most recently
-     * finished first (each once). Updates when history changes.
-     */
-    fun categoryKeysByRecencyForMode(quizMode: String): Flow<List<String>> =
-        quizHistoryDao.observeCategoriesByRecencyForMode(quizMode).map { rows ->
-            rows.map { categoryKey(it.categoryType, it.categoryValue) }
-        }
-
-    /**
      * Leaderboard total over Normal and Hard quizzes of the classic modes only; Easy never counts
      * (D16) and new modes never submit leaderboard scores (D35).
      */
@@ -146,7 +115,7 @@ class QuizHistoryRepository @Inject constructor(
     suspend fun clearHistoryExceptMode(keepModeId: String) = quizHistoryDao.deleteHistoryExceptMode(keepModeId)
 
     companion object {
-        /** Key used by [masteryStarsForMode] and [bestScoresForMode]. */
+        /** Key used by [bestScoresForMode]. */
         fun categoryKey(categoryType: String, categoryValue: String): String = "$categoryType|$categoryValue"
 
         /** The classic mode ids, for [getTotalCorrectAnswersSync]'s "Overall" leaderboard total (D35) and [highestClassicScore]. */

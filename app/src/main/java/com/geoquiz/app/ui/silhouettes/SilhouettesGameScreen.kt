@@ -57,6 +57,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -151,6 +152,23 @@ fun SilhouettesGameScreen(
             is SilhouettesUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
+                }
+            }
+            is SilhouettesUiState.Unavailable -> {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.silhouettes_unavailable),
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.semantics { heading() }
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = onNavigateBack) { Text(stringResource(R.string.action_back)) }
+                    }
                 }
             }
             is SilhouettesUiState.Active -> {

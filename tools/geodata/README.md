@@ -79,7 +79,7 @@ fields.
 | `admin0_110m.bin` | Countries for the zoomed-out world view: Natural Earth 110m, plus 50m geometry for the 29 app countries 110m leaves out (drawn last) | cca3 / NE `ADM0_A3` |
 | `admin0_50m.bin` | Countries for zoomed-in views, region presets and outlines | cca3 / NE `ADM0_A3` |
 | `tap_zones.bin` | One point per small playable country (see below) | cca3 |
-| `admin1_50m.bin` | 50 US states + DC, 10 Canadian provinces + 3 territories (the build fails on any other count) | ISO 3166-2 (`US-CA`, `CA-ON`) |
+| `admin1_50m.bin` | 50 US states + DC, 10 Canadian provinces + 3 territories, Australia's 8 states and territories (the build fails on any other count) | ISO 3166-2 (`US-CA`, `CA-ON`, `AU-NSW`) |
 | `rivers_50m.bin` | Rivers, lake centrelines and canals | NE `ne_id` |
 | `lakes_50m.bin` | Lakes, reservoirs, alkaline lakes | NE `ne_id` |
 | `regions_50m.bin` | Physical regions: ranges, deserts, plateaus, plains, islands, continents, ... | NE `ne_id` |
@@ -95,6 +95,15 @@ Where Natural Earth splits one feature into several records with the same
 `ne_id` (10 rivers, 6 lakes, 5 regions), the records are merged into one
 feature with several parts; the record with the lowest scale rank provides
 the properties. The log lists them.
+
+**AU admin-1.** Natural Earth's AU rows include Jervis Bay Territory
+(`AU-X02~`), a Natural Earth placeholder code rather than a real ISO 3166-2
+entry; it is dropped so AU's count matches the common list of 8 states and
+territories (`AU_JERVIS_BAY_CODE`, documented in the script). Natural
+Earth's `postal` field for AU uses non-standard two-letter abbreviations
+(e.g. `NS`, `QL`, `CT`); the build overrides them with the common
+abbreviations (NSW, VIC, QLD, WA, SA, TAS, ACT, NT) via `AU_POSTAL_OVERRIDE`.
+US and CA postal codes are untouched.
 
 ## Country code mapping
 
@@ -225,12 +234,12 @@ goes over. Current sizes are in the log.
 | `admin0_110m.bin` | 120 000 | 45 535 |
 | `admin0_50m.bin` | 650 000 | 170 348 |
 | `tap_zones.bin` | 15 000 | 1 770 |
-| `admin1_50m.bin` | 200 000 | 49 060 |
+| `admin1_50m.bin` | 200 000 | 45 651 |
 | `rivers_50m.bin` | 150 000 | 81 509 |
 | `lakes_50m.bin` | 100 000 | 51 102 |
 | `regions_50m.bin` | 220 000 | 185 289 |
 | `geo_points_50m.bin` | 40 000 | 21 165 |
-| **Total** | **1 500 000** (D3) | **605 778** |
+| **Total** | **1 500 000** (D3) | **602 369** |
 
 In `regions_50m.bin` the seven `Continent` polygons take about 48 KB and
 `Island`/`Island group` about 36 KB (breakdown in the log). Dropping them

@@ -110,7 +110,7 @@ class KeyScreensScreenshotTest {
     @Test @Config(fontScale = 2f)
     fun answerReview_font200() = capture("answer_review_font200", ScreenshotScreens.answerReview())
 
-    // ---- Play tab, Countries: Today's challenge, Continue, Recommended next, Pinned ----
+    // ---- Play tab, Countries: Today's challenge, Continue, Pinned ----
 
     @Test fun play_light() = capture("play_light", ScreenshotScreens.play())
 
@@ -120,13 +120,13 @@ class KeyScreensScreenshotTest {
     @Test @Config(fontScale = 2f)
     fun play_font200() = capture("play_font200", ScreenshotScreens.play())
 
-    // ---- Play tab with every mode on, scrolled to the New modes grid (task 9.x, D63) ----
+    // ---- Play tab with every mode on, scrolled to "More ways to play" (task P10-A.5) ----
 
     private fun playAllModes(name: String) = capture(name, ScreenshotScreens.playAllModes()) {
         // The grid is lazy: items past the classic groups aren't composed until scrolled into
-        // view, so onNodeWithText(...).performScrollTo() can't find "New modes" yet (PlayScreenUiTest
-        // uses the same onNode(hasScrollAction()).performScrollToNode(...) pattern).
-        onNode(hasScrollAction()).performScrollToNode(hasText("New modes"))
+        // view, so onNodeWithText(...).performScrollTo() can't find "More ways to play" yet
+        // (PlayScreenUiTest uses the same onNode(hasScrollAction()).performScrollToNode(...) pattern).
+        onNode(hasScrollAction()).performScrollToNode(hasText("More ways to play"))
     }
 
     @Test fun playAllModes_light() = playAllModes("play_all_modes_light")
@@ -137,7 +137,7 @@ class KeyScreensScreenshotTest {
     @Test @Config(fontScale = 2f)
     fun playAllModes_font200() = playAllModes("play_all_modes_font200")
 
-    // ---- Category list: difficulty selector, a row with stars, Best and pinned, rows without ----
+    // ---- Category list: difficulty selector, a row with Best and pinned, rows without ----
 
     @Test fun categoryList_light() = capture("category_list_light", ScreenshotScreens.categoryList())
 

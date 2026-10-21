@@ -48,6 +48,66 @@ def used_countries() -> list[tuple[str, str]]:
     return sorted(result)
 
 
+# SVG <marker> is not drawn by AndroidSVG (coil-svg), so a flag that places its
+# emblems with marker-mid shows without them. Only the US flag does this in
+# 7.5.0 (its 50 stars). expand_us_star_markers() rewrites it with one explicit
+# star path per vertex, drawing exactly the same shapes.
+US_STAR_MARKER = '<path fill="#fff" d="m14 0 9 27L0 10h28L5 27z"/>'
+US_STAR_PATH_START = '<path fill="none" marker-mid="url(#us-a)" d="'
+
+
+def _polyline_vertices(d: str) -> list[tuple[float, float]]:
+    """Vertices of a path made only of m (with implicit relative lines), h and L."""
+    import re
+
+    tokens = re.findall(r"[mhLz]|-?\d+(?:\.\d+)?", d)
+    x = y = 0.0
+    points: list[tuple[float, float]] = []
+    cmd = ""
+    i = 0
+    while i < len(tokens):
+        if tokens[i] in ("m", "h", "L", "z"):
+            cmd = tokens[i]
+            i += 1
+        if cmd == "z":
+            break
+        if cmd == "m":
+            x, y = x + float(tokens[i]), y + float(tokens[i + 1])
+            i += 2
+        elif cmd == "h":
+            x += float(tokens[i])
+            i += 1
+        elif cmd == "L":
+            x, y = float(tokens[i]), float(tokens[i + 1])
+            i += 2
+        else:
+            sys.exit(f"unexpected path command {cmd!r} in US star path")
+        points.append((x, y))
+    return points
+
+
+def expand_us_star_markers(svg: bytes) -> bytes:
+    text = svg.decode("utf-8")
+    start = text.find(US_STAR_PATH_START)
+    marker_start = text.find("<marker")
+    if start < 0 or marker_start < 0 or US_STAR_MARKER not in text:
+        sys.exit("US flag no longer matches the expected marker layout; update fetch_flags.py")
+    d_start = start + len(US_STAR_PATH_START)
+    d = text[d_start:text.index('"', d_start)]
+    # marker-mid draws at every vertex except the first (the closing z adds none).
+    mids = _polyline_vertices(d)[1:]
+    if len(mids) != 50:
+        sys.exit(f"expected 50 US stars, found {len(mids)}")
+    stars = "".join(
+        f"M{px + 14:g} {py:g}l9 27L{px:g} {py + 10:g}h28L{px + 5:g} {py + 27:g}z"
+        for px, py in mids
+    )
+    # The marker definition sits directly before the starred path; replace both.
+    path_end = text.index("/>", start) + len("/>")
+    text = text[:marker_start] + f'<path fill="#fff" d="{stars}"/>' + text[path_end:]
+    return text.encode("utf-8")
+
+
 def download() -> bytes:
     print(f"Downloading {TARBALL_URL}")
     with urllib.request.urlopen(TARBALL_URL, timeout=60) as resp:
@@ -87,6 +147,8 @@ def main() -> int:
             if svg is None:
                 missing.append(f"{cca3} (cca2 {cca2})")
             else:
+                if cca3 == "USA":
+                    svg = expand_us_star_markers(svg)
                 svgs[cca3.lower()] = svg
 
     if missing:

@@ -17,7 +17,7 @@ enum class FeatureFlag(
     COUNTRY_SILHOUETTES("mode_country_silhouettes", "Mode: Country silhouettes", defaultEnabled = true),
     TAP_THE_MAP("mode_tap_the_map", "Mode: Tap the map", defaultEnabled = true),
     BORDER_HOP("mode_border_hop", "Mode: Border hop", defaultEnabled = true),
-    US_CA_REGIONS("mode_us_ca_regions", "Mode: US states and Canadian provinces", defaultEnabled = true),
+    US_CA_REGIONS("mode_us_ca_regions", "Mode: States and territories", defaultEnabled = true),
     CURRENCIES("mode_currencies", "Mode: Currencies", defaultEnabled = true),
     PHYSICAL_FEATURES("mode_physical_features", "Mode: Rivers, mountains and lakes", defaultEnabled = true),
     FLAG_SPEED_ROUND("mode_flag_speed_round", "Mode: Flag speed round", defaultEnabled = true),

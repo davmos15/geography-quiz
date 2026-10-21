@@ -27,7 +27,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | `app/src/main/assets/geo/admin0_110m.bin` | Natural Earth `ne_110m_admin_0_countries` (+ `ne_50m_admin_0_countries` for 29 small countries) | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
 | `app/src/main/assets/geo/admin0_50m.bin` | Natural Earth `ne_50m_admin_0_countries` | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
 | `app/src/main/assets/geo/tap_zones.bin` | Natural Earth `ne_50m_admin_0_tiny_countries` + `ne_50m_admin_0_countries` | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
-| `app/src/main/assets/geo/admin1_50m.bin` | Natural Earth `ne_50m_admin_1_states_provinces` (US and Canada only) | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
+| `app/src/main/assets/geo/admin1_50m.bin` | Natural Earth `ne_50m_admin_1_states_provinces` (US, Canada and Australia only) | 5.1.2 (zip VERSION 5.1.1) | Public domain | `tools/geodata/build_geodata.py` |
 | `app/src/main/assets/geo/rivers_50m.bin` | Natural Earth `ne_50m_rivers_lake_centerlines` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
 | `app/src/main/assets/geo/lakes_50m.bin` | Natural Earth `ne_50m_lakes` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
 | `app/src/main/assets/geo/regions_50m.bin` | Natural Earth `ne_50m_geography_regions_polys` | 5.1.2 (zip VERSION 5.0.0) | Public domain | `tools/geodata/build_geodata.py` |
@@ -111,7 +111,7 @@ or commit and, where practical, a checksum, so the file can be reproduced.
 | Version | 7.5.0, from https://registry.npmjs.org/flag-icons/-/flag-icons-7.5.0.tgz |
 | SHA-256 | `c0b80bf0e08006a60f56621d6bc49f8c7131f4d1fef6737a165a673431f4b518` (tarball) |
 | Licence | MIT. The licence notice ships in the APK as `flags/LICENSE`; a second copy is `tools/flags/LICENSE.flag-icons`. |
-| Transformation | `tools/flags/fetch_flags.py`: verifies the tarball hash, copies `package/flags/4x3/<cca2>.svg` unmodified, renamed to lower-case cca3 (`aus.svg`, `unk.svg` for Kosovo), for the 197 countries the app shows. Output is reproducible. |
+| Transformation | `tools/flags/fetch_flags.py`: verifies the tarball hash, copies `package/flags/4x3/<cca2>.svg` unmodified (except `usa.svg`, whose 50 stars are drawn with an SVG `<marker>` that AndroidSVG ignores; the script rewrites them as the same star shapes in an explicit path), renamed to lower-case cca3 (`aus.svg`, `unk.svg` for Kosovo), for the 197 countries the app shows. Output is reproducible. |
 | Notes | 197 SVGs plus `LICENSE`. Rendered with Coil 3 + coil-svg (`ui/components/FlagImage.kt`). See [`tools/flags/README.md`](../tools/flags/README.md). Replaced the earlier Unicode emoji flags (decision D7). |
 
 ### `app/src/main/assets/geo/*.bin` (map layers)

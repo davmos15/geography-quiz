@@ -18,7 +18,8 @@ Outputs (one file per layer, format in data/geo/FORMAT.md):
     app/src/main/assets/geo/admin0_110m.bin   countries, world view
     app/src/main/assets/geo/admin0_50m.bin    countries, zoomed in / outlines
     app/src/main/assets/geo/tap_zones.bin     tap points for small countries
-    app/src/main/assets/geo/admin1_50m.bin    US states + DC, Canadian provinces/territories
+    app/src/main/assets/geo/admin1_50m.bin    US states + DC, Canadian provinces/territories,
+                                               Australian states/territories
     app/src/main/assets/geo/rivers_50m.bin    rivers and lake centrelines
     app/src/main/assets/geo/lakes_50m.bin     lakes
     app/src/main/assets/geo/regions_50m.bin   physical regions (ranges, deserts, ...)
@@ -173,6 +174,26 @@ MERGE_INTO = {"SOL": "SOM", "CYN": "CYP"}
 # Natural Earth ADM0_A3 codes whose app cca3 is not their ISO code.
 CODE_OVERRIDES = {"KOS": "UNK"}
 
+# Natural Earth's AU admin-1 row for Jervis Bay Territory (a federal territory
+# administered as part of the ACT for most purposes). Its iso_3166_2 code "AU-X02~"
+# is Natural Earth's own placeholder, not a real ISO 3166-2 entry, and it isn't one of
+# the 8 states/territories the app and most references use, so it is dropped.
+AU_JERVIS_BAY_CODE = "AU-X02~"
+
+# Natural Earth's `postal` field for AU uses non-standard two-letter abbreviations
+# (NS, VI, QL, TS, CT) instead of the common Australian ones used everywhere else
+# (government, auspost, ABS). Override them; US and CA postal codes are untouched.
+AU_POSTAL_OVERRIDE = {
+    "AU-NSW": "NSW",
+    "AU-VIC": "VIC",
+    "AU-QLD": "QLD",
+    "AU-WA": "WA",
+    "AU-SA": "SA",
+    "AU-TAS": "TAS",
+    "AU-ACT": "ACT",
+    "AU-NT": "NT",
+}
+
 # Remote-part rule: see README "Remote parts".
 LINK_KM = 600.0
 FAR_KM = 2500.0
@@ -202,7 +223,7 @@ CONTINENT_BOXES = [
 # Tap zones: playable countries whose 50m land area is below this get a point.
 TAP_AREA_KM2 = 20_000
 
-ADMIN1_EXPECTED = {"US": 51, "CA": 13}
+ADMIN1_EXPECTED = {"US": 51, "CA": 13, "AU": 8}
 
 
 # --------------------------------------------------------------------------
@@ -745,18 +766,23 @@ def build_tap_zones(data, app, feats50, l50, fill110, log):
 def build_admin1(data, log):
     rows = data["ne_50m_admin_1_states_provinces"]
     feats = []
-    counts = {"US": 0, "CA": 0}
+    counts = {k: 0 for k in ADMIN1_EXPECTED}
+    dropped = []
     for rec, shape in rows:
         a2 = s(rec["iso_a2"])
         if a2 not in counts:
             continue
-        counts[a2] += 1
         code = s(rec["iso_3166_2"])
+        if a2 == "AU" and code == AU_JERVIS_BAY_CODE:
+            dropped.append(f"{code} {s(rec['name'])} (not one of the 8 states/territories)")
+            continue
+        counts[a2] += 1
         if not code.startswith(a2 + "-"):
             raise SystemExit(f"admin-1 {rec['name']} has iso_3166_2 {code!r}")
         polys, _ = geom.assign_holes(shape_rings(shape))
-        props = [s(rec["name"]), s(rec["name_en"]), s(rec["postal"]),
-                 {"US": "USA", "CA": "CAN"}[a2], s(rec["type_en"]), wikidata(rec)]
+        postal = AU_POSTAL_OVERRIDE.get(code, s(rec["postal"])) if a2 == "AU" else s(rec["postal"])
+        props = [s(rec["name"]), s(rec["name_en"]), postal,
+                 {"US": "USA", "CA": "CAN", "AU": "AUS"}[a2], s(rec["type_en"]), wikidata(rec)]
         feats.append(PolyFeature(code, props, polys,
                                  label=(float(rec["longitude"]), float(rec["latitude"]))))
     if counts != ADMIN1_EXPECTED:
@@ -768,9 +794,12 @@ def build_admin1(data, log):
     schema = [("name", gf.PROP_STRING), ("name_en", gf.PROP_STRING), ("postal", gf.PROP_STRING),
               ("country", gf.PROP_STRING), ("type", gf.PROP_STRING), ("wikidata", gf.PROP_STRING)]
     layer, _ = build_polygon_layer("admin1_50m", gf.LAYER_ADMIN1_50M,
-                                   f"Natural Earth {NE_RELEASE} ne_50m_admin_1_states_provinces (US, CA)",
+                                   f"Natural Earth {NE_RELEASE} ne_50m_admin_1_states_provinces (US, CA, AU)",
                                    schema, feats, TOLERANCE["admin1_50m"], log)
-    log.append(f"  {counts['US']} US (50 states + DC), {counts['CA']} Canadian provinces and territories")
+    log.append(f"  {counts['US']} US (50 states + DC), {counts['CA']} Canadian provinces and territories, "
+               f"{counts['AU']} Australian states and territories")
+    if dropped:
+        log.append("  AU rows dropped: " + ", ".join(dropped))
     log.append("")
     return layer
 
@@ -1022,8 +1051,9 @@ def validate(blobs: dict[str, bytes], app: dict) -> list[str]:
     if a1 is not None:
         us = sum(1 for f in a1.features if f.id.startswith("US-"))
         ca = sum(1 for f in a1.features if f.id.startswith("CA-"))
-        if (us, ca) != (51, 13):
-            problems.append(f"admin1_50m.bin: {us} US and {ca} CA features")
+        au = sum(1 for f in a1.features if f.id.startswith("AU-"))
+        if (us, ca, au) != (51, 13, 8):
+            problems.append(f"admin1_50m.bin: {us} US, {ca} CA and {au} AU features")
     total = 0
     for fname, blob in blobs.items():
         total += len(blob)

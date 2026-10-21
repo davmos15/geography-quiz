@@ -74,7 +74,6 @@ class CategoryListScreenUiTest {
         }
         val history = mockk<QuizHistoryRepository> {
             every { bestScoresForMode(any()) } returns bestScores
-            every { masteryStarsForMode(any()) } returns flowOf(emptyMap())
         }
         val playGames = mockk<PlayGamesAchievementService> {
             every { playerName } returns MutableStateFlow("Sam")
@@ -86,7 +85,6 @@ class CategoryListScreenUiTest {
             quizHistoryRepository = history,
             challengeRepository = mockk<ChallengeRepository>(relaxed = true),
             playGamesService = playGames,
-            settingsRepository = ScreenTestFixtures.settingsRepository(),
             pinnedCategoriesRepository = pinnedRepository,
             challengeLinkSigner = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray()),
             gameModes = TestGameModes.registry()

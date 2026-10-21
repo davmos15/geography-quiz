@@ -48,6 +48,9 @@
     <string name="silhouettes_prompt_which_country">Which country is this?</string>
     <!-- A fallback shown instead of an endless spinner if the outline fails to load. -->
     <string name="silhouettes_outline_unavailable">Outline unavailable</string>
+    <!-- Shown instead of a round when there are no countries to ask about at all (most likely a
+         practice set made entirely of silhouettes too hard to recognise, e.g. Tuvalu). -->
+    <string name="silhouettes_unavailable">There are no countries to ask about for this choice. Go back and try a different one.</string>
 
     <string name="silhouettes_feedback_correct">%1$s – Correct!</string>
     <!-- Quantity follows lives left (%2$d) after this guess. -->

@@ -95,8 +95,11 @@ class ContractTest(unittest.TestCase):
         ids = [f.id for f in self.layers["admin1_50m.bin"].features]
         self.assertEqual(sum(i.startswith("US-") for i in ids), 51)
         self.assertEqual(sum(i.startswith("CA-") for i in ids), 13)
+        self.assertEqual(sum(i.startswith("AU-") for i in ids), 8)
         self.assertIn("US-DC", ids)
         self.assertIn("CA-NU", ids)
+        self.assertIn("AU-NSW", ids)
+        self.assertNotIn("AU-X02~", ids)
 
     def test_geometry_rules(self):
         for name, layer in self.layers.items():

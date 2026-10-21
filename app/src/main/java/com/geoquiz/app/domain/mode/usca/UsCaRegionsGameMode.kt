@@ -18,7 +18,7 @@ import com.geoquiz.app.domain.usecase.CalculateScoreUseCase
 import javax.inject.Inject
 
 /**
- * US states and Canadian provinces (task 6.2, D43): an admin-1 layer mode with its own
+ * States and territories (task 6.2, D43; renamed and Australia added P10-D2): an admin-1 layer mode with its own
  * `GameMode`, `QuestionGenerator`, answer validator and screens/ViewModels (D37's pattern, as
  * Border hop also used), not literal reuse of Tap the map's classes, which are typed to
  * [com.geoquiz.app.domain.model.Country] throughout. Three variants, carried on the route and the

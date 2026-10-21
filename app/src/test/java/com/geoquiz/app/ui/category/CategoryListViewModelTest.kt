@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import com.geoquiz.app.data.local.db.QuizBestScore
 import com.geoquiz.app.data.local.preferences.PinnedCategoriesRepository
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.ChallengeRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
@@ -54,10 +53,8 @@ class CategoryListViewModelTest {
         every { getAllCountries() } returns flowOf(emptyList())
     }
     private val bestScores = MutableStateFlow<Map<String, QuizBestScore>>(emptyMap())
-    private val stars = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val history = mockk<QuizHistoryRepository> {
         every { bestScoresForMode(any()) } returns bestScores
-        every { masteryStarsForMode(any()) } returns stars
     }
 
     /** Pins held in memory; [PinnedCategoriesRepository.setPinned] updates them like the real one. */
@@ -72,9 +69,6 @@ class CategoryListViewModelTest {
     private val challengeRepository = mockk<ChallengeRepository>(relaxed = true)
     private val playGames = mockk<PlayGamesAchievementService> {
         every { playerName } returns MutableStateFlow("Sam")
-    }
-    private val settings = mockk<SettingsRepository> {
-        every { difficulty } returns flowOf(Difficulty.DEFAULT)
     }
 
     @Before
@@ -94,7 +88,6 @@ class CategoryListViewModelTest {
         quizHistoryRepository = history,
         challengeRepository = challengeRepository,
         playGamesService = playGames,
-        settingsRepository = settings,
         pinnedCategoriesRepository = pinnedRepository,
         challengeLinkSigner = signer,
         gameModes = TestGameModes.registry()
@@ -210,7 +203,6 @@ class CategoryListViewModelTest {
 
         // The player finishes an Africa quiz and comes back
         bestScores.value = mapOf("region|Africa" to QuizBestScore("region", "Africa", 3.0, 3, 4))
-        stars.value = mapOf("region|Africa" to 1)
         dispatcher.scheduler.advanceUntilIdle()
 
         with(vm.option("Africa")) {
@@ -218,7 +210,6 @@ class CategoryListViewModelTest {
             assertEquals(3.0, bestScore!!, 0.0)
             assertEquals(3, bestCorrect)
             assertEquals(4, bestTotal)
-            assertEquals(1, masteryStars)
         }
         assertFalse(vm.option("Europe").isCompleted)
 
@@ -271,5 +262,22 @@ class CategoryListViewModelTest {
         vm.onTogglePin(vm.option("Africa"))
         dispatcher.scheduler.advanceUntilIdle()
         coVerify { pinnedRepository.setPinned("countries", "region", "Africa", true) }
+    }
+
+    // Difficulty selector (P10-G): always Normal, never persisted.
+
+    @Test
+    fun `difficulty starts at Normal`() {
+        assertEquals(Difficulty.NORMAL, viewModel("countries").difficulty.value)
+    }
+
+    @Test
+    fun `selecting a tier does not carry over to a new instance of this screen`() {
+        val first = viewModel("countries")
+        first.onDifficultySelected(Difficulty.HARD)
+        assertEquals(Difficulty.HARD, first.difficulty.value)
+
+        val second = viewModel("countries")
+        assertEquals(Difficulty.NORMAL, second.difficulty.value)
     }
 }

@@ -3,7 +3,6 @@ package com.geoquiz.app.ui.physicalfeatures
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.physicalfeatures.PhysicalFeatureRepository
 import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeature
 import com.geoquiz.app.domain.mode.physicalfeatures.PhysicalFeatureFilter
@@ -31,15 +30,13 @@ data class PhysicalFeaturesSetupUiState(
 
 /**
  * The tab (Rivers/Mountains/Lakes), an optional continent filter and the difficulty picker (task
- * 7.2). A per-round choice via [SavedStateHandle], the same reasoning as
- * [com.geoquiz.app.ui.usca.UsCaRegionsSetupViewModel]: simpler than a persisted
- * `SettingsRepository` preference, and there is no existing precedent for one. Switching tabs
- * clears a continent that the new tab has no features in.
+ * 7.2). A per-round choice via [SavedStateHandle] and an in-memory [_difficulty] only (P10-G):
+ * nothing here is persisted, so every new instance of this screen starts the tier back at
+ * [Difficulty.DEFAULT]. Switching tabs clears a continent that the new tab has no features in.
  */
 @HiltViewModel
 class PhysicalFeaturesSetupViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val settingsRepository: SettingsRepository,
     private val physicalFeatureRepository: PhysicalFeatureRepository
 ) : ViewModel() {
 
@@ -48,13 +45,14 @@ class PhysicalFeaturesSetupViewModel @Inject constructor(
     )
     private val _continent = MutableStateFlow(savedStateHandle.get<String>(KEY_CONTINENT))
     private val _allFeatures = MutableStateFlow<List<PhysicalFeature>>(emptyList())
+    private val _difficulty = MutableStateFlow(Difficulty.DEFAULT)
 
     init {
         viewModelScope.launch { _allFeatures.value = physicalFeatureRepository.features() }
     }
 
     val uiState: StateFlow<PhysicalFeaturesSetupUiState> = combine(
-        _tab, _continent, _allFeatures, settingsRepository.difficulty
+        _tab, _continent, _allFeatures, _difficulty
     ) { tab, continent, allFeatures, difficulty ->
         val continents = allFeatures.continentsFor(tab)
         val effectiveContinent = continent?.takeIf { it in continents }
@@ -77,9 +75,9 @@ class PhysicalFeaturesSetupViewModel @Inject constructor(
         savedStateHandle[KEY_CONTINENT] = continent
     }
 
-    /** Also remembered as the player's default tier (same as every other setup screen). */
+    /** Selection only: never persisted (P10-G), so it does not carry over to the next visit. */
     fun onDifficultySelected(difficulty: Difficulty) {
-        viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
+        _difficulty.value = difficulty
     }
 
     /** The route to start a round with the current selection. */

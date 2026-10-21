@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- US states and Canadian provinces (task 6.2). Australian spelling throughout. -->
+<!-- States and territories: US states, Canadian provinces and territories, and Australian
+     states and territories (task 6.2; renamed and Australia added P10-D2). Australian spelling
+     throughout. -->
 <resources>
-    <string name="mode_us_ca_regions_name">US states and Canadian provinces</string>
-    <string name="mode_us_ca_regions_input_label">Enter a state or province name</string>
+    <string name="mode_us_ca_regions_name">States and territories</string>
+    <string name="mode_us_ca_regions_input_label">Enter a state, province or territory name</string>
     <string name="mode_us_ca_regions_items">regions</string>
     <string name="mode_us_ca_regions_paused_progress">%1$d / %2$d regions found</string>
     <string name="mode_us_ca_regions_give_up">You\'ve found %1$d of %2$d regions. Are you sure?</string>
@@ -14,9 +16,10 @@
 
     <!-- Setup screen -->
     <string name="us_ca_regions_setup_group_title">Group</string>
-    <string name="us_ca_regions_group_us">US states</string>
+    <string name="us_ca_regions_group_us">United States</string>
     <string name="us_ca_regions_group_us_with_dc">US states and DC</string>
-    <string name="us_ca_regions_group_ca">Canadian provinces and territories</string>
+    <string name="us_ca_regions_group_ca">Canada</string>
+    <string name="us_ca_regions_group_au">Australia</string>
     <string name="us_ca_regions_include_dc">Include Washington, DC</string>
     <string name="us_ca_regions_setup_variant_title">How to play</string>
     <string name="us_ca_regions_variant_tap">Tap the map</string>

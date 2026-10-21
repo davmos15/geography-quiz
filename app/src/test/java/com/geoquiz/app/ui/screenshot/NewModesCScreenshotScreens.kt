@@ -200,7 +200,6 @@ object NewModesCScreenshotScreens {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(difficulty)
         val handle = SavedStateHandle(
             mapOf(
                 "categoryType" to "all",
@@ -215,9 +214,13 @@ object NewModesCScreenshotScreens {
             completeQuiz = currenciesCompleteQuiz(mode),
             settingsRepository = settingsRepository,
             clock = MonotonicClock { 0L },
-            quizRandom = QuizRandom(Random(1))
+            // Rounds are shuffled; this seed keeps the fixture's two items in pool order, so each
+            // golden still shows the question it was written for.
+            quizRandom = QuizRandom(Random(CURRENCIES_ORDER_KEEPING_SEED))
         )
     }
+
+    private val CURRENCIES_ORDER_KEEPING_SEED = (0..1_000).first { listOf(0, 1).shuffled(Random(it)) == listOf(0, 1) }
 
     /** Item 0 (Delta dollar), not shared: a typed question, untouched. */
     fun currenciesTypedQuestion(): @Composable () -> Unit {
@@ -296,12 +299,9 @@ object NewModesCScreenshotScreens {
             mockk<ValidateAnswerUseCase>(relaxed = true),
             CalculateScoreUseCase()
         )
-        val settingsRepository = mockk<SettingsRepository>(relaxed = true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         return CurrenciesSetupViewModel(
             countryRepository = countryRepository,
             optionsBuilder = CategoryOptionsFixture.builder(),
-            settingsRepository = settingsRepository,
             currencyGameMode = mode
         )
     }
@@ -368,7 +368,6 @@ object NewModesCScreenshotScreens {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(difficulty)
 
         val mode = PhysicalFeaturesGameMode(CalculateScoreUseCase())
         val completeQuiz = CompleteQuizUseCase(
@@ -420,15 +419,11 @@ object NewModesCScreenshotScreens {
 
     // ---- Rivers, mountains and lakes: setup screen (tab picker, no map) ----------------------
 
-    private fun physicalFeaturesSetupViewModel(): PhysicalFeaturesSetupViewModel {
-        val settingsRepository = mockk<SettingsRepository>(relaxed = true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
-        return PhysicalFeaturesSetupViewModel(
+    private fun physicalFeaturesSetupViewModel(): PhysicalFeaturesSetupViewModel =
+        PhysicalFeaturesSetupViewModel(
             savedStateHandle = SavedStateHandle(),
-            settingsRepository = settingsRepository,
             physicalFeatureRepository = warmedPhysicalFeatureRepository()
         )
-    }
 
     fun physicalFeaturesSetup(): @Composable () -> Unit {
         val viewModel = physicalFeaturesSetupViewModel()
@@ -494,17 +489,14 @@ object NewModesCScreenshotScreens {
         )
     }
 
-    private fun flagSpeedSettingsRepository(difficulty: Difficulty): SettingsRepository {
+    private fun flagSpeedSettingsRepository(): SettingsRepository {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(difficulty)
         return settingsRepository
     }
 
     fun flagSpeedSetup(): @Composable () -> Unit {
-        val settingsRepository = mockk<SettingsRepository>(relaxed = true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
-        val viewModel = FlagSpeedSetupViewModel(settingsRepository)
+        val viewModel = FlagSpeedSetupViewModel()
         return { FlagSpeedSetupScreen(onStart = {}, onNavigateBack = {}, viewModel = viewModel) }
     }
 
@@ -533,7 +525,7 @@ object NewModesCScreenshotScreens {
             countryRepository = flagSpeedCountryRepository(),
             lookalikeRepository = flagSpeedLookalikeRepository(),
             completeQuiz = flagSpeedCompleteQuiz(),
-            settingsRepository = flagSpeedSettingsRepository(Difficulty.NORMAL),
+            settingsRepository = flagSpeedSettingsRepository(),
             clock = MonotonicClock { 0L },
             quizRandom = QuizRandom(Random(1))
         )
@@ -566,7 +558,7 @@ object NewModesCScreenshotScreens {
             countryRepository = flagSpeedCountryRepository(),
             lookalikeRepository = flagSpeedLookalikeRepository(),
             completeQuiz = flagSpeedCompleteQuiz(),
-            settingsRepository = flagSpeedSettingsRepository(Difficulty.NORMAL),
+            settingsRepository = flagSpeedSettingsRepository(),
             clock = MonotonicClock { 0L },
             quizRandom = QuizRandom(Random(1))
         )

@@ -4,8 +4,8 @@ package com.geoquiz.app.domain.model
  * How hard a quiz is. Each game mode lists the tiers it supports
  * ([com.geoquiz.app.domain.mode.GameModeSpec.supportedDifficulties]).
  *
- * - [EASY]: multiple choice, 4 options (task 3.2b). Recorded in history, stats and mastery
- *   stars, but unlocks no achievements and submits no leaderboard scores (D16).
+ * - [EASY]: multiple choice, 4 options (task 3.2b). Recorded in history and stats, but unlocks no
+ *   achievements and submits no leaderboard scores (D16).
  * - [NORMAL]: type the answers; typos are forgiven; no strike limit.
  * - [HARD]: type the answers exactly, 3 strikes, count-up timer always shown (D15). No time limit.
  *

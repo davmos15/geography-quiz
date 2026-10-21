@@ -16,7 +16,7 @@ import com.geoquiz.app.domain.model.QuizCategory
  * ViewModels). Two shapes:
  *
  * - A normal round: `categoryType` is `"region"`, `categoryValue` one of
- *   [UsCaRegionsCategory]'s three labels - every member of [group] ([includeDc] applying only to
+ *   [UsCaRegionsCategory]'s four labels - every member of [group] ([includeDc] applying only to
  *   US states).
  * - A "Practise the ones you missed" round ([com.geoquiz.app.domain.model.CompletedQuiz.practiceCategoryOrNull]):
  *   `categoryType` is [QuizCategory.Practice.TYPE_KEY], `categoryValue` the missed admin1 codes,
@@ -41,10 +41,14 @@ suspend fun loadUsCaRegionsRound(
     if (categoryTypeRaw == QuizCategory.Practice.TYPE_KEY) {
         val codes = categoryValueRaw.split("+").filter { it.isNotBlank() }
         val features = codes.mapNotNull { layer.feature(it) }
-        val group = if (features.firstOrNull()?.properties?.stringOrNull("country") == "CAN") {
-            UsCaRegionGroup.CANADIAN_PROVINCES
-        } else {
-            UsCaRegionGroup.US_STATES
+        // P10-D2: derive the group from the feature's own `country` property for all three
+        // groups, rather than a CAN-else-US guess that silently mis-sorted Australia into US
+        // states. Falls back to US states (the pre-existing safe default) if the code is
+        // somehow from neither group.
+        val group = when (features.firstOrNull()?.properties?.stringOrNull("country")) {
+            "CAN" -> UsCaRegionGroup.CANADIAN_PROVINCES
+            "AUS" -> UsCaRegionGroup.AU_STATES
+            else -> UsCaRegionGroup.US_STATES
         }
         return UsCaRegionsRound(
             items = features.map { it.toRegionCountry() },

@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.R
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.currencies.CurrencyGameMode
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Difficulty
@@ -59,7 +58,6 @@ data class CurrenciesSetupUiState(
 class CurrenciesSetupViewModel @Inject constructor(
     private val countryRepository: CountryRepository,
     private val optionsBuilder: CategoryOptionsBuilder,
-    private val settingsRepository: SettingsRepository,
     private val currencyGameMode: CurrencyGameMode
 ) : ViewModel() {
 
@@ -68,8 +66,7 @@ class CurrenciesSetupViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val difficulty = settingsRepository.difficulty.first()
-                .takeIf { it in currencyGameMode.spec.supportedDifficulties } ?: Difficulty.DEFAULT
+            val difficulty = Difficulty.DEFAULT
             val allCountries = optionsBuilder.countriesFor(QuizMode.COUNTRIES, countryRepository.getAllCountries().first())
             val sections = GROUPS.mapNotNull { (group, titleRes) ->
                 val rawOptions = optionsBuilder.build(QuizMode.COUNTRIES, group.id, allCountries)
@@ -85,9 +82,9 @@ class CurrenciesSetupViewModel @Inject constructor(
         }
     }
 
+    /** Selection only: never persisted (P10-G), so it does not carry over to the next visit. */
     fun onDifficultySelected(difficulty: Difficulty) {
         _uiState.value = _uiState.value.copy(difficulty = difficulty)
-        viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
     }
 
     /** The route [onStart][CurrenciesSetupScreen] should navigate to for [option]. See [CurrenciesRoutes]. */

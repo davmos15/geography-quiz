@@ -22,6 +22,9 @@ import kotlin.math.pow
  *   to merge with it.
  * - Achievement tier accents (icon + tier label text) 4.5:1, tier text 7:1 on the tier container.
  * - The colour-scheme roles we set keep their on-colours at 4.5:1 (dark mode audit, 3.8).
+ * - Category hue tiles (task P10-A.4): each `onContainer` reaches 4.5:1 on its own `container`,
+ *   every hue has its own value in each theme, and every container stays distinguishable from
+ *   `surface`/`background`.
  */
 class GeoColorsContrastTest {
 
@@ -94,13 +97,54 @@ class GeoColorsContrastTest {
     }
 
     @Test
-    fun masteryStars_standOutFromSurfaces() {
+    fun categoryHues_meetAA_onTheirOwnContainer() {
+        // Play's group tiles (task P10-A.4): each hue's content text reaches 4.5:1 on its own
+        // container, in both themes.
         for (t in themes) {
-            // Stars are non-text graphics (WCAG 1.4.11): 3:1 wherever category rows are drawn.
-            assertContrast("${t.name} star on background", t.geo.star, t.scheme.background, 3.0)
-            assertContrast("${t.name} star on surface", t.geo.star, t.scheme.surface, 3.0)
-            assertContrast("${t.name} star on surfaceVariant", t.geo.star, t.scheme.surfaceVariant, 3.0)
-            assertContrast("${t.name} onStar/star", t.geo.onStar, t.geo.star, 4.5)
+            for (hue in CategoryHue.entries) {
+                val pair = t.geo.categoryHues.getValue(hue)
+                assertContrast("${t.name} $hue onContainer/container", pair.onContainer, pair.container, 4.5)
+            }
+        }
+    }
+
+    @Test
+    fun categoryHues_containersAreDistinguishableFromSurfaces() {
+        // A tinted tile must still read as a tile sitting on the page, not blend into it. 1.02:1
+        // (code review round, task P10-R1) let through a container that was barely a shade away
+        // from the surface behind it, not a meaningfully distinguishable tile; 1.15:1 is still
+        // well short of a text-level bound (this is a non-text tile background, WCAG 1.4.11 does
+        // not even apply), but catches a container that reads as the page itself.
+        for (t in themes) {
+            for (hue in CategoryHue.entries) {
+                val container = t.geo.categoryHues.getValue(hue).container
+                assertContrast("${t.name} $hue container vs surface", container, t.scheme.surface, 1.15)
+                assertContrast("${t.name} $hue container vs background", container, t.scheme.background, 1.15)
+                assertNotEquals("${t.name} $hue container differs from surface", container, t.scheme.surface)
+                assertNotEquals("${t.name} $hue container differs from background", container, t.scheme.background)
+            }
+        }
+    }
+
+    @Test
+    fun categoryHues_haveTheirOwnDarkValue() {
+        // Every hue gets its own deep container/light text pair in dark mode, not a reused light
+        // value (dark mode must work, CLAUDE.md).
+        for (hue in CategoryHue.entries) {
+            val light = LightGeoColors.categoryHues.getValue(hue)
+            val dark = DarkGeoColors.categoryHues.getValue(hue)
+            assertNotEquals("$hue container has its own dark value", light.container, dark.container)
+            assertNotEquals("$hue onContainer has its own dark value", light.onContainer, dark.onContainer)
+            // Dark mode: a deep container with light text, i.e. darker than its own text.
+            assertTrue("$hue dark container is darker than its dark text", luminance(dark.container) < luminance(dark.onContainer))
+        }
+    }
+
+    @Test
+    fun categoryHues_coverAllTenHues() {
+        assertEquals(10, CategoryHue.entries.size)
+        for (t in themes) {
+            assertEquals(CategoryHue.entries.toSet(), t.geo.categoryHues.keys)
         }
     }
 

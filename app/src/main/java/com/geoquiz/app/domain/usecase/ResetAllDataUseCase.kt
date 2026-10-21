@@ -22,9 +22,11 @@ import javax.inject.Inject
  * setting including the player name, and debug feature-flag overrides.
  *
  * Kept: the static content tables (countries, aliases, capital aliases, flag colours and flag
- * elements; this use case has no access to them), and the `ads_removed` flag so a paying user
- * doesn't see ads before Google Play restores the purchase. Achievements already synced to Google
- * Play Games can't be revoked, so they are left alone.
+ * elements; this use case has no access to them), the `ads_removed` flag so a paying user doesn't
+ * see ads before Google Play restores the purchase, and `whats_new_seen_version` (P10-F) for the
+ * same reason: resetting a device is not a fresh install, so it must not bring the one-off "What's
+ * new" screen back for a player who already saw it. Achievements already synced to Google Play
+ * Games can't be revoked, so they are left alone.
  */
 class ResetAllDataUseCase @Inject constructor(
     private val transaction: TransactionRunner,
@@ -50,8 +52,12 @@ class ResetAllDataUseCase @Inject constructor(
 
         settingsStore.edit { prefs ->
             val adsRemoved = prefs[SettingsRepository.ADS_REMOVED_KEY]
+            val whatsNewSeenVersion = prefs[SettingsRepository.WHATS_NEW_SEEN_VERSION_KEY]
             prefs.clear()
             if (adsRemoved != null) prefs[SettingsRepository.ADS_REMOVED_KEY] = adsRemoved
+            if (whatsNewSeenVersion != null) {
+                prefs[SettingsRepository.WHATS_NEW_SEEN_VERSION_KEY] = whatsNewSeenVersion
+            }
         }
 
         featureFlagRepository.clearOverrides()

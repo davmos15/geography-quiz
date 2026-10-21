@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geoquiz.app.R
 import com.geoquiz.app.data.borderhop.BorderGraphRepository
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.di.DefaultDispatcher
 import com.geoquiz.app.domain.mode.borderhop.BorderGraph
 import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
@@ -62,7 +61,6 @@ data class BorderHopSetupUiState(
 class BorderHopSetupViewModel @Inject constructor(
     private val countryRepository: CountryRepository,
     private val optionsBuilder: CategoryOptionsBuilder,
-    private val settingsRepository: SettingsRepository,
     private val borderHopGameMode: BorderHopGameMode,
     private val borderGraphRepository: BorderGraphRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -83,8 +81,7 @@ class BorderHopSetupViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val difficulty = settingsRepository.difficulty.first()
-                .takeIf { it in borderHopGameMode.spec.supportedDifficulties } ?: Difficulty.DEFAULT
+            val difficulty = Difficulty.DEFAULT
             val allCountries = optionsBuilder.countriesFor(QuizMode.COUNTRIES, countryRepository.getAllCountries().first())
             optionsByGroup = buildOptionsByGroup(allCountries)
             borderGraph = borderGraphRepository.graph()
@@ -132,11 +129,11 @@ class BorderHopSetupViewModel @Inject constructor(
         return { key -> computed[key] == true }
     }
 
+    /** Selection only: never persisted (P10-G), so it does not carry over to the next visit. */
     fun onDifficultySelected(difficulty: Difficulty) {
         _uiState.value = _uiState.value.copy(difficulty = difficulty)
         sectionsJob?.cancel()
         sectionsJob = viewModelScope.launch {
-            settingsRepository.setDifficulty(difficulty)
             val sections = sectionsFor(difficulty)
             _uiState.value = _uiState.value.copy(sections = sections)
         }

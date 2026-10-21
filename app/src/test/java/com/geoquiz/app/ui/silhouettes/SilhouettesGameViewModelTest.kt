@@ -106,7 +106,6 @@ class SilhouettesGameViewModelTest {
         every { Uri.decode(any()) } answers { firstArg() }
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         // "France"/"Germany"/"Italy"/"Spain" resolve to that real country; anything else is either
         // a near miss ("typo") or not recognised at all ("gibberish" and everything else).
         coEvery { validateAnswer(any(), any(), any()) } answers {
@@ -174,6 +173,13 @@ class SilhouettesGameViewModelTest {
         onInputChange(input)
         onSubmit()
         runCurrent()
+    }
+
+    @Test
+    fun `without a route difficulty Difficulty DEFAULT (Normal) is used`() {
+        val vm = viewModel(routeHandle(), silhouettesMode(listOf(france)))
+
+        assertEquals(Difficulty.NORMAL, vm.active().difficulty)
     }
 
     @Test
@@ -745,6 +751,31 @@ class SilhouettesGameViewModelTest {
 
         vm.onHint(HintType.SHOW_NEIGHBOURS)
         assertTrue("a hint not in availableHints can't be used", vm.active().hintsUsed.isEmpty())
+    }
+
+    // ---- task P10-E: a filter with no askable countries at all shows Unavailable ----
+
+    @Test
+    fun `an empty filter shows Unavailable, never a degenerate 0-of-0 completed round`() {
+        val mode = silhouettesMode(emptyList())
+        val vm = viewModel(routeHandle(), mode)
+
+        assertEquals(SilhouettesUiState.Unavailable, vm.uiState.value)
+        assertEquals("nothing should be recorded", 0, completedQuizzes.saveCount)
+    }
+
+    @Test
+    fun `a practice set made entirely of excluded (unrecognisable) codes shows Unavailable`() {
+        val excludedCode = com.geoquiz.app.domain.mode.silhouettes.SilhouetteLegibility.EXCLUDED_CCA3.first()
+        val excludedCountry = country(excludedCode, "Excluded", "Capital")
+        val mode = silhouettesMode(listOf(excludedCountry))
+        val vm = viewModel(
+            routeHandle(categoryType = "practice", categoryValue = excludedCode),
+            mode
+        )
+
+        assertEquals(SilhouettesUiState.Unavailable, vm.uiState.value)
+        assertEquals(0, completedQuizzes.saveCount)
     }
 
     private fun outlineWithNeighbours(neighbourCodes: List<String>) = OutlineModel(

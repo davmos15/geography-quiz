@@ -53,7 +53,7 @@ Layer ids:
 | 1 | `admin0_110m.bin` | polygon | Countries for the zoomed-out world view |
 | 2 | `admin0_50m.bin` | polygon | Countries for zoomed-in views, regions and outlines |
 | 3 | `tap_zones.bin` | point | Tap-zone centres for small countries |
-| 4 | `admin1_50m.bin` | polygon | US states + DC and Canadian provinces/territories |
+| 4 | `admin1_50m.bin` | polygon | US states + DC, Canadian provinces/territories and Australian states/territories |
 | 5 | `rivers_50m.bin` | line | Rivers, lake centrelines and canals |
 | 6 | `lakes_50m.bin` | polygon | Lakes and reservoirs |
 | 7 | `regions_50m.bin` | polygon | Physical regions (mountain ranges, deserts, plateaus, ...) |
@@ -172,14 +172,14 @@ The bbox is the extent of the country's non-remote 50m parts (so a reader can
 size the tap circle for spread-out island nations); the label point is the
 tap centre.
 
-**admin1_50m** (id = ISO 3166-2, for example `US-CA`, `CA-ON`)
+**admin1_50m** (id = ISO 3166-2, for example `US-CA`, `CA-ON`, `AU-NSW`)
 
 | Name | Type | Meaning |
 |---|---|---|
 | `name` | string | Natural Earth name (for example `Québec`, `District of Columbia`) |
 | `name_en` | string | Natural Earth English name |
-| `postal` | string | Postal abbreviation (`CA`, `ON`) |
-| `country` | string | `USA` or `CAN` |
+| `postal` | string | Postal abbreviation (`CA`, `ON`; `NSW` etc for AU, overridden from Natural Earth, see `tools/geodata/README.md`) |
+| `country` | string | `USA`, `CAN` or `AUS` |
 | `type` | string | `State`, `Federal District`, `Province` or `Territory` |
 | `wikidata` | string | Wikidata id |
 

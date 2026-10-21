@@ -62,6 +62,24 @@ class CurrencyAnswerValidatorTest {
     }
 
     @Test
+    fun `rejects a typed answer for a single-owner currency whose symbol is ambiguous (task P10-B)`() = runBlocking {
+        // ALL (Albanian lek) has exactly one owning country, but "L" is also HNL's symbol -
+        // CurrencySymbolRules.classify marks it ambiguousSymbol, so it must be choice-only too.
+        val lek = CurrencyEntry("ALL", "Albanian lek", "L", listOf("AND"), shared = false, fact = null)
+        val lempira = CurrencyEntry("HNL", "Honduran lempira", "L", listOf("PER"), shared = false, fact = null)
+        val classified = CurrencySymbolRules.classify(listOf(lek, lempira))
+        coEvery { currencyRepository.currencies() } returns CurrencyData(
+            entries = classified,
+            primaryCurrency = mapOf("AND" to "ALL", "PER" to "HNL")
+        )
+        val state = QuizState(quiz = Quiz(category = QuizCategory.AllCountries, countries = listOf(andorra)))
+
+        val result = validator().validate("Andorra", state, allowFuzzy = true)
+
+        assertEquals(AnswerResult.Incorrect, result)
+    }
+
+    @Test
     fun `an empty quiz (no single target) is Incorrect without consulting the repository`() = runBlocking {
         val state = QuizState(quiz = Quiz(category = QuizCategory.AllCountries, countries = emptyList()))
 

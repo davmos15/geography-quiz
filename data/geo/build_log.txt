@@ -199,10 +199,11 @@ App countries: 197 (data/source/countries.json via tools/data/export_aliases.py)
   NE tiny-country points not used (other territories, or parts of larger countries): ABW, AIA, ALD, ASM, ATF, BLM, BMU, COK, CUW, CYM, FRA, FRA, FRO, GGY, GIB, GUM, HKG, IMN, IOT, JEY, MAC, MAF, MNP, NIU, NLD, NZL, PCN, PSX, PSX, PYF, SGS, SHN, SHN, SPM, SXM, TCA, VGB, VIR, WLF
 
 [admin1_50m] polygon layer
-  tolerance 0.01 deg; 64 features, 334 rings, 24954 source points -> 15830 points written
-  shared-arc topology: 472 arcs (158 shared by two rings), 144 junctions, 0 arcs kept unsimplified to stop rings collapsing
+  tolerance 0.01 deg; 72 features, 382 rings, 27052 source points -> 17558 points written
+  shared-arc topology: 528 arcs (168 shared by two rings), 154 junctions, 0 arcs kept unsimplified to stop rings collapsing
   segment crossings after simplification and quantisation: 0 within a feature, 0 between features (shared borders are identical, so no gaps or slivers)
-  51 US (50 states + DC), 13 Canadian provinces and territories
+  51 US (50 states + DC), 13 Canadian provinces and territories, 8 Australian states and territories
+  AU rows dropped: AU-X02~ Jervis Bay Territory (not one of the 8 states/territories)
 
 [rivers_50m] line layer
   tolerance 0.01 deg; 463 features, 25751 source points -> 22558 points written
@@ -265,9 +266,9 @@ Sizes (bytes; budget per layer; 1 KB = 1000 bytes)
   admin0_110m.bin          45535  budget    120000   204 features  sha256 0e2dafe9dcc3ddf5931223c0239b62fbea7bd9599927c1d4e2799cc9113adb97
   admin0_50m.bin          170348  budget    650000   240 features  sha256 fdcf125be3228c2471e19a986b53a36c5738bb56b197cd2e6a03686988009be4
   tap_zones.bin             1770  budget     15000    46 features  sha256 2acfebb4b2d168eff70d8c57564fb08bab065f6a339f30e1a9c6d1396fc272bc
-  admin1_50m.bin           49060  budget    200000    64 features  sha256 8b398a8349e94681937ef593e1df032ade444e204e1acd7581531283ee41d186
+  admin1_50m.bin           45651  budget    200000    72 features  sha256 f41822c1f42da9c95bd9e4e83ac5c9da98a1d799492e6163d9fcde1852709a0d
   rivers_50m.bin           81509  budget    150000   463 features  sha256 f0516f968a61d04a609d13c2bf79e34a9db1182d9e80324bc5b2bd717800fb05
   lakes_50m.bin            51102  budget    100000   406 features  sha256 f63c0803fac3321f200236b5b9513bc3fd5bf7c6a87660f3b21d74f5eb0c33c5
   regions_50m.bin         185289  budget    220000   517 features  sha256 e45377c6a69cc8d3a67e2cdcc1d03c73d3a0b865a5af28d30cd9c0cdf815682d
   geo_points_50m.bin       21165  budget     40000   248 features  sha256 df8b7e189499e28c0e3165c408a58f688f5dc9e7a56632498faabc49a2b227ff
-  total                   605778  budget   1500000
+  total                   602369  budget   1500000

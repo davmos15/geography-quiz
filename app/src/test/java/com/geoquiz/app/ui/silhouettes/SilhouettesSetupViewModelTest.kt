@@ -3,9 +3,9 @@ package com.geoquiz.app.ui.silhouettes
 import android.net.Uri
 import com.geoquiz.app.data.local.db.FlagColorDao
 import com.geoquiz.app.data.local.db.FlagElementDao
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
+import com.geoquiz.app.domain.mode.silhouettes.SilhouetteLegibility
 import com.geoquiz.app.domain.mode.silhouettes.SilhouettesGameMode
 import com.geoquiz.app.domain.model.CategoryGroup
 import com.geoquiz.app.domain.model.Country
@@ -19,7 +19,6 @@ import com.geoquiz.app.ui.category.CategoryOptionsBuilder
 import com.geoquiz.app.ui.category.CategoryOptionsFixture
 import com.geoquiz.app.ui.navigation.ModeRoutes
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -42,7 +41,6 @@ import kotlin.random.Random
 class SilhouettesSetupViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
     private val silhouettesGameMode = SilhouettesGameMode(
         CountriesQuestionGenerator(mockk(relaxed = true), mockk(relaxed = true)),
         mockk<ValidateAnswerUseCase>(),
@@ -55,7 +53,6 @@ class SilhouettesSetupViewModelTest {
         Dispatchers.setMain(dispatcher)
         mockkStatic(Uri::class)
         every { Uri.encode(any()) } answers { firstArg() }
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
     }
 
     @After
@@ -75,7 +72,6 @@ class SilhouettesSetupViewModelTest {
         val vm = SilhouettesSetupViewModel(
             countryRepository = countryRepository(countries),
             optionsBuilder = optionsBuilder,
-            settingsRepository = settingsRepository,
             silhouettesGameMode = silhouettesGameMode
         )
         dispatcher.scheduler.runCurrent()
@@ -124,14 +120,49 @@ class SilhouettesSetupViewModelTest {
     }
 
     @Test
-    fun `onDifficultySelected updates state and remembers the default`() {
+    fun `an excluded (unrecognisable) silhouette's country is never counted, and a subregion made up only of it is left out`() {
+        // Task P10-E: a filter's shown count should already match what a round of it actually
+        // asks about, and a filter with nothing left over (here, a subregion of exactly one
+        // excluded country) should disappear rather than offer an option that silently asks
+        // about fewer countries than shown (or none at all).
+        val excludedCode = SilhouetteLegibility.EXCLUDED_CCA3.first()
+        val excludedCountry = Country(
+            code = excludedCode,
+            name = "Excluded Land",
+            officialName = "Excluded Land",
+            region = "Oceania",
+            subregion = "Excluded Isles",
+            nameLength = 13,
+            capital = "Capital"
+        )
+        val countries = CategoryOptionsFixture.COUNTRIES + excludedCountry
+        val flagColorDao = mockk<FlagColorDao>(relaxed = true)
+        val flagElementDao = mockk<FlagElementDao>(relaxed = true)
+        coEvery { flagColorDao.getAllMappings() } returns emptyList()
+        coEvery { flagElementDao.getAllMappings() } returns emptyList()
+
+        val vm = viewModel(countries = countries, optionsBuilder = CategoryOptionsBuilder(flagColorDao, flagElementDao))
+        val sections = vm.uiState.value.sections
+
+        val allCountriesCount = sections.first().options.first().countryCount
+        assertEquals("the excluded country is never counted", CategoryOptionsFixture.COUNTRIES.size, allCountriesCount)
+        assertTrue(
+            "no option should offer the excluded country's own exclusive subregion",
+            sections.none { section -> section.options.any { it.categoryType == "subregion" && it.categoryValue == "Excluded Isles" } }
+        )
+    }
+
+    @Test
+    fun `onDifficultySelected updates state without persisting it`() {
         val vm = viewModel()
 
         vm.onDifficultySelected(Difficulty.HARD)
         dispatcher.scheduler.runCurrent()
 
         assertEquals(Difficulty.HARD, vm.uiState.value.difficulty)
-        coVerify { settingsRepository.setDifficulty(Difficulty.HARD) }
+
+        val another = viewModel()
+        assertEquals(Difficulty.NORMAL, another.uiState.value.difficulty)
     }
 
     @Test

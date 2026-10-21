@@ -36,12 +36,15 @@ class CurrencyItemsTest {
     // --- Real bundled data: D48 and this class's extension of it -------------------------------
 
     @Test
-    fun `real data has exactly 143 items, each with a unique representative code`() {
+    fun `real data has exactly 124 items, each with a unique representative code`() {
+        // 143 before task P10-B's CurrencySymbolRules.EXCLUDED_CODES (19 codes whose symbol
+        // itself spells out the country, e.g. AED's Arabic abbreviation) dropped 19 representative
+        // items (18 single-owner currencies plus the shared JOD): 143 - 19 = 124.
         val data = realData()
         val allCountries = (data.primaryCurrency.keys).associateWith { synthetic(it) }
         val items = CurrencyItems.buildAll(data, allCountries)
 
-        assertEquals(143, items.size)
+        assertEquals(124, items.size)
         assertEquals(items.size, items.map { it.country.code }.distinct().size)
     }
 

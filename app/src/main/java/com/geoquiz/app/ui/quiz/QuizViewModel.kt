@@ -175,18 +175,18 @@ class QuizViewModel @Inject constructor(
     }
 
     /**
-     * Route > value saved for process death > the matching resume save's tier > the remembered
-     * default. Challenges never run at Easy ([Difficulty.forChallenge]), and a tier the mode
-     * does not offer falls back to Normal.
+     * Route > value saved for process death > the matching resume save's tier > [Difficulty.DEFAULT]
+     * (P10-G: never the remembered default - there is no longer one). Challenges never run at
+     * Easy ([Difficulty.forChallenge]), and a tier the mode does not offer falls back to Normal.
      */
-    private suspend fun resolveDifficulty(savedQuiz: SavedQuizEntity?): Difficulty {
+    private fun resolveDifficulty(savedQuiz: SavedQuizEntity?): Difficulty {
         val requested = routeDifficulty
             ?: savedState.difficulty
             ?: savedQuiz?.takeIf { it.isSameQuiz() }?.let { Difficulty.fromIdOrDefault(it.difficulty) }
         val resolved = if (challengeId != null) {
-            Difficulty.forChallenge(requested, settingsRepository.difficulty.first())
+            Difficulty.forChallenge(requested, Difficulty.DEFAULT)
         } else {
-            requested ?: settingsRepository.difficulty.first()
+            requested ?: Difficulty.DEFAULT
         }
         return resolved.takeIf { it in gameMode.spec.supportedDifficulties } ?: Difficulty.NORMAL
     }

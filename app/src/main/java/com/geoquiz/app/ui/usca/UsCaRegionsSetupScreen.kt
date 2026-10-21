@@ -45,9 +45,9 @@ import com.geoquiz.app.ui.components.DifficultySelector
 import com.geoquiz.app.ui.components.WrappingTopAppBar
 
 /**
- * US states and Canadian provinces' setup screen (task 6.2), registered at
- * [com.geoquiz.app.ui.navigation.Screen.ModeSetup]: group, DC-optional checkbox (US only),
- * variant and difficulty. Tapping Start navigates via [onStart].
+ * States and territories' setup screen (task 6.2; Australia added P10-D2), registered at
+ * [com.geoquiz.app.ui.navigation.Screen.ModeSetup]: group (United States, Canada or Australia),
+ * DC-optional checkbox (US only), variant and difficulty. Tapping Start navigates via [onStart].
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -94,6 +94,11 @@ fun UsCaRegionsSetupScreen(
                         selected = state.group == UsCaRegionGroup.CANADIAN_PROVINCES,
                         onClick = { viewModel.onGroupSelected(UsCaRegionGroup.CANADIAN_PROVINCES) },
                         label = { Text(stringResource(R.string.us_ca_regions_group_ca)) }
+                    )
+                    FilterChip(
+                        selected = state.group == UsCaRegionGroup.AU_STATES,
+                        onClick = { viewModel.onGroupSelected(UsCaRegionGroup.AU_STATES) },
+                        label = { Text(stringResource(R.string.us_ca_regions_group_au)) }
                     )
                 }
                 if (state.group == UsCaRegionGroup.US_STATES) {

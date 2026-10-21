@@ -40,7 +40,7 @@ class WideLayoutsScreenshotTest {
     @Test @Config(qualifiers = LARGE_TABLET)
     fun play_tablet() = compose.captureScreen("play_tablet", ScreenshotScreens.play())
 
-    /** Large tablet, every mode on (task 9.x): the New modes grid beside the cards column. */
+    /** Large tablet, every mode on (task 9.x): the tiles column beside the cards column. */
     @Test @Config(qualifiers = LARGE_TABLET)
     fun play_all_modes_tablet() = compose.captureScreen("play_all_modes_tablet", ScreenshotScreens.playAllModes())
 

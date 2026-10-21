@@ -38,7 +38,6 @@ import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
 import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
-import com.geoquiz.app.domain.usecase.RecommendNextCategoryUseCase
 import com.geoquiz.app.domain.usecase.ResetAllDataUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import com.geoquiz.app.ui.category.CategoryOptionsBuilder
@@ -108,14 +107,12 @@ object ScreenTestFixtures {
         showTimer: Boolean = true,
         showFlags: Boolean = false,
         showCountryHint: Boolean = false,
-        difficulty: Difficulty = Difficulty.NORMAL,
         vibration: Boolean = true
     ): SettingsRepository = mockk(relaxed = true) {
         every { this@mockk.vibration } returns flowOf(vibration)
         every { this@mockk.showTimer } returns flowOf(showTimer)
         every { this@mockk.showFlags } returns flowOf(showFlags)
         every { this@mockk.showCountryHint } returns flowOf(showCountryHint)
-        every { this@mockk.difficulty } returns flowOf(difficulty)
     }
 
     /**
@@ -243,8 +240,8 @@ object ScreenTestFixtures {
     /**
      * The Play tab over [countries], with [savedQuiz] on the "Continue" card, feature flags
      * from [flagStates] (all defaults, so all off, unless given), the classic registry plus
-     * [extraModes], history (stars, recency) from [history] (empty unless given) and pinned
-     * categories from [pins] (none unless given).
+     * [extraModes], pinned categories from [pins] (none unless given) and "Surprise me" draws
+     * from [quizRandom] (task P10-A.6).
      */
     fun playViewModel(
         countries: List<Country> = EIGHT,
@@ -253,11 +250,10 @@ object ScreenTestFixtures {
         extraModes: Set<GameMode> = emptySet(),
         savedStateHandle: SavedStateHandle = SavedStateHandle(),
         savedQuizRepository: SavedQuizRepository = savedQuizRepository(savedQuiz),
-        history: QuizHistoryRepository = quizHistoryRepository(),
         pins: Flow<List<PinnedCategory>> = flowOf(emptyList()),
         /** The daily challenge streak behind the Today's challenge card and header chip (8.6). */
-        streak: Flow<StreakStatus> =
-            flowOf(StreakStatus.NONE)
+        streak: Flow<StreakStatus> = flowOf(StreakStatus.NONE),
+        quizRandom: QuizRandom = QuizRandom()
     ): PlayViewModel {
         val flags = mockk<FeatureFlagRepository> {
             every { states } returns flagStates
@@ -273,12 +269,11 @@ object ScreenTestFixtures {
             savedQuizRepository = savedQuizRepository,
             categoryGroups = PlayCategoryGroups(flagColorDao, flagElementDao),
             optionsBuilder = CategoryOptionsBuilder(flagColorDao, flagElementDao),
-            quizHistoryRepository = history,
-            recommendNext = RecommendNextCategoryUseCase(),
             pinnedCategoriesRepository = pinnedCategoriesRepository(pins),
             observeStreak = mockk<ObserveStreakUseCase> {
                 every { this@mockk.invoke() } returns streak
-            }
+            },
+            quizRandom = quizRandom
         )
     }
 
@@ -287,18 +282,6 @@ object ScreenTestFixtures {
         pins: Flow<List<PinnedCategory>> = flowOf(emptyList())
     ): PinnedCategoriesRepository = mockk(relaxUnitFun = true) {
         every { pinnedCategories } returns pins
-    }
-
-    /**
-     * History for the Play tab: mastery stars and recently played category keys
-     * (`"type|value"`, most recent first) per mode id. Empty by default.
-     */
-    fun quizHistoryRepository(
-        stars: (modeId: String) -> Flow<Map<String, Int>> = { flowOf(emptyMap()) },
-        recentKeys: (modeId: String) -> Flow<List<String>> = { flowOf(emptyList()) }
-    ): QuizHistoryRepository = mockk(relaxed = true) {
-        every { masteryStarsForMode(any()) } answers { stars(firstArg()) }
-        every { categoryKeysByRecencyForMode(any()) } answers { recentKeys(firstArg()) }
     }
 
     /** A relaxed saved-quiz repository holding [savedQuiz]; answered codes are parsed from the JSON. */
@@ -322,7 +305,7 @@ object ScreenTestFixtures {
             every { privacyOptionsRequired } returns MutableStateFlow(false)
         }
         return SettingsViewModel(
-            settingsRepository = settingsRepository(showTimer = true, difficulty = Difficulty.HARD),
+            settingsRepository = settingsRepository(showTimer = true),
             billingRepository = billing,
             consentManager = consent,
             resetAllData = mockk<ResetAllDataUseCase>(relaxed = true)

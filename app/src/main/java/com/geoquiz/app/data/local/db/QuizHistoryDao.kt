@@ -73,27 +73,6 @@ interface QuizHistoryDao {
     """)
     fun observeBestScoresForMode(quizMode: String): Flow<List<QuizBestScore>>
 
-    // Mastery stars: every distinct (category, tier, result) for a mode. Duplicate results
-    // collapse, so the list stays small; MasteryStars picks the best per category.
-
-    @Query("""
-        SELECT DISTINCT categoryType, categoryValue, difficulty, correctAnswers, totalQuestions
-        FROM quiz_history
-        WHERE quizMode = :quizMode AND totalQuestions > 0
-    """)
-    fun observeMasteryRowsForMode(quizMode: String): Flow<List<QuizMasteryRow>>
-
-    // Categories of a mode, most recently finished first (one row each), for "Recommended next"
-
-    @Query("""
-        SELECT categoryType, categoryValue
-        FROM quiz_history
-        WHERE quizMode = :quizMode
-        GROUP BY categoryType, categoryValue
-        ORDER BY MAX(completedAtMillis) DESC, MAX(id) DESC
-    """)
-    fun observeCategoriesByRecencyForMode(quizMode: String): Flow<List<QuizCategoryRef>>
-
     // Recent history
 
     @Query("SELECT * FROM quiz_history ORDER BY completedAtMillis DESC LIMIT :limit")
@@ -143,10 +122,4 @@ interface QuizHistoryDao {
 data class QuizModeCount(
     val quizMode: String,
     val count: Int
-)
-
-/** A recorded category of a mode, as returned by [QuizHistoryDao.observeCategoriesByRecencyForMode]. */
-data class QuizCategoryRef(
-    val categoryType: String,
-    val categoryValue: String
 )

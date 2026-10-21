@@ -107,7 +107,7 @@ class FlagSpeedGameViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _vibration.value = settingsRepository.vibration.first()
-            val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+            val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
             val difficulty = requested.takeIf { it in FlagSpeedGameMode.SPEC.supportedDifficulties } ?: Difficulty.DEFAULT
             savedState.difficulty = difficulty
 

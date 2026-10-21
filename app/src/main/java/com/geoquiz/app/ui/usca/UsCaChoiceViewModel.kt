@@ -99,7 +99,8 @@ class UsCaChoiceViewModel @Inject constructor(
         }
         itemsByCode = loaded.items.associateBy { it.code }
         val quiz = Quiz(category = loaded.category, countries = loaded.items)
-        _mapState.value = loadUsCaRegionsMapState(mapRepository, loaded.items.mapTo(HashSet()) { it.code })
+        _mapState.value =
+            loadUsCaRegionsMapState(mapRepository, loaded.items.mapTo(HashSet()) { it.code }, loaded.group)
 
         val snapshot = savedState.restore()
         var state = if (snapshot != null) {

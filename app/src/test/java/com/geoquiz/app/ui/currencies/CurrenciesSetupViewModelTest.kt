@@ -2,7 +2,6 @@ package com.geoquiz.app.ui.currencies
 
 import android.net.Uri
 import com.geoquiz.app.data.currencies.CurrencyRepository
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
 import com.geoquiz.app.domain.mode.currencies.CurrencyData
@@ -47,7 +46,6 @@ import kotlin.random.Random
 class CurrenciesSetupViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
 
     /**
      * [CategoryOptionsFixture.COUNTRIES] (17 countries), with currencies assigned so the real
@@ -94,7 +92,6 @@ class CurrenciesSetupViewModelTest {
         Dispatchers.setMain(dispatcher)
         mockkStatic(Uri::class)
         every { Uri.encode(any()) } answers { firstArg() }
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
     }
 
     @After
@@ -115,7 +112,6 @@ class CurrenciesSetupViewModelTest {
         val vm = CurrenciesSetupViewModel(
             countryRepository = countryRepository(countries),
             optionsBuilder = optionsBuilder,
-            settingsRepository = settingsRepository,
             currencyGameMode = mode
         )
         dispatcher.scheduler.runCurrent()
@@ -182,13 +178,21 @@ class CurrenciesSetupViewModelTest {
     }
 
     @Test
-    fun `onDifficultySelected updates state and remembers the default`() {
+    fun `difficulty starts at Normal`() {
+        assertEquals(Difficulty.NORMAL, viewModel().uiState.value.difficulty)
+    }
+
+    @Test
+    fun `onDifficultySelected updates state without persisting it`() {
         val vm = viewModel()
 
         vm.onDifficultySelected(Difficulty.HARD)
         dispatcher.scheduler.runCurrent()
 
         assertEquals(Difficulty.HARD, vm.uiState.value.difficulty)
+
+        val another = viewModel()
+        assertEquals(Difficulty.NORMAL, another.uiState.value.difficulty)
     }
 
     @Test

@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 /**
  * Which registered mode ids (classic or new) are currently reachable, by the same rule as Play's
- * "New modes" grid ([GameModeRegistry.available]): released modes plus those whose
+ * "More ways to play" tiles ([GameModeRegistry.available]): released modes plus those whose
  * [com.geoquiz.app.domain.model.FeatureFlag] is on (debug overrides only).
  *
  * Used by [AppNavigation] to pop a new mode's own screens (`ModeSetup`, `Silhouettes`, `TapMap`)

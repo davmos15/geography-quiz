@@ -102,9 +102,9 @@ class UsCaNameAllViewModel @Inject constructor(
         }
     }
 
-    /** Route tier, else the saved value, else the remembered default - Normal/Hard only (D40). */
-    private suspend fun resolveDifficulty(): Difficulty {
-        val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+    /** Route tier, else the saved value, else [Difficulty.DEFAULT] - Normal/Hard only (D40). */
+    private fun resolveDifficulty(): Difficulty {
+        val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
         return if (requested == Difficulty.HARD) Difficulty.HARD else Difficulty.NORMAL
     }
 

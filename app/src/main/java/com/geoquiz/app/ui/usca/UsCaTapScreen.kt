@@ -239,7 +239,7 @@ internal fun UsCaTapContent(
     val target = state.currentTargetCode?.let { countriesByCode[it] }
     val featureStates = androidx.compose.runtime.remember(state) { usCaTapFeatureStates(state) }
     val scene = rememberMapScene(
-        projection = US_CA_PROJECTION,
+        projection = mapState.projection,
         coarse = mapState.layer,
         bounds = mapState.frame,
         members = qs.quiz.countries.mapTo(HashSet()) { it.code },

@@ -94,7 +94,6 @@ class FlagSpeedGameViewModelTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.EASY)
     }
 
     @After
@@ -426,5 +425,12 @@ class FlagSpeedGameViewModelTest {
             state.isComplete
         )
         assertEquals(1, completedQuizzes.saveCount)
+    }
+
+    @Test
+    fun `without a route difficulty Difficulty DEFAULT (Normal) is used`() {
+        val vm = viewModel(routeHandle())
+
+        assertEquals(Difficulty.NORMAL, vm.active().difficulty)
     }
 }

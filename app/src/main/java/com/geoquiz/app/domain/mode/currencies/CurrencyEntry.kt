@@ -22,8 +22,28 @@ data class CurrencyEntry(
     val countries: List<String>,
     val shared: Boolean,
     val fact: String?,
-    val listedInBasketBy: List<String> = emptyList()
-)
+    val listedInBasketBy: List<String> = emptyList(),
+    /**
+     * True if [symbol] is also used by another currency in the bundled data (task P10-B, Dav
+     * 2026-10-20: the Currencies clue now shows the symbol only, so a currency with exactly one
+     * owning country can still have more than one valid-looking typed answer when its symbol -
+     * not its code - is shared, e.g. the Albanian lek's "L" is also Honduras/Lesotho/Moldova/
+     * Eswatini's symbol). Computed once by [CurrencySymbolRules.classify] when the bundled data
+     * loads, never by callers constructing a [CurrencyEntry] fixture directly (defaults to
+     * `false`, same as every pre-existing test fixture).
+     */
+    val ambiguousSymbol: Boolean = false
+) {
+    /**
+     * Always a four-option "Which of these uses [symbol]?" question, at every tier, never typed
+     * (task P10-B/P10-R1): true for a genuinely [shared] currency (D50), one whose [symbol] is
+     * [ambiguousSymbol] even though it has only one owning country, or one with a non-empty
+     * [listedInBasketBy] - the basket country is just as valid an answer from the symbol alone
+     * (e.g. BWP "P", Zimbabwe also uses it informally, D48), even when [shared] is false and the
+     * symbol is not otherwise ambiguous.
+     */
+    val isChoiceOnly: Boolean get() = shared || ambiguousSymbol || listedInBasketBy.isNotEmpty()
+}
 
 /** Every currency entry plus the country-to-primary-currency map (task 7.1, D48). */
 data class CurrencyData(

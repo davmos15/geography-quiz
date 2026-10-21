@@ -14,9 +14,8 @@ import javax.inject.Inject
  * Builds the concrete quiz options of a category group from the country and flag data, in the
  * order the category list shows them. Options with no countries are left out.
  *
- * Shared by the category list ([CategoryListViewModel]) and the Play tab's "Recommended next"
- * card, so both see exactly the same options. Extracted from [CategoryListViewModel] (3.4b)
- * without changing behaviour.
+ * Shared by the category list ([CategoryListViewModel]) and the Play tab, so both see exactly
+ * the same options. Extracted from [CategoryListViewModel] (3.4b) without changing behaviour.
  */
 class CategoryOptionsBuilder @Inject constructor(
     private val flagColorDao: FlagColorDao,

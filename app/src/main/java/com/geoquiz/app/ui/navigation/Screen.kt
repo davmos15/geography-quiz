@@ -76,7 +76,7 @@ sealed class Screen(val route: String) {
     data object Challenges : Screen("challenges")
 
     /**
-     * A new mode's own setup screen, opened from Play's "New modes" grid
+     * A new mode's own setup screen, opened from Play's "More ways to play" tiles
      * ([com.geoquiz.app.domain.mode.GameModeRegistry]). Dispatches by [modeId] to that mode's own
      * setup composable (task 5.0); classic modes never navigate here.
      */

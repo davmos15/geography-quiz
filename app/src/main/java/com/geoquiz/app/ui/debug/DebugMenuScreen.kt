@@ -125,6 +125,14 @@ fun DebugMenuScreen(
                     Text(stringResource(R.string.debug_menu_map_preview))
                 }
             }
+            item {
+                TextButton(
+                    onClick = { viewModel.onShowWhatsNewAgain() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.debug_menu_show_whats_new_again))
+                }
+            }
         }
     }
 }

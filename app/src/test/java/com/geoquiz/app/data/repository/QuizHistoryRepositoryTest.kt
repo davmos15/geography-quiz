@@ -20,7 +20,7 @@ import org.robolectric.RobolectricTestRunner
  * [QuizHistoryRepository.getTotalCorrectAnswersSync] feeds the "Overall" leaderboard total
  * (`PlayGamesSyncManager`, `CompleteQuizUseCase`). New modes (Silhouettes, Tap the map, ...)
  * never submit leaderboard scores (D35), so their history rows must not contribute to it even
- * though they are recorded in history (for Stats and mastery stars).
+ * though they are recorded in history (for Stats).
  */
 @RunWith(RobolectricTestRunner::class)
 class QuizHistoryRepositoryTest {

@@ -36,15 +36,3 @@ data class QuizBestScore(
     val correctAnswers: Int,
     val totalQuestions: Int
 )
-
-/**
- * One distinct result for a category, for mastery stars
- * ([com.geoquiz.app.domain.usecase.MasteryStars]).
- */
-data class QuizMasteryRow(
-    val categoryType: String,
-    val categoryValue: String,
-    val difficulty: String,
-    val correctAnswers: Int,
-    val totalQuestions: Int
-)

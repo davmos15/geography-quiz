@@ -8,21 +8,30 @@ import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.data.repository.QuizHistoryRepository
 import com.geoquiz.app.data.repository.SavedQuizRepository
 import com.geoquiz.app.data.service.PlayGamesAchievementService
+import com.geoquiz.app.domain.map.GeoLayerId
+import com.geoquiz.app.domain.map.MapFeatureState
+import com.geoquiz.app.domain.map.MapRepository
 import com.geoquiz.app.domain.mode.GameModeRegistry
+import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.HintType
 import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.borderhop.BorderGraph
 import com.geoquiz.app.domain.mode.borderhop.BorderHopGameMode
 import com.geoquiz.app.domain.mode.borderhop.BorderHopQuestionGenerator
-import com.geoquiz.app.domain.mode.borderhop.BorderHopScoring
+import com.geoquiz.app.domain.model.AnswerAlias
 import com.geoquiz.app.domain.model.Difficulty
+import com.geoquiz.app.domain.model.QuizCategory
 import com.geoquiz.app.domain.repository.CountryRepository
 import com.geoquiz.app.domain.repository.FakeCompletedQuizRepository
 import com.geoquiz.app.domain.time.MonotonicClock
 import com.geoquiz.app.domain.usecase.CompleteQuizUseCase
+import com.geoquiz.app.domain.usecase.CountryNameSuggester
 import com.geoquiz.app.domain.usecase.GetCountriesForQuizUseCase
+import com.geoquiz.app.domain.usecase.NormalizeInputUseCase
 import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import com.geoquiz.app.testutil.TestQuizData.country
+import com.geoquiz.app.ui.map.squareFeature
+import com.geoquiz.app.ui.map.squareLayer
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -37,10 +46,13 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 import kotlin.random.Random
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,40 +64,54 @@ class BorderHopGameViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val clock = FakeClock()
+    private val normalize = NormalizeInputUseCase()
 
-    /** A-B-C-D-E-F-G in a line: diameter 6, matching every difficulty's hop range (D44). */
-    private val codes = listOf("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG")
-    private val countries = codes.map { country(it, "Country $it", "Capital $it") }
-    private val lineGraph = BorderGraph(
-        codes.indices.associate { i ->
-            codes[i] to listOfNotNull(codes.getOrNull(i - 1), codes.getOrNull(i + 1))
-        }
+    /** South Africa to Sudan in a line (6 hops), plus four countries with no land border here. */
+    private val line = listOf("ZAF", "BWA", "ZMB", "TZA", "UGA", "SSD", "SDN")
+    private val names = mapOf(
+        "ZAF" to "South Africa", "BWA" to "Botswana", "ZMB" to "Zambia", "TZA" to "Tanzania",
+        "UGA" to "Uganda", "SSD" to "South Sudan", "SDN" to "Sudan",
+        "JPN" to "Japan", "GBR" to "United Kingdom", "FRA" to "France", "AUS" to "Australia"
     )
+    private val countries = names.map { (code, name) -> country(code, name, "Capital of $name", region = "Africa") }
+    private val byCode = countries.associateBy { it.code }
+    private val graph = BorderGraph(
+        line.indices.associate { i -> line[i] to listOfNotNull(line.getOrNull(i - 1), line.getOrNull(i + 1)) } +
+            mapOf("JPN" to emptyList(), "GBR" to emptyList(), "FRA" to emptyList(), "AUS" to emptyList())
+    )
+    private val aliases: List<AnswerAlias> =
+        countries.map { AnswerAlias(normalize(it.name), it) } + AnswerAlias("uk", byCode.getValue("GBR"))
+
+    /** The category's candidates; the pair decides the par: 2 at Easy, 4 at Normal, 6 at Hard. */
+    private fun candidatesFor(difficulty: Difficulty) = when (difficulty) {
+        Difficulty.EASY -> listOf("ZAF", "ZMB")
+        Difficulty.NORMAL -> listOf("ZAF", "UGA")
+        Difficulty.HARD -> listOf("ZAF", "SDN")
+    }.map { byCode.getValue(it) }
 
     private val getCountriesForQuiz = mockk<GetCountriesForQuizUseCase>()
-    private val validateAnswer = mockk<ValidateAnswerUseCase>(relaxed = true)
     private val countryRepository = mockk<CountryRepository> {
         every { getAllCountries() } returns flowOf(countries)
+        coEvery { getCountryAnswerAliases() } returns aliases
     }
-    private val borderGraphRepository = mockk<BorderGraphRepository> {
-        coEvery { graph() } returns lineGraph
+    private val borderGraphRepository = mockk<BorderGraphRepository> { coEvery { graph() } returns graph }
+    private val mapRepository = mockk<MapRepository> {
+        coEvery { layer(any()) } throws IOException("no map in unit tests")
+        every { cachedLayer(any()) } returns null
     }
     private val settingsRepository = mockk<SettingsRepository>(relaxed = true)
     private val completedQuizzes = FakeCompletedQuizRepository()
-    private val savedQuizRepository = mockk<SavedQuizRepository>(relaxed = true)
-    private val achievementRepository = mockk<AchievementRepository>(relaxed = true)
-    private val quizHistoryRepository = mockk<QuizHistoryRepository>(relaxed = true)
-    private val playGames = mockk<PlayGamesAchievementService>(relaxed = true)
 
-    private fun borderHopMode() = BorderHopGameMode(BorderHopQuestionGenerator(getCountriesForQuiz), validateAnswer)
+    private fun borderHopMode() =
+        BorderHopGameMode(BorderHopQuestionGenerator(getCountriesForQuiz), mockk<ValidateAnswerUseCase>(relaxed = true))
 
     private fun completeQuizUseCase(mode: BorderHopGameMode) = CompleteQuizUseCase(
         gameModes = GameModeRegistry(setOf(mode)),
         completedQuizRepository = completedQuizzes,
-        savedQuizRepository = savedQuizRepository,
-        achievementRepository = achievementRepository,
-        quizHistoryRepository = quizHistoryRepository,
-        playGamesService = playGames
+        savedQuizRepository = mockk<SavedQuizRepository>(relaxed = true),
+        achievementRepository = mockk<AchievementRepository>(relaxed = true),
+        quizHistoryRepository = mockk<QuizHistoryRepository>(relaxed = true),
+        playGamesService = mockk<PlayGamesAchievementService>(relaxed = true)
     )
 
     @Before
@@ -95,8 +121,6 @@ class BorderHopGameViewModelTest {
         every { Uri.decode(any()) } answers { firstArg() }
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
-        coEvery { getCountriesForQuiz(any()) } returns countries
     }
 
     @After
@@ -105,16 +129,8 @@ class BorderHopGameViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun routeHandle(
-        categoryType: String = "all",
-        categoryValue: String = "_",
-        difficulty: Difficulty? = null
-    ) = SavedStateHandle(
-        buildMap<String, Any?> {
-            put("categoryType", categoryType)
-            put("categoryValue", categoryValue)
-            if (difficulty != null) put(BorderHopGameViewModel.ARG_DIFFICULTY, difficulty.id)
-        }
+    private fun routeHandle(difficulty: Difficulty) = SavedStateHandle(
+        mapOf("categoryType" to "all", "categoryValue" to "_", BorderHopGameViewModel.ARG_DIFFICULTY to difficulty.id)
     )
 
     private fun afterProcessDeath(handle: SavedStateHandle) =
@@ -124,8 +140,10 @@ class BorderHopGameViewModelTest {
         handle: SavedStateHandle,
         mode: BorderHopGameMode = borderHopMode(),
         completeQuiz: CompleteQuizUseCase = completeQuizUseCase(mode),
-        quizRandom: QuizRandom = QuizRandom(Random(9))
+        seed: Int = 9
     ): BorderHopGameViewModel {
+        val difficulty = Difficulty.fromIdOrNull(handle[BorderHopGameViewModel.ARG_DIFFICULTY]) ?: Difficulty.NORMAL
+        coEvery { getCountriesForQuiz(any()) } returns candidatesFor(difficulty)
         val vm = BorderHopGameViewModel(
             savedStateHandle = handle,
             gameMode = mode,
@@ -133,8 +151,12 @@ class BorderHopGameViewModelTest {
             countryRepository = countryRepository,
             completeQuiz = completeQuiz,
             settingsRepository = settingsRepository,
+            mapRepository = mapRepository,
+            normalizeInput = normalize,
+            suggester = CountryNameSuggester(normalize),
             clock = clock,
-            quizRandom = quizRandom
+            quizRandom = QuizRandom(Random(seed)),
+            defaultDispatcher = dispatcher
         )
         runCurrent()
         return vm
@@ -142,370 +164,597 @@ class BorderHopGameViewModelTest {
 
     private fun runCurrent() = dispatcher.scheduler.runCurrent()
 
-    private fun BorderHopGameViewModel.active(): BorderHopState =
-        (uiState.value as BorderHopUiState.Active).state
+    private fun advance(millis: Long) {
+        dispatcher.scheduler.advanceTimeBy(millis)
+        runCurrent()
+    }
+
+    private fun BorderHopGameViewModel.active(): BorderHopState = (uiState.value as BorderHopUiState.Active).state
+
+    private fun BorderHopGameViewModel.type(text: String) {
+        onInputChange(text)
+        onSubmit()
+        runCurrent()
+    }
+
+    private fun BorderHopGameViewModel.optimalRoute(): List<String> =
+        active().let { graph.shortestPath(it.currentCode, it.targetCode)!! }
+
+    /** A country that is not on the route and does not border its end. */
+    private fun BorderHopGameViewModel.nonNeighbour(): String = active().let { state ->
+        names.keys.first { it !in state.path && it !in graph.neighboursOf(state.currentCode) && it != state.targetCode }
+    }
+
+    // ---- Fresh round -----------------------------------------------------------------------------
 
     @Test
-    fun `a fresh round picks a start and target whose distance is this seed's randomPuzzle result`() {
-        val seed = 9
-        val expected = lineGraph.randomPuzzle(codes, BorderHopGameMode.hopRangeFor(Difficulty.NORMAL), Random(seed))!!
+    fun `a fresh round starts on one candidate with the other as target, at the shortest-route par`() {
+        val state = viewModel(routeHandle(Difficulty.NORMAL)).active()
 
-        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL), quizRandom = QuizRandom(Random(seed)))
-        val state = vm.active()
-
-        assertEquals(expected.startCode, state.startCode)
-        assertEquals(expected.targetCode, state.targetCode)
-        assertEquals(expected.parHops, state.parHops)
-        assertEquals(listOf(expected.startCode), state.path)
+        assertEquals(setOf("ZAF", "UGA"), setOf(state.startCode, state.targetCode))
+        assertEquals(4, state.parHops)
+        assertEquals(listOf(state.startCode), state.path)
+        assertTrue(state.options.isEmpty())
     }
 
     @Test
-    fun `neighbourOptions lists the current country's land-border neighbours as full countries`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val state = vm.active()
-
-        val expectedCodes = lineGraph.neighboursOf(state.currentCode).toSet()
-        assertEquals(expectedCodes, vm.neighbourOptions().map { it.code }.toSet())
-    }
-
-    @Test
-    fun `hopping to a valid neighbour extends the path and moves the current position`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val before = vm.active()
-        val next = lineGraph.neighboursOf(before.currentCode).first()
-
-        vm.onHop(next)
+    fun `no valid puzzle for the requested hop range publishes Unavailable`() {
+        val handle = routeHandle(Difficulty.HARD)
+        coEvery { getCountriesForQuiz(any()) } returns listOf(byCode.getValue("ZAF"), byCode.getValue("BWA"))
+        val vm = BorderHopGameViewModel(
+            savedStateHandle = handle,
+            gameMode = borderHopMode(),
+            borderGraphRepository = borderGraphRepository,
+            countryRepository = countryRepository,
+            completeQuiz = completeQuizUseCase(borderHopMode()),
+            settingsRepository = settingsRepository,
+            mapRepository = mapRepository,
+            normalizeInput = normalize,
+            suggester = CountryNameSuggester(normalize),
+            clock = clock,
+            quizRandom = QuizRandom(Random(1)),
+            defaultDispatcher = dispatcher
+        )
         runCurrent()
 
-        val after = vm.active()
-        assertEquals(before.path + next, after.path)
-        assertEquals(next, after.currentCode)
+        assertEquals(BorderHopUiState.Unavailable, vm.uiState.value)
+    }
+
+    // ---- Typed guesses ---------------------------------------------------------------------------
+
+    @Test
+    fun `an unrecognised name is not a strike and keeps the text for editing`() {
+        val vm = viewModel(routeHandle(Difficulty.HARD))
+
+        vm.type("Atlantis")
+
+        val state = vm.active()
+        assertEquals(BorderHopFeedback.NotRecognised("Atlantis"), state.feedback)
+        assertTrue(state.wrongGuesses.isEmpty())
+        assertEquals("Atlantis", state.input)
+        assertEquals(1, state.path.size)
     }
 
     @Test
-    fun `hopping to a country that is not a neighbour is ignored`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val before = vm.active()
-        val nonNeighbour = codes.first { it != before.currentCode && it !in lineGraph.neighboursOf(before.currentCode) }
+    fun `a country already on the route is not a strike`() {
+        val vm = viewModel(routeHandle(Difficulty.HARD))
+        val start = vm.active().startCode
 
-        vm.onHop(nonNeighbour)
-        runCurrent()
+        vm.type(names.getValue(start))
 
-        assertEquals(before, vm.active())
+        val state = vm.active()
+        assertEquals(BorderHopFeedback.AlreadyOnRoute(start), state.feedback)
+        assertTrue(state.wrongGuesses.isEmpty())
+        assertEquals("", state.input)
     }
 
     @Test
-    fun `reaching the target completes the round and records it via CompleteQuizUseCase`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val start = vm.active()
-        val path = lineGraph.shortestPath(start.startCode, start.targetCode)!!
+    fun `a recognised non-neighbour is a wrong guess, flashed on the map for a moment`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val current = vm.active().currentCode
 
-        // Walk the optimal path, one hop at a time.
-        path.drop(1).forEach { code ->
-            vm.onHop(code)
-            runCurrent()
-        }
+        vm.type("Japan")
 
-        val finished = vm.active()
-        assertTrue(finished.isComplete)
-        assertTrue(finished.reachedTarget)
+        val state = vm.active()
+        assertEquals(BorderHopFeedback.NotNeighbour("JPN", current), state.feedback)
+        assertEquals(listOf("JPN"), state.wrongGuesses)
+        assertEquals("JPN", state.flashWrongCode)
+        assertEquals(MapFeatureState.Wrong, borderHopFeatureStates(state)["JPN"])
+        assertEquals(1, state.path.size)
+
+        advance(BorderHopGameViewModel.WRONG_FLASH_MILLIS)
+        assertNull(vm.active().flashWrongCode)
+    }
+
+    @Test
+    fun `an alias like UK is recognised`() {
+        val vm = viewModel(routeHandle(Difficulty.HARD))
+
+        vm.type("UK")
+
+        assertEquals(listOf("GBR"), vm.active().wrongGuesses)
+    }
+
+    @Test
+    fun `naming a neighbour adds it to the route and clears the field`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val next = vm.optimalRoute()[1]
+
+        vm.type(names.getValue(next).uppercase())
+
+        val state = vm.active()
+        assertEquals(next, state.currentCode)
+        assertEquals(BorderHopFeedback.Hopped(next), state.feedback)
+        assertEquals("", state.input)
+        assertEquals(MapFeatureState.Found, borderHopFeatureStates(state)[next])
+        assertEquals(MapFeatureState.Start, borderHopFeatureStates(state)[state.startCode])
+        assertEquals(MapFeatureState.End, borderHopFeatureStates(state)[state.targetCode])
+    }
+
+    @Test
+    fun `a country two hops ahead is a wrong guess, not a hop`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val twoAway = vm.optimalRoute()[2]
+
+        vm.type(names.getValue(twoAway))
+
+        assertEquals(listOf(twoAway), vm.active().wrongGuesses)
+        assertEquals(1, vm.active().path.size)
+    }
+
+    @Test
+    fun `reaching the target completes and records a perfect round`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val route = vm.optimalRoute()
+
+        route.drop(1).forEach { vm.type(names.getValue(it)) }
+
+        val state = vm.active()
+        assertTrue(state.isComplete)
+        assertTrue(state.reachedTarget)
         assertEquals(1, completedQuizzes.saveCount)
         val stored = completedQuizzes.stored!!
         assertEquals(BorderHopGameMode.MODE_ID, stored.quizModeId)
-        assertEquals(path, stored.countryCodes)
-        assertEquals(path.toSet(), stored.answeredCodes.toSet())
-        assertTrue("an optimal path is a perfect run", stored.perfectBonus)
+        assertEquals(route, stored.countryCodes)
+        assertTrue(stored.perfectBonus)
         assertEquals(0, stored.incorrectGuesses)
-        assertTrue("no missed items for a path puzzle", stored.missedCodes().isEmpty())
+        assertTrue(stored.missedCodes().isEmpty())
     }
 
     @Test
-    fun `undo drops the last hop and returns to the previous country, free of charge`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val before = vm.active()
-        val next = lineGraph.neighboursOf(before.currentCode).first()
-        vm.onHop(next)
-        runCurrent()
+    fun `a wrong guess on the way costs the perfect bonus and is recorded by name`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val route = vm.optimalRoute()
 
-        vm.onUndo()
-        runCurrent()
+        vm.type("Japan")
+        route.drop(1).forEach { vm.type(names.getValue(it)) }
 
-        val after = vm.active()
-        assertEquals(before.path, after.path)
-        assertEquals(before.currentCode, after.currentCode)
-        assertTrue(after.hintsUsed.isEmpty())
+        val stored = completedQuizzes.stored!!
+        assertFalse(stored.perfectBonus)
+        assertEquals(1, stored.incorrectGuesses)
+        assertEquals(listOf("Japan"), stored.incorrectGuessStrings)
+        assertEquals(4.0 / 5.0 * 4.0, stored.score, 1e-9)
     }
 
     @Test
-    fun `undo at the very start of the round does nothing`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val before = vm.active()
-        assertFalse(before.canUndo)
+    fun `Hard ends the round at three wrong guesses, scoring zero`() {
+        val vm = viewModel(routeHandle(Difficulty.HARD))
 
-        vm.onUndo()
+        vm.type("Japan")
+        vm.type("France")
+        assertFalse(vm.active().isComplete)
+        assertEquals(1, vm.active().strikesLeft)
+        vm.type("UK")
+
+        val state = vm.active()
+        assertTrue(state.isComplete)
+        assertTrue(state.outOfGuesses)
+        assertFalse(state.reachedTarget)
+        val stored = completedQuizzes.stored!!
+        assertEquals(0.0, stored.score, 1e-9)
+        assertEquals(3, stored.incorrectGuesses)
+    }
+
+    @Test
+    fun `Normal has no strike limit`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+
+        // Four distinct, fully isolated non-neighbours: a repeated one no longer counts twice
+        // (P10-R2 M1), so these must each be different from one another and from the route.
+        listOf("Japan", "United Kingdom", "France", "Australia").forEach { vm.type(it) }
+
+        assertFalse(vm.active().isComplete)
+        assertEquals(4, vm.active().wrongGuesses.size)
+        assertNull(vm.active().strikesLeft)
+    }
+
+    // ---- Repeated wrong guesses (P10-R2 M1) -----------------------------------------------------
+
+    @Test
+    fun `naming the same non-neighbour again from the same position repeats the feedback, not a second strike`() {
+        val vm = viewModel(routeHandle(Difficulty.HARD))
+        val current = vm.active().currentCode
+
+        vm.type("Japan")
+        assertEquals(listOf("JPN"), vm.active().wrongGuesses)
+        assertEquals(2, vm.active().strikesLeft)
+
+        vm.type("Japan")
+
+        val state = vm.active()
+        assertEquals(BorderHopFeedback.NotNeighbour("JPN", current), state.feedback)
+        assertEquals("JPN", state.flashWrongCode)
+        assertEquals(listOf("JPN"), state.wrongGuesses)
+        assertEquals(2, state.strikesLeft)
+        assertFalse(state.isComplete)
+    }
+
+    @Test
+    fun `naming a different non-neighbour from the same position is still a fresh strike`() {
+        val vm = viewModel(routeHandle(Difficulty.HARD))
+
+        vm.type("Japan")
+        vm.type("France")
+
+        assertEquals(listOf("JPN", "FRA"), vm.active().wrongGuesses)
+        assertEquals(1, vm.active().strikesLeft)
+    }
+
+    @Test
+    fun `a repeated wrong guess is recorded only once at Results, not duplicated`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val route = vm.optimalRoute()
+
+        vm.type("Japan")
+        vm.type("Japan")
+        route.drop(1).forEach { vm.type(names.getValue(it)) }
+
+        val stored = completedQuizzes.stored!!
+        assertEquals(1, stored.incorrectGuesses)
+        assertEquals(listOf("Japan"), stored.incorrectGuessStrings)
+    }
+
+    @Test
+    fun `repeated wrong guesses stay deduplicated after process death`() {
+        val handle = routeHandle(Difficulty.HARD)
+        val vm = viewModel(handle)
+        vm.type("Japan")
+
+        val after = viewModel(afterProcessDeath(handle))
+        after.onResume()
+        after.type("Japan")
+
+        val state = after.active()
+        assertEquals(listOf("JPN"), state.wrongGuesses)
+        assertEquals(2, state.strikesLeft)
+    }
+
+    @Test
+    fun `without a route difficulty Difficulty DEFAULT (Normal) is used`() {
+        val handle = SavedStateHandle(mapOf("categoryType" to "all", "categoryValue" to "_"))
+        coEvery { getCountriesForQuiz(any()) } returns candidatesFor(Difficulty.NORMAL)
+
+        val vm = viewModel(handle)
+
+        assertEquals(Difficulty.NORMAL, vm.active().difficulty)
+    }
+
+    @Test
+    fun `Hard accepts no typos, Normal forgives one`() {
+        val hard = viewModel(routeHandle(Difficulty.HARD))
+        hard.type("United Kingdomm")
+        assertEquals(BorderHopFeedback.NotRecognised("United Kingdomm"), hard.active().feedback)
+        assertTrue(hard.active().wrongGuesses.isEmpty())
+
+        val normal = viewModel(routeHandle(Difficulty.NORMAL))
+        normal.type("United Kingdomm")
+        assertEquals(listOf("GBR"), normal.active().wrongGuesses)
+    }
+
+    @Test
+    fun `Normal suggests countries as you type, Hard does not`() {
+        val normal = viewModel(routeHandle(Difficulty.NORMAL))
+        normal.onInputChange("bots")
+        assertEquals(listOf("BWA"), normal.active().suggestions)
+
+        val hard = viewModel(routeHandle(Difficulty.HARD))
+        hard.onInputChange("bots")
+        assertTrue(hard.active().suggestions.isEmpty())
+    }
+
+    @Test
+    fun `tapping a suggestion submits that country`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val next = vm.optimalRoute()[1]
+        vm.onInputChange(names.getValue(next).take(3))
+
+        vm.onSuggestionSelected(next)
         runCurrent()
 
+        assertEquals(next, vm.active().currentCode)
+        assertTrue(vm.active().suggestions.isEmpty())
+    }
+
+    // ---- Undo, hints, give up ------------------------------------------------------------------
+
+    @Test
+    fun `undo drops the last hop for free, and does nothing at the start`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val before = vm.active()
+        vm.onUndo()
+        runCurrent()
         assertEquals(before, vm.active())
-    }
 
-    @Test
-    fun `a detour that is undone before finishing still gives a perfect run`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val start = vm.active()
-        val optimal = lineGraph.shortestPath(start.startCode, start.targetCode)!!
-        require(optimal.size >= 2) { "need at least one hop to make" }
-
-        // Hop one step along the optimal route, then undo it (free), then walk it for real.
-        vm.onHop(optimal[1])
-        runCurrent()
+        vm.type(names.getValue(vm.optimalRoute()[1]))
         vm.onUndo()
         runCurrent()
-        optimal.drop(1).forEach { code ->
-            vm.onHop(code)
-            runCurrent()
-        }
 
-        val stored = completedQuizzes.stored!!
-        assertEquals(optimal, stored.countryCodes)
-        assertTrue("undo is free: no wasted hop remains in the recorded path", stored.perfectBonus)
-        assertEquals(0, stored.incorrectGuesses)
+        assertEquals(before.path, vm.active().path)
+        assertTrue(vm.active().hintsUsed.isEmpty())
     }
 
     @Test
-    fun `hopping backward and forward again without undo is a real extra hop and costs efficiency`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val start = vm.active()
-        val optimal = lineGraph.shortestPath(start.startCode, start.targetCode)!!
-        require(optimal.size >= 2) { "need at least one hop to make" }
+    fun `a hop followed by a quick undo back to the same codes cancels the hop's in-flight frame (P10-R2 L1)`() {
+        // A real map layer, so updateRouteFrame actually computes and (eventually) publishes a
+        // rect, rather than returning early for want of map data as in every other test here.
+        val features = names.keys.mapIndexed { index, code -> squareFeature(code, index * 2f, index * 2f + 1f) }
+        coEvery { mapRepository.layer(GeoLayerId.ADMIN0_50M) } returns
+            squareLayer(*features.toTypedArray(), id = GeoLayerId.ADMIN0_50M)
 
-        // Hop forward, then back to the start (a real hop, not Undo), then forward again, then
-        // finish along the rest of the optimal route: two hops wasted.
-        vm.onHop(optimal[1])
-        runCurrent()
-        vm.onHop(optimal[0])
-        runCurrent()
-        optimal.drop(1).forEach { code ->
-            vm.onHop(code)
-            runCurrent()
-        }
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val initialFrame = vm.routeFrame.value
+        assertNotNull("the initial frame should have resolved from the fake map layer", initialFrame)
+        val next = vm.optimalRoute()[1]
 
-        val stored = completedQuizzes.stored!!
-        val parHops = optimal.size - 1
-        assertEquals(parHops + 2, stored.countryCodes.size - 1)
-        assertFalse("two wasted hops is not a perfect run", stored.perfectBonus)
-        assertEquals(2, stored.incorrectGuesses)
+        // No runCurrent() between these two: the hop's frame recompute is still in flight
+        // (queued on the test dispatcher) when Undo runs and sees the same codes as before.
+        vm.onInputChange(names.getValue(next))
+        vm.onSubmit()
+        vm.onUndo()
+        runCurrent()
+
+        assertEquals(initialFrame, vm.routeFrame.value)
     }
 
     @Test
-    fun `onHint reveals a neighbour still on a shortest path to the target, costing nothing to check twice`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
-        val start = vm.active()
+    fun `the hint reveals a closer neighbour, costs once per position and stops at Normal's cap`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        val route = vm.optimalRoute()
 
         vm.onHint()
-        runCurrent()
-        val afterFirst = vm.active()
-        assertEquals(1, afterFirst.hintsUsed.size)
-        assertEquals(HintType.SHOW_VALID_HOP, afterFirst.hintsUsed.single())
-        val hinted = afterFirst.revealedHopCode!!
-        assertEquals(
-            lineGraph.shortestPathLength(start.currentCode, start.targetCode)!! - 1,
-            lineGraph.shortestPathLength(hinted, start.targetCode)
-        )
-
-        // Tapping Hint again at the same position reveals the same thing, at no extra cost.
         vm.onHint()
         runCurrent()
-        assertEquals(1, vm.active().hintsUsed.size)
-    }
+        assertEquals(listOf(HintType.SHOW_VALID_HOP), vm.active().hintsUsed)
+        assertEquals(route[1], vm.active().revealedHopCode)
+        assertEquals(MapFeatureState.Highlighted, borderHopFeatureStates(vm.active())[route[1]])
 
-    @Test
-    fun `hopping clears the hint reveal so the next position can be hinted again`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
+        vm.type(names.getValue(route[1]))
+        assertNull(vm.active().revealedHopCode)
+        vm.onHint()
+        vm.type(names.getValue(route[2]))
         vm.onHint()
         runCurrent()
-        val hinted = vm.active().revealedHopCode!!
 
-        vm.onHop(hinted)
-        runCurrent()
-
+        assertEquals(HintCosts.maxHintsPerRound(Difficulty.NORMAL), vm.active().hintsUsed.size)
         assertNull(vm.active().revealedHopCode)
     }
 
     @Test
-    fun `onHint is a no-op once the round reaches Normal's hint cap (task 8_4)`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
+    fun `the hint is unavailable, and onHint a no-op, once every closer neighbour is already on the route (P10-R2 L5)`() {
+        // BRA--P0--P1--ARG, then ARG and CHL both border BOL (the target) and PER: a detour via
+        // CHL and PER (both legal hops, just not the shortest way) leaves PER with both of its
+        // closer neighbours (ARG, CHL) already on the route.
+        val hintGraph = BorderGraph(
+            mapOf(
+                "BRA" to listOf("P0"),
+                "P0" to listOf("BRA", "P1"),
+                "P1" to listOf("P0", "ARG"),
+                "ARG" to listOf("P1", "CHL", "BOL", "PER"),
+                "CHL" to listOf("ARG", "BOL", "PER"),
+                "BOL" to listOf("ARG", "CHL"),
+                "PER" to listOf("ARG", "CHL")
+            )
+        )
+        val hintCountries = listOf("BRA", "P0", "P1", "ARG", "CHL", "BOL", "PER").map { country(it, it, "Capital of $it") }
+        val hintAliases = hintCountries.map { AnswerAlias(normalize(it.name), it) }
+        val hintCountryRepository = mockk<CountryRepository> {
+            every { getAllCountries() } returns flowOf(hintCountries)
+            coEvery { getCountryAnswerAliases() } returns hintAliases
+        }
+        val hintBorderGraphRepository = mockk<BorderGraphRepository> { coEvery { graph() } returns hintGraph }
 
-        vm.onHint()
+        // A saved snapshot, so loadRound restores this exact puzzle rather than generating a
+        // random one (the tiny graph above has only one feasible pair, at Easy's hop range, which
+        // never shows a hint button at all).
+        val handle = routeHandle(Difficulty.NORMAL)
+        BorderHopSavedState(handle).apply {
+            difficulty = Difficulty.NORMAL
+            save(
+                BorderHopState(
+                    category = QuizCategory.AllCountries,
+                    difficulty = Difficulty.NORMAL,
+                    startCode = "BRA",
+                    targetCode = "BOL",
+                    parHops = 4,
+                    path = listOf("BRA")
+                ),
+                elapsedMillis = 0L
+            )
+        }
+        val mode = borderHopMode()
+        val vm = BorderHopGameViewModel(
+            savedStateHandle = handle,
+            gameMode = mode,
+            borderGraphRepository = hintBorderGraphRepository,
+            countryRepository = hintCountryRepository,
+            completeQuiz = completeQuizUseCase(mode),
+            settingsRepository = settingsRepository,
+            mapRepository = mapRepository,
+            normalizeInput = normalize,
+            suggester = CountryNameSuggester(normalize),
+            clock = clock,
+            quizRandom = QuizRandom(Random(1)),
+            defaultDispatcher = dispatcher
+        )
         runCurrent()
-        assertEquals(1, vm.active().hintsUsed.size)
-        val firstHinted = vm.active().revealedHopCode!!
+        // A restored snapshot starts paused, like process death (the player resumes deliberately).
+        vm.onResume()
+        assertTrue(vm.active().hintAvailable)
 
-        // Moving clears the reveal, so a second hint at the new position is a fresh use: Normal's
-        // cap (HintCosts.maxHintsPerRound) is 2.
-        vm.onHop(firstHinted)
-        runCurrent()
-        vm.onHint()
-        runCurrent()
-        assertEquals(2, vm.active().hintsUsed.size)
-        val secondHinted = vm.active().revealedHopCode!!
-
-        // A third hint, after moving again, is a no-op: the round-wide cap is already spent.
-        vm.onHop(secondHinted)
-        runCurrent()
-        vm.onHint()
-        runCurrent()
+        listOf("P0", "P1", "ARG", "CHL", "PER").forEach { vm.type(it) }
 
         val state = vm.active()
-        assertEquals("the cap already reached: no third hint", 2, state.hintsUsed.size)
-        assertNull("nothing new revealed", state.revealedHopCode)
+        assertEquals("PER", state.currentCode)
+        assertTrue("no wrong guesses: every hop above is a legal (if not shortest) move", state.wrongGuesses.isEmpty())
+        assertFalse(state.hintAvailable)
+
+        vm.onHint()
+        runCurrent()
+        assertTrue(vm.active().hintsUsed.isEmpty())
+        assertNull(vm.active().revealedHopCode)
     }
 
     @Test
-    fun `onHint is always a no-op at Easy, which has no hint cap headroom (task 8_4)`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-
-        vm.onHint()
-        runCurrent()
-
-        val state = vm.active()
-        assertTrue(state.hintsUsed.isEmpty())
-        assertNull(state.revealedHopCode)
-    }
-
-    @Test
-    fun `giving up ends the round without reaching the target and scores zero`() {
-        val vm = viewModel(routeHandle(difficulty = Difficulty.EASY))
-        val start = vm.active()
-        val next = lineGraph.neighboursOf(start.currentCode).first()
-        vm.onHop(next)
-        runCurrent()
+    fun `giving up records a zero score`() {
+        val vm = viewModel(routeHandle(Difficulty.NORMAL))
+        vm.type(names.getValue(vm.optimalRoute()[1]))
 
         vm.onGiveUp()
         runCurrent()
 
-        val finished = vm.active()
-        assertTrue(finished.isComplete)
-        assertTrue(finished.gaveUp)
-        assertFalse(finished.reachedTarget)
+        assertTrue(vm.active().gaveUp)
         val stored = completedQuizzes.stored!!
         assertEquals(0, stored.correct)
         assertEquals(0.0, stored.score, 1e-9)
-        assertFalse(stored.perfectBonus)
     }
 
-    @Test
-    fun `a screen recreated after the round already finished records the result only once`() {
-        val mode = borderHopMode()
-        val completeQuiz = completeQuizUseCase(mode)
-        val handle = routeHandle(difficulty = Difficulty.EASY)
-        val vm = viewModel(handle, mode, completeQuiz)
-        val start = vm.active()
-        val path = lineGraph.shortestPath(start.startCode, start.targetCode)!!
-        path.drop(1).forEach {
-            vm.onHop(it)
-            runCurrent()
-        }
-        assertEquals(1, completedQuizzes.saveCount)
-        val firstResult = completedQuizzes.stored
-
-        // The same finished round's snapshot (including its result id) comes back on a fresh
-        // ViewModel, as it would after process death.
-        val restoredHandle = afterProcessDeath(handle)
-        viewModel(restoredHandle, mode, completeQuiz)
-        runCurrent()
-
-        assertEquals(1, completedQuizzes.saveCount)
-        assertEquals(firstResult, completedQuizzes.stored)
-    }
+    // ---- Process death -------------------------------------------------------------------------
 
     @Test
-    fun `process death mid-round restores the path, puzzle and hints used`() {
-        // Normal, not Easy (task 8.4): Easy's hint cap is now 0 (HintCosts.maxHintsPerRound), so
-        // this test's onHint() call needs a tier that still allows one.
-        val handle = routeHandle(difficulty = Difficulty.NORMAL)
+    fun `process death mid-round restores the route, wrong guesses, hints and input, paused`() {
+        val handle = routeHandle(Difficulty.NORMAL)
         val vm = viewModel(handle)
-        val start = vm.active()
-        val next = lineGraph.neighboursOf(start.currentCode).first()
-        vm.onHop(next)
-        runCurrent()
+        vm.type(names.getValue(vm.optimalRoute()[1]))
+        vm.type("Japan")
         vm.onHint()
+        vm.onInputChange("Tan")
         runCurrent()
         val before = vm.active()
 
-        val restoredHandle = afterProcessDeath(handle)
-        val vm2 = viewModel(restoredHandle)
-        val after = vm2.active()
+        val after = viewModel(afterProcessDeath(handle)).active()
 
         assertEquals(before.startCode, after.startCode)
         assertEquals(before.targetCode, after.targetCode)
         assertEquals(before.parHops, after.parHops)
         assertEquals(before.path, after.path)
+        assertEquals(before.wrongGuesses, after.wrongGuesses)
         assertEquals(before.hintsUsed, after.hintsUsed)
         assertEquals(before.revealedHopCode, after.revealedHopCode)
-        assertTrue("an unfinished restored round comes back paused", after.paused)
+        assertEquals("Tan", after.input)
+        assertTrue(after.paused)
     }
 
     @Test
-    fun `a hint reveal survives process death, so re-tapping Hint after restore does not double-charge`() {
-        // Normal, not Easy (task 8.4): Easy's hint cap is now 0.
-        val handle = routeHandle(difficulty = Difficulty.NORMAL)
-        val vm = viewModel(handle)
+    fun `a screen recreated after the round finished records it only once`() {
+        val mode = borderHopMode()
+        val completeQuiz = completeQuizUseCase(mode)
+        val handle = routeHandle(Difficulty.NORMAL)
+        val vm = viewModel(handle, mode, completeQuiz)
+        vm.optimalRoute().drop(1).forEach { vm.type(names.getValue(it)) }
+        val first = completedQuizzes.stored
+
+        viewModel(afterProcessDeath(handle), mode, completeQuiz)
+
+        assertEquals(1, completedQuizzes.saveCount)
+        assertEquals(first, completedQuizzes.stored)
+    }
+
+    // ---- Easy ----------------------------------------------------------------------------------
+
+    private fun BorderHopGameViewModel.validOption(): String = active().let { state ->
+        val distances = graph.distancesFrom(state.targetCode)
+        state.options.single { distances[it] == distances.getValue(state.currentCode) - 1 && it in graph.neighboursOf(state.currentCode) }
+    }
+
+    @Test
+    fun `Easy offers four options, exactly one a neighbour on a shortest route`() {
+        val vm = viewModel(routeHandle(Difficulty.EASY))
+        val state = vm.active()
+
+        assertEquals(4, state.options.size)
+        assertEquals(4, state.options.toSet().size)
+        val neighbours = state.options.filter { it in graph.neighboursOf(state.currentCode) }
+        assertEquals(listOf(vm.validOption()), neighbours)
+        assertTrue(state.options.none { it in state.path || it == state.targetCode })
+    }
+
+    @Test
+    fun `an Easy wrong pick is a wrong guess and disables that option`() {
+        val vm = viewModel(routeHandle(Difficulty.EASY))
+        val wrong = vm.active().options.first { it != vm.validOption() }
+
+        vm.onOptionSelected(wrong)
+        runCurrent()
+        vm.onOptionSelected(wrong)
+        runCurrent()
+
+        val state = vm.active()
+        assertEquals(setOf(wrong), state.wrongPicks)
+        assertEquals(listOf(wrong), state.wrongGuesses)
+        assertEquals(1, state.path.size)
+    }
+
+    @Test
+    fun `an Easy right pick shows, then new options follow for the next position`() {
+        val vm = viewModel(routeHandle(Difficulty.EASY))
+        val valid = vm.validOption()
+
+        vm.onOptionSelected(valid)
+        runCurrent()
+        val showing = vm.active()
+        assertEquals(valid, showing.currentCode)
+        assertEquals(valid, showing.correctPick)
+        assertFalse(showing.acceptsInput)
+
+        advance(BorderHopGameViewModel.CORRECT_PICK_MILLIS)
+
+        val next = vm.active()
+        assertNull(next.correctPick)
+        assertTrue(next.wrongPicks.isEmpty())
+        assertEquals(4, next.options.size)
+        assertNotEquals(showing.options, next.options)
+        assertEquals(1, next.options.count { it in graph.neighboursOf(valid) })
+    }
+
+    @Test
+    fun `Easy walked to the target completes, and the hint stays unavailable`() {
+        val vm = viewModel(routeHandle(Difficulty.EASY))
         vm.onHint()
         runCurrent()
-        val hintedBefore = vm.active().revealedHopCode!!
-        assertEquals(1, vm.active().hintsUsed.size)
+        assertTrue(vm.active().hintsUsed.isEmpty())
 
-        val restoredHandle = afterProcessDeath(handle)
-        val vm2 = viewModel(restoredHandle)
-        assertEquals(hintedBefore, vm2.active().revealedHopCode)
-        assertEquals(1, vm2.active().hintsUsed.size)
-
-        // Tapping Hint again after restore must not add a second, already-paid-for entry.
-        vm2.onHint()
-        runCurrent()
-        assertEquals(1, vm2.active().hintsUsed.size)
-        assertEquals(hintedBefore, vm2.active().revealedHopCode)
-    }
-
-    @Test
-    fun `no valid puzzle for the requested hop range publishes Unavailable`() {
-        // The candidate pool only reaches as far as a 3-hop distance, but Hard needs 6+.
-        coEvery { getCountriesForQuiz(any()) } returns countries.take(4)
-
-        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
-
-        assertEquals(BorderHopUiState.Unavailable, vm.uiState.value)
-    }
-
-    @Test
-    fun `hints used reduce the score and drop the perfect bonus even on an optimal path`() {
-        // Normal, not Easy (task 8.4): Easy's hint cap is now 0.
-        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
-        val start = vm.active()
-        val path = lineGraph.shortestPath(start.startCode, start.targetCode)!!
-
-        vm.onHint()
-        runCurrent()
-        path.drop(1).forEach {
-            vm.onHop(it)
+        repeat(vm.active().parHops) {
+            vm.onOptionSelected(vm.validOption())
             runCurrent()
+            if (!vm.active().isComplete) advance(BorderHopGameViewModel.CORRECT_PICK_MILLIS)
         }
 
-        val stored = completedQuizzes.stored!!
-        assertFalse("any hint drops the perfect bonus (D37)", stored.perfectBonus)
-        val withoutHint = BorderHopScoring.score(
-            com.geoquiz.app.domain.model.QuizState(
-                quiz = com.geoquiz.app.domain.model.Quiz(
-                    category = com.geoquiz.app.domain.model.QuizCategory.AllCountries,
-                    countries = path.map { code -> countries.first { it.code == code } }
-                ),
-                answeredCountries = path.toSet(),
-                incorrectGuesses = 0,
-                currentInput = BorderHopScoring.FLAG_REACHED,
-                isComplete = true
-            )
-        )
-        val expected = com.geoquiz.app.domain.mode.HintCosts.applyTo(withoutHint, listOf(HintType.SHOW_VALID_HOP))
-        assertEquals(expected.score, stored.score, 1e-9)
+        assertTrue(vm.active().reachedTarget)
+        assertTrue(completedQuizzes.stored!!.perfectBonus)
+    }
+
+    @Test
+    fun `Easy options survive process death unchanged`() {
+        val handle = routeHandle(Difficulty.EASY)
+        val vm = viewModel(handle)
+        val wrong = vm.active().options.first { it != vm.validOption() }
+        vm.onOptionSelected(wrong)
+        runCurrent()
+        val before = vm.active()
+
+        val after = viewModel(afterProcessDeath(handle), seed = 42).active()
+
+        assertEquals(before.options, after.options)
+        assertEquals(before.wrongPicks, after.wrongPicks)
     }
 }

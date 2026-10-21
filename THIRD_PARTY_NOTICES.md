@@ -38,7 +38,7 @@ them.
 | Source | https://www.naturalearthdata.com/ (downloads from https://naciscdn.org/naturalearth/5.1.2/) |
 | Version | Release 5.1.2 (zip `VERSION.txt` 5.1.1 for cultural layers, 5.0.0 for physical layers); zip SHA-256 checksums in [`data/SOURCES.md`](data/SOURCES.md) |
 | Licence | Public domain. Natural Earth asks for no permission or fee; credit is appreciated. |
-| Used in | `app/src/main/assets/geo/*.bin`: country outlines (110m and 50m), tap points for small countries, US states and Canadian provinces, rivers, lakes, physical regions and elevation/geography points. Built by `tools/geodata/build_geodata.py` (see [`tools/geodata/README.md`](tools/geodata/README.md)). Wikidata item ids in the rivers, lakes, regions and points layers are Natural Earth's own `WIKIDATAID` field; Wikidata is CC0. |
+| Used in | `app/src/main/assets/geo/*.bin`: country outlines (110m and 50m), tap points for small countries, US states, Canadian provinces and Australian states/territories, rivers, lakes, physical regions and elevation/geography points. Built by `tools/geodata/build_geodata.py` (see [`tools/geodata/README.md`](tools/geodata/README.md)). Wikidata item ids in the rivers, lakes, regions and points layers are Natural Earth's own `WIKIDATAID` field; Wikidata is CC0. |
 
 Credit (to show in the app's Credits screen with the map features):
 
@@ -60,7 +60,7 @@ Credit (to show in the app's Credits screen with the map features):
 | Source | https://github.com/lipis/flag-icons (npm package `flag-icons`) |
 | Version | 7.5.0, tarball SHA-256 `c0b80bf0e08006a60f56621d6bc49f8c7131f4d1fef6737a165a673431f4b518` |
 | Licence | MIT |
-| Used in | `app/src/main/assets/flags/<cca3>.svg` (4x3 SVGs, unmodified, renamed by ISO alpha-3 code), fetched by `tools/flags/fetch_flags.py` |
+| Used in | `app/src/main/assets/flags/<cca3>.svg` (4x3 SVGs, unmodified except `usa.svg`, whose `<marker>` stars are expanded into the same shapes in an explicit path; renamed by ISO alpha-3 code), fetched by `tools/flags/fetch_flags.py` |
 | Licence copies | `app/src/main/assets/flags/LICENSE` (ships in the APK), `tools/flags/LICENSE.flag-icons` |
 
 Required notice:

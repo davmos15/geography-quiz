@@ -101,7 +101,7 @@ class SilhouettesGameViewModel @Inject constructor(
         viewModelScope.launch {
             _showTimer.value = settingsRepository.showTimer.first()
             _vibration.value = settingsRepository.vibration.first()
-            val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+            val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
             val difficulty = requested.takeIf { it in silhouettesGameMode.spec.supportedDifficulties } ?: Difficulty.DEFAULT
             savedState.difficulty = difficulty
             _timerVisible.value = _showTimer.value || difficulty.timerAlwaysShown
@@ -136,7 +136,14 @@ class SilhouettesGameViewModel @Inject constructor(
             )
         } else {
             val countries = silhouettesGameMode.generator.items(category)
-            SilhouetteState(category = category, difficulty = difficulty, countries = countries, isComplete = countries.isEmpty())
+            if (countries.isEmpty()) {
+                // Task P10-E: most likely a practice set whose every code is excluded
+                // (SilhouetteLegibility). Shown as Unavailable rather than silently committing
+                // and completing a degenerate 0-of-0 round (D43's pattern elsewhere).
+                _uiState.value = SilhouettesUiState.Unavailable
+                return
+            }
+            SilhouetteState(category = category, difficulty = difficulty, countries = countries, isComplete = false)
         }
         commit(state)
         when {

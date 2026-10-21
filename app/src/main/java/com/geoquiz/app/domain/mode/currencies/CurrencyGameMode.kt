@@ -9,6 +9,7 @@ import com.geoquiz.app.domain.mode.GameModeSpec
 import com.geoquiz.app.domain.mode.HintCosts
 import com.geoquiz.app.domain.mode.ModeIcon
 import com.geoquiz.app.domain.mode.ModeLabels
+import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.mode.ScoringRule
 import com.geoquiz.app.domain.mode.classic.CountriesQuestionGenerator
 import com.geoquiz.app.domain.model.Difficulty
@@ -20,12 +21,16 @@ import com.geoquiz.app.domain.usecase.ValidateAnswerUseCase
 import javax.inject.Inject
 
 /**
- * Currencies (task 7.1, D47/D48/D50): a currency's name, symbol and code are shown and the player
- * names the country that uses it - typed at Normal/Hard (typos allowed at Normal, like every
- * typed mode), or one of four options at Easy. A *shared* currency (the euro, the US dollar, the
- * two CFA francs, and nine more - D50) is always the four-option question, at every tier, since
- * more than one country would otherwise be a valid typed answer; flags are shown on every option
- * and a one-line fact (when the currency has one) is shown after answering.
+ * Currencies (task 7.1, D47/D48/D50; symbol-only clue task P10-B): only a currency's *symbol* is
+ * shown and the player names the country that uses it - typed at Normal/Hard (typos allowed at
+ * Normal, like every typed mode), or one of four options at Easy. [CurrencyEntry.isChoiceOnly] is
+ * always the four-option question, at every tier: a *shared* currency (the euro, the US dollar,
+ * the two CFA francs, and nine more - D50), or a single-owner currency whose symbol is also used
+ * by another currency in the data (task P10-B, since more than one country could then be a
+ * valid-looking answer for the same symbol). [CurrencySymbolRules.EXCLUDED_CODES] drops a handful
+ * of currencies whose symbol itself spells out the country (task P10-B). Flags are shown on every
+ * option and a one-line fact (when the currency has one) is shown after answering - only after,
+ * never before: the currency's name and code are never shown until the answer is resolved.
  *
  * [generator] ([CurrencyQuestionGenerator]) turns the category's filtered countries into
  * currency items; [choiceGenerator] ([CurrenciesChoiceGenerator]) and [validator]
@@ -33,18 +38,21 @@ import javax.inject.Inject
  * ViewModel (`ui/currencies/`) own the gameplay, the same way every Phase 5-7 mode does (no Room
  * resume save, D37): unlike Border hop, [choiceGenerator] and [validator] *are* real and used
  * here, since both a typed and a multiple-choice tier genuinely exist, just split per item rather
- * than per difficulty tier.
+ * than per difficulty tier. [quizRandom] is [CurrencyQuestionGenerator]'s one-per-symbol pick
+ * (task P10-R1); defaults to [QuizRandom.random]'s production randomness, seeded only in tests,
+ * the same pattern as `SilhouettesGameMode`.
  */
 class CurrencyGameMode @Inject constructor(
     countriesQuestionGenerator: CountriesQuestionGenerator,
     countryRepository: CountryRepository,
     currencyRepository: CurrencyRepository,
     validateAnswer: ValidateAnswerUseCase,
-    private val calculateScore: CalculateScoreUseCase
+    private val calculateScore: CalculateScoreUseCase,
+    quizRandom: QuizRandom = QuizRandom()
 ) : GameMode {
     override val spec: GameModeSpec = SPEC
     override val generator: CurrencyQuestionGenerator =
-        CurrencyQuestionGenerator(countriesQuestionGenerator, countryRepository, currencyRepository)
+        CurrencyQuestionGenerator(countriesQuestionGenerator, countryRepository, currencyRepository, quizRandom)
     override val choiceGenerator: ChoiceQuestionGenerator = CurrenciesChoiceGenerator(currencyRepository)
     override val validator: CurrencyAnswerValidator =
         CurrencyAnswerValidator(validateAnswer, countryRepository, currencyRepository)

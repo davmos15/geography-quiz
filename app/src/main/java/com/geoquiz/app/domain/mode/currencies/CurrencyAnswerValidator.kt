@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.first
  * enforces the rule itself as defence in depth, rather than relying only on the screen never
  * calling it.
  *
+ * Rejects [CurrencyEntry.isChoiceOnly] (task P10-B), not just [CurrencyEntry.shared]: an
+ * ambiguous-symbol single-owner currency (D-xx) is also choice-only at every tier, the same as a
+ * genuinely shared one.
+ *
  * Field-repurposing convention, like
  * [com.geoquiz.app.domain.mode.borderhop.BorderHopScoring]: [QuizState.quiz]'s country list is
  * never the whole round here, only the single representative
@@ -37,7 +41,7 @@ class CurrencyAnswerValidator(
         val allCountriesByCode = countryRepository.getAllCountries().first().associateBy { it.code }
         val data = currencyRepository.currencies()
         val entry = CurrencyItems.buildAll(data, allCountriesByCode).find { it.country.code == target.code }?.entry
-        if (entry != null && entry.shared) return AnswerResult.Incorrect
+        if (entry != null && entry.isChoiceOnly) return AnswerResult.Incorrect
         return validateAnswer(input, state, allowFuzzy)
     }
 }

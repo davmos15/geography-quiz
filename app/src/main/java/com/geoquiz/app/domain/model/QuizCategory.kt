@@ -395,9 +395,9 @@ sealed class QuizCategory {
 
     /**
      * Whether finishing a quiz in this category is recorded. D21 (Dav, 2026-10-08): a practice
-     * quiz ([Practice]) adds no history or stats row, no mastery stars, no achievements, no Play
-     * Games unlocks or leaderboard scores, and leaves no "Resume quiz" save. Its result is still
-     * saved for Results and Answer review.
+     * quiz ([Practice]) adds no history or stats row, no achievements, no Play Games unlocks or
+     * leaderboard scores, and leaves no "Resume quiz" save. Its result is still saved for Results
+     * and Answer review.
      */
     val isRecorded: Boolean
         get() = this !is Practice

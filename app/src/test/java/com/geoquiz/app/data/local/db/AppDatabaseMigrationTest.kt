@@ -229,10 +229,9 @@ class AppDatabaseMigrationTest(private val fromVersion: Int) {
             history
         )
         assertEquals(150L, database.quizHistoryDao().getTotalCorrectAnswersForModeSync("countries"))
-        // Old rows count as Normal, so they still count for leaderboards.
+        // Old rows count as Normal, so they still count for leaderboards (and their difficulty,
+        // asserted above as "normal", is already proof they migrated with a default).
         assertEquals(160L, database.quizHistoryDao().getTotalCorrectAnswersSync(CLASSIC_MODE_IDS))
-        val mastery = database.quizHistoryDao().observeMasteryRowsForMode("flags").first()
-        assertEquals(listOf(QuizMasteryRow("flag_color", "red", "normal", 10, 10)), mastery)
     }
 
     @Test

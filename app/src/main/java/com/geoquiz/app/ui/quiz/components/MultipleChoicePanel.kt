@@ -145,7 +145,13 @@ private fun PromptCard(prompt: ChoicePrompt) {
                 is ChoicePrompt.InSet -> stringResource(R.string.choice_prompt_in_set, prompt.categoryName)
                 is ChoicePrompt.CapitalOf -> stringResource(R.string.choice_prompt_capital_of, prompt.countryName)
                 is ChoicePrompt.FlagOf -> stringResource(R.string.choice_prompt_flag)
-                is ChoicePrompt.CurrencyOf -> stringResource(R.string.choice_prompt_currency_of, prompt.currencyLabel)
+                // Task P10-B: prompt.currencyLabel now carries just the currency's symbol, never
+                // its name or code (so the country is never given away before the answer) -
+                // strings_currencies.xml's wording rather than strings.xml's now-unused
+                // choice_prompt_currency_of ("Which of these uses %1$s?", left in place since this
+                // branch is otherwise unreachable in production - Currencies' own screen builds
+                // this prompt itself via CurrencyClueCard, not MultipleChoicePanel).
+                is ChoicePrompt.CurrencyOf -> stringResource(R.string.currencies_choice_prompt_symbol, prompt.currencyLabel)
                 is ChoicePrompt.FeatureOf -> stringResource(R.string.choice_prompt_feature_of, prompt.featureName)
             }
             Text(

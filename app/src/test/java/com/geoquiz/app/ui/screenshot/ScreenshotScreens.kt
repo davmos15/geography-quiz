@@ -138,8 +138,8 @@ object ScreenshotScreens {
 
     /**
      * The Play tab, Countries selected, with every top card: Today's challenge (flag on, a
-     * 12-day streak, so the header chip shows too), Continue (the saved starting-letter quiz),
-     * Recommended next and two Pinned rows. [playedToday] switches the card to "Done for today".
+     * 12-day streak, so the header chip shows too), Continue (the saved starting-letter quiz)
+     * and two Pinned rows. [playedToday] switches the card to "Done for today".
      */
     fun play(playedToday: Boolean = false): @Composable () -> Unit {
         val viewModel = ScreenTestFixtures.playViewModel(
@@ -164,10 +164,10 @@ object ScreenshotScreens {
     /**
      * The Play tab with every mode on (task 9.x, D63: every flag defaults to on for the 3.0.0
      * release candidate): the classic registry plus [TestGameModes.newModeSpecStubs] (the real
-     * spec of every one of the 7 new modes), so the New modes grid shows all 7 tiles. Feature
-     * flags are left at their defaults (every one `true`); the daily challenge is always
-     * registered by [ScreenTestFixtures.playViewModel] and stays off the grid (it has its own
-     * Today's challenge card).
+     * spec of every one of the 7 new modes), so "More ways to play" shows the Countries page's
+     * six tiles (task P10-A.5). Feature flags are left at their defaults (every one `true`); the
+     * daily challenge is always registered by [ScreenTestFixtures.playViewModel] and stays off
+     * every page (it has its own Today's challenge card).
      */
     fun playAllModes(): @Composable () -> Unit {
         val viewModel = ScreenTestFixtures.playViewModel(
@@ -189,7 +189,7 @@ object ScreenshotScreens {
 
     /**
      * Countries "By Region" over [CategoryOptionsFixture]: the difficulty selector (Normal),
-     * Africa with two stars, a Best of 3 of 4 and pinned; the other regions with no history.
+     * Africa with a Best of 3 of 4 and pinned; the other regions with no history.
      */
     fun categoryList(): @Composable () -> Unit {
         val countries = mockk<CountryRepository> {
@@ -198,7 +198,6 @@ object ScreenshotScreens {
         val history = mockk<QuizHistoryRepository> {
             every { bestScoresForMode(any()) } returns
                 flowOf(mapOf("region|Africa" to QuizBestScore("region", "Africa", 2.25, 3, 4)))
-            every { masteryStarsForMode(any()) } returns flowOf(mapOf("region|Africa" to 2))
         }
         val pins = mockk<PinnedCategoriesRepository>(relaxUnitFun = true) {
             every { pinnedCategories } returns MutableStateFlow(listOf(PinnedCategory("countries", "region", "Africa")))
@@ -213,7 +212,6 @@ object ScreenshotScreens {
             quizHistoryRepository = history,
             challengeRepository = mockk<ChallengeRepository>(relaxed = true),
             playGamesService = playGames,
-            settingsRepository = ScreenTestFixtures.settingsRepository(),
             pinnedCategoriesRepository = pins,
             challengeLinkSigner = ChallengeLinkSigner("test-key-0123456789abcdef".toByteArray()),
             gameModes = TestGameModes.registry()

@@ -109,14 +109,21 @@ fun CurrenciesHeader(
 private const val HARD_STRIKE_LIMIT_FALLBACK = 3
 
 /**
- * The currency's clue: name, big symbol and ISO code. Shown for both typed and choice items.
+ * The currency's clue: a big currency symbol, nothing else (task P10-B, Dav 2026-10-20). Shown for
+ * both typed and choice items. Never the currency's name or ISO code before the answer is
+ * resolved - both used to be shown here unconditionally, which gave the country away (e.g. "Afghan
+ * afghani (؋)" names Afghanistan outright); the full name is only safe to show once an answer
+ * locks the item, in [CurrencyFeedbackBanner]'s reveal/fact text.
  *
- * The heading text itself depends on whether [entry] is shared (task 7.1 review, D50): a shared
- * currency's question is genuinely "which of these" (the euro has 26 valid-looking countries to
- * weigh up), so it gets [R.string.choice_prompt_currency_of] - the same wording
- * `MultipleChoicePanel` already shows for the classic quiz's own currency practice sets - rather
- * than the generic "which country" text, which was previously shown unconditionally here even
- * for a shared currency.
+ * The heading text depends on [CurrencyEntry.isChoiceOnly] (task 7.1 review's D50, extended by
+ * task P10-B to ambiguous-symbol single-owner currencies too): a choice-only currency's question
+ * is genuinely "which of these" (several valid-looking countries to weigh up), so it gets
+ * [R.string.currencies_choice_prompt_symbol] with the symbol filled in - the same string
+ * `MultipleChoicePanel`'s `CurrencyOf` branch uses - rather than the generic "which country" text.
+ *
+ * [R.string.currencies_symbol_description]'s "Currency symbol: <symbol>" content description
+ * (task P10-B) replaces TalkBack reading the raw glyph (which reads poorly for marks like "$" or
+ * "₨"), as [clearAndSetSemantics] on the big [Text] below.
  */
 @Composable
 fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
@@ -129,11 +136,8 @@ fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val prompt = if (entry.shared) {
-                // "the Euro (€, EUR)" (task 9.2 review fix): built from a strings_currencies.xml
-                // format string rather than Kotlin string interpolation, so it stays localisable.
-                val label = stringResource(R.string.currencies_entry_label, entry.name, entry.symbol, entry.code)
-                stringResource(R.string.choice_prompt_currency_of, label)
+            val prompt = if (entry.isChoiceOnly) {
+                stringResource(R.string.currencies_choice_prompt_symbol, entry.symbol)
             } else {
                 stringResource(R.string.currencies_prompt_which_country)
             }
@@ -143,15 +147,12 @@ fun CurrencyClueCard(entry: CurrencyEntry, modifier: Modifier = Modifier) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.semantics { heading() }
             )
+            val symbolDescription = stringResource(R.string.currencies_symbol_description, entry.symbol)
             Text(
                 text = entry.symbol,
                 style = MaterialTheme.typography.displayMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.currencies_name_code, entry.name, entry.code),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = symbolDescription }
             )
         }
     }

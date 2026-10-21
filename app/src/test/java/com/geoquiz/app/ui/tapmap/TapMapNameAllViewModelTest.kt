@@ -121,7 +121,6 @@ class TapMapNameAllViewModelTest {
         every { Uri.decode(any()) } answers { firstArg() }
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
     }
 
     @After
@@ -177,6 +176,13 @@ class TapMapNameAllViewModelTest {
         assertEquals(europe.map { it.code }.toSet(), state.quiz.countries.map { it.code }.toSet())
         assertTrue(state.answeredCountries.isEmpty())
         assertFalse(state.isComplete)
+    }
+
+    @Test
+    fun `without a route difficulty Difficulty DEFAULT (Normal) is used`() {
+        val vm = viewModel(routeHandle(difficulty = null))
+
+        assertEquals(Difficulty.NORMAL, vm.difficulty.value)
     }
 
     @Test

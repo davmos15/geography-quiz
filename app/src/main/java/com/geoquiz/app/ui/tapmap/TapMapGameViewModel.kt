@@ -156,9 +156,9 @@ class TapMapGameViewModel @Inject constructor(
         }
     }
 
-    /** Route tier, else the value saved for process death, else the remembered default. */
-    private suspend fun resolveDifficulty(): Difficulty {
-        val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+    /** Route tier, else the value saved for process death, else [Difficulty.DEFAULT]. */
+    private fun resolveDifficulty(): Difficulty {
+        val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
         return requested.takeIf { it in gameMode.spec.supportedDifficulties } ?: Difficulty.NORMAL
     }
 

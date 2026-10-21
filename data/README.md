@@ -236,8 +236,8 @@ only the pinned snapshot); `--refresh` re-queries Wikidata first.
 
 ## Map layers (`app/src/main/assets/geo/`)
 
-The map files the app bundles (country outlines, US states and Canadian
-provinces, rivers, lakes, physical regions and points) are built from
+The map files the app bundles (country outlines, states and territories of
+the US, Canada and Australia, rivers, lakes, physical regions and points) are built from
 [Natural Earth](https://www.naturalearthdata.com/) data, which is in the
 public domain. They are not part of the ODbL databases above: they contain
 no mledoze/countries data apart from the app's list of country codes, which

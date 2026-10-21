@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import androidx.lifecycle.SavedStateHandle
 import com.geoquiz.app.R
 import com.geoquiz.app.domain.mode.ModeIcon
+import com.geoquiz.app.domain.mode.QuizRandom
 import com.geoquiz.app.domain.model.FeatureFlag
 import com.geoquiz.app.domain.model.FeatureFlagState
 import com.geoquiz.app.domain.model.PinnedCategory
@@ -18,18 +19,23 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.random.Random
 
 class PlayViewModelTest {
 
     @get:Rule
     val mainDispatcher = MainDispatcherRule()
 
+    // Real mode ids from the Countries page's fixed "More ways to play" order (silhouettes, then
+    // physical_features, border_hop, currencies, tap_map, us_ca_regions): placement order is
+    // tested, not sort order or registration order.
     private val silhouettes = TestGameModes.flaggedMode("silhouettes", FeatureFlag.COUNTRY_SILHOUETTES, sortOrder = 20)
-    private val tapTheMap = TestGameModes.flaggedMode("tap_the_map", FeatureFlag.TAP_THE_MAP, sortOrder = 10, icon = ModeIcon.FLAG)
+    private val tapMap = TestGameModes.flaggedMode("tap_map", FeatureFlag.TAP_THE_MAP, sortOrder = 10, icon = ModeIcon.FLAG)
 
     private fun flagStates(vararg enabled: FeatureFlag): List<FeatureFlagState> =
         FeatureFlag.entries.map { FeatureFlagState(it, enabled = it in enabled, overridden = it in enabled) }
@@ -69,53 +75,83 @@ class PlayViewModelTest {
     }
 
     @Test
-    fun `new modes are empty while their flags are off, even when registered`() = runTest {
+    fun `More ways to play is empty on every page while new modes' flags are off, even when registered`() = runTest {
         val viewModel = ScreenTestFixtures.playViewModel(
-            extraModes = setOf(silhouettes, tapTheMap),
+            extraModes = setOf(silhouettes, tapMap),
             flagStates = MutableStateFlow(flagStates())
         )
 
         viewModel.uiState.test {
             val state = awaitLoaded()
-            assertEquals(emptyList<ModeOption>(), state.newModes)
+            assertEquals(emptyList<ModeOption>(), state.extraModesByPage["countries"])
+            assertEquals(emptyList<ModeOption>(), state.selectedExtraModes)
             assertEquals(3, state.classicModes.size)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `new modes follow the feature flags in sort order and never include classic modes`() = runTest {
+    fun `More ways to play follows the feature flags, in the page's fixed order, and never includes classic modes`() = runTest {
         val flags = MutableStateFlow(flagStates())
         val viewModel = ScreenTestFixtures.playViewModel(
             flagStates = flags,
-            extraModes = setOf(silhouettes, tapTheMap)
+            extraModes = setOf(silhouettes, tapMap)
         )
 
         viewModel.uiState.test {
-            assertEquals(emptyList<ModeOption>(), awaitLoaded().newModes)
+            assertEquals(emptyList<ModeOption>(), awaitLoaded().selectedExtraModes)
 
-            flags.value = flagStates(FeatureFlag.COUNTRY_SILHOUETTES)
-            assertEquals(listOf("silhouettes"), awaitItem().newModes.map { it.id })
+            flags.value = flagStates(FeatureFlag.TAP_THE_MAP)
+            assertEquals(listOf("tap_map"), awaitItem().selectedExtraModes.map { it.id })
 
+            // silhouettes is fixed before tap_map on the Countries page, even though tap_map has
+            // the lower sortOrder: placement order wins, not registry sort order.
             flags.value = flagStates(FeatureFlag.COUNTRY_SILHOUETTES, FeatureFlag.TAP_THE_MAP)
             val both = awaitItem()
-            assertEquals(listOf("tap_the_map", "silhouettes"), both.newModes.map { it.id })
-            assertEquals(ModeOption("tap_the_map", R.string.mode_countries_name, ModeIcon.FLAG), both.newModes.first())
+            assertEquals(listOf("silhouettes", "tap_map"), both.selectedExtraModes.map { it.id })
+            assertEquals(ModeOption("silhouettes", R.string.mode_countries_name, ModeIcon.GLOBE), both.selectedExtraModes.first())
             assertEquals(listOf("countries", "capitals", "flags"), both.classicModes.map { it.id })
 
             flags.value = flagStates()
-            assertEquals(emptyList<ModeOption>(), awaitItem().newModes)
+            assertEquals(emptyList<ModeOption>(), awaitItem().selectedExtraModes)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `a released mode without a flag is always a new mode`() = runTest {
-        val released = TestGameModes.flaggedMode("released", featureFlag = null, sortOrder = 50)
-        val viewModel = ScreenTestFixtures.playViewModel(extraModes = setOf(released))
+    fun `a released mode without a flag is always on its page`() = runTest {
+        // border_hop is on the Countries page's fixed order; a null flag means always available.
+        val released = TestGameModes.flaggedMode("border_hop", featureFlag = null, sortOrder = 50)
+        val viewModel = ScreenTestFixtures.playViewModel(
+            extraModes = setOf(released),
+            flagStates = MutableStateFlow(flagStates())
+        )
 
         viewModel.uiState.test {
-            assertEquals(listOf("released"), awaitLoaded().newModes.map { it.id })
+            assertEquals(listOf("border_hop"), awaitLoaded().selectedExtraModes.map { it.id })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a mode not on any page's fixed list never appears, even when available`() = runTest {
+        val unplaced = TestGameModes.flaggedMode("unplaced_mode", featureFlag = null, sortOrder = 5)
+        val viewModel = ScreenTestFixtures.playViewModel(extraModes = setOf(unplaced))
+
+        viewModel.uiState.test {
+            val state = awaitLoaded()
+            assertTrue(state.extraModesByPage.values.flatten().none { it.id == "unplaced_mode" })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Capitals has no More ways to play modes`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel()
+
+        viewModel.uiState.test {
+            val state = awaitLoaded()
+            assertEquals(emptyList<ModeOption>(), state.extraModesByPage["capitals"])
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -152,10 +188,10 @@ class PlayViewModelTest {
         val viewModel = ScreenTestFixtures.playViewModel(
             savedStateHandle = handle,
             flagStates = MutableStateFlow(flagStates(FeatureFlag.TAP_THE_MAP)),
-            extraModes = setOf(tapTheMap)
+            extraModes = setOf(tapMap)
         )
 
-        viewModel.selectMode("tap_the_map")
+        viewModel.selectMode("tap_map")
         viewModel.selectMode("nonsense")
 
         viewModel.uiState.test {
@@ -287,15 +323,16 @@ class PlayViewModelTest {
     }
 
     @Test
-    fun `the daily challenge has its card, so it is not repeated in New modes`() = runTest {
+    fun `the daily challenge has its card, so it is never placed on a page`() = runTest {
         val viewModel = ScreenTestFixtures.playViewModel(
             flagStates = flowOf(flagStates(FeatureFlag.DAILY_CHALLENGE, FeatureFlag.COUNTRY_SILHOUETTES)),
             extraModes = setOf(silhouettes)
         )
 
         viewModel.uiState.test {
-            val state = awaitUntil { it.todayChallenge != null && it.newModes.isNotEmpty() }
-            assertEquals(listOf(silhouettes.id), state.newModes.map { it.id })
+            val state = awaitUntil { it.todayChallenge != null && it.selectedExtraModes.isNotEmpty() }
+            assertEquals(listOf(silhouettes.id), state.selectedExtraModes.map { it.id })
+            assertTrue(state.extraModesByPage.values.flatten().none { it.id == "daily_challenge" })
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -330,114 +367,96 @@ class PlayViewModelTest {
         }
     }
 
-    // Recommended next (D25). Countries over EIGHT: regions Africa, Americas, Asia, Europe come first.
+    // Surprise me (task P10-A.6). Countries over EIGHT: regions Africa, Americas, Asia, Europe
+    // come first, so "region"/"Africa" is the first candidate; Flags' first candidate is the
+    // most common single colour, "red" (see ScreenTestFixtures.FLAG_COLOURS).
+
+    /** A [Random] whose [Random.nextBits] always returns [bits], so draws are deterministic. */
+    private fun fixedRandom(bits: Int = 0) = QuizRandom(object : Random() {
+        override fun nextBits(bitCount: Int): Int = bits
+    })
 
     @Test
-    fun `with no history the first category of the mode is recommended`() = runTest {
-        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null)
+    fun `Surprise me picks the drawn candidate of the selected mode, never All`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(quizRandom = fixedRandom(0))
 
         viewModel.uiState.test {
-            val recommended = awaitUntil { it.recommended != null }.recommended!!
-            assertEquals(
-                RecommendedQuiz("countries", R.string.mode_countries_name, "region", "Africa", "Africa", stars = 0),
-                recommended
-            )
+            awaitLoaded()
+            val pick = viewModel.surprise("countries")!!
+            assertEquals(CategoryCandidate("regions", "region", "Africa"), pick)
+            assertNotEquals("all", pick.categoryType)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `the recommendation follows history live`() = runTest {
-        val stars = MutableStateFlow<Map<String, Int>>(emptyMap())
-        val recent = MutableStateFlow<List<String>>(emptyList())
-        val history = ScreenTestFixtures.quizHistoryRepository(
-            stars = { if (it == "countries") stars else flowOf(emptyMap()) },
-            recentKeys = { if (it == "countries") recent else flowOf(emptyList()) }
+    fun `Surprise me follows whichever mode is asked, not the selected one`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(quizRandom = fixedRandom(0))
+
+        viewModel.uiState.test {
+            assertEquals("countries", awaitLoaded().selectedModeId)
+            val pick = viewModel.surprise("flags")!!
+            assertEquals(CategoryCandidate("flag_single_color", "flagcolor", "red"), pick)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Surprise me is null for a mode with no candidates`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(quizRandom = fixedRandom(0))
+
+        viewModel.uiState.test {
+            awaitLoaded()
+            assertNull(viewModel.surprise("nonsense"))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Surprise me never draws the All category, across many draws`() = runTest {
+        repeat(50) { seed ->
+            val viewModel = ScreenTestFixtures.playViewModel(quizRandom = QuizRandom(Random(seed)))
+            viewModel.uiState.test {
+                awaitLoaded()
+                val pick = viewModel.surprise("countries")!!
+                assertNotEquals("all", pick.categoryType)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    // Surprise me is disabled until its candidate pool is ready (code review round, task P10-R1).
+
+    @Test
+    fun `surpriseMeReady is true once the selected mode's candidates have loaded`() = runTest {
+        val viewModel = ScreenTestFixtures.playViewModel(quizRandom = fixedRandom(0))
+
+        viewModel.uiState.test {
+            val state = awaitLoaded()
+            assertEquals("countries", state.selectedModeId)
+            assertTrue(state.surpriseMeReady)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `PlayUiState surpriseMeReady is a pure function of candidatesByMode and the selected mode`() {
+        val withCandidates = PlayUiState(
+            selectedModeId = "countries",
+            candidatesByMode = mapOf("countries" to listOf(CategoryCandidate("regions", "region", "Africa")))
         )
-        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null, history = history)
+        assertTrue(withCandidates.surpriseMeReady)
 
-        viewModel.uiState.test {
-            assertEquals("Africa", awaitUntil { it.recommended != null }.recommended!!.categoryValue)
+        assertFalse("null candidatesByMode (still loading)", PlayUiState(selectedModeId = "countries").surpriseMeReady)
 
-            // Africa played (1 star): next in its group
-            stars.value = mapOf("region|Africa" to 1)
-            recent.value = listOf("region|Africa")
-            assertEquals("Americas", awaitUntil { it.recommended?.categoryValue != "Africa" }.recommended!!.categoryValue)
+        val emptyForMode = PlayUiState(selectedModeId = "countries", candidatesByMode = mapOf("countries" to emptyList()))
+        assertFalse("an empty candidate list for the mode", emptyForMode.surpriseMeReady)
 
-            // Americas played last: Asia, the next with fewer than 2 stars, with its star
-            stars.value = mapOf("region|Africa" to 1, "region|Americas" to 2, "region|Asia" to 1)
-            recent.value = listOf("region|Americas", "region|Africa")
-            val asia = awaitUntil { it.recommended?.categoryValue == "Asia" }.recommended!!
-            assertEquals(1, asia.stars)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `when the rest of the last group is mastered the first unplayed category is recommended`() = runTest {
-        // Every region has 2 or 3 stars and Africa was last: (a) finds nothing, (b) gives the
-        // first unplayed category after the regions.
-        val stars = mapOf("region|Africa" to 2, "region|Americas" to 3, "region|Asia" to 3, "region|Europe" to 3)
-        val history = ScreenTestFixtures.quizHistoryRepository(
-            stars = { flowOf(stars) },
-            recentKeys = { flowOf(listOf("region|Africa")) }
+        val otherModeOnly = PlayUiState(
+            selectedModeId = "countries",
+            candidatesByMode = mapOf("flags" to listOf(CategoryCandidate("flag_single_color", "flagcolor", "red")))
         )
-        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null, history = history)
-
-        viewModel.uiState.test {
-            val recommended = awaitUntil { it.recommended != null }.recommended!!
-            assertEquals("subregion", recommended.categoryType)
-            assertEquals(0, recommended.stars)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `the Continue category is never recommended`() = runTest {
-        val saved = ScreenTestFixtures.SAVED_QUIZ.copy(categoryType = "region", categoryValue = "Africa")
-        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = saved)
-
-        viewModel.uiState.test {
-            val state = awaitUntil { it.recommended != null && it.savedQuiz != null }
-            assertEquals("Americas", state.recommended!!.categoryValue)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `a saved quiz in another mode does not change the recommendation`() = runTest {
-        val saved = ScreenTestFixtures.SAVED_QUIZ.copy(quizMode = "capitals", categoryType = "region", categoryValue = "Africa")
-        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = saved)
-
-        viewModel.uiState.test {
-            val state = awaitUntil { it.recommended != null && it.savedQuiz != null }
-            assertEquals("Africa", state.recommended!!.categoryValue)
-
-            viewModel.selectMode("capitals")
-            val capitals = awaitUntil { it.recommended?.quizModeId == "capitals" }.recommended!!
-            assertEquals(R.string.mode_capitals_name, capitals.modeLabel)
-            assertEquals("Americas", capitals.categoryValue)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `the recommendation follows the selected mode and its own history`() = runTest {
-        val history = ScreenTestFixtures.quizHistoryRepository(
-            stars = { mode -> flowOf(if (mode == "flags") mapOf("flagcolor|red" to 1) else emptyMap()) }
-        )
-        val viewModel = ScreenTestFixtures.playViewModel(savedQuiz = null, history = history)
-
-        viewModel.uiState.test {
-            awaitUntil { it.recommended?.quizModeId == "countries" }
-            viewModel.selectMode("flags")
-            val flags = awaitUntil { it.recommended?.quizModeId == "flags" }.recommended!!
-            // By colour, most countries first: red (3), white (3), blue (1); red already has a star.
-            assertEquals("flagcolor", flags.categoryType)
-            assertEquals("white", flags.categoryValue)
-            assertEquals(R.string.mode_flags_name, flags.modeLabel)
-            cancelAndIgnoreRemainingEvents()
-        }
+        assertFalse("candidates loaded, but not for the selected mode", otherModeOnly.surpriseMeReady)
     }
 
     // Pinned (3.4c, D23). Over EIGHT: regions Africa, Americas, Asia, Europe; flag colours red, white, blue.

@@ -142,7 +142,6 @@ class QuizViewModelTest {
         every { settingsRepository.showFlags } returns flowOf(false)
         every { settingsRepository.vibration } returns flowOf(true)
         every { settingsRepository.showCountryHint } returns flowOf(false)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         coEvery { savedQuizRepository.getSavedQuiz() } returns null
         coEvery { achievementRepository.onQuizCompleted(any(), any(), any(), any(), any(), any(), any()) } returns
             listOf(achievement)
@@ -405,10 +404,6 @@ class QuizViewModelTest {
 
     // Difficulty tiers (3.2a)
 
-    private fun defaultDifficulty(difficulty: Difficulty) {
-        every { settingsRepository.difficulty } returns flowOf(difficulty)
-    }
-
     private fun hardResumeSave() = SavedQuizEntity(
         categoryType = "all",
         categoryValue = "_",
@@ -461,21 +456,18 @@ class QuizViewModelTest {
     }
 
     @Test
-    fun `the route difficulty wins over the remembered default`() {
-        defaultDifficulty(Difficulty.HARD)
+    fun `the route difficulty is used when given`() {
+        val vm = viewModel(routeHandle(difficulty = Difficulty.HARD))
 
-        val vm = viewModel(routeHandle(difficulty = Difficulty.NORMAL))
-
-        assertEquals(Difficulty.NORMAL, vm.difficulty.value)
+        assertEquals(Difficulty.HARD, vm.difficulty.value)
     }
 
     @Test
-    fun `without a route difficulty the remembered default is used`() {
-        defaultDifficulty(Difficulty.HARD)
-
+    fun `without a route difficulty or a resume save Difficulty DEFAULT (Normal) is used`() {
         val vm = viewModel(routeHandle())
 
-        assertEquals(Difficulty.HARD, vm.difficulty.value)
+        assertEquals(Difficulty.DEFAULT, vm.difficulty.value)
+        assertEquals(Difficulty.NORMAL, vm.difficulty.value)
     }
 
     @Test
@@ -497,31 +489,36 @@ class QuizViewModelTest {
 
     @Test
     fun `a challenge never runs at easy`() {
-        defaultDifficulty(Difficulty.EASY)
+        // No route tier: challenges fall back to Difficulty.DEFAULT (Normal), never Easy.
         assertEquals(Difficulty.NORMAL, viewModel(routeHandle(challengeId = "c-1")).difficulty.value)
         assertEquals(
             Difficulty.NORMAL,
             viewModel(routeHandle(challengeId = "c-2", difficulty = Difficulty.EASY)).difficulty.value
         )
-
-        defaultDifficulty(Difficulty.HARD)
-        assertEquals(Difficulty.HARD, viewModel(routeHandle(challengeId = "c-3")).difficulty.value)
-
-        defaultDifficulty(Difficulty.NORMAL)
-        assertEquals(Difficulty.NORMAL, viewModel(routeHandle(challengeId = "c-4")).difficulty.value)
+        assertEquals(
+            Difficulty.HARD,
+            viewModel(routeHandle(challengeId = "c-3", difficulty = Difficulty.HARD)).difficulty.value
+        )
+        assertEquals(
+            Difficulty.NORMAL,
+            viewModel(routeHandle(challengeId = "c-4", difficulty = Difficulty.NORMAL)).difficulty.value
+        )
     }
 
     @Test
-    fun `the difficulty survives process death even if the default changes`() {
-        defaultDifficulty(Difficulty.HARD)
-        val handle = routeHandle()
+    fun `the resolved difficulty is cached and survives process death without a route arg`() {
+        val handle = routeHandle(difficulty = Difficulty.HARD)
         val first = viewModel(handle)
         first.answer("France")
         first.onBackgrounded()
         runCurrent()
 
-        defaultDifficulty(Difficulty.NORMAL)
-        val second = viewModel(afterProcessDeath(handle))
+        // Simulate a route that no longer carries the tier (e.g. a plain "resume" deep link):
+        // the cached value from the previous instance, not Difficulty.DEFAULT, must win.
+        val survivedWithoutRouteArg = SavedStateHandle(
+            handle.keys().filterNot { it == QuizViewModel.ARG_DIFFICULTY }.associateWith { handle.get<Any?>(it) }
+        )
+        val second = viewModel(survivedWithoutRouteArg)
 
         assertEquals(Difficulty.HARD, second.difficulty.value)
         assertEquals(setOf("FRA"), second.quizState().answeredCountries)
@@ -943,7 +940,6 @@ class QuizViewModelTest {
     fun `a practice route loads exactly its items at the given tier in every mode`() {
         coEvery { getCountriesForQuiz(practice) } returns practiceItems
         coEvery { getCountriesForCapitalQuiz(practice) } returns practiceItems
-        defaultDifficulty(Difficulty.NORMAL)
 
         for (mode in listOf("countries", "capitals", "flags")) {
             for (difficulty in Difficulty.entries) {

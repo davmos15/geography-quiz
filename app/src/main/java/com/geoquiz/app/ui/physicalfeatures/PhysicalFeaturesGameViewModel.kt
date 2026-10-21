@@ -108,7 +108,7 @@ class PhysicalFeaturesGameViewModel @Inject constructor(
         viewModelScope.launch {
             _timerVisible.value = settingsRepository.showTimer.first()
             _vibration.value = settingsRepository.vibration.first()
-            val requested = routeDifficulty ?: savedState.difficulty ?: settingsRepository.difficulty.first()
+            val requested = routeDifficulty ?: savedState.difficulty ?: Difficulty.DEFAULT
             val difficulty = requested.takeIf { it in PhysicalFeaturesGameMode.SPEC.supportedDifficulties }
                 ?: Difficulty.DEFAULT
             savedState.difficulty = difficulty

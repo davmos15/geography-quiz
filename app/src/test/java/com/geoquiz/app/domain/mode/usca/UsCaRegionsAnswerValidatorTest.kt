@@ -86,4 +86,42 @@ class UsCaRegionsAnswerValidatorTest {
         val result = validator.validate("WA", state(), allowFuzzy = true, postalByCode)
         assertEquals(AnswerResult.Incorrect, result)
     }
+
+    // ---- Australian states and territories (P10-D2) ---------------------------------------
+
+    private val newSouthWales = Country("AU-NSW", "New South Wales", "New South Wales", "", "", "New South Wales".length, "")
+    private val tasmania = Country("AU-TAS", "Tasmania", "Tasmania", "", "", "Tasmania".length, "")
+    private val westernAustralia = Country("AU-WA", "Western Australia", "Western Australia", "", "", "Western Australia".length, "")
+
+    private val auPostalByCode = mapOf("AU-NSW" to "NSW", "AU-TAS" to "TAS", "AU-WA" to "WA")
+
+    private fun auState() = QuizState(
+        quiz = Quiz(category = QuizCategory.AllCountries, countries = listOf(newSouthWales, tasmania, westernAustralia))
+    )
+
+    @Test
+    fun `an Australian full name is correct`() = runTest {
+        val result = validator.validate("Tasmania", auState(), allowFuzzy = true, auPostalByCode)
+        assertTrue(result is AnswerResult.Correct)
+        assertEquals("Tasmania", (result as AnswerResult.Correct).countryName)
+    }
+
+    @Test
+    fun `an Australian postal code is accepted, case-insensitively`() = runTest {
+        val result = validator.validate("nsw", auState(), allowFuzzy = false, auPostalByCode)
+        assertTrue(result is AnswerResult.Correct)
+        assertEquals("New South Wales", (result as AnswerResult.Correct).countryName)
+    }
+
+    /**
+     * WA is also Washington's US postal code, but the validator only ever considers the active
+     * round's own members (task brief point 6): an Australian round's "WA" can only ever mean
+     * Western Australia, never clashing with a US round that is never in scope at the same time.
+     */
+    @Test
+    fun `WA resolves to Western Australia in an Australian round, no clash with the US postal code`() = runTest {
+        val result = validator.validate("WA", auState(), allowFuzzy = false, auPostalByCode)
+        assertTrue(result is AnswerResult.Correct)
+        assertEquals("Western Australia", (result as AnswerResult.Correct).countryName)
+    }
 }

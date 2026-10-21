@@ -1,15 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Border hop (task 6.1). Australian spelling. Never name another game or app.
+  Border hop (task 6.1; map version task P10-C). Australian spelling. Never name another game or app.
 -->
 <resources>
     <!-- Mode spec (domain/mode/borderhop/BorderHopGameMode.kt) -->
     <string name="mode_border_hop_name">Border hop</string>
-    <!-- Never shown: Border hop answers by tapping a neighbour, never typing. -->
-    <string name="mode_border_hop_input_label">Tap a neighbouring country</string>
+    <!-- The answer field's label at Normal and Hard. -->
+    <string name="mode_border_hop_input_label">Name a bordering country</string>
     <string name="mode_border_hop_items">hops</string>
-    <string name="mode_border_hop_paused_progress">%1$d hops so far</string>
-    <string name="mode_border_hop_give_up">You\'ve made %1$d hops (%2$d is the shortest route) towards %3$s. Are you sure?</string>
+    <!-- Quantity follows the hops made so far (%1$d), like border_hop_progress (P10-R2 L4). -->
+    <!-- Plain-string forms for GameModeSpec.labels (typed @StringRes). Border hop's own screen uses
+         the plurals below instead; these are worded so no plural is needed. -->
+    <string name="mode_border_hop_paused_progress_label">Hops so far: %1$d</string>
+    <string name="mode_border_hop_give_up_label">Give up the route to %3$s? Hops so far: %1$d (shortest route: %2$d).</string>
+    <plurals name="mode_border_hop_paused_progress">
+        <item quantity="one">%1$d hop so far</item>
+        <item quantity="other">%1$d hops so far</item>
+    </plurals>
+    <!-- Quantity follows the hops made so far (%1$d; %2$d is always "the shortest route", which
+         may itself be one hop, but that is a separate, unquantified number in the sentence). -->
+    <plurals name="mode_border_hop_give_up">
+        <item quantity="one">You\'ve made %1$d hop (%2$d is the shortest route) towards %3$s. Are you sure?</item>
+        <item quantity="other">You\'ve made %1$d hops (%2$d is the shortest route) towards %3$s. Are you sure?</item>
+    </plurals>
     <!-- Quantity follows the hops used (%2$d), like a11y_progress_silhouettes. -->
     <plurals name="a11y_progress_border_hop">
         <item quantity="one">%1$d of %2$d hop</item>
@@ -27,24 +40,48 @@
         <item quantity="other">%1$d countries</item>
     </plurals>
     <!-- Difficulty summaries: Border hop's tiers are hop-distance ranges (D44), not answer style. -->
-    <string name="border_hop_easy_summary">A short route: 2 to 3 hops.</string>
-    <string name="border_hop_normal_summary">A medium route: 4 to 5 hops.</string>
-    <string name="border_hop_hard_summary">A long route: 6 hops or more.</string>
+    <string name="border_hop_easy_summary">A short route: 2 to 3 hops, choosing from four countries.</string>
+    <string name="border_hop_normal_summary">A medium route: 4 to 5 hops, typing with suggestions.</string>
+    <string name="border_hop_hard_summary">A long route: 6 hops or more, exact spelling, 3 wrong guesses allowed.</string>
 
     <!-- Game screen (ui/borderhop/BorderHopGameScreen.kt) -->
-    <!-- Visible header, e.g. "3 of 4 hops (par)". -->
-    <string name="border_hop_progress">%1$d hops (par %2$d)</string>
-    <string name="border_hop_current_location">You are in %1$s</string>
-    <string name="border_hop_no_neighbours">No land-border neighbours from here</string>
+    <!-- The instructions, always visible above the map. -->
+    <string name="border_hop_instruction_goal">Get from %1$s to %2$s.</string>
+    <string name="border_hop_instruction_next">Name a country that borders %1$s.</string>
+    <string name="border_hop_instruction_next_easy">Which of these borders %1$s?</string>
+    <!-- Visible header, e.g. "3 hops (par 4)" (quantity follows %1$d, P10-R2 L4). -->
+    <plurals name="border_hop_progress">
+        <item quantity="one">%1$d hop (par %2$d)</item>
+        <item quantity="other">%1$d hops (par %2$d)</item>
+    </plurals>
+    <plurals name="border_hop_wrong_guesses_left">
+        <item quantity="one">%1$d wrong guess left</item>
+        <item quantity="other">%1$d wrong guesses left</item>
+    </plurals>
+    <!-- The route as text: "Route: South Africa → Botswana". The arrow is visual only;
+         TalkBack reads border_hop_route_a11y instead. -->
+    <string name="border_hop_route_label">Route: %1$s</string>
+    <string name="border_hop_route_separator">" → "</string>
+    <string name="border_hop_route_a11y">Route so far: %1$s</string>
+    <string name="border_hop_route_a11y_separator">", then "</string>
+    <string name="border_hop_map_description">World map. Route from %1$s to %2$s. %3$s</string>
+    <string name="border_hop_hint_revealed">Hint: %1$s borders %2$s and is on a shortest route.</string>
     <string name="border_hop_undo">Undo last hop</string>
     <string name="border_hop_hint">Show a valid hop (%1$.2f points)</string>
-    <string name="border_hop_hop_to_action">Hop to %1$s</string>
-    <string name="border_hop_target_chip">Target: %1$s</string>
+    <!-- Feedback for each guess (a polite live region). -->
+    <string name="border_hop_feedback_not_recognised">Not recognised. Check the spelling.</string>
+    <string name="border_hop_feedback_already_on_route">%1$s is already on your route</string>
+    <string name="border_hop_feedback_not_neighbour">%1$s doesn\'t border %2$s</string>
+    <string name="border_hop_feedback_hopped">%1$s added to your route</string>
     <string name="border_hop_reached">Reached %1$s in %2$d hops (par %3$d)!</string>
     <string name="border_hop_gave_up_outcome">Gave up short of %1$s</string>
+    <string name="border_hop_out_of_guesses_outcome">Out of wrong guesses short of %1$s</string>
     <string name="border_hop_unavailable">No route of the right length could be found for this filter and difficulty. Try a different one.</string>
-    <!-- Task 9.2 review: the hinted neighbour's accessible label (content description) and
-         the once-off announcement when the hint reveals it, since the Lightbulb icon that marks
-         it visually has no content description of its own. -->
-    <string name="border_hop_hint_suggested_hop">%1$s, suggested hop</string>
+
+    <!-- Country name autocomplete (ui/components/CountryAutocompleteField.kt). -->
+    <plurals name="country_autocomplete_suggestions">
+        <item quantity="one">%1$d suggestion</item>
+        <item quantity="other">%1$d suggestions</item>
+    </plurals>
+    <string name="country_autocomplete_choose_action">Choose</string>
 </resources>

@@ -37,8 +37,17 @@
     <!-- Game screen (ui/currencies/CurrenciesGameScreen.kt, CurrenciesGameComponents.kt) -->
     <!-- Visible header, e.g. "3 of 143". -->
     <string name="currencies_progress">%1$d of %2$d</string>
-    <string name="currencies_prompt_which_country">Which country uses this currency?</string>
+    <!-- Typed tier (Normal/Hard, a unique-symbol single-owner currency): never names the currency
+         or shows its code before the answer (task P10-B) - the symbol alone is the only clue. -->
+    <string name="currencies_prompt_which_country">Which country uses this currency symbol?</string>
     <string name="currencies_option_flag_description">Flag</string>
+    <!-- Choice tier (Easy, a shared currency, or a single-owner currency whose symbol is also used
+         by another currency, task P10-B): the symbol itself, not the currency's name, is the only
+         clue in the sentence. Shared with the CurrencyOf branch of MultipleChoicePanel.kt. -->
+    <string name="currencies_choice_prompt_symbol">Which of these countries uses %1$s?</string>
+    <!-- TalkBack content description for the big symbol (task P10-B): reading the raw glyph (e.g.
+         "$" or "₨") aloud is poor; this reads the symbol out in words instead. -->
+    <string name="currencies_symbol_description">Currency symbol: %1$s</string>
     <string name="currencies_feedback_correct">%1$s – Correct!</string>
     <string name="currencies_feedback_incorrect">Not quite. The answer was %1$s.</string>
     <string name="currencies_feedback_near_miss">Close – check the spelling</string>
@@ -49,13 +58,6 @@
     <string name="currencies_next_action">Next</string>
     <!-- A fact's source credit, shown underneath it. -->
     <string name="currencies_fact_source">Source: Wikidata</string>
-    <!-- A shared currency's clue heading, e.g. "Which of these uses the Euro (€, EUR)?" (task 9.2
-         review fix, part): name, symbol and code together, formatted here instead of built in
-         Kotlin code so it can be localised. -->
-    <string name="currencies_entry_label">the %1$s (%2$s, %3$s)</string>
-    <!-- Plain "Euro (EUR)" display under the big symbol, e.g. for a non-shared currency (task 9.2
-         review fix, part). -->
-    <string name="currencies_name_code">%1$s (%2$s)</string>
     <!-- Shown instead of the round when the filter has no currencies to ask about (Phase 9
          review): the round never starts, so nothing is recorded. -->
     <string name="currencies_unavailable">There are no currencies to ask about for this choice. Go back and try a different one.</string>

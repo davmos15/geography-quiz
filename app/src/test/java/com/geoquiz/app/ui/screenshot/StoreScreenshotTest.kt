@@ -126,12 +126,13 @@ class StoreScreenshotTest {
     @Test
     fun shot01_play() = shoot("01_play", ScreenshotScreens.play())
 
-    // ---- 02: Play, every mode on, the New modes grid visible -------------------------------
+    // ---- 02: Play, every mode on, "More ways to play" visible on the Countries page -------
 
     @Test
     fun shot02_playNewModes() = shoot("02_play_new_modes", ScreenshotScreens.playAllModes()) {
-        // Scroll to the last tile so the whole grid (all seven new modes) is on screen.
-        onNode(hasScrollAction()).performScrollToNode(hasText("Flag speed round"))
+        // Scroll to the Countries page's last "More ways to play" tile (task P10-A.5; Flag speed
+        // round is on the Flags page instead, not shown by this shot).
+        onNode(hasScrollAction()).performScrollToNode(hasText("States and territories"))
     }
 
     // ---- 03: Classic typed quiz, mid-round --------------------------------------------------

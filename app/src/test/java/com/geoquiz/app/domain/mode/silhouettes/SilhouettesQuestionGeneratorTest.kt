@@ -64,4 +64,40 @@ class SilhouettesQuestionGeneratorTest {
 
         assertEquals(practiceOrder.map { it.code }, round.map { it.code })
     }
+
+    // ---- task P10-E: excluded (unrecognisable) silhouettes are never asked about ----
+
+    @Test
+    fun `an excluded code is never yielded, even across many seeds`() = runBlocking {
+        val excludedCode = SilhouetteLegibility.EXCLUDED_CCA3.first()
+        val pool = twenty + country(excludedCode, "Excluded", "Capital")
+        repeat(20) { seed ->
+            val generator = SilhouettesQuestionGenerator(poolOf(pool), QuizRandom(Random(seed)))
+            val round = generator.items(QuizCategory.AllCountries)
+            assertTrue("seed $seed should never include $excludedCode", round.none { it.code == excludedCode })
+        }
+    }
+
+    @Test
+    fun `a practice set made entirely of excluded codes resolves to no countries`() = runBlocking {
+        val excludedCode = SilhouetteLegibility.EXCLUDED_CCA3.first()
+        val excludedCountry = country(excludedCode, "Excluded", "Capital")
+        val generator = SilhouettesQuestionGenerator(poolOf(listOf(excludedCountry)), QuizRandom(Random(1)))
+
+        val round = generator.items(QuizCategory.Practice(listOf(excludedCode)))
+
+        assertTrue(round.isEmpty())
+    }
+
+    @Test
+    fun `a practice set mixing excluded and valid codes keeps only the valid ones`() = runBlocking {
+        val excludedCode = SilhouetteLegibility.EXCLUDED_CCA3.first()
+        val excludedCountry = country(excludedCode, "Excluded", "Capital")
+        val valid = twenty[0]
+        val generator = SilhouettesQuestionGenerator(poolOf(listOf(excludedCountry, valid)), QuizRandom(Random(1)))
+
+        val round = generator.items(QuizCategory.Practice(listOf(excludedCode, valid.code)))
+
+        assertEquals(listOf(valid.code), round.map { it.code })
+    }
 }

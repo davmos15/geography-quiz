@@ -130,6 +130,14 @@ data class SilhouetteState(
 sealed class SilhouettesUiState {
     data object Loading : SilhouettesUiState()
     data class Active(val state: SilhouetteState) : SilhouettesUiState()
+
+    /**
+     * No countries to ask about at all (task P10-E): most likely a practice set ("Practise the
+     * ones you missed") whose every code is in [com.geoquiz.app.domain.mode.silhouettes.SilhouetteLegibility.EXCLUDED_CCA3].
+     * Nothing is recorded, same pattern as Border hop/US-CA/Physical features' own Unavailable
+     * states (D43).
+     */
+    data object Unavailable : SilhouettesUiState()
 }
 
 /** A recorded round on its way to Results, mirroring `QuizCompletion`. */

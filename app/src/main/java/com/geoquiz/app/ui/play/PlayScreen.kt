@@ -24,19 +24,20 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -57,7 +58,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,7 +67,6 @@ import com.geoquiz.app.domain.mode.dailychallenge.DailyChallengeGenerator
 import com.geoquiz.app.domain.streak.StreakStatus
 import com.geoquiz.app.ui.ads.BannerAd
 import com.geoquiz.app.ui.components.A11yText
-import com.geoquiz.app.ui.components.MasteryStarsRow
 import com.geoquiz.app.ui.components.SEGMENT_LABEL_CHROME
 import com.geoquiz.app.ui.components.TWO_PANE_MAX_WIDTH
 import com.geoquiz.app.ui.components.UpToTwoColumns
@@ -84,10 +83,10 @@ import java.util.Locale
 
 /**
  * The Play tab. Header: the app name and, while one runs, the daily challenge streak. Top to
- * bottom: "Today's challenge" (8.6, only while the daily challenge is available),
- * "Continue" (the saved quiz), "Recommended next" (for the selected mode), "Pinned" (every mode), the
- * classic-mode switch, that mode's "All" tile and category groups, and the "New modes" grid
- * (hidden while no new mode is available).
+ * bottom: "Today's challenge" (8.6, only while the daily challenge is available), "Continue"
+ * (the saved quiz), "Pinned" (every mode), the classic-mode switch, that mode's "All" tile,
+ * "Surprise me" (task P10-A.6), category groups and (task P10-A.5) "More ways to play" for that
+ * mode's other modes (hidden while none is available).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,10 +141,13 @@ fun PlayScreen(
                 .padding(padding)
         ) {
             val windowLayout = WindowLayout.of(maxWidth, maxHeight)
-            val hasCards = state.showTodayChallenge || state.savedQuiz != null ||
-                state.recommended != null || state.pinned.isNotEmpty()
+            val hasCards = state.showTodayChallenge || state.savedQuiz != null || state.pinned.isNotEmpty()
             val onResume: (SavedQuizInfo) -> Unit = { saved ->
                 onStartQuiz(saved.quizModeId, saved.categoryType, saved.categoryValue)
+            }
+            val onSurprise: () -> Unit = {
+                val modeId = state.selectedModeId
+                viewModel.surprise(modeId)?.let { onStartQuiz(modeId, it.categoryType, it.categoryValue) }
             }
             if (windowLayout.useWideHub && hasCards) {
                 // Large tablets (3.7): the cards in their own column beside the mode switch
@@ -179,7 +181,7 @@ fun PlayScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode)
+                        playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode, onSurprise)
                     }
                 }
             } else {
@@ -200,14 +202,14 @@ fun PlayScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     playCards(state, onResume, viewModel::dismissSavedQuiz, onStartQuiz, onOpenMode)
-                    playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode)
+                    playBrowse(state, viewModel::selectMode, onOpenCategory, onStartQuiz, onOpenMode, onSurprise)
                 }
             }
         }
     }
 }
 
-/** Today's challenge, Continue, Recommended next and Pinned, each only when there is one. */
+/** Today's challenge, Continue and Pinned, each only when there is one. */
 private fun LazyGridScope.playCards(
     state: PlayUiState,
     onResume: (SavedQuizInfo) -> Unit,
@@ -231,17 +233,6 @@ private fun LazyGridScope.playCards(
         }
     }
 
-    state.recommended?.let { recommended ->
-        fullWidth("recommended") {
-            RecommendedCard(
-                recommended = recommended,
-                onStart = {
-                    onStartQuiz(recommended.quizModeId, recommended.categoryType, recommended.categoryValue)
-                }
-            )
-        }
-    }
-
     if (state.pinned.isNotEmpty()) {
         fullWidth("pinned-heading") { SectionHeading(stringResource(R.string.play_pinned_heading)) }
         items(
@@ -257,13 +248,17 @@ private fun LazyGridScope.playCards(
     }
 }
 
-/** The mode switch, the selected mode's All tile and groups, and the New modes grid. */
+/**
+ * The mode switch, the selected mode's All tile, "Surprise me", category groups and "More ways
+ * to play" (task P10-A.5/A.6).
+ */
 private fun LazyGridScope.playBrowse(
     state: PlayUiState,
     onSelectMode: (String) -> Unit,
     onOpenCategory: (modeId: String, groupId: String) -> Unit,
     onStartQuiz: (modeId: String, categoryType: String, categoryValue: String) -> Unit,
-    onOpenMode: (modeId: String) -> Unit
+    onOpenMode: (modeId: String) -> Unit,
+    onSurprise: () -> Unit
 ) {
     if (state.classicModes.isNotEmpty()) {
         fullWidth("mode-switch") {
@@ -285,24 +280,29 @@ private fun LazyGridScope.playBrowse(
             }
         }
 
+        fullWidth("surprise/${content.modeId}") {
+            SurpriseMeButton(enabled = state.surpriseMeReady, onClick = onSurprise)
+        }
+
         fullWidth("banner") { BannerAd(modifier = Modifier.padding(vertical = 8.dp)) }
 
         fullWidth("categories-heading") { SectionHeading(stringResource(R.string.play_categories_heading)) }
 
         items(content.groups, key = { "${content.modeId}/${it.id}" }) { group ->
-            GroupTileCard(group, onClick = { onOpenCategory(content.modeId, group.id) })
+            GroupTileCard(group, modeId = content.modeId, onClick = { onOpenCategory(content.modeId, group.id) })
         }
-    }
 
-    if (state.newModes.isNotEmpty()) {
-        fullWidth("new-modes-heading") {
-            SectionHeading(
-                stringResource(R.string.play_new_modes_heading),
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-        items(state.newModes, key = { "mode/${it.id}" }) { mode ->
-            NewModeTile(mode, onClick = { onOpenMode(mode.id) })
+        val extraModes = state.selectedExtraModes
+        if (extraModes.isNotEmpty()) {
+            fullWidth("more-ways-heading") {
+                SectionHeading(
+                    stringResource(R.string.play_more_ways_heading),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+            items(extraModes, key = { "mode/${it.id}" }) { mode ->
+                NewModeTile(mode, onClick = { onOpenMode(mode.id) })
+            }
         }
     }
 }
@@ -592,42 +592,6 @@ private fun ContinueCard(
     }
 }
 
-/** "Recommended next" for the selected mode, with its mastery stars; one tap starts it. */
-@Composable
-private fun RecommendedCard(
-    recommended: RecommendedQuiz,
-    onStart: () -> Unit
-) {
-    Card(
-        onClick = onStart,
-        modifier = Modifier
-            .fillMaxWidth()
-            .buttonSemantics(stringResource(R.string.action_start_quiz), onStart),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    ) {
-        CardRow(icon = { Icon(Icons.Default.Lightbulb, contentDescription = null, modifier = Modifier.size(32.dp)) }) {
-            Text(
-                text = stringResource(R.string.play_recommended_title),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(
-                    R.string.play_card_mode_category,
-                    stringResource(recommended.modeLabel),
-                    recommended.categoryDisplayName
-                ),
-                style = MaterialTheme.typography.bodySmall
-            )
-            MasteryStarsRow(stars = recommended.stars, modifier = Modifier.padding(top = 4.dp))
-        }
-    }
-}
-
 /**
  * A pinned category as a compact full-width row (never a tile grid): mode icon, category name
  * and mode name. One tap starts it in its mode; read as one button.
@@ -695,53 +659,108 @@ private fun CardRow(
     }
 }
 
+/**
+ * The featured "All countries" / "All capitals" tile (task P10-A.3): a compact single-row card
+ * (leading icon, title and count), not the old large hero card, so it reads as one of several
+ * options rather than dominating the page. Still one tap to start, full width, and wraps rather
+ * than clipping at large text sizes (no fixed height): title and count sit in their own
+ * [Modifier.weight]ed [Column] (code review round, task P10-R1) rather than side by side with no
+ * weight, so at 200% font scale on a narrow phone the count wraps under the title instead of
+ * being squeezed into whatever width the title left it; at 100% scale this still reads as one
+ * compact line, since neither `Text` wraps unless it has to.
+ */
 @Composable
 private fun AllItemsCard(all: AllItemsTile, onClick: () -> Unit) {
-    ElevatedCard(
+    Card(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .buttonSemantics(stringResource(R.string.action_start_quiz), onClick),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.elevatedCardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        )
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Public, contentDescription = null, modifier = Modifier.size(40.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(all.title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = pluralStringResource(all.countLabel, all.count, all.count),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
+            Icon(Icons.Default.Public, contentDescription = null, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(all.title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = pluralStringResource(all.countLabel, all.count, all.count),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }
 
+/**
+ * "Surprise me" (task P10-A.6): starts a random quiz of whichever classic mode is selected, drawn
+ * uniformly from that mode's categories (never "All"). Shown near the top of the browse section,
+ * under the All card (Flags has none).
+ *
+ * [enabled] is false until [PlayUiState.surpriseMeReady] (code review round, task P10-R1):
+ * [PlayViewModel.surprise]'s candidate pool is built asynchronously, separately from the category
+ * tiles that gate this button being shown at all, so without this it was possible to tap a fully
+ * interactive-looking button that silently did nothing while that pool was still loading.
+ *
+ * TalkBack's "double tap to..." action label is [R.string.play_surprise_me_action] ("start a
+ * random quiz"), not the visible [R.string.play_surprise_me] label itself (task P10-R1 review
+ * fix: repeating the visible text as the action gave "Surprise me button, double tap to Surprise
+ * me", which names the button again rather than saying what double-tapping it does). Only applied
+ * while [enabled]; `OutlinedButton`'s own `enabled` already fully governs the real
+ * clickable/disabled semantics either way, so this never makes a disabled button announce as
+ * actionable.
+ */
 @Composable
-private fun GroupTileCard(group: GroupTile, onClick: () -> Unit) {
+private fun SurpriseMeButton(enabled: Boolean, onClick: () -> Unit) {
+    val label = stringResource(R.string.play_surprise_me)
+    val actionLabel = stringResource(R.string.play_surprise_me_action)
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .then(if (enabled) Modifier.buttonSemantics(actionLabel, onClick) else Modifier),
+        shape = MaterialTheme.shapes.large
+    ) {
+        Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label)
+    }
+}
+
+/**
+ * A category group tile, tinted with its [categoryHue] (task P10-A.4) so categories read as
+ * visually distinct in both themes; falls back to secondaryContainer for an unmapped group. The
+ * quiz count stays in the same full-strength content colour as the title: colour alone is never
+ * the only cue (the title and count are still text).
+ */
+@Composable
+private fun GroupTileCard(group: GroupTile, modeId: String, onClick: () -> Unit) {
+    val hueColours = categoryHue(modeId, group.id)?.let { MaterialTheme.geoColors.categoryHues[it] }
+    val containerColor = hueColours?.container ?: MaterialTheme.colorScheme.secondaryContainer
+    val contentColor = hueColours?.onContainer ?: MaterialTheme.colorScheme.onSecondaryContainer
     Card(
         onClick = onClick,
         modifier = Modifier.buttonSemantics(stringResource(R.string.action_open_category), onClick),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            containerColor = containerColor,
+            contentColor = contentColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -761,7 +780,7 @@ private fun GroupTileCard(group: GroupTile, onClick: () -> Unit) {
             Text(
                 text = pluralStringResource(R.plurals.play_group_quiz_count, group.quizCount, group.quizCount),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f)
+                color = contentColor
             )
         }
     }
@@ -769,14 +788,12 @@ private fun GroupTileCard(group: GroupTile, onClick: () -> Unit) {
 
 @Composable
 private fun NewModeTile(mode: ModeOption, onClick: () -> Unit) {
-    Card(
+    // Outlined and unfilled, so mode tiles read as a different kind of thing from the coloured
+    // category tiles above them, and never put a green fill beside them (L9, device test).
+    OutlinedCard(
         onClick = onClick,
         modifier = Modifier.buttonSemantics(stringResource(R.string.action_open_mode), onClick),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-        )
+        shape = MaterialTheme.shapes.large
     ) {
         Box(
             modifier = Modifier
@@ -786,7 +803,12 @@ private fun NewModeTile(mode: ModeOption, onClick: () -> Unit) {
             contentAlignment = Alignment.CenterStart
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(mode.icon.imageVector, contentDescription = null, modifier = Modifier.size(28.dp))
+                Icon(
+                    mode.icon.imageVector,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = stringResource(mode.label),

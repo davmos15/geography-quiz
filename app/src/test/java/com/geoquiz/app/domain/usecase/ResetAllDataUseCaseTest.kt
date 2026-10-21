@@ -120,7 +120,7 @@ class ResetAllDataUseCaseTest {
     }
 
     @Test
-    fun `clears settings and player name but keeps ads_removed`() = runTest {
+    fun `clears settings and player name but keeps ads_removed and whats_new_seen_version`() = runTest {
         settingsStore.edit {
             it[booleanPreferencesKey("show_timer")] = false
             it[booleanPreferencesKey("show_flags")] = true
@@ -128,13 +128,24 @@ class ResetAllDataUseCaseTest {
             it[booleanPreferencesKey("hard_mode")] = true
             it[stringPreferencesKey("player_name")] = "Sam"
             it[SettingsRepository.ADS_REMOVED_KEY] = true
+            it[SettingsRepository.WHATS_NEW_SEEN_VERSION_KEY] = 18
         }
 
         useCase()()
 
         val prefs = settingsStore.data.first()
         assertEquals(true, prefs[booleanPreferencesKey("ads_removed")])
-        assertEquals(setOf("ads_removed"), prefs.asMap().keys.map { it.name }.toSet())
+        assertEquals(18, prefs[intPreferencesKey("whats_new_seen_version")])
+        assertEquals(setOf("ads_removed", "whats_new_seen_version"), prefs.asMap().keys.map { it.name }.toSet())
+    }
+
+    @Test
+    fun `does not create whats_new_seen_version when it was never set`() = runTest {
+        settingsStore.edit { it[stringPreferencesKey("player_name")] = "Sam" }
+
+        useCase()()
+
+        assertNull(settingsStore.data.first()[SettingsRepository.WHATS_NEW_SEEN_VERSION_KEY])
     }
 
     @Test

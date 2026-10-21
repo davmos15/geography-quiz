@@ -7,7 +7,7 @@ import com.geoquiz.app.domain.model.QuizCategory
  * no classic category filter (D43 review: "just US or Canada"), so a normal round uses
  * [QuizCategory.FixedRegion]: its `label` field already doubles as both the route value
  * ([QuizCategory.valueKey]) and the display name ([QuizCategory.displayName]) (there are only
- * three possible values, so the label itself is a perfectly good, reversible route value - see
+ * four possible values, so the label itself is a perfectly good, reversible route value - see
  * [groupAndDcFromLabel]). Code review (task 6.2): an earlier version of this reused
  * [QuizCategory.ByRegion], but that type is pattern-matched elsewhere (other modes' `offers()`,
  * [com.geoquiz.app.data.local.preferences.AchievementRepository]'s region tracking,
@@ -23,10 +23,14 @@ object UsCaRegionsCategory {
     const val LABEL_US_WITH_DC = "US states and DC"
     const val LABEL_CA = "Canadian provinces and territories"
 
+    /** Added P10-D2: these three labels above must stay byte-identical (history/stats keys). */
+    const val LABEL_AU = "Australian states and territories"
+
     fun toQuizCategory(group: UsCaRegionGroup, includeDc: Boolean): QuizCategory = QuizCategory.FixedRegion(
         when (group) {
             UsCaRegionGroup.US_STATES -> if (includeDc) LABEL_US_WITH_DC else LABEL_US_NO_DC
             UsCaRegionGroup.CANADIAN_PROVINCES -> LABEL_CA
+            UsCaRegionGroup.AU_STATES -> LABEL_AU
         }
     )
 
@@ -38,6 +42,7 @@ object UsCaRegionsCategory {
     fun groupAndDcFromLabel(label: String?): Pair<UsCaRegionGroup, Boolean> = when (label) {
         LABEL_US_WITH_DC -> UsCaRegionGroup.US_STATES to true
         LABEL_CA -> UsCaRegionGroup.CANADIAN_PROVINCES to false
+        LABEL_AU -> UsCaRegionGroup.AU_STATES to false
         else -> UsCaRegionGroup.US_STATES to false
     }
 }

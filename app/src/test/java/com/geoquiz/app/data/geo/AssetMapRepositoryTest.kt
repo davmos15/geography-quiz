@@ -2,6 +2,7 @@ package com.geoquiz.app.data.geo
 
 import com.geoquiz.app.domain.map.GeoFormatException
 import com.geoquiz.app.domain.map.GeoLayerId
+import com.geoquiz.app.domain.mode.usca.postalCode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -89,7 +90,7 @@ class AssetMapRepositoryTest {
         }
         assertNull(repo.cachedLayer(GeoLayerId.ADMIN1_50M))
 
-        assertEquals(64, repo.layer(GeoLayerId.ADMIN1_50M).features.size)
+        assertEquals(72, repo.layer(GeoLayerId.ADMIN1_50M).features.size) // 51 US + 13 CA + 8 AU
         assertEquals(2, source.reads.get())
     }
 
@@ -104,6 +105,28 @@ class AssetMapRepositoryTest {
         } catch (e: GeoFormatException) {
             assertEquals(GeoFormatException.Reason.BAD_MAGIC, e.reason)
         }
+    }
+
+    @Test
+    fun `the real admin1 asset has plain Australian postal codes, and drops Jervis Bay (D74, P10-R2 L6)`() = runTest {
+        val source = FakeAssetSource()
+        val repo = AssetMapRepository(source, StandardTestDispatcher(testScheduler))
+
+        val layer = repo.layer(GeoLayerId.ADMIN1_50M)
+        val au = layer.features.filter { it.id.startsWith("AU-") }
+
+        assertEquals(8, au.size)
+        assertEquals(
+            setOf("ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"),
+            au.map { it.postalCode() }.toSet()
+        )
+        assertEquals("WA", layer.feature("AU-WA")?.postalCode())
+        assertEquals("NSW", layer.feature("AU-NSW")?.postalCode())
+        assertEquals("TAS", layer.feature("AU-TAS")?.postalCode())
+        // Jervis Bay Territory (Natural Earth's AU-X02~) is not one of the 8 states/territories
+        // and is dropped entirely (D74, data/geo/build_log.txt), not merely renumbered.
+        assertTrue(au.none { it.id.startsWith("AU-X0") })
+        assertNull(layer.feature("AU-X02~"))
     }
 
     @Test

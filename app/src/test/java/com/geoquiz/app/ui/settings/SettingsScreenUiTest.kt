@@ -4,6 +4,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.geoquiz.app.testutil.MainDispatcherRule
 import com.geoquiz.app.testutil.ScreenTestFixtures
@@ -57,5 +58,13 @@ class SettingsScreenUiTest {
         title.performClick()
         compose.waitForIdle()
         assertEquals(1, debugMenuOpened)
+    }
+
+    /** P10-G: every selector always starts at Normal, so the remembered default - and this row - is gone. */
+    @Test
+    fun `no longer shows a Default difficulty row`() {
+        launch()
+
+        compose.onNodeWithText("Default difficulty").assertDoesNotExist()
     }
 }

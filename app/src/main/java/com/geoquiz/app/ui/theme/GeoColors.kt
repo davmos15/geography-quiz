@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
  * Contrast (checked by `GeoColorsContrastTest`): [correct], [wrong] and [nearMiss] are text
  * colours and reach 4.5:1 on background, surface and surfaceVariant (correct and wrong also on
  * primaryContainer and tertiaryContainer, where results and challenge cards put them). Each
- * `onX` reaches 4.5:1 on its `X`. [star] reaches 3:1 on background, surface and surfaceVariant.
+ * `onX` reaches 4.5:1 on its `X`.
  * Map state colours reach 3:1 against [mapLand]; land and water 1.5:1; borders 3:1 on land.
  * [mapLandInactive] reaches 1.2:1 against both land and water, and borders 2:1 on it.
  * [flagBorder] reaches 2:1 on every surface a flag sits on and on the flag edge most likely to
@@ -44,14 +44,6 @@ data class GeoColors(
     /** Near miss ("check the spelling"): not a strike, so neither correct nor wrong. */
     val nearMiss: Color,
     val onNearMiss: Color,
-
-    /**
-     * Mastery stars (filled for earned, outlined for not yet earned, so never colour alone).
-     * Non-text graphic: 3:1 on background, surface and surfaceVariant.
-     */
-    val star: Color,
-    /** Content drawn on a solid [star] fill. */
-    val onStar: Color,
 
     /**
      * Hairline border round every flag image, so white flags stay visible on light surfaces and
@@ -95,7 +87,27 @@ data class GeoColors(
     val mapEnd: Color,
     /** Outline of the enlarged tap zone drawn round microstates. */
     val mapTapZoneOutline: Color,
+
+    /**
+     * Per-category accent hues (Play's group tiles, task P10-A.4): a container/content pair per
+     * [CategoryHue], distinct from every other hue and from [androidx.compose.material3.ColorScheme.surface]
+     * and `background` in both themes (checked by `GeoColorsContrastTest`). Purely decorative: the
+     * category name and count are never conveyed by colour alone.
+     */
+    val categoryHues: Map<CategoryHue, CategoryHueColors>,
 )
+
+/** A fill/content colour pair for one [CategoryHue]. Content reaches 4.5:1 on fill. */
+@Immutable
+data class CategoryHueColors(val container: Color, val onContainer: Color)
+
+/**
+ * The ten accent hues used to tell Play's category group tiles apart (task P10-A.4). Mapped to
+ * (mode, group) in `ui/play` (`categoryHue`), never hard-coded at the call site.
+ */
+enum class CategoryHue {
+    BLUE, INDIGO, TEAL, CYAN, GREEN, AMBER, ORANGE, PINK, PURPLE, BROWN
+}
 
 internal val LightGeoColors = GeoColors(
     correct = Color(0xFF0B5CAD),
@@ -110,9 +122,6 @@ internal val LightGeoColors = GeoColors(
 
     nearMiss = Color(0xFF9A3A78),
     onNearMiss = Color(0xFFFFFFFF),
-
-    star = Color(0xFF8A6100),
-    onStar = Color(0xFFFFFFFF),
 
     flagBorder = Color(0xFF9E9E9E),
 
@@ -136,6 +145,21 @@ internal val LightGeoColors = GeoColors(
     mapStart = Color(0xFF00845F),
     mapEnd = Color(0xFF5B3A96),
     mapTapZoneOutline = Color(0xFF37474F),
+
+    categoryHues = mapOf(
+        CategoryHue.BLUE to CategoryHueColors(Color(0xFFBBDEFB), Color(0xFF0D47A1)),
+        CategoryHue.INDIGO to CategoryHueColors(Color(0xFFC5CAE9), Color(0xFF1A237E)),
+        CategoryHue.TEAL to CategoryHueColors(Color(0xFFB2DFDB), Color(0xFF004D40)),
+        CategoryHue.CYAN to CategoryHueColors(Color(0xFFB2EBF2), Color(0xFF006064)),
+        CategoryHue.GREEN to CategoryHueColors(Color(0xFFC8E6C9), Color(0xFF1B5E20)),
+        // A shade darker than Amber 100 (code review round, task P10-R1: FFECB3 read too close
+        // to the near-white surface/background, below the raised 1.15:1 distinguishability bar).
+        CategoryHue.AMBER to CategoryHueColors(Color(0xFFFFE082), Color(0xFF6D4C00)),
+        CategoryHue.ORANGE to CategoryHueColors(Color(0xFFFFCCBC), Color(0xFF8A2A00)),
+        CategoryHue.PINK to CategoryHueColors(Color(0xFFF8BBD0), Color(0xFF880E4F)),
+        CategoryHue.PURPLE to CategoryHueColors(Color(0xFFE1BEE7), Color(0xFF4A148C)),
+        CategoryHue.BROWN to CategoryHueColors(Color(0xFFD7CCC8), Color(0xFF3E2723)),
+    ),
 )
 
 internal val DarkGeoColors = GeoColors(
@@ -151,9 +175,6 @@ internal val DarkGeoColors = GeoColors(
 
     nearMiss = Color(0xFFF2A7D6),
     onNearMiss = Color(0xFF4A0F38),
-
-    star = Color(0xFFFFCC4D),
-    onStar = Color(0xFF3D2B00),
 
     flagBorder = Color(0xFF7A7A7A),
 
@@ -177,6 +198,23 @@ internal val DarkGeoColors = GeoColors(
     mapStart = Color(0xFF45C99B),
     mapEnd = Color(0xFFB8A0EB),
     mapTapZoneOutline = Color(0xFFCFD8DC),
+
+    categoryHues = mapOf(
+        CategoryHue.BLUE to CategoryHueColors(Color(0xFF0D3A6E), Color(0xFFBBDEFB)),
+        // Lightened from 1A2456 (code review round, task P10-R1: read too close to dark
+        // surface/background, below the raised 1.15:1 distinguishability bar).
+        CategoryHue.INDIGO to CategoryHueColors(Color(0xFF20355E), Color(0xFFC5CAE9)),
+        CategoryHue.TEAL to CategoryHueColors(Color(0xFF0A3D38), Color(0xFFB2DFDB)),
+        CategoryHue.CYAN to CategoryHueColors(Color(0xFF0A4A52), Color(0xFFB2EBF2)),
+        CategoryHue.GREEN to CategoryHueColors(Color(0xFF1B3A1E), Color(0xFFC8E6C9)),
+        CategoryHue.AMBER to CategoryHueColors(Color(0xFF4A3800), Color(0xFFFFECB3)),
+        CategoryHue.ORANGE to CategoryHueColors(Color(0xFF5C2A0E), Color(0xFFFFCCBC)),
+        // Lightened from 4A1030 (task P10-R1, same reason as indigo above).
+        CategoryHue.PINK to CategoryHueColors(Color(0xFF551439), Color(0xFFF8BBD0)),
+        // Lightened from 331A4A (task P10-R1, same reason as indigo above).
+        CategoryHue.PURPLE to CategoryHueColors(Color(0xFF3D2056), Color(0xFFE1BEE7)),
+        CategoryHue.BROWN to CategoryHueColors(Color(0xFF3A2C27), Color(0xFFD7CCC8)),
+    ),
 )
 
 /** Provided by [GeographyQuizTheme]; defaults to the light set outside the theme. */

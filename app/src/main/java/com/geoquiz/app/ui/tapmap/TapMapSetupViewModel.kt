@@ -3,7 +3,6 @@ package com.geoquiz.app.ui.tapmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.map.RegionPreset
 import com.geoquiz.app.domain.mode.tapmap.TapMapGameMode
 import com.geoquiz.app.domain.model.Difficulty
@@ -15,21 +14,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * Tap the map's region, variant and difficulty picker (task 5.2, 5.2b). The variant choice
  * (Find / Name all) sits above the difficulty selector: Name all offers Normal and Hard only
  * (D40, Easy is Find's multiple-choice tier), so switching to it hides Easy from the difficulty
- * options. If the remembered default tier is Easy, the selector shows Normal instead while Name
- * all is picked (display only - the stored default is not overwritten, so switching back to Find
- * still offers Easy).
+ * options. The selected tier starts at [Difficulty.DEFAULT] and is never persisted (P10-G): if it
+ * shows Normal instead while Name all is picked, that is display only, so switching back to Find
+ * still offers Easy.
  */
 @HiltViewModel
 class TapMapSetupViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-    private val settingsRepository: SettingsRepository
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     /** Survives process death and activity recreation (nit), like every other setup screen. */
@@ -42,10 +39,12 @@ class TapMapSetupViewModel @Inject constructor(
             ?: TapMapGameMode.VARIANT_FIND
     )
 
+    private val _difficulty = MutableStateFlow(Difficulty.DEFAULT)
+
     val uiState: StateFlow<TapMapSetupUiState> = combine(
         _selectedPreset,
         _selectedVariant,
-        settingsRepository.difficulty
+        _difficulty
     ) { preset, variant, difficulty ->
         val availableDifficulties = if (variant == TapMapGameMode.VARIANT_NAME_ALL) {
             NAME_ALL_DIFFICULTIES
@@ -71,9 +70,9 @@ class TapMapSetupViewModel @Inject constructor(
         savedStateHandle[KEY_VARIANT] = variant
     }
 
-    /** Also remembered as the player's default tier (same as the classic category list). */
+    /** Selection only: never persisted (P10-G), so it does not carry over to the next visit. */
     fun onDifficultySelected(difficulty: Difficulty) {
-        viewModelScope.launch { settingsRepository.setDifficulty(difficulty) }
+        _difficulty.value = difficulty
     }
 
     /** The route to start a round with the current selection. */

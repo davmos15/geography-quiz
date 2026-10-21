@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasContentDescription
@@ -31,6 +32,7 @@ import com.geoquiz.app.ui.theme.GeographyQuizTheme
 import io.mockk.coVerify
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -133,26 +135,64 @@ class PlayScreenUiTest {
     }
 
     @Test
-    fun `New modes is absent by default`() {
-        launch(ScreenTestFixtures.playViewModel(extraModes = setOf(tapTheMap)))
+    fun `More ways to play is absent by default`() {
+        launch(ScreenTestFixtures.playViewModel(extraModes = setOf(tapMap)))
 
-        compose.onNode(hasText("New modes")).assertDoesNotExist()
+        compose.onNode(hasText("More ways to play")).assertDoesNotExist()
         compose.onNode(hasClickLabel("Open mode")).assertDoesNotExist()
     }
 
     @Test
-    fun `New modes shows an enabled mode and opens it`() {
+    fun `More ways to play shows an enabled mode on its page and opens it`() {
         val enabled = FeatureFlag.entries.map {
             FeatureFlagState(it, enabled = it == FeatureFlag.TAP_THE_MAP, overridden = it == FeatureFlag.TAP_THE_MAP)
         }
-        launch(ScreenTestFixtures.playViewModel(flagStates = flowOf(enabled), extraModes = setOf(tapTheMap)))
+        launch(ScreenTestFixtures.playViewModel(flagStates = flowOf(enabled), extraModes = setOf(tapMap)))
 
-        grid.performScrollToNode(hasText("New modes"))
-        compose.onNodeWithText("New modes").assertIsDisplayed()
+        grid.performScrollToNode(hasText("More ways to play"))
+        compose.onNodeWithText("More ways to play").assertIsDisplayed()
         grid.performScrollToNode(hasClickLabel("Open mode"))
         compose.onNode(hasClickLabel("Open mode")).performClick()
 
-        assertEquals(listOf("tap_the_map"), openedModes)
+        assertEquals(listOf("tap_map"), openedModes)
+    }
+
+    @Test
+    fun `Surprise me starts a random quiz of the selected classic mode`() {
+        launch()
+
+        grid.performScrollToNode(hasText("Surprise me"))
+        compose.onNodeWithText("Surprise me").assertIsDisplayed().performClick()
+
+        // Whichever candidate is drawn, it is a Countries category, never "All" (deterministic
+        // draws are covered by PlayViewModelTest).
+        assertEquals(1, quizzes.size)
+        assertEquals("countries", quizzes.single().first)
+        assertNotEquals("all", quizzes.single().second)
+    }
+
+    @Test
+    fun `Surprise me's TalkBack action names what it does, not the visible label, and is enabled once loaded`() {
+        launch()
+
+        grid.performScrollToNode(hasText("Surprise me"))
+        compose.onNode(hasText("Surprise me"))
+            .assertIsDisplayed()
+            .assertIsEnabled()
+            .assert(hasClickLabel("start a random quiz"))
+    }
+
+    @Test
+    fun `Surprise me on Flags starts a quiz of flags, not countries`() {
+        launch()
+
+        segment("Flags").performClick()
+        compose.waitForIdle()
+        grid.performScrollToNode(hasText("Surprise me"))
+        compose.onNodeWithText("Surprise me").performClick()
+
+        assertEquals(1, quizzes.size)
+        assertEquals("flags", quizzes.single().first)
     }
 
     @Test
@@ -184,35 +224,8 @@ class PlayScreenUiTest {
     }
 
     @Test
-    fun `Recommended next shows the mode, category and stars and starts that quiz in one tap`() {
-        launch(ScreenTestFixtures.playViewModel(savedQuiz = null))
-
-        val card = compose.onNode(hasText("Recommended next"))
-        card.assertIsDisplayed()
-            .assert(hasText("Countries: Africa"))
-            .assert(hasContentDescription("0 of 3 stars"))
-            .assert(hasClickLabel("Start quiz"))
-            .performClick()
-
-        assertEquals(listOf(Triple("countries", "region", "Africa")), quizzes)
-    }
-
-    @Test
-    fun `Recommended next names the stars earned`() {
-        val history = ScreenTestFixtures.quizHistoryRepository(
-            stars = { flowOf(mapOf("region|Africa" to 1, "region|Americas" to 1)) },
-            recentKeys = { flowOf(listOf("region|Africa")) }
-        )
-        launch(ScreenTestFixtures.playViewModel(savedQuiz = null, history = history))
-
-        compose.onNode(hasText("Recommended next"))
-            .assert(hasText("Countries: Americas"))
-            .assert(hasContentDescription("1 of 3 stars"))
-    }
-
-    @Test
     @Config(fontScale = 2f)
-    fun `at 200 percent text the top cards show in full and still work`() {
+    fun `at 200 percent text the top cards and Surprise me show in full and still work`() {
         val daily = FeatureFlag.entries.map {
             FeatureFlagState(it, enabled = it == FeatureFlag.DAILY_CHALLENGE, overridden = it == FeatureFlag.DAILY_CHALLENGE)
         }
@@ -222,13 +235,20 @@ class PlayScreenUiTest {
         grid.performScrollToNode(hasText("Continue"))
         compose.onNode(hasClickLabel("Resume quiz")).assertIsDisplayed()
         compose.onNodeWithContentDescription("Dismiss saved quiz").assertIsDisplayed()
-        grid.performScrollToNode(hasText("Recommended next"))
-        compose.onNode(hasText("Recommended next"))
-            .assertIsDisplayed()
-            .assert(hasText("Countries: Africa"))
-            .performClick()
+        grid.performScrollToNode(hasText("Surprise me"))
+        compose.onNodeWithText("Surprise me").assertIsDisplayed().performClick()
 
-        assertEquals(listOf(Triple("countries", "region", "Africa")), quizzes)
+        assertEquals(1, quizzes.size)
+        assertEquals("countries", quizzes.single().first)
+    }
+
+    @Test
+    @Config(qualifiers = "w360dp-h640dp", fontScale = 2f)
+    fun `at 200 percent text on a 360dp phone the All countries card shows its title and count`() {
+        launch()
+
+        compose.onNodeWithText("All countries").assertIsDisplayed()
+        compose.onNodeWithText("8 countries").assertIsDisplayed()
     }
 
     /** Every flag at its default except the daily challenge, which is switched off (D63 defaults it on). */
@@ -340,5 +360,5 @@ class PlayScreenUiTest {
         assertEquals(listOf(Triple("countries", "region", "Europe")), quizzes)
     }
 
-    private val tapTheMap = TestGameModes.flaggedMode("tap_the_map", FeatureFlag.TAP_THE_MAP, sortOrder = 10)
+    private val tapMap = TestGameModes.flaggedMode("tap_map", FeatureFlag.TAP_THE_MAP, sortOrder = 10)
 }

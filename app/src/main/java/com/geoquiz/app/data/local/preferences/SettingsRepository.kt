@@ -5,10 +5,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.geoquiz.app.di.SettingsStore
-import com.geoquiz.app.domain.model.Difficulty
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -47,18 +47,21 @@ class SettingsRepository @Inject constructor(
         prefs[SOUND_EFFECTS_KEY] ?: true
     }
 
-    /**
-     * The remembered default tier, preselected on the category list. Installs from before 3.2
-     * only had the `hard_mode` switch: on means [Difficulty.HARD], off or unset [Difficulty.NORMAL].
-     */
-    val difficulty: Flow<Difficulty> = dataStore.data.map { prefs -> difficultyFrom(prefs) }
-
     val playerName: Flow<String> = dataStore.data.map { prefs ->
         prefs[PLAYER_NAME_KEY] ?: ""
     }
 
     val adsRemoved: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[ADS_REMOVED_KEY] ?: false
+    }
+
+    /**
+     * The versionCode the one-off "What's new" screen (P10-F) last showed to this player, or
+     * `null` before that has ever been decided. Compared against [WHATS_NEW_VERSION] by
+     * `ui.whatsnew.WhatsNewViewModel`.
+     */
+    val whatsNewSeenVersion: Flow<Int?> = dataStore.data.map { prefs ->
+        prefs[WHATS_NEW_SEEN_VERSION_KEY]
     }
 
     suspend fun setShowTimer(show: Boolean) {
@@ -91,14 +94,6 @@ class SettingsRepository @Inject constructor(
         }
     }
 
-    /** Remembers [difficulty] as the default and drops the legacy `hard_mode` switch. */
-    suspend fun setDifficulty(difficulty: Difficulty) {
-        dataStore.edit { prefs ->
-            prefs[DIFFICULTY_KEY] = difficulty.id
-            prefs.remove(LEGACY_HARD_MODE_KEY)
-        }
-    }
-
     suspend fun setPlayerName(name: String) {
         dataStore.edit { prefs ->
             prefs[PLAYER_NAME_KEY] = name
@@ -111,21 +106,35 @@ class SettingsRepository @Inject constructor(
         }
     }
 
+    /** Records that the player has seen (or will never see) the "What's new" screen for [version]. */
+    suspend fun setWhatsNewSeenVersion(version: Int) {
+        dataStore.edit { prefs ->
+            prefs[WHATS_NEW_SEEN_VERSION_KEY] = version
+        }
+    }
+
     companion object {
+        /**
+         * The versionCode (18, 3.0.0) the current "What's new" content (`ui.whatsnew`) describes.
+         * A future release with new "What's new" content bumps this constant along with its
+         * content; a player who already saw an older version sees it again because their stored
+         * [whatsNewSeenVersion] is lower.
+         */
+        const val WHATS_NEW_VERSION = 18
         private val SHOW_TIMER_KEY = booleanPreferencesKey("show_timer")
         private val SHOW_FLAGS_KEY = booleanPreferencesKey("show_flags")
         private val SHOW_COUNTRY_HINT_KEY = booleanPreferencesKey("show_country_hint")
         private val VIBRATION_KEY = booleanPreferencesKey("vibration")
         private val SOUND_EFFECTS_KEY = booleanPreferencesKey("sound_effects")
-        private val DIFFICULTY_KEY = stringPreferencesKey("difficulty")
-        /** Replaced by [DIFFICULTY_KEY] in 3.2; only read to migrate the old setting. */
-        private val LEGACY_HARD_MODE_KEY = booleanPreferencesKey("hard_mode")
         private val PLAYER_NAME_KEY = stringPreferencesKey("player_name")
         /** Kept by "Reset all data" so a paying user never sees ads before Play restores the purchase. */
         val ADS_REMOVED_KEY = booleanPreferencesKey("ads_removed")
 
-        internal fun difficultyFrom(prefs: Preferences): Difficulty =
-            Difficulty.fromIdOrNull(prefs[DIFFICULTY_KEY])
-                ?: if (prefs[LEGACY_HARD_MODE_KEY] == true) Difficulty.HARD else Difficulty.DEFAULT
+        /**
+         * Kept by "Reset all data" for the same reason as [ADS_REMOVED_KEY] (D10): resetting a
+         * device is not the same as a fresh install, so it must not bring the "What's new" screen
+         * back for a player who already saw it, or show it to one who legitimately never will.
+         */
+        val WHATS_NEW_SEEN_VERSION_KEY = intPreferencesKey("whats_new_seen_version")
     }
 }

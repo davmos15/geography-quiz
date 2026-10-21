@@ -195,7 +195,6 @@ object NewModesScreenshotScreens {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         every { settingsRepository.showTimer } returns flowOf(true)
         every { settingsRepository.vibration } returns flowOf(true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         val completeQuiz = CompleteQuizUseCase(
             gameModes = GameModeRegistry(setOf(mode)),
             completedQuizRepository = FakeCompletedQuizRepository(),
@@ -254,8 +253,6 @@ object NewModesScreenshotScreens {
     fun silhouettesSetup(): @Composable () -> Unit {
         val countryRepository = mockk<CountryRepository>()
         every { countryRepository.getAllCountries() } returns flowOf(CategoryOptionsFixture.COUNTRIES)
-        val settingsRepository = mockk<SettingsRepository>(relaxed = true)
-        every { settingsRepository.difficulty } returns flowOf(Difficulty.NORMAL)
         val mode = SilhouettesGameMode(
             CountriesQuestionGenerator(
                 mockk<GetCountriesForQuizUseCase>(relaxed = true),
@@ -268,7 +265,6 @@ object NewModesScreenshotScreens {
         val viewModel = SilhouettesSetupViewModel(
             countryRepository = countryRepository,
             optionsBuilder = CategoryOptionsFixture.builder(),
-            settingsRepository = settingsRepository,
             silhouettesGameMode = mode
         )
         return { SilhouettesSetupScreen(onStart = {}, onNavigateBack = {}, viewModel = viewModel) }
@@ -379,8 +375,7 @@ object NewModesScreenshotScreens {
     // ---- Tap the map: setup screen ----------------------------------------------------------
 
     private fun tapMapSetupViewModel(): TapMapSetupViewModel = TapMapSetupViewModel(
-        savedStateHandle = SavedStateHandle(),
-        settingsRepository = ScreenTestFixtures.settingsRepository(difficulty = Difficulty.NORMAL)
+        savedStateHandle = SavedStateHandle()
     )
 
     /** Find selected (the default). */

@@ -3,18 +3,14 @@ package com.geoquiz.app.ui.usca
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.geoquiz.app.data.local.preferences.SettingsRepository
 import com.geoquiz.app.domain.mode.usca.UsCaRegionGroup
 import com.geoquiz.app.domain.mode.usca.UsCaRegionsCategory
 import com.geoquiz.app.domain.mode.usca.UsCaRegionsGameMode
 import com.geoquiz.app.domain.model.Difficulty
 import com.geoquiz.app.testutil.MainDispatcherRule
-import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -28,11 +24,6 @@ class UsCaRegionsSetupViewModelTest {
     @get:Rule
     val mainDispatcher = MainDispatcherRule()
 
-    private val difficultyFlow = MutableStateFlow(Difficulty.NORMAL)
-    private val settingsRepository = mockk<SettingsRepository>(relaxed = true) {
-        every { difficulty } returns difficultyFlow
-    }
-
     @Before
     fun setUp() {
         mockkStatic(Uri::class)
@@ -45,7 +36,7 @@ class UsCaRegionsSetupViewModelTest {
     }
 
     private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) =
-        UsCaRegionsSetupViewModel(handle, settingsRepository)
+        UsCaRegionsSetupViewModel(handle)
 
     @Test
     fun `defaults to US states with DC, the Tap variant and Normal`() = runTest {
@@ -101,10 +92,45 @@ class UsCaRegionsSetupViewModelTest {
         }
     }
 
+    /** P10-D2: three groups are offered (United States, Canada, Australia); switching to
+     * Australia is reflected in the state exactly like Canada. */
     @Test
-    fun `selecting a difficulty is remembered via SettingsRepository`() = runTest {
+    fun `switching group to Australia is reflected in the state`() = runTest {
         val vm = viewModel()
-        vm.onDifficultySelected(Difficulty.HARD)
-        coVerify { settingsRepository.setDifficulty(Difficulty.HARD) }
+        vm.uiState.test {
+            awaitItem()
+            vm.onGroupSelected(UsCaRegionGroup.AU_STATES)
+            val state = awaitItem()
+            assertEquals(UsCaRegionGroup.AU_STATES, state.group)
+        }
+    }
+
+    @Test
+    fun `every group is offered as a route value`() {
+        assertEquals(setOf("us", "ca", "au"), UsCaRegionGroup.entries.map { it.routeValue }.toSet())
+    }
+
+    @Test
+    fun `selecting Australia builds a start route carrying the Australian label`() = runTest {
+        val vm = viewModel()
+        vm.uiState.test { awaitItem() }
+        vm.onGroupSelected(UsCaRegionGroup.AU_STATES)
+        val route = vm.buildStartRoute()
+        assertTrue(route.contains(UsCaRegionsCategory.LABEL_AU))
+    }
+
+    @Test
+    fun `selecting a difficulty updates the state but is never persisted`() = runTest {
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitItem()
+            vm.onDifficultySelected(Difficulty.HARD)
+            assertEquals(Difficulty.HARD, awaitItem().difficulty)
+        }
+
+        // A fresh instance of this screen starts back at Normal (P10-G): nothing was persisted.
+        viewModel().uiState.test {
+            assertEquals(Difficulty.NORMAL, awaitItem().difficulty)
+        }
     }
 }

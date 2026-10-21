@@ -30,7 +30,7 @@ NEW WAYS TO PLAY
 • Country silhouettes: name the country from its outline, with optional hints.
 • Tap the map: find each country on a map of the world or one continent, or type them all and watch the map fill in.
 • Border hop: travel from one country to another through land borders in as few hops as you can.
-• US states and Canadian provinces: tap them on the map, name them all, or pick from four.
+• States and territories (US, Canada and Australia): tap them on the map, name them all, or pick from four.
 • Currencies: which country uses this currency?
 • Rivers, mountains and lakes: identify famous natural features highlighted on a map.
 • Flag speed round: 60 seconds of lookalike flags. How long can you keep your combo going?
@@ -42,7 +42,7 @@ DAILY CHALLENGE
 
 PLAY YOUR WAY
 • Three difficulty levels for every mode: Easy (four choices), Normal (type the answer) and Hard (exact spelling, three strikes, timer on).
-• Earn up to three mastery stars on every category, and practise just the ones you missed.
+• Track your best score on every category, and practise just the ones you missed.
 • Pin your favourite categories to the Play screen and pick up a paused quiz where you left off.
 • 38 achievements and leaderboards with Google Play Games.
 • Challenge a friend with a link to beat your score.
@@ -62,10 +62,10 @@ Length: about 2,360 characters (Play counts characters, not bytes).
 
 ```
 The biggest GeoQuiz update yet:
-• Seven new modes: Country silhouettes, Tap the map, Border hop, US states and Canadian provinces, Currencies, Rivers, mountains and lakes, and Flag speed round.
+• Seven new modes: Country silhouettes, Tap the map, Border hop, States and territories (US, Canada and Australia), Currencies, Rivers, mountains and lakes, and Flag speed round.
 • A daily challenge with streaks and a shareable score card.
-• Easy, Normal and Hard for every mode, plus mastery stars.
-• A new home screen with pins and recommendations.
+• Easy, Normal and Hard for every mode.
+• A new home screen with colourful categories, pins and a Surprise me button.
 • Typo-friendly answers, dark theme and large text support.
 ```
 (about 425 characters)

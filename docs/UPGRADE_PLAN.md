@@ -57,7 +57,7 @@ Each phase branches from `main` after the previous PR is merged. Dav tests the d
 
 ### Next session starts at
 
-> **Store listing update (new chat).** Phases 3–10 are on `main` (2026-10-22: `upgrade/p10-feedback` was fast-forwarded onto `main`, which also lands PRs #6–#12; D30's PR-by-PR merge was replaced by this push at Dav's request). Version is still 3.0.0 / versionCode 18 (D64).
+> **Store listing update (new chat).** Phases 3–10 are on `main` (2026-10-22: `upgrade/p10-feedback` was fast-forwarded onto `main`, so all of phases 3–9 are on `main` too; D30's PR-by-PR merge was replaced by this push at Dav's request. GitHub marked PR #6 merged; #7–#12 still show as open because their base was the previous phase branch, and can be closed as merged into `main`). Version is still 3.0.0 / versionCode 18 (D64).
 > Work in `docs/STORE_LISTING.md` and `store_assets/`:
 > 1. Rewrite the full description and "What's new in 3.0.0" for phase 10 (D67–D77): no "New modes" grid (modes sit under Countries and Flags in "More ways to play"), Surprise me, per-category colours, States and territories now covers the US, Canada and Australia, Border hop is map-based with typed hops, Currencies show the symbol only, difficulty always starts at Normal, no mastery stars or recommendations (already removed from the text in session 14; re-check). Keep the ≤ 80 / ≤ 4000 / ≤ 500 character limits and the L9 rules.
 > 2. Regenerate the phone screenshots with `StoreScreenshotTest` (D65; command in the session 13 log). Slots 01 and 02 (Play hub) and 07 (US states) are stale after phase 10; consider Border hop for a slot now that its fixture uses real countries, and an Australia shot for States and territories.

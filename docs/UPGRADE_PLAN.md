@@ -51,17 +51,18 @@ where you stopped, commit, and tell me to start a new session.
 | 8 | Engagement: daily challenge, streaks, share card, hints, game-feel | Done (merged) | `upgrade/p8-engagement` | #11 |
 | 9 | Release readiness | Done (merged) | `upgrade/p9-release` | #12 |
 | 10 | Device-test feedback (UI and quiz changes) | Done (merged) | `upgrade/p10-feedback` | pushed to `main` |
+| 11 | Store listing update (text, screenshots, release AAB) | Done – not committed | `upgrade/p11-store-listing` | – |
 
 Statuses: Not started, In progress, Done – not committed, Done – PR open, Done (merged).
 Each phase branches from `main` after the previous PR is merged. Dav tests the debug build on a device before merging.
 
 ### Next session starts at
 
-> **Store listing update (new chat).** Phases 3–10 are on `main` (2026-10-22: `upgrade/p10-feedback` was fast-forwarded onto `main`, so all of phases 3–9 are on `main` too; D30's PR-by-PR merge was replaced by this push at Dav's request. GitHub marked PR #6 merged; #7–#12 still show as open because their base was the previous phase branch, and can be closed as merged into `main`). Version is still 3.0.0 / versionCode 18 (D64).
-> Work in `docs/STORE_LISTING.md` and `store_assets/`:
-> 1. Rewrite the full description and "What's new in 3.0.0" for phase 10 (D67–D77): no "New modes" grid (modes sit under Countries and Flags in "More ways to play"), Surprise me, per-category colours, States and territories now covers the US, Canada and Australia, Border hop is map-based with typed hops, Currencies show the symbol only, difficulty always starts at Normal, no mastery stars or recommendations (already removed from the text in session 14; re-check). Keep the ≤ 80 / ≤ 4000 / ≤ 500 character limits and the L9 rules.
-> 2. Regenerate the phone screenshots with `StoreScreenshotTest` (D65; command in the session 13 log). Slots 01 and 02 (Play hub) and 07 (US states) are stale after phase 10; consider Border hop for a slot now that its fixture uses real countries, and an Australia shot for States and territories.
-> 3. Then the remaining owner items in `docs/STORE_LISTING.md` (flags to turn off, uploads) and the Play Console achievement text edits (D66, by hand). Build the release AAB from `main` (`assembleRelease`/`bundleRelease` were not run in phase 10) and upload to internal testing first.
+> **Ship 3.0.0 (Dav, mostly Play Console).** Session 15 finished the store listing on `upgrade/p11-store-listing`: text in `docs/STORE_LISTING.md` (D67–D77 covered), 8 regenerated screenshots in `store_assets/screenshots/`, and a release AAB built from this tree (`app/build/outputs/bundle/release/app-release.aab`, 3.0.0 / 18, upload key). Remaining:
+> 1. Merge `upgrade/p11-store-listing` into `main` (or open its PR) and close PRs #7–#12 as merged into `main`.
+> 2. Upload the AAB to internal testing, install it over the store version and run the upgrade test (session 13 checklist step 0).
+> 3. Paste the listing text, upload the icon, feature graphic and 8 screenshots (in file order), and hand-edit the 4 achievement texts (D66). Then the rest of the owner checklist in `docs/STORE_LISTING.md`.
+> 4. Optional code follow-ups: Border hop's button row is clipped by the map on a 360x640 dp phone (visible in `06_border_hop.png`); see the session 15 log.
 
 ---
 
@@ -251,7 +252,7 @@ Filled in by Phase 0 (session 1, 2026-10-07) and kept current. Agents read this 
 - Daily challenge rounds are always scored out of all 10 questions; `DailyChallengeGeneratorTest` pins three dates' exact output: if it fails, players' questions changed, so it needs a decision, not a golden update. `ObserveStreakUseCase.localDateTicks` re-reads the wall clock at least every 60 s.
 - Stats: Reset Statistics keeps `daily_challenge` rows (`QuizHistoryDao.deleteHistoryExceptMode`); By Mode comes from the registry; Highest Score is classic-only.
 - `GeographyQuizApplication.onTrimMemory`/`onLowMemory` clear the map path caches.
-- Store assets: `python generate_store_assets.py`, `python generate_achievements_zip.py` (Lato), phone screenshots via `./gradlew testReleaseUnitTest --tests "*StoreScreenshotTest" -Pgeoquiz.storeShots=true` (release variant, so the header shows the real app name; skipped otherwise) → `store_assets/screenshots/`. Listing text in `docs/STORE_LISTING.md`.
+- Store assets: `python generate_store_assets.py`, `python generate_achievements_zip.py` (Lato), phone screenshots via `./gradlew testReleaseUnitTest --tests "*StoreScreenshotTest" -Pgeoquiz.storeShots=true` (release variant, so the header shows the real app name; skipped otherwise) → `store_assets/screenshots/` (since session 15: 01 play, 02 play_more_ways, 03 quiz_countries, 04 tap_the_map, 05 silhouettes, 06 border_hop, 07 australia, 08 results; Easy was dropped by Dav). Listing text in `docs/STORE_LISTING.md`.
 - CI also checks that the bundled `assets/{border_hop,currencies,flag_speed,physical_features}` JSON copies match `data/` (`cmp`).
 
 **Room** (since Phase 2, task 2.1)
@@ -1248,3 +1249,19 @@ Each session appends one entry:
   - `assembleRelease`/store screenshots: not run this phase.
 - 2026-10-22 follow-up (Dav): Border hop is fine as is; currencies now shuffle each new round (D71). Committed and pushed to `main` (fast-forward; includes phases 3–9).
 - Next session starts at: the store listing update (see "Next session starts at" at the top). Still worth checking on a phone: pinch zoom in Rivers/mountains/lakes, 200% font and TalkBack on Border hop and What's new, dark theme.
+
+### Session 15 – 2026-10-22 – Store listing update (post-phase 10)
+- Scope (Dav: "finish things off" from the plan): the store listing items in the session 14 "Next session starts at". Branch `upgrade/p11-store-listing` from `main` (834fead).
+- Done:
+  - `docs/STORE_LISTING.md`: "More ways to play" heading, Border hop as a blank map with typed hops (D73), Currencies as "currency symbol" (D71), a Colourful tiles + Surprise me line (D68, D69), "More ways to play" in What's new. Re-checked: no stars, recommendations or default difficulty. Counts: short 79, full 2,493, What's new 468. Graphics table lists the new screenshots; owner checklist adds "close PRs #7–#12".
+  - Screenshots (Dav chose the lineup: drop Easy, add Border hop and Australia): 01 play, 02 play_more_ways, 03 quiz_countries (now ends on "Japan – Correct!", fixing the session 13 carry-over), 04 tap_the_map, 05 silhouettes, 06 border_hop, 07 australia, 08 results. `ScreenshotScreens.quizInProgress` gained an optional `answers` parameter (defaults unchanged, goldens unchanged). Old files with changed names deleted.
+- Seen in the screenshots, not changed (for Dav):
+  - `06_border_hop.png`: at 360x640 dp the one-pane layout clips the Give Up button under the map (the same cosmetic issue as session 14's open item). Replace the shot with a device capture or fix the layout if it bothers you.
+  - `05_silhouettes.png` shows "1 of 1" (the fixture has one silhouette); `01_play.png` says "8 countries" (fixture data). Both were already like this.
+- Process: the first background screenshot run was reaped by Claude Code's low-memory guard; after `./gradlew --stop` (Dav's OK) each build ran alone with the session kept active.
+- Verification:
+  - Store shots: `testReleaseUnitTest --tests "*StoreScreenshotTest" -Pgeoquiz.storeShots=true` passed, 8 PNGs at 1080x1920, each checked by eye.
+  - `verifyRoborazziDebug`: passed (14 min).
+  - `bundleRelease`: passed (19.5 min). `app-release.aab` 10.9 MB, versionCode 18 / 3.0.0, `jar verified`, signed by the upload key (SHA-256 `05:DE:14:…`). Nothing uploaded.
+  - Not re-run: `assembleDebug testDebugUnitTest lintDebug` (only a test fixture and docs changed; `verifyRoborazziDebug` compiled and ran the unit-test sources).
+- Next session starts at: see the top of this file.

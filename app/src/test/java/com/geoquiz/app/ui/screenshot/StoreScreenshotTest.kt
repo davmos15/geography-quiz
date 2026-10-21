@@ -32,7 +32,9 @@ import org.robolectric.annotation.GraphicsMode
 import java.io.File
 
 /**
- * Play Store listing screenshots (task 9.x, D65): eight plain, uncaptioned captures at
+ * Play Store listing screenshots (task 9.x, D65; lineup chosen by Dav after phase 10: Play,
+ * More ways to play, typed quiz, Tap the map, silhouettes, Border hop, Australian states, Results):
+ * eight plain, uncaptioned captures at
  * 1080x1920 px (portrait, xxhdpi), light theme only, written straight to
  * `<repo root>/store_assets/screenshots/NN_name.png`.
  *
@@ -46,7 +48,8 @@ import java.io.File
  * Every fixture is reused from the existing screenshot suites, so the same determinism and
  * real-asset flake guards (pre-warmed path caches, frozen clocks, seeded random) already written
  * there apply here: [ScreenshotScreens] for Play and the classic quiz, [NewModesScreenshotScreens]
- * for Tap the map and Country silhouettes, [NewModesBScreenshotScreens] for US states.
+ * for Tap the map and Country silhouettes, [NewModesBScreenshotScreens] for Border hop and
+ * Australian states.
  *
  * Run them on the **release** unit-test variant, so the header shows the real launcher name
  * (`src/debug/res` renames the app "GeoQuiz Debug"):
@@ -129,38 +132,39 @@ class StoreScreenshotTest {
     // ---- 02: Play, every mode on, "More ways to play" visible on the Countries page -------
 
     @Test
-    fun shot02_playNewModes() = shoot("02_play_new_modes", ScreenshotScreens.playAllModes()) {
+    fun shot02_playMoreWays() = shoot("02_play_more_ways", ScreenshotScreens.playAllModes()) {
         // Scroll to the Countries page's last "More ways to play" tile (task P10-A.5; Flag speed
         // round is on the Flags page instead, not shown by this shot).
         onNode(hasScrollAction()).performScrollToNode(hasText("States and territories"))
     }
 
-    // ---- 03: Classic typed quiz, mid-round --------------------------------------------------
+    // ---- 03: Classic typed quiz, mid-round, ending on a correct answer ----------------------
 
     @Test
-    fun shot03_quizCountries() = shoot("03_quiz_countries", ScreenshotScreens.quizInProgress(hardMode = false))
+    fun shot03_quizCountries() = shoot(
+        "03_quiz_countries",
+        ScreenshotScreens.quizInProgress(hardMode = false, answers = listOf("France", "Peru", "Narnia", "Japan"))
+    )
 
-    // ---- 04: Easy, multiple choice ----------------------------------------------------------
-
-    @Test
-    fun shot04_quizEasy() = shoot("04_quiz_easy", ScreenshotScreens.quizEasy())
-
-    // ---- 05: Tap the map, Find, mid-round ---------------------------------------------------
+    // ---- 04: Tap the map, Find, mid-round ---------------------------------------------------
 
     @Test
-    fun shot05_tapTheMap() = shoot("05_tap_the_map", NewModesScreenshotScreens.tapMapFind())
+    fun shot04_tapTheMap() = shoot("04_tap_the_map", NewModesScreenshotScreens.tapMapFind())
 
-    // ---- 06: Country silhouettes, mid-round -------------------------------------------------
-
-    @Test
-    fun shot06_silhouettes() = shoot("06_silhouettes", NewModesScreenshotScreens.silhouettesNormal())
-
-    // ---- 07: US states, tap the map, mid-round ------------------------------------------------
-    // Not Border hop: its screenshot fixture uses synthetic country codes ("Country DDD") for
-    // deterministic flags, which can't go on the store listing. The US map uses real regions.
+    // ---- 05: Country silhouettes, mid-round -------------------------------------------------
 
     @Test
-    fun shot07_usStates() = shoot("07_us_states", NewModesBScreenshotScreens.usCaTapMidRound())
+    fun shot05_silhouettes() = shoot("05_silhouettes", NewModesScreenshotScreens.silhouettesNormal())
+
+    // ---- 06: Border hop, Normal, one hop made and a suggestion showing ----------------------
+
+    @Test
+    fun shot06_borderHop() = shoot("06_border_hop", NewModesBScreenshotScreens.borderHopMidRound())
+
+    // ---- 07: States and territories, Australia, tap the map, mid-round ---------------------
+
+    @Test
+    fun shot07_australia() = shoot("07_australia", NewModesBScreenshotScreens.usCaTapMidRoundAu())
 
     // ---- 08: Results, a good (near-perfect) result ------------------------------------------
 

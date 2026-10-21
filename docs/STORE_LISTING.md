@@ -26,12 +26,12 @@ CLASSIC QUIZZES
 • Lots of categories: countries starting with, ending with or containing a letter, word patterns, name lengths, regions and subregions, island nations, and flags by colour, colour combination, number of colours or design element.
 • Forgiving typing: accents, "St" for "Saint", "&" for "and" and small typos are all understood at Normal difficulty.
 
-NEW WAYS TO PLAY
+MORE WAYS TO PLAY
 • Country silhouettes: name the country from its outline, with optional hints.
 • Tap the map: find each country on a map of the world or one continent, or type them all and watch the map fill in.
-• Border hop: travel from one country to another through land borders in as few hops as you can.
+• Border hop: get from one country to another on a blank map by typing each neighbouring country, in as few hops as you can.
 • States and territories (US, Canada and Australia): tap them on the map, name them all, or pick from four.
-• Currencies: which country uses this currency?
+• Currencies: which country uses this currency symbol?
 • Rivers, mountains and lakes: identify famous natural features highlighted on a map.
 • Flag speed round: 60 seconds of lookalike flags. How long can you keep your combo going?
 
@@ -42,6 +42,7 @@ DAILY CHALLENGE
 
 PLAY YOUR WAY
 • Three difficulty levels for every mode: Easy (four choices), Normal (type the answer) and Hard (exact spelling, three strikes, timer on).
+• Colourful category tiles for every quiz type, or tap Surprise me for a random category.
 • Track your best score on every category, and practise just the ones you missed.
 • Pin your favourite categories to the Play screen and pick up a paused quiz where you left off.
 • 38 achievements and leaderboards with Google Play Games.
@@ -56,7 +57,7 @@ MADE FOR EVERYONE
 Country data from mledoze/countries (ODbL). Maps made with Natural Earth. Flags from flag-icons (MIT). Full credits are in the app.
 ```
 
-Length: about 2,360 characters (Play counts characters, not bytes).
+Length: about 2,490 characters (Play counts characters, not bytes).
 
 ## What's new in 3.0.0 (≤ 500 characters)
 
@@ -65,10 +66,10 @@ The biggest GeoQuiz update yet:
 • Seven new modes: Country silhouettes, Tap the map, Border hop, States and territories (US, Canada and Australia), Currencies, Rivers, mountains and lakes, and Flag speed round.
 • A daily challenge with streaks and a shareable score card.
 • Easy, Normal and Hard for every mode.
-• A new home screen with colourful categories, pins and a Surprise me button.
+• A new home screen with colourful categories, More ways to play, pins and a Surprise me button.
 • Typo-friendly answers, dark theme and large text support.
 ```
-(about 425 characters)
+(about 470 characters)
 
 ## Graphics
 
@@ -76,7 +77,7 @@ The biggest GeoQuiz update yet:
 |---|---|---|
 | App icon 512x512 | `store_assets/play_store_icon_512.png` | `python generate_store_assets.py` (Lato) |
 | Feature graphic 1024x500 | `store_assets/feature_graphic_1024x500.png` | same |
-| Phone screenshots 1080x1920 | `store_assets/screenshots/*.png` | `StoreScreenshotTest` (D65; see the session 13 log for the command) |
+| Phone screenshots 1080x1920 | `store_assets/screenshots/*.png`: 01 Play, 02 More ways to play, 03 typed quiz, 04 Tap the map, 05 Country silhouettes, 06 Border hop, 07 Australian states, 08 Results (upload in this order) | `StoreScreenshotTest` (D65; see the session 13 log for the command) |
 | Achievement icons + import zip | `store_assets/achievements/`, `store_assets/achievements_import.zip` | `python generate_achievements_zip.py` (Lato) |
 
 ## Owner checklist for Dav (Phase 9 items from plan section 3)
@@ -95,4 +96,5 @@ Do these only after the RC passes the device test (session 13 manual checklist).
 - [ ] **Paste text:** the short description, full description and "What's new" (en-AU, plus en-US/en-GB if those listings exist).
 - [ ] **Content rating and Families:** new modes add no new content types. Re-confirm the questionnaire answers are unchanged (mixed audience, D1).
 - [ ] **Data safety:** no new data collected (streaks and daily results stay on the device; the share card is a local image). Confirm the form still matches.
+- [ ] **GitHub:** close PRs #7–#12 as merged into `main` (their commits reached `main` by the 2026-10-22 fast-forward).
 - [ ] Then upload the AAB (`app/build/outputs/bundle/release/app-release.aab`) to a testing track first.

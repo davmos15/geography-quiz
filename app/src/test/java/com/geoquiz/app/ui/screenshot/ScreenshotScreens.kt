@@ -62,13 +62,17 @@ object ScreenshotScreens {
     /**
      * A typed-answer quiz over [ScreenTestFixtures.EIGHT]: three named and one strike. At Hard
      * a final typo gets the "check the spelling" near-miss feedback; at Normal it is left out.
+     * [answers] overrides the typed sequence (the store shot ends on a correct answer instead).
      */
-    fun quizInProgress(hardMode: Boolean = true): @Composable () -> Unit {
+    fun quizInProgress(
+        hardMode: Boolean = true,
+        answers: List<String> = listOf("France", "Peru", "Japan", "Narnia") +
+            if (hardMode) listOf("Germnay") else emptyList()
+    ): @Composable () -> Unit {
         val viewModel = ScreenTestFixtures.QuizHarness(
             countries = ScreenTestFixtures.EIGHT,
             hardMode = hardMode
         ).viewModel
-        val answers = listOf("France", "Peru", "Japan", "Narnia") + if (hardMode) listOf("Germnay") else emptyList()
         answers.forEach {
             viewModel.onInputChange(it)
             viewModel.onSubmitAnswer()
